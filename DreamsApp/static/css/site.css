@@ -1,0 +1,39 @@
+ /* DREAMS PROJECT */
+
+ html, body{
+     width: 100%;
+     height: 100%;
+ }
+
+ .dp-center-vertical-parent{
+     display: flex;
+ }
+
+ .dp-center-vertical-child{
+     margin: auto;
+ }
+
+ .dp-center-horizontal{
+     text-align: center;
+ }
+
+ .dp-full-height{
+     height: 100% !important;
+ }
+
+ .dp-margin{
+     margin: 15px;
+ }
+
+ .dp-underline{
+     text-decoration: underline;
+ }
+
+ #dp-login-form{
+     margin-top: 20px;
+ }
+
+ .dp-header-medium{
+     font-size: large;
+     color: purple;
+ }
