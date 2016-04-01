@@ -18,7 +18,7 @@ class Woman(models.Model):
 
 
 class InterventionCategory(models.Model):
-    code = models.IntegerField(verbose_name='Intervention Category Code')
+    code = models.IntegerField(verbose_name='Intervention Category Code', default=0)
     name = models.CharField(max_length=30)
 
     def __str__(self):
@@ -60,6 +60,7 @@ class Intervention(models.Model):
     user = models.ForeignKey(User)
     intervention_type = models.ForeignKey(InterventionType, null=True)
     hiv_test_result = models.ForeignKey(HIVTestResult)
+    comment = models.TextField(max_length=256, null=True)
 
     def __str__(self):
         return '{}'.format(self.name)
