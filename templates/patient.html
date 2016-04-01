@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <!-- Beginning modal-->
+        <!-- Modal -->
+    <div class="modal fade" id="intervention-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel">NEW INTERVENTION</h4>
+                    <h5>For: {{ woman.first_name }} {{ woman.last_name }}</h5>
+              </div>
+              <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                      <label for="disabledSelect">Intervention Type</label>
+                      <select id="disabledSelect" class="form-control">
+                        <option>HCBF</option>
+                          <option>MHMC</option>
+                          <option>RESPECK-K</option>
+                          <option>SHUGA II</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group has-feedback">
+                        <label for="date-of-completion" class="control-label">Date of Completion:</label>
+                        <input type="text" class="form-control" id="date-of-completion" placeholder="Select date" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                        <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                      <script>
+                          $(function() {
+                            $( "#date-of-completion" ).datepicker();
+                          });
+                      </script>
+                    </div>
+                    <!--<div class="form-group">
+                        <label for="woman-recepient" class="control-label">Woman:</label>
+                        <input type="text" class="form-control" id="woman-recepient">
+                    </div>
+                    <div class="form-group">
+                        <label for="woman-recepient" class="control-label">Woman:</label>
+                        <input type="text" class="form-control" id="woman-recepient">
+                    </div>
+                    <div class="form-group">
+                        <label for="woman-recepient" class="control-label">Woman:</label>
+                        <input type="text" class="form-control" id="woman-recepient">
+                    </div>
+                    -->
+                      <div class="form-group">
+                        <label for="comments-text" class="control-label">Comments/Notes</label>
+                        <textarea class="form-control" id="comments-text"></textarea>
+                      </div>
+                        Updated by <strong>{{ woman.first_name }} {{ woman.last_name }}</strong> on {% now "d-m-Y" %}
+                    <div class="form-group">
+
+                    </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Save Intervention</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    <!-- End modal-->
+
+    <div class="row dp-margin">
+        <ul class="nav nav-tabs">
+            <li role="presentation" class="active"><a href="#behavioural-interventions" aria-controls="behavioural-interventions" role="tab" data-toggle="tab">BEHAVIOURAL INTERVENTIONS</a></li>
+            <li role="presentation"><a href="#biomedical-interventions" aria-controls="biomedical-interventions" role="tab" data-toggle="tab">BIO-MEDICAL INTERVENTIONS</a></li>
+            <li role="presentation"><a href="#post-gbv-care" aria-controls="post-gbv-care" role="tab" data-toggle="tab">POST-GBV CARE </a></li>
+            <li role="presentation"><a href="#social-protection" aria-controls="social-protection" role="tab" data-toggle="tab">SOCIAL PROTECTION </a></li>
+            <li role="presentation"><a href="#other-interventions" aria-controls="other-interventions" role="tab" data-toggle="tab">OTHER INTERVENTIONS </a></li>
+        </ul>
+        <div class="tab-content">
+              <div role="tabpanel" id="behavioural-interventions" class="tab-pane fade in active">
+
+
+
+                <h3>INTERVETIONS GIVEN</h3>
+                <p>Some content.</p>
+                  <div>
+                      <button class="btn btn-default" data-toggle="modal" data-target="#intervention-modal">Add Intervention</button>
+                  </div>
+
+
+
+              </div>
+              <div role="tabpanel" id="biomedical-interventions" class="tab-pane fade">
+                <h3>BIO-MEDICAL INTERVENTIONS</h3>
+                <p>Some content in menu 1.</p>
+              </div>
+              <div role="tabpanel" id="post-gbv-care" class="tab-pane fade">
+                <h3>POST-GBV CARE</h3>
+                <p>Some content in menu 2.</p>
+              </div>
+            <div role="tabpanel" id="social-protection" class="tab-pane fade">
+                <h3>SOCIAL PROTECTION</h3>
+                <p>Some content in menu 2.</p>
+              </div>
+            <div role="tabpanel" id="other-interventions" class="tab-pane fade">
+                <h3>OTHER INTERVENTIONS</h3>
+                <p>Some content in menu 2.</p>
+              </div>
+        </div>
+    </div>
+
+
+{% endblock %}

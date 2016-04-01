@@ -17,7 +17,9 @@ def index(request):
             user = authenticate(username=user_name, password=pass_word)
             if user is not None:
                 if user.is_active:
-                    return HttpResponse("Login Successful, active and authenticated")
+                    patients = User.objects.all(); # filter to get patients only. Not yet done
+                    context = {'woman': user, 'patients': patients}
+                    return render(request, 'dashboard.html', context)
                 else:
                     return HttpResponse("Login Successful, but the account has been disabled!")
             else:
@@ -25,5 +27,24 @@ def index(request):
     else:
         return render(request, 'index.html')
 
+
 def dashboard(request):
-    pass
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            context = {'user':request.user}
+            return render(request, 'dashboard.html', context)
+        else:
+            return render(request, 'index.html')
+    except:
+        return render(request, 'index.html')
+
+
+def patient(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            return render(request, 'patient.html')
+        else:
+            return render(request, 'index.html')
+    except:
+        return render(request, 'index.html')
+
