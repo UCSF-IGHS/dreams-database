@@ -22,4 +22,6 @@ urlpatterns = [
     url(r'^dashboard', views.dashboard),
     url(r'^patient', views.patient),
     url(r'^admin/', admin.site.urls),
+    url(r'^ivgetTypes/', views.getInterventionTypes),
+    url(r'^intervention/$', views.intervention),
 ]

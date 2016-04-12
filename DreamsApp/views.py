@@ -50,6 +50,9 @@ def patient(request):
     except:
         return render(request, 'index.html')
 
+def intervention(request):
+    return render(request, 'testAjax.html')
+
 
 def getInterventionTypes(request):
     # Handles post request for intervention types.
@@ -60,9 +63,9 @@ def getInterventionTypes(request):
 
         # Get category by code and gets all related types
         i_category = InterventionCategory.objects.get(code__exact=category_code)
-        i_types = i_category.entry_set.all()
+        i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id)  # i_category.entry_set.all()
         i_types = serializers.serialize('json', i_types)
-        response_data["i_types"] = i_types
+        response_data["itypes"] = i_types
         return JsonResponse(response_data)
 
     else:
