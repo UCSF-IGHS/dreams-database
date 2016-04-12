@@ -21,7 +21,7 @@ class InterventionTypeAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 admin.site.register(InterventionType, InterventionTypeAdmin)
-
+admin.site.register(HTSResult)
+admin.site.register(PregnancyTestResult)
 admin.site.register(Intervention)
 
-admin.site.register(HIVTestResult)
