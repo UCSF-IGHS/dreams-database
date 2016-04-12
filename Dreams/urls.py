@@ -22,4 +22,6 @@ urlpatterns = [
     url(r'^clients', views.clients),
     url(r'^client', views.client_profile),
     url(r'^admin/', admin.site.urls),
+    url(r'^ivgetTypes/', views.getInterventionTypes),
+    url(r'^intervention/$', views.testajax),
 ]

@@ -86,3 +86,4 @@ class Intervention(models.Model):
     class Meta:
         verbose_name = 'Intervention'
         verbose_name_plural = 'Interventions'
+

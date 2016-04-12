@@ -1,9 +1,9 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-from django.http import JsonResponse
-import json # this is for non-query sets
-from django.core import serializers  # this is for query set
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.core import serializers
+from django.contrib.auth.models import User
+import json
+
 from django.contrib.auth import authenticate
 from django.db.models import Q
 from DreamsApp.models import *
@@ -22,6 +22,7 @@ def index(request):
             if user is not None:
                 if user.is_active:
                     return HttpResponseRedirect('/clients')
+
                 else:
                     return HttpResponse("Login Successful, but the account has been disabled!")
             else:
@@ -66,3 +67,23 @@ def client_profile(request):
     return render(request, 'index.html')
 
 
+def testajax(request):
+    return render(request, 'testAjax.html')
+
+
+def getInterventionTypes(request):
+    # Handles post request for intervention types.
+    # Receives category_code from request and searches for types in the database
+    if request.method == 'POST':
+        response_data = {}
+        category_code = request.POST.get('category_code')
+
+        # Get category by code and gets all related types
+        i_category = InterventionCategory.objects.get(code__exact=category_code)
+        i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id)  # i_category.entry_set.all()
+        i_types = serializers.serialize('json', i_types)
+        response_data["itypes"] = i_types
+        return JsonResponse(response_data)
+
+    else:
+        return HttpResponse("You issued bad request")
