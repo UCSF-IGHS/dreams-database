@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+
+    <div class="row" style="padding-left: 0px;margin-left: 0px;">
+        <div class="col-md-6" style="padding-left: 0px; margin-left: 0px;">
+            <form method="post" action="dashboard">
+                {% csrf_token %}
+
+                <div class="input-group" id="adv-search" style="padding-left: 0px; margin-left: 0px;">
+                    <input type="text" id="search-term-default" class="form-control" placeholder="Search for client by name or DREAMS ID" />
+                    <div class="input-group-btn">
+                        <div class="btn-group" role="group">
+                            <button id="sumbitDefaultNameSearch" type="submit" class="btn btn-primary">Find <span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <br>
+
+    <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
+            <div class="panel-body" style="margin: 0px;padding: 0px;">
+                <table class="table table-striped dp-patient-table" id="dp-patient-list">
+                    <thead>
+                      <th>DREAMS ID</th>
+                        <th>Name</th>
+                        <th>Date of Enrollment</th>
+                    </thead>
+                    <tbody id="dp-patient-list-body">
+                        {% for client in clients %}
+                        <tr onclick="window.location='/client?client_id={{ client.id }}' "style="cursor: pointer;">
+                            <td>{{ client.id}}</td>
+                            <td>{{ client.first_name }} {{ client.last_name }} {{ client.middle_name }}</td>
+                            <td>{{ client.date_of_birth }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+    </div>
+
+{% endblock %}

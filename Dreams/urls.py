@@ -19,7 +19,7 @@ from DreamsApp import views
 
 urlpatterns = [
     url(r'^$', views.index),
-    url(r'^dashboard', views.dashboard),
-    url(r'^patient', views.patient),
+    url(r'^clients', views.clients),
+    url(r'^client', views.client_profile),
     url(r'^admin/', admin.site.urls),
 ]
