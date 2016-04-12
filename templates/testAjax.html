@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block pageJs %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#i_types').change(function () {
+
+                fetchRelatedInterventions();
+            });
+        });
+
+//For getting CSRF token
+function getCookie(name) {
+       var cookieValue = null;
+       if (document.cookie && document.cookie != '') {
+         var cookies = document.cookie.split(';');
+         for (var i = 0; i < cookies.length; i++) {
+         var cookie = jQuery.trim(cookies[i]);
+         // Does this cookie string begin with the name we want?
+         if (cookie.substring(0, name.length + 1) == (name + '=')) {
+             cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+             break;
+          }
+     }
+ }
+ return cookieValue;
+}
+
+    function fetchRelatedInterventions() {
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+        url : "/ivgetTypes/", // the endpoint
+        type : "POST", // http method
+        dataType: 'json',
+        data : {
+            csrfmiddlewaretoken : csrftoken,
+            category_code : $('#i_types').val()
+        },
+        success : function(data) {
+
+            var categories = $.parseJSON(data.itypes);
+
+            var combo = $("<select></select>").attr("id", 'category').attr("name", 'categories');
+
+            $('#results').empty();
+            $.each(categories, function(){
+                combo.append($("<option />").attr("value", this.pk).text(this.fields.name));
+                console.log(this.fields.name);
+            });
+            $('#results').append(combo);
+
+        },
+
+        // handle a non-successful response
+        error : function(xhr,errmsg,err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+        }
+    });
+    }
+
+    </script>
+
+
+
+{% endblock %}
+
+{% block content %}
+    <h3>Loading Interventions</h3>
+
+    <hr/>
+    <div id="types">
+        <form method="post">
+            {% csrf_token %}
+            <select id="i_types">
+                <option value="0">Select Intervention</option>
+                <option value="1001">Behavioral</option>
+                <option value="2001">Bio-Medical</option>
+                <option value="3001">Post GBV Care</option>
+                <option value="4001">Social Protection</option>
+                <option value="5001">Other Interventions</option>
+
+            </select>
+        </form>
+
+        <div id="results"></div>
+    </div>
+
+{% endblock %}
