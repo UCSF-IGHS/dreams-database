@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="dataSourceStorageLocal">
-    <data-source name="SQLite -DreamsDB" uuid="ccc1615f-63c7-48b2-bcca-5fb37b2023d3">
-      <secret-storage>master_key</secret-storage>
-    </data-source>
-  </component>
-</project>
