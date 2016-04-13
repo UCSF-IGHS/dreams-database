@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime
 
 
 class Woman(models.Model):
@@ -34,8 +35,10 @@ class InterventionType(models.Model):
     code = models.IntegerField(verbose_name='Intervention Type Code', default=0, null=False, blank=False)
     name = models.CharField(max_length=30, null=False)
     intervention_category = models.ForeignKey(InterventionCategory, null=False, blank=False)
-    has_hts_result = models.BooleanField(default=False);
-    has_pregnancy_result = models.BooleanField(default=False)
+    has_hts_result = models.BooleanField(default=False, verbose_name='Intervention collects HTS Result')
+    has_pregnancy_result = models.BooleanField(default=False, verbose_name='Intervention collects Pregnancy Result')
+    has_ccc_number = models.BooleanField(default=False, verbose_name='Intervention collects CCC details')
+    has_no_of_sessions = models.BooleanField(default=False, verbose_name='Intervention collects No. of sessions')
 
     def __str__(self):
         return '{}'.format(self.name)
@@ -71,7 +74,6 @@ class PregnancyTestResult(models.Model):
 class Intervention(models.Model):
     intervention_date = models.DateField()
     client = models.ForeignKey(Woman)
-    user = models.ForeignKey(User)
     intervention_type = models.ForeignKey(InterventionType, null=True, blank=True)
     hts_result = models.ForeignKey(HTSResult, null=True, blank=True)
     pregnancy_test_result = models.ForeignKey(PregnancyTestResult, null=True, blank=True)
@@ -79,6 +81,11 @@ class Intervention(models.Model):
     date_linked_to_ccc = models.DateField(blank=True, null=True)
     no_of_sessions_attended = models.IntegerField(null=True, blank=True)
     comment = models.TextField(max_length=256, null=True, blank=True)
+    date_created = models.DateTimeField(default=datetime.now, blank=True, null=True)
+    created_by = models.ForeignKey(User, null=True, related_name='created_by')
+    date_changed = models.DateTimeField(null=True, blank=True)
+    changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
+
 
     def __str__(self):
         return '{}'.format(self.name)
