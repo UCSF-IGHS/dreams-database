@@ -38,7 +38,7 @@ $(document).ready(function () {
             },
             success : function(data) {
                 interventionTypes = $.parseJSON(data.itypes); // Gloabal variable
-
+                console.log(interventionTypes)
                 var combo = $('#intervention-type-select');
                 combo.empty();
                 combo.append($("<option />").attr("value", '').text('Select Intervention').addClass('selected disabled hidden').css({display:'none'}));
@@ -58,11 +58,99 @@ $(document).ready(function () {
         });
     }
 
-    function hideSection(hide, elementId) {
-        if(hide)
+    function showSection(show, elementId) {
+        if(show)
             $(elementId).removeClass('hidden')
         else
             $(elementId).addClass('hidden')
+    }
+
+    $('.validate-intervention-form-field').change(function () {
+
+
+
+        // If you are here... No validation errors... Submit form
+            
+    })
+
+    function validateInterventionEntryForm() {
+        // validate form
+        var validation_errors_array =  $.merge([], validateInterventionType()) // validate intervention type is selected
+        validation_errors_array = $.merge(validation_errors_array, validateDateField())
+
+        // validate required select options
+        // hts result
+        if(currentInterventionType_Global.fields.has_hts_result == true)
+            validation_errors_array = $.merge(validation_errors_array, validateSelectOption('HTS Test Result option ', "#hts-result-select"))
+
+        //  pregnancy test
+        if(currentInterventionType_Global.fields.has_pregnancy_result == true)
+            validation_errors_array = $.merge(validation_errors_array, validateSelectOption('Pregnancy Test Result option ', "#pregnancy-result-select"))
+
+        // ccc number
+        if(currentInterventionType_Global.fields.has_ccc_number == true)
+            validation_errors_array = $.merge(validation_errors_array, validateTextInput('CCC Number ', "#ccc-number"))
+
+        // number of sessions
+        if(currentInterventionType_Global.fields.has_no_of_sessions == true)
+            validation_errors_array = $.merge(validation_errors_array, validateTextInput('Number of Sessions attended ', "#number-of-ss-sessions-attended"))
+
+        // check for errors
+        if(validation_errors_array.length > 0){
+            // show validation errors
+            $('#error-space').html("");
+            var textMessage = ""
+            $.each(validation_errors_array, function (index, err_messages) {
+                textMessage +=  "* " + err_messages + "</br>"
+            })
+            $('#error-space').html(textMessage);
+            // And return
+            return false
+        }
+        return true;
+    }
+
+    function validateInterventionType() {
+        var current_intervention_id = $('#intervention-type-select').val();
+        if(current_intervention_id == null || current_intervention_id == 0)
+            return ["Intervention Type is Invalid or NOT Selected"]
+        $.each(interventionTypes, function (index, objectVal) {
+            if(objectVal.pk == current_intervention_id){
+                currentInterventionType_Global = objectVal
+                return false
+            }
+        })
+
+        return []
+    }
+    
+    function validateDateField() {
+        var selected_date_string = $('#date-of-completion').val();
+
+        if(selected_date_string == null || selected_date_string == "")
+            return ["Intervention Date not Entered"]
+        var split_date_string_array = selected_date_string.split('/') // MM, DD, YYYY
+        var selected_date_object = new Date(parseInt(split_date_string_array[2]) , parseInt(split_date_string_array[0]) -1 , parseInt(split_date_string_array[1]))
+        if(selected_date_object > new Date())
+            return ["Intervention Date cannot be later than Today"]
+
+        return []
+    }
+    
+    function validateSelectOption(labelData, selectInputId) {
+        var option_val = $(selectInputId).val();
+        if (option_val == null || option_val == 0 || option_val == "")
+            return [labelData + " is required"]
+
+        return []
+    }
+
+    function validateTextInput(labelData, textInputId) {
+        var option_val = $(textInputId).val();
+        if (option_val == null || option_val == "")
+            return [labelData + " is required"]
+
+        return []
     }
 
     $('#intervention-type-select').change(function () {
@@ -71,16 +159,57 @@ $(document).ready(function () {
         // search global variable
         $.each(interventionTypes, function (index, type) {
             if(currentInterntionId == type.pk){
-                hideSection(type.fields.has_hts_result || type.fields.has_pregnancy_result, '#date_of_completion_section')
-                hideSection(type.fields.has_hts_result, '#hts_test_section')
-                hideSection(type.fields.has_hts_result, '#linkage_date_section')
-                hideSection(type.fields.has_hts_result, '#ccc_number_section')
-                hideSection(type.fields.has_pregnancy_result, '#pregnancy_test_section')
-                //hideSection(type.fields.has_pregnancy_result, '#sessions_attended_section') // Modification from this point to take care of other sections
+                // intervention type // naming
+                showSection(true, '#intervention_date_section')
+                showSection(type.fields.has_hts_result, '#hts_result_section')
+                // hts result
+                // ccc number
+                showSection(type.fields.has_ccc_number, '#ccc_number_section')
+                // pregnancy
+                showSection(type.fields.has_pregnancy_result, '#pregnancy_test_section')
+                // number of sessions
+                showSection(type.fields.has_no_of_sessions, '#no_of_sessions_section')
+                // notes
+                showSection(true, '#notes_section')
 
+                return false
             }
         })
     })
+
+
+    $('#btn_save_intervention').click(function (event) {
+
+        event.preventDefault()
+
+        // validate form
+        if(!validateInterventionEntryForm())
+            return false
+
+        // Proceed and submit form
+        alert("Safe to submit form")
+
+        // do an ajax post
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : "/ivSave/", // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data:$('#intervention-entry-form').serialize(),
+            success : function(data) {
+                // Close dialog and update view
+                
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+
+    });
 });
 
 
