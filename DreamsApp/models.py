@@ -33,7 +33,7 @@ class InterventionCategory(models.Model):
 
 class InterventionType(models.Model):
     code = models.IntegerField(verbose_name='Intervention Type Code', default=0, null=False, blank=False)
-    name = models.CharField(max_length=30, null=False)
+    name = models.CharField(max_length=100, null=False)
     intervention_category = models.ForeignKey(InterventionCategory, null=False, blank=False)
     has_hts_result = models.BooleanField(default=False, verbose_name='Intervention collects HTS Result')
     has_pregnancy_result = models.BooleanField(default=False, verbose_name='Intervention collects Pregnancy Result')
@@ -88,7 +88,7 @@ class Intervention(models.Model):
     changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
 
     def __str__(self):
-        return '{} {}'.format(self.intervention_type, self.intervention_date)
+        return '{} {} {}'.format(self.intervention_date, self.intervention_type, self.created_by)
 
     class Meta:
         verbose_name = 'Intervention'

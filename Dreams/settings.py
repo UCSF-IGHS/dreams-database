@@ -125,3 +125,8 @@ TEMPLATE_DIRS = (
     os.path.join(BASE_DIR,  'templates'),
     'DreamsApp',
 )
+
+# Fixture dir. Contains path to json file used at migration
+# Use manage.py loaddata fixture-name
+# e.g manage.py loaddata initial_data.json
+FIXTURE_DIRS = ()
