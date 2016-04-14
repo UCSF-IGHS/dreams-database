@@ -713,7 +713,7 @@
     "pk": 1,
     "fields": {
       "code": 101,
-      "name": "Negative"
+      "name": "Not Pregnant"
     }
   },
   {
@@ -721,7 +721,7 @@
     "pk": 2,
     "fields": {
       "code": 102,
-      "name": "Positive"
+      "name": "Pregnant"
     }
   },
   {
