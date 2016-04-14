@@ -99,7 +99,7 @@ def saveIntervention(request):
     # Determine if request is for save or edit
 
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
-        intervention_type_code = int(request.POST.get('intervention_type_id'))
+        intervention_type_code = int(request.POST.get('intervention_type_code'))
         if intervention_type_code is not None and type(intervention_type_code) is int:
             try:
                 i_type = InterventionType.objects.get(code__exact=intervention_type_code)
