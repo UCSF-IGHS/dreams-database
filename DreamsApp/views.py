@@ -1,5 +1,7 @@
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, HttpResponseServerError
+import traceback
+from django.core.exceptions import *
 from django.core.urlresolvers import reverse
 from django.core import serializers
 from django.contrib.auth.models import User
@@ -95,39 +97,40 @@ def getInterventionTypes(request):
 def saveIntervention(request):
 
     # if request.user is not None and request.user.is_authenticated() and request.method == 'POST':
-    if request.method == 'POST':
-        intervention_type_id = request.POST.get('intervention_type_id')
-        if intervention_type_id is not None:
-            i_type = InterventionType.objects.get(id__exact=intervention_type_id)
-            intervention = Intervention()
-            intervention.client = request.POST.get('client')
-            intervention.intervention_type = intervention_type_id
-            intervention.intervention_date = request.POST.get('intervention_date')
-            intervention.created_by = request.POST.get('created_by')
-            intervention.date_created = datetime.now()
-            intervention.comment = request.POST.get('comment')
+    if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
+        intervention_type_id = int(request.POST.get('intervention_type_id'))
+        if intervention_type_id is not None and type(intervention_type_id) is int:
+            try:
+                i_type = InterventionType.objects.get(id__exact=intervention_type_id)
+                intervention = Intervention()
+                intervention.client = Woman.objects.get(id__exact=int(request.POST.get('client')))
+                intervention.intervention_type = InterventionType.objects.get(id__exact=intervention_type_id)
+                intervention.intervention_date = request.POST.get('intervention_date')
+                intervention.created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
+                intervention.date_created = datetime.now()
+                intervention.comment = request.POST.get('comment')
 
-            if i_type.has_hts_result:
-                intervention.hts_result = request.POST.get('hts_result')
+                if i_type.has_hts_result:
+                    intervention.hts_result = HTSResult.objects.get(id__exact=int(request.POST.get('hts_result')))
 
-            if i_type.has_pregnancy_result:
-                intervention.pregnancy_test_result = request.POST.get('pregnancy_test_result')
+                if i_type.has_pregnancy_result:
+                    intervention.pregnancy_test_result = PregnancyTestResult.objects.get(id__exact=int(request.POST.get('pregnancy_test_result')))
 
-            if i_type.has_ccc_number:
-                intervention.client_ccc_number = request.POST.get('client_ccc_number')
+                if i_type.has_ccc_number:
+                    intervention.client_ccc_number = request.POST.get('client_ccc_number')
 
-            if i_type.has_no_of_sessions:
-                intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
+                if i_type.has_no_of_sessions:
+                    intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
-            intervention.save()
-            return HttpResponse('All was well')
+                intervention.save()
+                return HttpResponse('Intervention was added successfully')
+            except Exception as e:
+                tb = traceback.format_exc()
+                return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
         else:
-            return HttpResponse('Intervention requires ID')
+            return HttpResponseServerError('Invalid Intervention Type')
     else:
-        return HttpResponse('Uknown Request')
-
-
-
+        return PermissionDenied('Operation not allowed. [Missing Permissions]')
 
 
 
