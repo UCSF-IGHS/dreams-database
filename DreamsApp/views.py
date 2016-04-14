@@ -94,9 +94,10 @@ def getInterventionTypes(request):
 
 # use /ivSave/ to post to the method
 # Gets intervention_type_id,  from request
-def saveIntervention(request):
+def saveEditIntervention(request):
 
-    # if request.user is not None and request.user.is_authenticated() and request.method == 'POST':
+    # Determine if request is for save or edit
+
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
         intervention_type_id = int(request.POST.get('intervention_type_id'))
         if intervention_type_id is not None and type(intervention_type_id) is int:
@@ -123,7 +124,12 @@ def saveIntervention(request):
                     intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
                 intervention.save()
-                return HttpResponse('Intervention was added successfully')
+                # construct response
+                response_data = {}
+                response_data['intervention_type'] = i_type  # to provide intervention type details
+                response_data['intervention'] = intervention # to provide information about saved intervention
+
+                return JsonResponse(serializers.serialize('json', response_data))
             except Exception as e:
                 tb = traceback.format_exc()
                 return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
