@@ -26,6 +26,16 @@ $(document).ready(function () {
         fetchRelatedInterventions(interventionCategoryCode)
     })
 
+    $('#filter').keyup(function () {
+
+        var rex = new RegExp($(this).val(), 'i');
+        $('.searchable tr').hide();
+        $('.searchable tr').filter(function () {
+            return rex.test($(this).text());
+        }).show();
+
+    })
+
     function fetchRelatedInterventions(interventionCategoryCode) {
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -153,6 +163,22 @@ $(document).ready(function () {
         return []
     }
 
+    function updateInterventionEntryInView(intervention, code) {
+        switch (code){
+            case 1001:
+                $('#interventions_1001_table').prepend("<tr><td>" + intervention.intervention_type + "</td><td>" + intervention.date_of_completion +  "</td><td> "+ intervention.notes + "</td><td>View/Edit</td></tr>")
+                break;
+            case 2002:
+                break;
+            case 3003:
+                break;
+            case 4004:
+                break;
+            case 5005:
+                break;
+        }
+    }
+    
     $('#intervention-type-select').change(function () {
         // get selected option id
         var currentInterntionId = $('#intervention-type-select').val();
@@ -186,9 +212,21 @@ $(document).ready(function () {
         if(!validateInterventionEntryForm())
             return false
 
-        // Proceed and submit form
-        alert("Safe to submit form")
+        // this is an object returned from the server
+        var intervention = {
+            'id' : 1,
+            'intervention_type': "HTS Test",
+            'date_of_completion': '14/04/2016',
+            'hts_result' : 'Known Positive',
+            'ccc_number':32324,
+            'pregnancy_result':'',
+            'notes': 'This should get keen followup'
+        }
 
+        $('#intervention-modal').modal('hide');
+        updateInterventionEntryInView(intervention);
+
+        /*  Restore for actual entry
         // do an ajax post
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -198,7 +236,7 @@ $(document).ready(function () {
             data:$('#intervention-entry-form').serialize(),
             success : function(data) {
                 // Close dialog and update view
-                
+                $('#intervention-modal').modal('hide');
             },
 
             // handle a non-successful response
@@ -208,6 +246,7 @@ $(document).ready(function () {
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
             }
         });
+        */
 
     });
 });
