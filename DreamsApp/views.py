@@ -94,7 +94,7 @@ def getInterventionTypes(request):
 
 # use /ivSave/ to post to the method
 # Gets intervention_type_id,  from request
-def saveEditIntervention(request):
+def saveIntervention(request):
 
     # Determine if request is for save or edit
 
