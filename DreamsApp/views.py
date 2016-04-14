@@ -99,23 +99,23 @@ def saveIntervention(request):
     # Determine if request is for save or edit
 
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
-        intervention_type_id = int(request.POST.get('intervention_type_id'))
-        if intervention_type_id is not None and type(intervention_type_id) is int:
+        intervention_type_code = int(request.POST.get('intervention_type_id'))
+        if intervention_type_code is not None and type(intervention_type_code) is int:
             try:
-                i_type = InterventionType.objects.get(id__exact=intervention_type_id)
+                i_type = InterventionType.objects.get(code__exact=intervention_type_code)
                 intervention = Intervention()
                 intervention.client = Woman.objects.get(id__exact=int(request.POST.get('client')))
-                intervention.intervention_type = InterventionType.objects.get(id__exact=intervention_type_id)
+                intervention.intervention_type = i_type
                 intervention.intervention_date = request.POST.get('intervention_date')
                 intervention.created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
                 intervention.date_created = datetime.now()
                 intervention.comment = request.POST.get('comment')
 
                 if i_type.has_hts_result:
-                    intervention.hts_result = HTSResult.objects.get(id__exact=int(request.POST.get('hts_result')))
+                    intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
 
                 if i_type.has_pregnancy_result:
-                    intervention.pregnancy_test_result = PregnancyTestResult.objects.get(id__exact=int(request.POST.get('pregnancy_test_result')))
+                    intervention.pregnancy_test_result = PregnancyTestResult.objects.get(code__exact=int(request.POST.get('pregnancy_test_result')))
 
                 if i_type.has_ccc_number:
                     intervention.client_ccc_number = request.POST.get('client_ccc_number')
@@ -137,6 +137,12 @@ def saveIntervention(request):
             return HttpResponseServerError('Invalid Intervention Type')
     else:
         return PermissionDenied('Operation not allowed. [Missing Permissions]')
+
+# method for viewing and editing and intervention
+def viewIntervention(request):
+    if request.method == 'GET' and request.user is not None and request.user.is_authenticated():
+        if 'intervention_id' not in request.GET.keys():
+            return HttpResponseServerError('Invalid Request')
 
 
 
