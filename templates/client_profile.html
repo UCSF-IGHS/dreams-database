@@ -25,14 +25,15 @@
 
                     <div class="form-group">
                       <label for="intervention-type-select">Intervention Type</label>
-                      <select id="intervention-type-select" name="intervention_type_id" class="form-control validate-intervention-form-field" >
+                      <select id="intervention-type-select" name="intervention_type_code" class="form-control validate-intervention-form-field" >
                       </select>
                     </div>
 
 
                     <div class="form-group has-feedback hidden" id="intervention_date_section">
                         <label for="date-of-completion" class="control-label">Date of Completion:</label>
-                        <input type="text" class="form-control validate-intervention-form-field" id="date-of-completion" name="intervention_date" placeholder="Select date of completion" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                        <input type="text" class="form-control validate-intervention-form-field" id="date-of-completion"  placeholder="Select date of completion" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                        <input type="text" class="form-control validate-intervention-form-field hidden" id="date-of-completion-formatted" name="intervention_date">
                         <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                       <script>
                           $(function() {
@@ -46,10 +47,10 @@
                       <label for="intervention-type-select">HTS Test Result</label>
                       <select id="hts-result-select" name="hts_result" class="form-control validate-intervention-form-field">
                           <option value="">Select Option</option>
-                          <option value="Negative">Negative</option>
-                          <option value="Positive">Positive</option>
-                          <option value="Known Positive">Known Positive</option>
-                          <option value="Linked to HTS">Linked to HTS</option>
+                          <option value="201">Negative</option>
+                          <option value="202">Positive</option>
+                          <option value="203">Known Positive</option>
+                          <option value="204">Linked to HTS</option>
                       </select>
                     </div>
 
@@ -63,9 +64,9 @@
                       <label for="intervention-type-select">Pregnancy Test Result</label>
                       <select id="pregnancy-result-select" name="pregnancy_test_result" class="form-control validate-intervention-form-field">
                           <option value="">Select Option</option>
-                          <option value="Pregnant">Pregnant</option>
-                          <option value="Not Pregnant">Not Pregnant</option>
-                          <option value="Linked to HTS">Linked to HTS</option>
+                          <option value="102">Not Pregnant</option>
+                          <option value="102">Pregnant</option>
+                          <option value="103">Linked to HTS</option>
                       </select>
                     </div>
 
@@ -105,40 +106,114 @@
         </ul>
 
         <div class="tab-content">
+            <br/>
               <div role="tabpanel" id="behavioural-interventions" class="tab-pane fade in active">
+                  <div class="input-group"> <span class="input-group-addon">Filter</span>
+                    <input id="filter_1001" data-target_tbody="#interventions_1001_tbody" type="text" class="form-control filter" placeholder="Type here..." >
+                  </div>
+                  <br/>
+                  <table class="table table-striped" id="interventions_1001_table">
+                      <thead>
+                          <tr>
+                              <th>Intervention Type</th>
+                              <th>Date Completed</th>
+                              <th>Comment/Notes</th>
+                              <th>Actions</th>
+                          </tr>
+                     </thead>
+                     <tbody class="searchable" id="interventions_1001_tbody">
 
-                <h3>INTERVETIONS GIVEN</h3>
-                <p>Some content.</p>
+                     </tbody>
+                  </table>
+
                   <div>
                       <button class="btn btn-default" data-toggle="modal" data-target="#intervention-modal" data-whatever="1001" >Add Intervention</button>
                   </div>
-
-
               </div>
               <div role="tabpanel" id="biomedical-interventions" class="tab-pane fade">
-                <h3>BIO-MEDICAL INTERVENTIONS</h3>
-                <p>Some content in menu 1.</p>
+                  <div class="input-group"> <span class="input-group-addon">Filter</span>
+                        <input id="filter_2001" data-target_tbody="#interventions_2001_tbody" type="text" class="form-control filter" placeholder="Type here...">
+                  </div>
+                  <br/>
+                  <table class="table table-striped" id="interventions_2001_table">
+                      <thead>
+                          <tr>
+                              <th>Intervention Type</th>
+                              <th>Date Completed</th>
+                              <th>Comment/Notes</th>
+                              <th>Actions</th>
+                          </tr>
+                     </thead>
+                     <tbody class="searchable" id="interventions_2001_tbody">
+
+                     </tbody>
+                  </table>
                   <div>
                       <button class="btn btn-default" data-toggle="modal" data-target="#intervention-modal" data-whatever="2001" >Add Intervention</button>
                   </div>
               </div>
               <div role="tabpanel" id="post-gbv-care" class="tab-pane fade">
-                <h3>POST-GBV CARE</h3>
-                <p>Some content in menu 2.</p>
+                  <div class="input-group"> <span class="input-group-addon">Filter</span>
+                        <input id="filter_3001" data-target_tbody="#interventions_3001_tbody" type="text" class="form-control filter" placeholder="Type here...">
+                  </div>
+                  <br/>
+                  <table class="table table-striped" id="interventions_3001_table">
+                      <thead>
+                          <tr>
+                              <th>Intervention Type</th>
+                              <th>Date Completed</th>
+                              <th>Comment/Notes</th>
+                              <th>Actions</th>
+                          </tr>
+                     </thead>
+                     <tbody class="searchable" id="interventions_3001_tbody">
+
+                     </tbody>
+                  </table>
                   <div>
                       <button class="btn btn-default" data-toggle="modal" data-target="#intervention-modal" data-whatever="3001" >Add Intervention</button>
                   </div>
               </div>
-            <div role="tabpanel" id="social-protection" class="tab-pane fade">
-                <h3>SOCIAL PROTECTION</h3>
-                <p>Some content in menu 2.</p>
+              <div role="tabpanel" id="social-protection" class="tab-pane fade">
+                <div class="input-group"> <span class="input-group-addon">Filter</span>
+                        <input id="filter_4001" data-target_tbody="#interventions_4001_tbody" type="text" class="form-control filter" placeholder="Type here...">
+                  </div>
+                  <br/>
+                  <table class="table table-striped" id="interventions_4001_table">
+                      <thead>
+                          <tr>
+                              <th>Intervention Type</th>
+                              <th>Date Completed</th>
+                              <th>Comment/Notes</th>
+                              <th>Actions</th>
+                          </tr>
+                     </thead>
+                     <tbody class="searchable" id="interventions_4001_tbody">
+
+                     </tbody>
+                  </table>
                 <div>
                       <button class="btn btn-default" data-toggle="modal" data-target="#intervention-modal" data-whatever="4001" >Add Intervention</button>
                   </div>
               </div>
-            <div role="tabpanel" id="other-interventions" class="tab-pane fade">
-                <h3>OTHER INTERVENTIONS</h3>
-                <p>Some content in menu 2.</p>
+              <div role="tabpanel" id="other-interventions" class="tab-pane fade">
+                <div class="input-group"> <span class="input-group-addon">Filter</span>
+                        <input id="filter_5001" data-target_tbody="#interventions_5001_tbody" type="text" class="form-control filter" placeholder="Type here...">
+                  </div>
+                  <br/>
+                  <table class="table table-striped" id="interventions_5001_table">
+                      <thead>
+                          <tr>
+                              <th>Intervention Type</th>
+                              <th>Date Completed</th>
+                              <th>Comment/Notes</th>
+                              <th>Actions</th>
+                          </tr>
+                     </thead>
+                     <tbody class="searchable" id="interventions_5001_tbody">
+
+                     </tbody>
+                  </table>
                 <div>
                       <button class="btn btn-default" data-toggle="modal" data-target="#intervention-modal" data-whatever="5001" >Add Intervention</button>
                   </div>
