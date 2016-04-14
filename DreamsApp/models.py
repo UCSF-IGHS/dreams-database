@@ -88,8 +88,8 @@ class Intervention(models.Model):
     changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
 
     def __str__(self):
-        return '{} {} {}'.format(self.intervention_date, self.intervention_type, self.created_by)
-
+        #return '{} {} {}'.format(self.intervention_date, self.intervention_type, self.created_by)
+        return  '{}'.format(self.intervention_type)
     class Meta:
         verbose_name = 'Intervention'
         verbose_name_plural = 'Interventions'

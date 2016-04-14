@@ -125,10 +125,14 @@ def saveIntervention(request):
 
                 intervention.save()
                 # construct response
-                response_data = {'intervention_type': i_type,   # to provide intervention type details
-                                 'intervention': intervention}  # to provide information about saved intervention
 
-                return JsonResponse(serializers.serialize('json', response_data))
+                response_data = {}
+
+                response_data['intervention'] = json.dumps([str(iv) for iv in Intervention.objects.values()])
+                # response_data = {'intervention_type': json.dumps(i_type),   #  to provide intervention type details
+                 #                'intervention': json.dumps(intervention)}  #  to provide information about saved intervention
+
+                return JsonResponse(response_data)
             except Exception as e:
                 tb = traceback.format_exc()
                 return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception

@@ -57,8 +57,9 @@ $(document).ready(function () {
                 combo.empty();
                 combo.append($("<option />").attr("value", '').text('Select Intervention').addClass('selected disabled hidden').css({display:'none'}));
                 $.each(interventionTypes, function(){
-                    combo.append($("<option />").attr("value", this.pk).text(this.fields.name));
+                    combo.append($("<option />").attr("value", this.fields.code).text(this.fields.name));
                     console.log(this.fields);
+                    console.log(this.fields.code)
                 });
 
             },
@@ -135,11 +136,11 @@ $(document).ready(function () {
     }
 
     function validateInterventionType() {
-        var current_intervention_id = $('#intervention-type-select').val();
-        if(current_intervention_id == null || current_intervention_id == 0)
+        var current_intervention_code = $('#intervention-type-select').val();
+        if(current_intervention_code == null || current_intervention_code == 0)
             return ["Intervention Type is Invalid or NOT Selected"]
         $.each(interventionTypes, function (index, objectVal) {
-            if(objectVal.pk == current_intervention_id){
+            if(objectVal.fields.code == current_intervention_code){
                 currentInterventionType_Global = objectVal
                 return false
             }
@@ -195,14 +196,12 @@ $(document).ready(function () {
     
     $('#intervention-type-select').change(function () {
         // get selected option id
-        var currentInterntionId = $('#intervention-type-select').val();
+        var currentInterntionId = $('#intervention-type-select').val(); // code
         // search global variable
         $.each(interventionTypes, function (index, type) {
-            if(currentInterntionId == type.pk){
-                // intervention type // naming
+            if(currentInterntionId == type.fields.code){
                 showSection(true, '#intervention_date_section')
                 showSection(type.fields.has_hts_result, '#hts_result_section')
-                // hts result
                 // ccc number
                 showSection(type.fields.has_ccc_number, '#ccc_number_section')
                 // pregnancy
@@ -226,20 +225,6 @@ $(document).ready(function () {
         if(!validateInterventionEntryForm())
             return false
 
-        // this is an object returned from the server
-        var intervention = {
-            'id' : 1,
-            'intervention_type': "HTS Test",
-            'date_of_completion': '14/04/2016',
-            'hts_result' : 'Known Positive',
-            'ccc_number':32324,
-            'pregnancy_result':'',
-            'notes': 'This should get keen followup'
-        }
-
-        $('#intervention-modal').modal('hide');
-        //updateInterventionEntryInView(intervention);
-
         // do an ajax post
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -250,7 +235,8 @@ $(document).ready(function () {
             success : function(data) {
                 console.log(data)
                 // Close dialog and update view
-                //$('#intervention-modal').modal('hide');
+                //updateInterventionEntryInView(intervention);
+                $('#intervention-modal').modal('hide');
             },
 
             // handle a non-successful response
