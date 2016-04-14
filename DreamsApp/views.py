@@ -125,9 +125,8 @@ def saveIntervention(request):
 
                 intervention.save()
                 # construct response
-                response_data = {}
-                response_data['intervention_type'] = i_type  # to provide intervention type details
-                response_data['intervention'] = intervention # to provide information about saved intervention
+                response_data = {'intervention_type': i_type,   # to provide intervention type details
+                                 'intervention': intervention}  # to provide information about saved intervention
 
                 return JsonResponse(serializers.serialize('json', response_data))
             except Exception as e:

@@ -26,15 +26,19 @@ $(document).ready(function () {
         fetchRelatedInterventions(interventionCategoryCode)
     })
 
-    $('#filter').keyup(function () {
+    $('.filter').keyup(function () {
+        var targetTable = $(this).data("target_tbody");
+        var filterValue = $(this).val();
+        filterTable(targetTable, filterValue)
+    })
 
-        var rex = new RegExp($(this).val(), 'i');
-        $('.searchable tr').hide();
-        $('.searchable tr').filter(function () {
+    function filterTable(table_id, filter_value) {
+        var rex = new RegExp(filter_value, 'i');
+        $(table_id + ' tr').hide();
+        $(table_id + ' tr').filter(function () {
             return rex.test($(this).text());
         }).show();
-
-    })
+    }
 
     function fetchRelatedInterventions(interventionCategoryCode) {
         var csrftoken = getCookie('csrftoken');
@@ -74,6 +78,17 @@ $(document).ready(function () {
         else
             $(elementId).addClass('hidden')
     }
+    
+    $('#date-of-completion').change(function () {
+        // get the current value
+        var selected_date_string = $('#date-of-completion').val();
+        if(selected_date_string == null || selected_date_string == "")
+            return ""
+        var split_date_string_array = selected_date_string.split('/') // MM, DD, YYYY
+        var formatted_date_string = split_date_string_array[2] + "-" + split_date_string_array[0] + "-" + split_date_string_array[1]
+        $('#date-of-completion-formatted').val(formatted_date_string);
+        alert("Formatted and updated " + formatted_date_string)
+    })
 
     $('.validate-intervention-form-field').change(function () {
 
@@ -168,13 +183,13 @@ $(document).ready(function () {
             case 1001:
                 $('#interventions_1001_table').prepend("<tr><td>" + intervention.intervention_type + "</td><td>" + intervention.date_of_completion +  "</td><td> "+ intervention.notes + "</td><td>View/Edit</td></tr>")
                 break;
-            case 2002:
+            case 2001:
                 break;
-            case 3003:
+            case 3001:
                 break;
-            case 4004:
+            case 4001:
                 break;
-            case 5005:
+            case 5001:
                 break;
         }
     }
@@ -224,9 +239,8 @@ $(document).ready(function () {
         }
 
         $('#intervention-modal').modal('hide');
-        updateInterventionEntryInView(intervention);
+        //updateInterventionEntryInView(intervention);
 
-        /*  Restore for actual entry
         // do an ajax post
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -235,8 +249,9 @@ $(document).ready(function () {
             dataType: 'json',
             data:$('#intervention-entry-form').serialize(),
             success : function(data) {
+                console.log(data)
                 // Close dialog and update view
-                $('#intervention-modal').modal('hide');
+                //$('#intervention-modal').modal('hide');
             },
 
             // handle a non-successful response
@@ -246,7 +261,7 @@ $(document).ready(function () {
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
             }
         });
-        */
+
 
     });
 });
