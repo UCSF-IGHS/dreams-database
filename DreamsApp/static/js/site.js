@@ -87,7 +87,6 @@ $(document).ready(function () {
         var split_date_string_array = selected_date_string.split('/') // MM, DD, YYYY
         var formatted_date_string = split_date_string_array[2] + "-" + split_date_string_array[0] + "-" + split_date_string_array[1]
         $('#date-of-completion-formatted').val(formatted_date_string);
-        alert("Formatted and updated " + formatted_date_string)
     })
 
     $('.validate-intervention-form-field').change(function () {
