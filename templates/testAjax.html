@@ -6,6 +6,10 @@
                 fetchListOfInterventionsFromCategory();
             });
 
+            $('#intervention').click(function(){
+                getInterventionUsingId();
+            });
+
         });
  function getCookie(name) {
            var cookieValue = null;
@@ -50,6 +54,34 @@ function fetchListOfInterventionsFromCategory() {
             }
         });
     }
+
+    function getInterventionUsingId() {
+
+        var csrftoken = getCookie('csrftoken');
+        var iv_id = $('#iv_id').val();
+
+        $.ajax({
+            url : "/ivGet/", // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data : {
+                csrfmiddlewaretoken : csrftoken,
+                intervention_id : iv_id
+            },
+            success : function(data) {
+                alert(data);
+                console.log(data);
+
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    }
     </script>
 
 
@@ -57,7 +89,7 @@ function fetchListOfInterventionsFromCategory() {
 {% endblock %}
 
 {% block content %}
-    <h3>Loading Interventions</h3>
+    <h3>Test for get intervention list</h3>
 
     <hr/>
     <div id="types">
@@ -72,6 +104,19 @@ function fetchListOfInterventionsFromCategory() {
                 <option value="5001">Other Interventions</option>
 
             </select>
+        </form>
+
+        <div id="results"></div>
+    </div>
+
+     <h3>Test for get intervention list</h3>
+
+    <hr/>
+    <div id="types">
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" id="iv_id" placeholder="Intervention ID"/>
+            <input type="button" id="intervention" value="Post">
         </form>
 
         <div id="results"></div>

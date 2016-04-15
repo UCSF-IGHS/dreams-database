@@ -95,9 +95,6 @@ def getInterventionTypes(request):
 # use /ivSave/ to post to the method
 # Gets intervention_type_id,  from request
 def saveIntervention(request):
-
-    # Determine if request is for save or edit
-
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
         intervention_type_code = int(request.POST.get('intervention_type_code'))
         if intervention_type_code is not None and type(intervention_type_code) is int:
@@ -124,11 +121,8 @@ def saveIntervention(request):
                     intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
                 intervention.save()
+                # using defer() miraculously solved serialization problem of datetime properties.
                 intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
-                # There is trouble handling dates. This needs to be fixed asap
-                # intervention.date_changed = None
-                # intervention.intervention_date = None
-                # intervention.date_created = None
                 # construct response
 
                 response_data = {}
@@ -142,7 +136,7 @@ def saveIntervention(request):
         else:
             return HttpResponseServerError('Invalid Intervention Type')
     else:
-        return PermissionDenied('Operation not allowed. [Missing Permissions]')
+        return PermissionDenied('Operation not allowed. [Missing Permission]')
 
 # method that returns a list of interventions of given category for a given client
 # use /ivList/ url pattern to access the method
@@ -163,11 +157,64 @@ def getInterventionList(request):
     else:
         return PermissionDenied('Missing permissions')
 
-# method for viewing and editing and intervention
-def viewIntervention(request):
-    if request.method == 'GET' and request.user is not None and request.user.is_authenticated():
-        if 'intervention_id' not in request.GET.keys():
-            return HttpResponseServerError('Invalid Request')
+# Gets an intervention. Takes intervention_id and returns Intervention object
+# use /ivGet/ to access this method
+def getIntervention(request):
+    if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
+        intervention_id = request.POST.get('intervention_id')
+        try:
+            intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention_id)
+            response_data = {'intervention': serializers.serialize('json', [intervention, ])}
+            return JsonResponse(response_data)
+        except Exception as e:
+            return HttpResponseServerError(traceback.format_exc())
 
+    else:
+        return PermissionDenied('Operation not allowed. [Missing permission]')
+# Updates an intervention
+# use /ivUpdate/ to access the method
+def updateIntervention(request):
+    if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
+        intervention_id = int(request.POST.get('intervention_id'))
+        if intervention_id is not None and type(intervention_id) is int:
+            try:
+                intervention = Intervention.objects.get(id__exact=intervention_id)
+                intervention.client = Woman.objects.get(id__exact=int(request.POST.get('client')))
+                intervention.intervention_date = request.POST.get('intervention_date')
+                intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
+                intervention.date_changed = datetime.now()
+                intervention.comment = request.POST.get('comment')
+
+                i_type = InterventionType.objects.get(id__exact=intervention.intervention_type)
+
+                if i_type.has_hts_result:
+                    intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
+
+                if i_type.has_pregnancy_result:
+                    intervention.pregnancy_test_result = PregnancyTestResult.objects.get(code__exact=int(request.POST.get('pregnancy_test_result')))
+
+                if i_type.has_ccc_number:
+                    intervention.client_ccc_number = request.POST.get('client_ccc_number')
+
+                if i_type.has_no_of_sessions:
+                    intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
+
+                intervention.save()
+                # using defer() miraculously solved serialization problem of datetime properties.
+                intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
+                # construct response
+
+                response_data = {}
+                response_data['intervention'] = serializers.serialize('json', [intervention, ], ensure_ascii=False)
+                response_data['i_type'] = serializers.serialize('json', [i_type])
+
+                return JsonResponse(response_data)
+            except Exception as e:
+                tb = traceback.format_exc()
+                return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+        else:
+            return HttpResponseServerError('Invalid Intervention Type')
+    else:
+        return PermissionDenied('Operation not allowed. [Missing Permission]')
 
 
