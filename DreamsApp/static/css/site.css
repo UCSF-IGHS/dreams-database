@@ -112,3 +112,18 @@
     }
 }
  /* End of searchbox design */
+
+ .fit-item{
+     width: 100%;
+ }
+
+ .space{
+     margin-bottom: 15px;
+ }
+
+ .spinner{
+     color: gray;
+     text-align: center;
+     margin:3em;
+     font-size: xx-large;
+ }
