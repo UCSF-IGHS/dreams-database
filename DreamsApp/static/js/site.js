@@ -26,6 +26,20 @@ $(document).ready(function () {
         fetchRelatedInterventions(interventionCategoryCode)
     })
 
+    $('.filter').keyup(function () {
+        var targetTable = $(this).data("target_tbody");
+        var filterValue = $(this).val();
+        filterTable(targetTable, filterValue)
+    })
+
+    function filterTable(table_id, filter_value) {
+        var rex = new RegExp(filter_value, 'i');
+        $(table_id + ' tr').hide();
+        $(table_id + ' tr').filter(function () {
+            return rex.test($(this).text());
+        }).show();
+    }
+
     function fetchRelatedInterventions(interventionCategoryCode) {
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -43,8 +57,9 @@ $(document).ready(function () {
                 combo.empty();
                 combo.append($("<option />").attr("value", '').text('Select Intervention').addClass('selected disabled hidden').css({display:'none'}));
                 $.each(interventionTypes, function(){
-                    combo.append($("<option />").attr("value", this.pk).text(this.fields.name));
+                    combo.append($("<option />").attr("value", this.fields.code).text(this.fields.name));
                     console.log(this.fields);
+                    console.log(this.fields.code)
                 });
 
             },
@@ -64,6 +79,16 @@ $(document).ready(function () {
         else
             $(elementId).addClass('hidden')
     }
+    
+    $('#date-of-completion').change(function () {
+        // get the current value
+        var selected_date_string = $('#date-of-completion').val();
+        if(selected_date_string == null || selected_date_string == "")
+            return ""
+        var split_date_string_array = selected_date_string.split('/') // MM, DD, YYYY
+        var formatted_date_string = split_date_string_array[2] + "-" + split_date_string_array[0] + "-" + split_date_string_array[1]
+        $('#date-of-completion-formatted').val(formatted_date_string);
+    })
 
     $('.validate-intervention-form-field').change(function () {
 
@@ -111,11 +136,11 @@ $(document).ready(function () {
     }
 
     function validateInterventionType() {
-        var current_intervention_id = $('#intervention-type-select').val();
-        if(current_intervention_id == null || current_intervention_id == 0)
+        var current_intervention_code = $('#intervention-type-select').val();
+        if(current_intervention_code == null || current_intervention_code == 0)
             return ["Intervention Type is Invalid or NOT Selected"]
         $.each(interventionTypes, function (index, objectVal) {
-            if(objectVal.pk == current_intervention_id){
+            if(objectVal.fields.code == current_intervention_code){
                 currentInterventionType_Global = objectVal
                 return false
             }
@@ -153,16 +178,30 @@ $(document).ready(function () {
         return []
     }
 
+    function updateInterventionEntryInView(intervention, code) {
+        switch (code){
+            case 1001:
+                $('#interventions_1001_table').prepend("<tr><td>" + intervention.intervention_type + "</td><td>" + intervention.date_of_completion +  "</td><td> "+ intervention.notes + "</td><td>View/Edit</td></tr>")
+                break;
+            case 2001:
+                break;
+            case 3001:
+                break;
+            case 4001:
+                break;
+            case 5001:
+                break;
+        }
+    }
+    
     $('#intervention-type-select').change(function () {
         // get selected option id
-        var currentInterntionId = $('#intervention-type-select').val();
+        var currentInterntionId = $('#intervention-type-select').val(); // code
         // search global variable
         $.each(interventionTypes, function (index, type) {
-            if(currentInterntionId == type.pk){
-                // intervention type // naming
+            if(currentInterntionId == type.fields.code){
                 showSection(true, '#intervention_date_section')
                 showSection(type.fields.has_hts_result, '#hts_result_section')
-                // hts result
                 // ccc number
                 showSection(type.fields.has_ccc_number, '#ccc_number_section')
                 // pregnancy
@@ -186,9 +225,6 @@ $(document).ready(function () {
         if(!validateInterventionEntryForm())
             return false
 
-        // Proceed and submit form
-        alert("Safe to submit form")
-
         // do an ajax post
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -197,8 +233,10 @@ $(document).ready(function () {
             dataType: 'json',
             data:$('#intervention-entry-form').serialize(),
             success : function(data) {
+                console.log(data)
                 // Close dialog and update view
-                
+                //updateInterventionEntryInView(intervention);
+                $('#intervention-modal').modal('hide');
             },
 
             // handle a non-successful response
@@ -208,6 +246,7 @@ $(document).ready(function () {
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
             }
         });
+
 
     });
 });

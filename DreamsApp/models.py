@@ -59,6 +59,7 @@ class HTSResult(models.Model):
         verbose_name = 'HTS Result'
         verbose_name_plural = 'HTS Results'
 
+
 class PregnancyTestResult(models.Model):
     code = models.IntegerField(name='code', verbose_name='Pregnancy Result Code')
     name = models.CharField(max_length=20, verbose_name='Pregnancy Result Name')
@@ -86,10 +87,9 @@ class Intervention(models.Model):
     date_changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
 
-
     def __str__(self):
-        return '{} {} {}'.format(self.intervention_date, self.intervention_type, self.created_by)
-
+        #return '{} {} {}'.format(self.intervention_date, self.intervention_type, self.created_by)
+        return  '{}'.format(self.intervention_type)
     class Meta:
         verbose_name = 'Intervention'
         verbose_name_plural = 'Interventions'
