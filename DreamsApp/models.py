@@ -89,7 +89,7 @@ class Intervention(models.Model):
 
     def __str__(self):
         #return '{} {} {}'.format(self.intervention_date, self.intervention_type, self.created_by)
-        return  '{}'.format(self.intervention_type)
+        return  '{} {}'.format(self.intervention_type, self.created_by)
     class Meta:
         verbose_name = 'Intervention'
         verbose_name_plural = 'Interventions'

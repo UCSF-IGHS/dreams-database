@@ -124,13 +124,16 @@ def saveIntervention(request):
                     intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
                 intervention.save()
+                intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
+                # There is trouble handling dates. This needs to be fixed asap
+                # intervention.date_changed = None
+                # intervention.intervention_date = None
+                # intervention.date_created = None
                 # construct response
 
                 response_data = {}
-
-                response_data['intervention'] = json.dumps([str(iv) for iv in Intervention.objects.values()])
-                # response_data = {'intervention_type': json.dumps(i_type),   #  to provide intervention type details
-                 #                'intervention': json.dumps(intervention)}  #  to provide information about saved intervention
+                response_data['intervention'] = serializers.serialize('json', [intervention, ], ensure_ascii=False)
+                response_data['i_type'] = serializers.serialize('json', [i_type])
 
                 return JsonResponse(response_data)
             except Exception as e:
@@ -140,6 +143,25 @@ def saveIntervention(request):
             return HttpResponseServerError('Invalid Intervention Type')
     else:
         return PermissionDenied('Operation not allowed. [Missing Permissions]')
+
+# method that returns a list of interventions of given category for a given client
+# use /ivList/ url pattern to access the method
+def getInterventionList(request):
+    if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
+        client_id = request.POST.get('client_id')
+        intervention_category_code = request.POST.get('intervention_category_code')
+
+        iv_category = InterventionCategory.objects.get(code__exact=intervention_category_code)
+        list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
+        iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
+        list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').filter(client__exact=client_id).filter(intervention_type__in=iv_type_ids)
+
+        response_data = {'iv_types': serializers.serialize('json', list_of_related_iv_types),
+                         'interventions': serializers.serialize('json', list_of_interventions)
+                         }
+        return JsonResponse(response_data)
+    else:
+        return PermissionDenied('Missing permissions')
 
 # method for viewing and editing and intervention
 def viewIntervention(request):
