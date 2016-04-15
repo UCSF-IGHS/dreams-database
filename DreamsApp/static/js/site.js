@@ -32,6 +32,59 @@ $(document).ready(function () {
         filterTable(targetTable, filterValue)
     })
 
+    $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
+
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        //Load tabs
+        var target = $(e.target)    // this is the tab anchor.. Get the table
+        var panel_id = target.attr('href')
+        var intervention_category_code = target.data("intervention_category_code");
+        var table_id = $(this).data("tab_intervention_table_id")
+        var row_count = $(table_id + '  tbody  tr').length
+        if(row_count > 0)
+            return  // Loading has been done before...
+
+        // Show loading spinner on tab
+        var spinner = $(panel_id + ' .spinner')
+        spinner.removeClass('hidden')
+
+        // Do an ajax POST to get elements
+        /*
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : "/ivgetTypes/", // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data : {
+                csrfmiddlewaretoken : csrftoken,
+                category_code : interventionCategoryCode//$('#i_types').val()
+            },
+            success : function(data) {
+                interventionTypes = $.parseJSON(data.itypes); // Gloabal variable
+                console.log(interventionTypes)
+                var combo = $('#intervention-type-select');
+                combo.empty();
+                combo.append($("<option />").attr("value", '').text('Select Intervention').addClass('selected disabled hidden').css({display:'none'}));
+                $.each(interventionTypes, function(){
+                    combo.append($("<option />").attr("value", this.fields.code).text(this.fields.name));
+                    console.log(this.fields);
+                    console.log(this.fields.code)
+                });
+
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });*/
+
+
+    })
+
     function filterTable(table_id, filter_value) {
         var rex = new RegExp(filter_value, 'i');
         $(table_id + ' tr').hide();
