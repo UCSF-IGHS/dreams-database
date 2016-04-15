@@ -52,14 +52,13 @@ $(document).ready(function () {
             },
             success : function(data) {
                 interventionTypes = $.parseJSON(data.itypes); // Gloabal variable
-                console.log(interventionTypes)
                 var combo = $('#intervention-type-select');
                 combo.empty();
                 combo.append($("<option />").attr("value", '').text('Select Intervention').addClass('selected disabled hidden').css({display:'none'}));
                 $.each(interventionTypes, function(){
                     combo.append($("<option />").attr("value", this.fields.code).text(this.fields.name));
-                    console.log(this.fields);
-                    console.log(this.fields.code)
+                    // console.log(this.fields);
+                    // console.log(this.fields.code)
                 });
 
             },
