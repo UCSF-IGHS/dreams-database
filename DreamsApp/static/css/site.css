@@ -127,3 +127,10 @@
      margin:3em;
      font-size: xx-large;
  }
+
+  .message-view{
+     color: gray;
+     text-align: center;
+     margin:3em;
+     font-size: xx-large;
+ }

@@ -50,27 +50,46 @@ $(document).ready(function () {
         spinner.removeClass('hidden')
 
         // Do an ajax POST to get elements
-        /*
+
         var csrftoken = getCookie('csrftoken');
+        $('#intervention_category_code').val(intervention_category_code)
+
         $.ajax({
-            url : "/ivgetTypes/", // the endpoint
+            url : "/ivList/", // the endpoint
             type : "POST", // http method
             dataType: 'json',
             data : {
                 csrfmiddlewaretoken : csrftoken,
-                category_code : interventionCategoryCode//$('#i_types').val()
+                intervention_category_code : intervention_category_code,
+                client_id : $('#client_id').val()
             },
             success : function(data) {
-                interventionTypes = $.parseJSON(data.itypes); // Gloabal variable
-                console.log(interventionTypes)
-                var combo = $('#intervention-type-select');
-                combo.empty();
-                combo.append($("<option />").attr("value", '').text('Select Intervention').addClass('selected disabled hidden').css({display:'none'}));
-                $.each(interventionTypes, function(){
-                    combo.append($("<option />").attr("value", this.fields.code).text(this.fields.name));
-                    console.log(this.fields);
-                    console.log(this.fields.code)
+                var ivs = $.parseJSON(data.interventions)
+                var ivTypes = $.parseJSON(data.iv_types)
+                // populate table
+                $.each(ivs, function(index, iv){
+                    // Get corresponding iv_type
+                    var iv_type = {}
+                    $.each(ivTypes, function (index, obj) {
+
+                        if(obj.pk == iv.fields.intervention_type){
+                            iv_type = obj
+                            return false
+                        }
+                    })
+                    updateInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, false)
+
                 });
+
+                // hide spinner
+                $(panel_id + ' .spinner').addClass('hidden')
+
+                // Check for number of rows added
+                var new_row_count = $(table_id + '  tbody  tr').length
+                if(new_row_count < 1)
+                    $(panel_id + ' .message-view').removeClass('hidden')
+                else
+                    $(panel_id + ' .message-view').addClass('hidden')
 
             },
 
@@ -80,7 +99,7 @@ $(document).ready(function () {
                     " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
             }
-        });*/
+        });
 
 
     })
@@ -94,6 +113,7 @@ $(document).ready(function () {
     }
 
     function fetchRelatedInterventions(interventionCategoryCode) {
+        currentInterventionCategoryCode_Global = interventionCategoryCode
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url : "/ivgetTypes/", // the endpoint
@@ -230,18 +250,42 @@ $(document).ready(function () {
         return []
     }
 
-    function updateInterventionEntryInView(intervention, code) {
-        switch (code){
+    function updateInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, top) { // top is a boolean for either position to insert the record
+        switch (intervention_category_code){
             case 1001:
-                $('#interventions_1001_table').prepend("<tr><td>" + intervention.intervention_type + "</td><td>" + intervention.date_of_completion +  "</td><td> "+ intervention.notes + "</td><td>View/Edit</td></tr>")
+                if(!top)
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                else
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                $('#intervention_' + iv.pk).data({"iv": iv, "iv_type": iv_type})
                 break;
             case 2001:
+                if(!top)
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+  iv.fields.hts_result + iv.fields.client_ccc_number +  "</td><td> "+ "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                else
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+  iv.fields.hts_result + iv.fields.client_ccc_number +  "</td><td> "+ "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                $('#intervention_' + iv.pk).data({"iv": iv, "iv_type": iv_type})
                 break;
             case 3001:
+                if(!top)
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                else
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                $('#intervention_' + iv.pk).data({"iv": iv, "iv_type": iv_type})
                 break;
             case 4001:
+                if(!top)
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                else
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                $('#intervention_' + iv.pk).data({"iv": iv, "iv_type": iv_type})
                 break;
             case 5001:
+                if(!top)
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.no_of_sessions_attended +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                else
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.no_of_sessions_attended +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                $('#intervention_' + iv.pk).data({"iv": iv, "iv_type": iv_type})
                 break;
         }
     }
@@ -271,6 +315,14 @@ $(document).ready(function () {
 
     $('#btn_save_intervention').click(function (event) {
 
+        var target = $(event.target)
+        var intervention_category_code = currentInterventionCategoryCode_Global
+        var table_id = "#interventions_" + intervention_category_code + "_table"
+
+        if (intervention_category_code == null || intervention_category_code == "" || table_id == null || table_id == "")
+            return
+
+
         event.preventDefault()
 
         // validate form
@@ -285,10 +337,11 @@ $(document).ready(function () {
             dataType: 'json',
             data:$('#intervention-entry-form').serialize(),
             success : function(data) {
-                console.log(data)
-                // Close dialog and update view
-                //updateInterventionEntryInView(intervention);
+                var iv = $.parseJSON(data.intervention)
+                var iv_type = $.parseJSON(data.i_type)
+                updateInterventionEntryInView(table_id, iv[0], iv_type[0], intervention_category_code, true)
                 $('#intervention-modal').modal('hide');
+
             },
 
             // handle a non-successful response
