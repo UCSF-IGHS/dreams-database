@@ -25,5 +25,7 @@ urlpatterns = [
     url(r'^ivgetTypes/', views.getInterventionTypes),
     url(r'^ivSave/', views.saveIntervention),
     url(r'^ivList/', views.getInterventionList),
+    url(r'^ivGet/', views.getIntervention),
+    url(r'^ivUpdate', views.updateIntervention),
     url(r'^intervention/$', views.testajax),
 ]
