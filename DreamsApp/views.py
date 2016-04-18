@@ -74,10 +74,11 @@ def testajax(request):
     return render(request, 'testAjax.html')
 
 # Use /ivgetTypes/ in the post url to access the method
+# Handles post request for intervention types.
+# Receives category_code from request and searches for types in the database
 def getInterventionTypes(request):
-    # Handles post request for intervention types.
-    # Receives category_code from request and searches for types in the database
-    if request.method == 'POST':
+
+    if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
         response_data = {}
         category_code = request.POST.get('category_code')
 
@@ -123,11 +124,11 @@ def saveIntervention(request):
                 intervention.save()
                 # using defer() miraculously solved serialization problem of datetime properties.
                 intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
-                # construct response
 
-                response_data = {}
-                response_data['intervention'] = serializers.serialize('json', [intervention, ], ensure_ascii=False)
-                response_data['i_type'] = serializers.serialize('json', [i_type])
+                response_data = {
+                    'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
+                    'i_type': serializers.serialize('json', [i_type])
+                }
 
                 return JsonResponse(response_data)
             except Exception as e:
@@ -142,18 +143,27 @@ def saveIntervention(request):
 # use /ivList/ url pattern to access the method
 def getInterventionList(request):
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
+        if 'client_id' not in request.POST or request.POST.get('client_id') == 0:
+            return ValueError('No Client id found in your request! Ensure it is provided')
+        if 'intervention_category_code' not in request.POST or request.POST.get('intervention_category_code') == 0:
+            return ValueError('No Intervention Category Code found in your request! Ensure it is provided')
+
         client_id = request.POST.get('client_id')
         intervention_category_code = request.POST.get('intervention_category_code')
+        try:
+            iv_category = InterventionCategory.objects.get(code__exact=intervention_category_code)
+            list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
+            iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
+            list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').filter(client__exact=client_id).filter(intervention_type__in=iv_type_ids)
 
-        iv_category = InterventionCategory.objects.get(code__exact=intervention_category_code)
-        list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
-        iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
-        list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').filter(client__exact=client_id).filter(intervention_type__in=iv_type_ids)
-
-        response_data = {'iv_types': serializers.serialize('json', list_of_related_iv_types),
-                         'interventions': serializers.serialize('json', list_of_interventions)
-                         }
-        return JsonResponse(response_data)
+            response_data = {'iv_types': serializers.serialize('json', list_of_related_iv_types),
+                             'interventions': serializers.serialize('json', list_of_interventions)
+                             }
+            return JsonResponse(response_data)
+        except ObjectDoesNotExist as nf:
+            return ObjectDoesNotExist(traceback.format_exc())
+        except Exception as e:
+            return HttpResponseServerError(traceback.format_exc())
     else:
         return PermissionDenied('Missing permissions')
 
@@ -162,10 +172,15 @@ def getInterventionList(request):
 def getIntervention(request):
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
         intervention_id = request.POST.get('intervention_id')
+        if 'intervention_id' not in request.POST:
+            return ValueError('No intervention id found in your request!')
         try:
             intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention_id)
-            response_data = {'intervention': serializers.serialize('json', [intervention, ])}
-            return JsonResponse(response_data)
+            if intervention is not None:
+                response_data = {'intervention': serializers.serialize('json', [intervention, ])}
+                return JsonResponse(response_data)
+            else:
+                return ObjectDoesNotExist('No Intervention with the provided Id')
         except Exception as e:
             return HttpResponseServerError(traceback.format_exc())
 
@@ -185,7 +200,7 @@ def updateIntervention(request):
                 intervention.date_changed = datetime.now()
                 intervention.comment = request.POST.get('comment')
 
-                i_type = InterventionType.objects.get(id__exact=intervention.intervention_type)
+                i_type = InterventionType.objects.get(id__exact=intervention.intervention_type.id)
 
                 if i_type.has_hts_result:
                     intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
@@ -204,9 +219,12 @@ def updateIntervention(request):
                 intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
                 # construct response
 
-                response_data = {}
-                response_data['intervention'] = serializers.serialize('json', [intervention, ], ensure_ascii=False)
-                response_data['i_type'] = serializers.serialize('json', [i_type])
+                response_data = {
+                    'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
+                    'i_type': serializers.serialize('json', [i_type])
+                }
+                # response_data['intervention'] = serializers.serialize('json', [intervention, ], ensure_ascii=False)
+                # response_data['i_type'] = serializers.serialize('json', [i_type])
 
                 return JsonResponse(response_data)
             except Exception as e:
