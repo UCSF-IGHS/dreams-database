@@ -185,7 +185,7 @@ def updateIntervention(request):
                 intervention.date_changed = datetime.now()
                 intervention.comment = request.POST.get('comment')
 
-                i_type = InterventionType.objects.get(id__exact=intervention.intervention_type)
+                i_type = InterventionType.objects.get(id__exact=intervention.intervention_type.id)
 
                 if i_type.has_hts_result:
                     intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
