@@ -21,9 +21,36 @@ $(document).ready(function () {
     }
 
      $('#intervention-modal').on('show.bs.modal', function (event) {
+         // check the mode... Can be new or edit
         var button = $(event.relatedTarget) // Button that triggered the modal
         var interventionCategoryCode = button.data('whatever')
-        fetchRelatedInterventions(interventionCategoryCode)
+
+         // Check if this is null.
+         if (interventionCategoryCode != null && interventionCategoryCode != "edit") { // This is a new mode
+             fetchRelatedInterventions(interventionCategoryCode)
+             modalMode = "new";
+         }
+         else{
+             modalMode = "edit"
+             // this is an edit mode.. adjsut the view accordingly
+             // set intervention type and disable field
+             // This does not happen here! It is handled elsewhere!
+         }
+    })
+
+    $('#intervention-modal').on('shown.bs.modal', function (event) {
+         if(modalMode == null || modalMode == "new"){
+             // Do nothing
+         }
+        else if (modalMode == "edit"){
+             $('#intervention_id').val(intervention.pk) // This is the intervention id
+         }
+    })
+
+    $('#intervention-modal').on('hide.bs.modal', function (event) {
+        $('#intervention-type-select').removeAttr('disabled')
+        // reset the form
+
     })
 
     $('.filter').keyup(function () {
@@ -33,7 +60,6 @@ $(document).ready(function () {
     })
 
     $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
-
 
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         //Load tabs
@@ -125,15 +151,7 @@ $(document).ready(function () {
             },
             success : function(data) {
                 interventionTypes = $.parseJSON(data.itypes); // Gloabal variable
-                var combo = $('#intervention-type-select');
-                combo.empty();
-                combo.append($("<option />").attr("value", '').text('Select Intervention').addClass('selected disabled hidden').css({display:'none'}));
-                $.each(interventionTypes, function(){
-                    combo.append($("<option />").attr("value", this.fields.code).text(this.fields.name));
-                    // console.log(this.fields);
-                    // console.log(this.fields.code)
-                });
-
+                setInterventionTypesSelect(interventionTypes)
             },
 
             // handle a non-successful response
@@ -142,6 +160,15 @@ $(document).ready(function () {
                     " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
             }
+        });
+    }
+
+    function setInterventionTypesSelect(interventionTypes) {
+        var combo = $('#intervention-type-select');
+        combo.empty();
+        combo.append($("<option />").attr("value", '').text('Select Intervention').addClass('selected disabled hidden').css({display:'none'}));
+        $.each(interventionTypes, function(){
+            combo.append($("<option />").attr("value", this.fields.code).text(this.fields.name));
         });
     }
 
@@ -233,7 +260,14 @@ $(document).ready(function () {
 
         return []
     }
-    
+
+    function setDateField(dateVal) {
+        // set the original value
+        $('#date-of-completion-formatted').val(dateVal);
+        var split_date_string_array = dateVal.split('-')
+        $('#date-of-completion').val(split_date_string_array[1] + "/" + parseInt(split_date_string_array[2]) + "/" +  parseInt(split_date_string_array[0]))
+    }
+
     function validateSelectOption(labelData, selectInputId) {
         var option_val = $(selectInputId).val();
         if (option_val == null || option_val == 0 || option_val == "")
@@ -254,48 +288,61 @@ $(document).ready(function () {
         switch (intervention_category_code){
             case 1001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
-                $('#intervention_' + iv.pk).data({"iv": iv, "iv_type": iv_type})
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
                 break;
             case 2001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+  iv.fields.hts_result + iv.fields.client_ccc_number +  "</td><td> "+ "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='hts_result'> "+  iv.fields.hts_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+  iv.fields.hts_result + iv.fields.client_ccc_number +  "</td><td> "+ "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
-                $('#intervention_' + iv.pk).data({"iv": iv, "iv_type": iv_type})
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='hts_result'> "+  iv.fields.hts_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number+ "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
                 break;
             case 3001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
-                $('#intervention_' + iv.pk).data({"iv": iv, "iv_type": iv_type})
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
                 break;
             case 4001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
-                $('#intervention_' + iv.pk).data({"iv": iv, "iv_type": iv_type})
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
                 break;
             case 5001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.no_of_sessions_attended +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td>" + iv_type.fields.name + "</td><td>" + iv.fields.intervention_date +  "</td><td> "+ iv.fields.no_of_sessions_attended +  "</td><td> "+ iv.fields.comment + "</td><td>View/Edit</td></tr>")
-                $('#intervention_' + iv.pk).data({"iv": iv, "iv_type": iv_type})
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
                 break;
+
         }
+
+        setInterventionAction(iv, iv_type, intervention_category_code);
+
     }
-    
+
+    function setInterventionAction(iv, iv_type, intervention_category_code) {
+        $('#intervention_' + iv.pk + ' .edit_intervention_click').click(function (event) {
+            $('#intervention-modal').modal('show'); // this is to show the modal
+            currentInterventionCategoryCode_Global = intervention_category_code // this will be needed during update!
+            interventionTypes = [iv_type]
+            intervention = iv
+            setInterventionTypesSelect(interventionTypes)
+            // set the current intevention type to be the same
+            $('#intervention-type-select').val(iv_type.fields.code).change() // this should change the current selected option and trigger the modal fields to be rendered appropriately
+            // set disabled fields and ad values as required
+            prePopulateInterventionModal(iv, iv_type)
+        })
+    }
+
     $('#intervention-type-select').change(function () {
         // get selected option id
-        var currentInterntionId = $('#intervention-type-select').val(); // code
+        var currentInterventionTypeCode = $('#intervention-type-select').val(); // code
         // search global variable
         $.each(interventionTypes, function (index, type) {
-            if(currentInterntionId == type.fields.code){
+            if(currentInterventionTypeCode == type.fields.code){
                 showSection(true, '#intervention_date_section')
                 showSection(type.fields.has_hts_result, '#hts_result_section')
                 // ccc number
@@ -312,6 +359,30 @@ $(document).ready(function () {
         })
     })
 
+    function prePopulateInterventionModal(iv, iv_type) {
+        $('#intervention-type-select').attr('disabled','disabled')
+
+        // Populate values
+
+        setDateField(iv.fields.intervention_date) // done
+
+        // check for the rest of the fields
+        if(iv_type.fields.has_hts_result)
+            $('#hts-result-select').val(iv.fields.hts_result)
+        // ccc number
+        if(iv_type.fields.has_ccc_number)
+            $('#ccc_number').val(iv.fields.client_ccc_number)
+        // pregnancy
+        if(iv_type.fields.has_pregnancy_result)
+            $('#pregnancy-result-select').val(iv.fields.pregnancy_test_result)
+        // number of sessions
+        if(iv_type.fields.has_no_of_sessions)
+            $('#number-of-ss-sessions-attended').val(iv.fields.no_of_sessions_attended)
+        // notes
+        $('#comments-text').val(iv.fields.comment)
+
+    }
+
 
     $('#btn_save_intervention').click(function (event) {
 
@@ -321,25 +392,56 @@ $(document).ready(function () {
 
         if (intervention_category_code == null || intervention_category_code == "" || table_id == null || table_id == "")
             return
-
-
         event.preventDefault()
 
         // validate form
         if(!validateInterventionEntryForm())
             return false
 
+        var postUrl = "/ivSave/" // by default
+        if(modalMode == "edit")
+            postUrl = "/ivUpdate/"
+
         // do an ajax post
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : "/ivSave/", // the endpoint
+            url : postUrl, // the endpoint
             type : "POST", // http method
             dataType: 'json',
             data:$('#intervention-entry-form').serialize(),
             success : function(data) {
-                var iv = $.parseJSON(data.intervention)
-                var iv_type = $.parseJSON(data.i_type)
-                updateInterventionEntryInView(table_id, iv[0], iv_type[0], intervention_category_code, true)
+                var iv = $.parseJSON(data.intervention)[0]
+                var iv_type = $.parseJSON(data.i_type)[0]
+                if(modalMode != "edit"){
+                    updateInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, true)
+                    alert("Record Added Successfully!")
+                }
+                else{
+                    // Update existing record on the view
+                    // get table name and row id
+                    var row_id = 'intervention_' + iv.pk
+                    $('#' + row_id + ' .intervention_date').text(iv.fields.intervention_date)
+
+                    // check for the rest of the fields
+                    if(iv_type.fields.has_hts_result)
+                        $('#' + row_id + ' .hts_result').text(iv.fields.hts_result)
+                    // ccc number
+                    if(iv_type.fields.has_ccc_number)
+                        $('#' + row_id + ' .client_ccc_number').text(iv.fields.client_ccc_number)
+                    // pregnancy
+                    if(iv_type.fields.has_pregnancy_result)
+                        $('#' + row_id + ' .pregnancy_test_result').text(iv.fields.pregnancy_test_result)
+                    // number of sessions
+                    if(iv_type.fields.has_no_of_sessions)
+                        $('#' + row_id + ' .no_of_sessions_attended').text(iv.fields.no_of_sessions_attended)
+                    // notes
+                    $('#' + row_id + ' .comment').text(iv.fields.comment)
+
+                    setInterventionAction(iv, iv_type, intervention_category_code)
+
+                    alert("Record updated Successfully")
+                }
+                $("#intervention-modal").each( function() { this.reset; });
                 $('#intervention-modal').modal('hide');
 
             },
@@ -354,6 +456,11 @@ $(document).ready(function () {
 
 
     });
+
+    $('.edit_intervention_click').click(function (event) {
+        var target = $(event.target)
+    })
+
 });
 
 

@@ -134,3 +134,12 @@
      margin:3em;
      font-size: xx-large;
  }
+
+  .edit_intervention_click{
+      cursor: pointer;
+  }
+
+  .edit_intervention_click:hover{
+    text-decoration: underline;
+      color: dodgerblue;
+  }
