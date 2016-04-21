@@ -3,13 +3,13 @@
 
 {% block content %}
 
-    <div class="row" style="padding-left: 0px;margin-left: 0px;">
-        <div class="col-md-6" style="padding-left: 0px; margin-left: 0px;">
-            <form method="post" action="dashboard">
+    <div class="row search-section">
+        <div class="fit-item" style="padding-left: 0px; margin-left: 0px;">
+            <form method="post" action="clients">
                 {% csrf_token %}
 
-                <div class="input-group" id="adv-search" style="padding-left: 0px; margin-left: 0px;">
-                    <input type="text" id="search-term-default" class="form-control" placeholder="Search for client by name or DREAMS ID" />
+                <div class="input-group fit-item" id="adv-search" style="padding-left: 0px; margin-left: 0px;">
+                    <input type="text" id="search-term-default" class="form-control" placeholder="Search for client by Name or DREAMS ID" />
                     <div class="input-group-btn">
                         <div class="btn-group" role="group">
                             <button id="sumbitDefaultNameSearch" type="submit" class="btn btn-primary">Find <span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
@@ -20,8 +20,6 @@
 
         </div>
     </div>
-
-    <br>
 
     <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
             <div class="panel-body" style="margin: 0px;padding: 0px;">

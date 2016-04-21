@@ -50,7 +50,7 @@ def clients(request):
         else:
             return render(request, 'index.html')
     except:
-        return render(request, 'index.html')
+        return HttpResponse(traceback.format_exc()) #render(request, 'index.html')
 
 
 def client_profile(request):
