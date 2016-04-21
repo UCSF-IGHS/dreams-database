@@ -49,6 +49,8 @@ $(document).ready(function () {
 
     $('#intervention-modal').on('hide.bs.modal', function (event) {
         $('#intervention-type-select').removeAttr('disabled')
+        $('#error-space').text("");
+        $('#comments-text').val("")
         // reset the form
 
     })
