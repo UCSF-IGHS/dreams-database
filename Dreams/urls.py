@@ -18,8 +18,8 @@ from django.contrib import admin
 from DreamsApp import views
 
 urlpatterns = [
-    url(r'^$', views.index),
-    url(r'^clients', views.clients),
+    url(r'^$', views.index, name='index'),
+    url(r'^clients', views.clients, name='clients'),
     url(r'^client', views.client_profile),
     url(r'^admin/', admin.site.urls),
     url(r'^ivgetTypes/', views.getInterventionTypes),
@@ -27,5 +27,7 @@ urlpatterns = [
     url(r'^ivList/', views.getInterventionList),
     url(r'^ivGet/', views.getIntervention),
     url(r'^ivUpdate/', views.updateIntervention),
+    url(r'^ivDelete/', views.deleteIntervention),
     url(r'^intervention/$', views.testajax),
+    url(r'^logout/$', views.log_me_out),
 ]

@@ -1,10 +1,9 @@
-from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, HttpResponseServerError
+from django.shortcuts import render, redirect
+from django.http import HttpResponse, JsonResponse, HttpResponseServerError
 import traceback
 from django.core.exceptions import *
-from django.core.urlresolvers import reverse
 from django.core import serializers
-from django.contrib.auth.models import User
+from django.contrib.auth import login, logout
 import json
 
 from django.contrib.auth import authenticate
@@ -24,8 +23,8 @@ def index(request):
             user = authenticate(username=user_name, password=pass_word)
             if user is not None:
                 if user.is_active:
-                    return HttpResponseRedirect('/clients')
-
+                    login(request, user)
+                    return redirect('clients')
                 else:
                     return HttpResponse("Login Successful, but the account has been disabled!")
             else:
@@ -48,9 +47,9 @@ def clients(request):
                                                     Q(middle_name__startswith=search_value))
                 return JsonResponse(serializers.serialize('json', search_result), safe=False)
         else:
-            return render(request, 'index.html')
+            return redirect('index')
     except:
-        return HttpResponse(traceback.format_exc()) #render(request, 'index.html')
+        return redirect('index')
 
 
 def client_profile(request):
@@ -186,6 +185,8 @@ def getIntervention(request):
 
     else:
         return PermissionDenied('Operation not allowed. [Missing permission]')
+
+
 # Updates an intervention
 # use /ivUpdate/ to access the method
 def updateIntervention(request):
@@ -235,4 +236,24 @@ def updateIntervention(request):
     else:
         return PermissionDenied('Operation not allowed. [Missing Permission]')
 
+
+def deleteIntervention(request):
+    if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
+        intervention_id = int(request.POST.get('intervention_delete_id'))
+        if intervention_id is not None and type(intervention_id) is int:
+            try:
+                Intervention.objects.filter(pk=intervention_id).delete();
+                return JsonResponse(json.dumps({'result': 'success', 'intervention_id': intervention_id}), safe=False)
+            except Exception as e:
+                tb = traceback.format_exc()
+                return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+        else:
+            return HttpResponseServerError('Invalid Intervention Type')
+    else:
+        return PermissionDenied('Operation not allowed. [Missing Permission]')
+
+
+def log_me_out(request):
+    logout(request)
+    return redirect('index')
 

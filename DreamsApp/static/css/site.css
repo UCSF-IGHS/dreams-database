@@ -70,7 +70,7 @@
      margin-top: 5px;
      margin-bottom: 10px;
      border-radius: 5px;
-     position: relative;z-index: 1;
+     position: relative;
  }
 
  #dp-navbar.navbar-default li a{
@@ -159,7 +159,7 @@
   .message-view{
      color: gray;
      text-align: center;
-     margin:3em;
+     margin: 3em auto;
      font-size: xx-large;
  }
 
@@ -168,6 +168,15 @@
   }
 
   .edit_intervention_click:hover{
-    text-decoration: underline;
+    text-decoration: none;
       color: dodgerblue;
+  }
+
+  .delete_intervention_click{
+      cursor: pointer;
+  }
+
+  .delete_intervention_click:hover{
+     text-decoration: none;
+      color: red;
   }

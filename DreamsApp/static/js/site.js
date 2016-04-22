@@ -20,7 +20,43 @@ $(document).ready(function () {
      return cookieValue;
     }
 
-     $('#intervention-modal').on('show.bs.modal', function (event) {
+    $('#clients_search_form').submit(function (event) {
+        event.preventDefault();
+        // do ajax
+
+        // work on reset
+        // do an ajax post
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : 'clients', // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data:$('#clients_search_form').serialize(),
+            success : function(data) {
+                var clients = $.parseJSON(data)
+                var clients_tbody = $('#dp-patient-list-body')
+
+                clients_tbody.empty();
+                if(clients.length > 0){
+                    $.each(clients, function (index, client) {
+                        clients_tbody.append("<tr onclick=\"window.location='/client?client_id=" + client.pk + "' \"style=\"cursor: pointer;\"><td >" + client.pk + "</td><td>" + client.fields.first_name + client.fields.last_name + client.fields.middle_name +  "</td><td> "+ client.fields.date_of_birth + "</td></tr>")
+                    })
+                }
+                else
+                    clients_tbody.append("<tr><td colspan='3' style='text-align: center'>0 Clients Found</td></tr>")
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+
+    })
+    
+    $('#intervention-modal').on('show.bs.modal', function (event) {
          // check the mode... Can be new or edit
         var button = $(event.relatedTarget) // Button that triggered the modal
         var interventionCategoryCode = button.data('whatever')
@@ -105,7 +141,7 @@ $(document).ready(function () {
                             return false
                         }
                     })
-                    updateInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, false)
+                    insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, false)
 
                 });
 
@@ -286,56 +322,70 @@ $(document).ready(function () {
         return []
     }
 
-    function updateInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, top) { // top is a boolean for either position to insert the record
+    function insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, top) { // top is a boolean for either position to insert the record
+        var tabpanel_id = '#behavioural-interventions'
         switch (intervention_category_code){
             case 1001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 break;
             case 2001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='hts_result'> "+  iv.fields.hts_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='hts_result'> "+  iv.fields.hts_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='hts_result'> "+  iv.fields.hts_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number+ "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='hts_result'> "+  iv.fields.hts_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number+ "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                tabpanel_id = '#biomedical-interventions';
                 break;
             case 3001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                tabpanel_id = '#post-gbv-care';
                 break;
             case 4001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                tabpanel_id = '#social-protection';
                 break;
             case 5001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td class='edit_intervention_click'><span class='glyphicon glyphicon-pencil' arial-label='Arial-Hidden'></span> Edit</td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                tabpanel_id = '#other-interventions';
                 break;
 
         }
-
-        setInterventionAction(iv, iv_type, intervention_category_code);
-
+        // check for the number of rows in the table
+        if($(table_id + '  tbody  tr').length > 0)
+            $(tabpanel_id +  ' .message-view').addClass('hidden')
+        setInterventionActionHandler(iv, iv_type, intervention_category_code);
     }
 
-    function setInterventionAction(iv, iv_type, intervention_category_code) {
+    function setInterventionActionHandler(iv, iv_type, intervention_category_code) {
         $('#intervention_' + iv.pk + ' .edit_intervention_click').click(function (event) {
             $('#intervention-modal').modal('show'); // this is to show the modal
             currentInterventionCategoryCode_Global = intervention_category_code // this will be needed during update!
             interventionTypes = [iv_type]
             intervention = iv
             setInterventionTypesSelect(interventionTypes)
-            // set the current intevention type to be the same
             $('#intervention-type-select').val(iv_type.fields.code).change() // this should change the current selected option and trigger the modal fields to be rendered appropriately
             // set disabled fields and ad values as required
             prePopulateInterventionModal(iv, iv_type)
+        })
+
+        $('#intervention_' + iv.pk + ' .delete_intervention_click').click(function (event) {
+            // Show a confirm delete dialog
+            $('#confirm-delete-mordal').modal('show')
+            currentInterventionCategoryCode_Global = intervention_category_code // this will be needed during update!
+            interventionTypes = [iv_type]
+            intervention = iv
+            $('#intervention_delete_id').val(intervention.pk);
         })
     }
 
@@ -385,7 +435,6 @@ $(document).ready(function () {
 
     }
 
-
     $('#btn_save_intervention').click(function (event) {
 
         var target = $(event.target)
@@ -414,12 +463,15 @@ $(document).ready(function () {
             success : function(data) {
                 var iv = $.parseJSON(data.intervention)[0]
                 var iv_type = $.parseJSON(data.i_type)[0]
+                var alert_id = '#action_alert_' + currentInterventionCategoryCode_Global
                 if(modalMode != "edit"){
-                    updateInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, true)
-                    alert("Record Added Successfully!")
+                    insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, true)
+                    $(alert_id).removeClass('hidden').addClass('alert-success')
+                        .text('Intervention has been Saved successfully!')
+                        .trigger('madeVisible')
                 }
                 else{
-                    // Update existing record on the view
+                    // Add existing record on the view
                     // get table name and row id
                     var row_id = 'intervention_' + iv.pk
                     $('#' + row_id + ' .intervention_date').text(iv.fields.intervention_date)
@@ -439,9 +491,8 @@ $(document).ready(function () {
                     // notes
                     $('#' + row_id + ' .comment').text(iv.fields.comment)
 
-                    setInterventionAction(iv, iv_type, intervention_category_code)
-
-                    alert("Record updated Successfully")
+                    setInterventionActionHandler(iv, iv_type, intervention_category_code)
+                    $(alert_id).removeClass('hidden').addClass('alert-success').text('Intervention has been Updated successfully!')
                 }
                 $("#intervention-modal").each( function() { this.reset; });
                 $('#intervention-modal').modal('hide');
@@ -450,6 +501,7 @@ $(document).ready(function () {
 
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
+                $(alert_id).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again')
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
                     " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
@@ -463,6 +515,61 @@ $(document).ready(function () {
         var target = $(event.target)
     })
 
+    $('.dp-action-alert').on('madeVisible', function (event) {
+        setTimeout(function(){
+            var alert_space = $(event.target)
+            alert_space.removeClass('alert-success').removeClass('alert-danger')
+                .addClass('hidden')
+                .text("")
+        }, 2000);
+    })
+
+    $('#btn_delete_intervention_confirmation').click(function (event) {
+        var btn = $(event.target);
+        // do an ajax post delete
+
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : 'ivDelete/', // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data:$('#intervention_delete_form').serialize(),
+            success : function(data) {
+                var result = $.parseJSON(data)
+                // remove row from table
+
+                var alert_id = '#action_alert_' + currentInterventionCategoryCode_Global;
+                if(result.result == "success"){
+                    $('#intervention_' + result.intervention_id).remove();
+                    $(alert_id).removeClass('hidden').addClass('alert-success')
+                        .text('Intervention has been deleted successfully!')
+                        .trigger('madeVisible')
+                    // check the number of remaining rows
+                    var tbody_id = '#interventions_' + currentInterventionCategoryCode_Global + '_tbody'
+                    if($(tbody_id + ' tr').length < 1){
+                        // No more record in the table
+                        var col_span = $('#interventions_' + currentInterventionCategoryCode_Global + '_table' + ' thead tr')[0].cells.length
+                        $(tbody_id).append("<tr><td colspan='" + col_span + "' style='text-align: center'>0 Interventions</td></tr>")
+                    }
+                }
+                else
+                    $(alert_id).removeClass('hidden').addClass('alert-danger').text('Error deleting Intervention. Please try again')
+                $('#confirm-delete-mordal').modal('hide');
+
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                //$(alert_id).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again')
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+
+            }
+        });
+
+        //console.log(intervention)
+    })
 });
 
 
