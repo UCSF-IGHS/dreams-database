@@ -11,7 +11,7 @@
             <span class="icon-bar"></span>
           </button>
           <a class="navbar-brand" href="#">
-              <img id="dp-logo" src="{% static 'images/logo.svg' %}" class="img img-responsive"></a>
+              <img id="dp-logo" src="{% static 'images/logo.png' %}" class="img img-responsive"></a>
         </div>
         <div class="collapse navbar-collapse" style="margin-top: 25px; margin-bottom: 5px;">
             <ul class="nav navbar-right navbar-nav">
@@ -25,7 +25,7 @@
                     <li class="dropdown">
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
                       <ul class="dropdown-menu">
-                          <li><a href="#" class="text-danger">Logout: {{ user.username }}</a></li>
+                          <li><a href="/logout" class="text-danger">Logout: {{ user.username }}</a></li>
                       </ul>
                     </li>
                 {% endif %}
