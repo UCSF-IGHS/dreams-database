@@ -5,7 +5,7 @@
 
     <div class="row search-section">
         <div class="fit-item" style="padding-left: 0px; margin-left: 0px;">
-            <form id="clients_search_form" method="post" action="#">
+            <form id="clients_search_form" method="post">
                 {% csrf_token %}
                 <div class="input-group fit-item" id="adv-search" style="padding-left: 0px; margin-left: 0px;">
                     <input type="text" id="search-term-default" name="searchValue" class="form-control" placeholder="Search for client by Name or DREAMS ID" />
@@ -19,6 +19,7 @@
 
         </div>
     </div>
+    <div class="row alert hidden dp-action-alert" id="client_actions_alert" role="alert"></div>
     <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
             <div class="panel-body" style="margin: 0px;padding: 0px;">
                 <table class="table table-striped dp-patient-table" id="dp-patient-list">
@@ -26,13 +27,15 @@
                       <th>DREAMS ID</th>
                         <th>Name</th>
                         <th>Date of Enrollment</th>
+                        <th>Actions</th>
                     </thead>
                     <tbody id="dp-patient-list-body">
                         {% for client in clients %}
-                        <tr onclick="window.location='/client?client_id={{ client.id }}' "style="cursor: pointer;">
+                        <tr id="clients_row_{{ client.id }}" style="cursor: pointer;">
                             <td>{{ client.id}}</td>
                             <td>{{ client.first_name }} {{ client.last_name }} {{ client.middle_name }}</td>
                             <td>{{ client.date_of_birth }}</td>
+                            <td><span class='fa fa-eye view_intervention_click' aria-hidden="true" onclick="window.location='/client?client_id={{ client.id }}' " style="cursor: pointer;">View</span> &nbsp; &nbsp; &nbsp;<span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' onclick="window.location='/clientEdit?client_id={{ client.id }}'"style="cursor: pointer;">Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click delete_client' data-client_id='{{ client.id }}' arial-label='Arial-Hidden'>Delete</span> </td>
                         </tr>
                     {% endfor %}
                     </tbody>

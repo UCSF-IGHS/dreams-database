@@ -37,18 +37,24 @@ def clients(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
-                client_list = Woman.objects.all()   # filter to get patients only. Not yet done
+                client_list = Client.objects.all()   # filter to get patients only. Not yet done
                 context = {'user': request.user, 'clients': client_list}
                 return render(request, 'clients.html', context)
             elif request.method == 'POST' and request.is_ajax():
                 search_value = request.POST.get('searchValue', '')
-                search_result = Woman.objects.filter(Q(first_name__startswith=search_value) |
-                                                    Q(last_name__startswith=search_value) |
-                                                    Q(middle_name__startswith=search_value))
+                search_result = Client.objects.filter(Q(first_name__startswith=search_value) |
+                                                      Q(last_name__startswith=search_value) |
+                                                      Q(middle_name__startswith=search_value))
+                return JsonResponse(serializers.serialize('json', search_result), safe=False)
+            elif request.method == 'POST':
+                search_value = request.POST.get('searchValue', '')
+                search_result = Client.objects.filter(Q(first_name__startswith=search_value) |
+                                                      Q(last_name__startswith=search_value) |
+                                                      Q(middle_name__startswith=search_value))
                 return JsonResponse(serializers.serialize('json', search_result), safe=False)
         else:
             return redirect('index')
-    except:
+    except Exception as e:
         return redirect('index')
 
 
@@ -61,12 +67,134 @@ def client_profile(request):
 
         if client_id is not None and client_id != 0:
             try:
-                client_found = Woman.objects.get(id=client_id)
+                client_found = Client.objects.get(id=client_id)
                 if client_found is not None:
                     return render(request, 'client_profile.html', {'client': client_found, 'user': request.user})
             except:
                 return render(request, 'index.html')
     return render(request, 'index.html')
+
+
+def save_client(request):
+    try:
+        if request.user is not None and request.user.is_authenticated():
+            if request.method == 'GET':
+                return render(request, 'enrollment.html', {'client': None})
+            elif request.method == 'POST' and request.is_ajax():
+                # process saving user
+                Client.objects.create(
+                    first_name=request.POST.get('first_name', ''),
+                    middle_name=request.POST.get('middle_name', ''),
+                    last_name=request.POST.get('last_name', ''),
+                    date_of_birth=request.POST.get('date_of_birth', ''),
+                    is_date_of_birth_estimated=request.POST.get('is_date_of_birth_estimated', ''),
+                    verification_doc_no=request.POST.get('verification_doc_no', ''),
+                    date_of_enrollment=request.POST.get('date_of_enrollment', ''),
+                    age_at_enrollment=int(request.POST.get('age_at_enrollment', 10)),
+                    marital_status=MaritalStatus.objects.filter(code__exact=str(request.POST.get('marital_status', ''))).first(),
+                    phone_number=request.POST.get('phone_number', ''),
+                    dss_id_number=request.POST.get('dss_id_number', ''),
+                    county_of_residence=County.objects.filter(code__exact=request.POST.get('county_of_residence', '')).first(),
+                    sub_county=SubCounty.objects.filter(code__exact=request.POST.get('sub_county', '')).first(),
+                    ward=Ward.objects.filter(code__exact=request.POST.get('ward', '')).first(),
+                    informal_settlement=request.POST.get('informal_settlement', ''),
+                    village=request.POST.get('village', ''),
+                    landmark=request.POST.get('landmark', ''),
+                    dreams_id=request.POST.get('dreams_id', ''),
+                    guardian_name=request.POST.get('guardian_name', ''),
+                    relationship_with_guardian=request.POST.get('relationship_with_guardian', ''),
+                    guardian_phone_number=request.POST.get('guardian_phone_number', ''),
+                    guardian_national_id=request.POST.get('guardian_national_id', ''),
+                    enrolled_by=request.user
+                )
+                if request.is_ajax():
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Enrollment to DREAMS successful.'
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+                else:
+                    # redirect to page
+                    return redirect('clients')
+        else:
+            return PermissionDenied('Operation not allowed. [Missing Permission]')
+    except Exception as e:
+        tb = traceback.format_exc()
+        return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+
+
+def edit_client(request):
+    try:
+        if request.user is not None and request.user.is_authenticated():
+            if request.method == 'GET':
+                client_id = int(request.GET['client_id'])
+                client = Client.objects.defer('date_of_birth', 'date_of_enrollment').get(id__exact=client_id)
+                if client is None:
+                    redirect('clients')
+                return render(request, 'enrollment.html', {'client': client})
+            elif request.method == 'POST':
+                client_id = int(str(request.POST.get('client_id')))
+                client = Client.objects.filter(id=client_id).first()
+                # process editing user
+                client.first_name = str(request.POST.get('first_name', ''))
+                client.middle_name = str(request.POST.get('middle_name', ''))
+                client.last_name = str(request.POST.get('last_name', ''))
+                client.date_of_birth = str(request.POST.get('date_of_birth', datetime.now))
+                client.is_date_of_birth_estimated = bool(str(request.POST.get('is_date_of_birth_estimated')))
+                client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
+                client.date_of_enrollment = str(request.POST.get('date_of_enrollment', datetime.now))
+                client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
+                client.marital_status = MaritalStatus.objects.filter(code__exact=str(request.POST.get('marital_status', ''))).first()
+                client.phone_number = str(request.POST.get('phone_number', ''))
+                client.dss_id_number = str(request.POST.get('dss_id_number', ''))
+                client.county_of_residence = County.objects.filter(code__exact=request.POST.get('county_of_residence', '')).first()
+                client.sub_county = SubCounty.objects.filter(code__exact=request.POST.get('sub_county', '')).first()
+                client.ward = Ward.objects.filter(code__exact=request.POST.get('ward', 0)).first()
+                client.informal_settlement = str(request.POST.get('informal_settlement', ''))
+                client.village = str(request.POST.get('village', ''))
+                client.landmark = str(request.POST.get('landmark', ''))
+                client.dreams_id = str(request.POST.get('dreams_id', ''))
+                client.guardian_name = str(request.POST.get('guardian_name', ''))
+                client.relationship_with_guardian = str(request.POST.get('relationship_with_guardian', ''))
+                client.guardian_phone_number = str(request.POST.get('guardian_phone_number', ''))
+                client.guardian_national_id = str(request.POST.get('guardian_national_id', ''))
+                client.save()
+                if request.is_ajax():
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Client Details Updated successfuly.'
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+                else:
+                    # redirect to page
+                    return redirect('clients')
+        else:
+            return PermissionDenied('Operation not allowed. [Missing Permission]')
+    except Exception as e:
+        tb = traceback.format_exc()
+        return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+
+
+def delete_client(request):
+    try:
+        if request.user is not None and request.user.is_authenticated():
+            if request.method == 'GET' and request.is_ajax():
+                client_id = int(request.GET['client_id'])
+                client = Client.objects.filter(id__exact=client_id).first()
+                client.delete()
+                response_data = {
+                    'status': 'success',
+                    'message': 'Client Details Deleted successfuly.'
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+            elif request.method == 'POST':
+                return PermissionDenied('Operation not allowed. [Missing Permission]')
+
+        else:
+            return PermissionDenied('Operation not allowed. [Missing Permission]')
+    except Exception as e:
+        tb = traceback.format_exc()
+        return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
 
 
 def testajax(request):
@@ -101,7 +229,7 @@ def saveIntervention(request):
             try:
                 i_type = InterventionType.objects.get(code__exact=intervention_type_code)
                 intervention = Intervention()
-                intervention.client = Woman.objects.get(id__exact=int(request.POST.get('client')))
+                intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
                 intervention.intervention_type = i_type
                 intervention.intervention_date = request.POST.get('intervention_date')
                 intervention.created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
@@ -195,7 +323,7 @@ def updateIntervention(request):
         if intervention_id is not None and type(intervention_id) is int:
             try:
                 intervention = Intervention.objects.get(id__exact=intervention_id)
-                intervention.client = Woman.objects.get(id__exact=int(request.POST.get('client')))
+                intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
                 intervention.intervention_date = request.POST.get('intervention_date')
                 intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
                 intervention.date_changed = datetime.now()
