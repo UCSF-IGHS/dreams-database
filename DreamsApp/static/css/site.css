@@ -180,3 +180,8 @@
      text-decoration: none;
       color: red;
   }
+
+  .view_intervention_click:hover{
+      text-decoration: none;
+      color: green;
+  }

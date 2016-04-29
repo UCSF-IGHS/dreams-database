@@ -20,6 +20,9 @@ from DreamsApp import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^clients', views.clients, name='clients'),
+    url(r'^clientSave', views.save_client, name='save_client'),
+    url(r'^clientEdit', views.edit_client, name='edit_client'),
+    url(r'^clientDelete', views.delete_client, name='delete_client'),
     url(r'^client', views.client_profile),
     url(r'^admin/', admin.site.urls),
     url(r'^ivgetTypes/', views.getInterventionTypes),
@@ -29,5 +32,6 @@ urlpatterns = [
     url(r'^ivUpdate/', views.updateIntervention),
     url(r'^ivDelete/', views.deleteIntervention),
     url(r'^intervention/$', views.testajax),
+    url(r'^logout/$', views.log_me_out),
     url(r'^logout/$', views.log_me_out),
 ]
