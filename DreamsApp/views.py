@@ -385,3 +385,31 @@ def log_me_out(request):
     logout(request)
     return redirect('index')
 
+
+def reporting(request):
+    try:
+        if request.user is not None and request.user.is_authenticated():
+            if request.method == 'GET':
+                return render(request, 'reporting.html', {'user': request.user})
+            elif request.method == 'POST' and request.is_ajax():
+                return render(request, 'reporting.html', {'user': request.user})
+        else:
+            return PermissionDenied('Operation not allowed. [Missing Permission]')
+    except Exception as e:
+        tb = traceback.format_exc()
+        return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+
+
+def user_help(request):
+    try:
+        if request.user is not None and request.user.is_authenticated():
+            if request.method == 'GET':
+                return render(request, 'help.html', {'user': request.user})
+            elif request.method == 'POST' and request.is_ajax():
+                return render(request, 'help.html', {'user': request.user})
+        else:
+            return PermissionDenied('Operation not allowed. [Missing Permission]')
+    except Exception as e:
+        tb = traceback.format_exc()
+        return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+
