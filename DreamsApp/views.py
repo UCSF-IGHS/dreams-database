@@ -82,7 +82,7 @@ def save_client(request):
                 return render(request, 'enrollment.html', {'client': None})
             elif request.method == 'POST' and request.is_ajax():
                 # process saving user
-                Client.objects.create(
+                client = Client.objects.create(
                     first_name=request.POST.get('first_name', ''),
                     middle_name=request.POST.get('middle_name', ''),
                     last_name=request.POST.get('last_name', ''),
@@ -110,7 +110,8 @@ def save_client(request):
                 if request.is_ajax():
                     response_data = {
                         'status': 'success',
-                        'message': 'Enrollment to DREAMS successful.'
+                        'message': 'Enrollment to DREAMS successful.',
+                        'client_id': client.id
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
                 else:
@@ -128,10 +129,16 @@ def edit_client(request):
         if request.user is not None and request.user.is_authenticated():
             if request.method == 'GET':
                 client_id = int(request.GET['client_id'])
-                client = Client.objects.defer('date_of_birth', 'date_of_enrollment').get(id__exact=client_id)
+                client = Client.objects.defer('date_of_enrollment', 'date_of_birth').get(id__exact=client_id)
                 if client is None:
                     redirect('clients')
-                return render(request, 'enrollment.html', {'client': client})
+                if request.is_ajax():
+                    response_data = {'client': serializers.serialize('json', [client, ])}
+                    return JsonResponse(response_data, safe=False)
+                else:
+                    # redirect to page
+                    return render(request, 'enrollment.html', {'client': client})
+                return redirect('clients')
             elif request.method == 'POST':
                 client_id = int(str(request.POST.get('client_id')))
                 client = Client.objects.filter(id=client_id).first()

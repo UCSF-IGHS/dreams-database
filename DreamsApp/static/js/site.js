@@ -37,6 +37,33 @@ $(document).ready(function () {
      return cookieValue;
     }
 
+    function insertClientTableRow(clients_tbody, pk, first_name, last_name, middle_name, date_of_birth, append, is_superuser) {
+        var row_string = "<tr style=\"cursor: pointer;\"><td >" + pk + "</td><td>" + first_name + " " + last_name + " " + middle_name +  "</td><td> "+ date_of_birth + "</td>" +
+                            "<td><span class='glyphicon glyphicon-pencil view_intervention_click' arial-label='Arial-Hidden' onclick=\"window.location='/client?client_id=" + pk + "'\" style='cursor: pointer;\'>Interventions</span> &nbsp;&nbsp; "
+
+        if(is_superuser){
+            row_string += "<span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' onclick=\"window.location='/clientEdit?client_id=" + pk + "'\" style='cursor: pointer;\'>Edit Enrollment</span> &nbsp;&nbsp; " +
+                "<span class='glyphicon glyphicon-trash delete_intervention_click ' data-client_id='" + pk + "' id='spn_delete_client_" + pk + "' arial-label='Arial-Hidden' style='cursor: pointer;\'>Delete Enrollment</span> &nbsp;&nbsp; "
+        }
+        row_string += "</td></tr>";
+
+        if(append)
+            clients_tbody.append(row_string);
+        else
+            clients_tbody.prepend(row_string);
+
+        // Add delete event listener
+        $('#spn_delete_client_' + pk).click(function (event) {
+            var spn = $(event.target);
+            deleteClient(spn);
+        })
+    }
+
+    function editClientTableRow(clients_tbody_id,table_row_id, pk, first_name, last_name, middle_name, date_of_birth, append, is_superuser) {
+        $(clients_tbody_id + ' ' + table_row_id + ':nth-child(1)').text(pk);
+        $(clients_tbody_id + ' ' + table_row_id + ':nth-child(2)').val(first_name + " " + last_name + " " + middle_name);
+    }
+
     $('#clients_search_form').submit(function (event) {
         event.preventDefault();
         // do ajax
@@ -45,7 +72,7 @@ $(document).ready(function () {
         // do an ajax post
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : 'clients', // the endpoint
+            url : '/clients/', // the endpoint
             type : "POST", // http method
             dataType: 'json',
             data:$('#clients_search_form').serialize(),
@@ -56,15 +83,7 @@ $(document).ready(function () {
                 clients_tbody.empty();
                 if(clients.length > 0){
                     $.each(clients, function (index, client) {
-                        clients_tbody.append("<tr style=\"cursor: pointer;\"><td >" + client.pk + "</td><td>" + client.fields.first_name + " " + client.fields.last_name + " " + client.fields.middle_name +  "</td><td> "+ client.fields.date_of_birth + "</td>" +
-                            "<td><span class='fa fa-eye view_intervention_click' arial-label='Arial-Hidden' onclick=\"window.location='clientView?client_id=" + client.pk + "'\" style='cursor: pointer;\'>View</span> &nbsp;&nbsp; " +
-                                "<span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' onclick=\"window.location='clientEdit?client_id=" + client.pk + "'\" style='cursor: pointer;\'>Edit</span> &nbsp;&nbsp; " +
-                                "<span class='glyphicon glyphicon-trash delete_intervention_click ' data-client_id='" + client.pk + "' id='spn_delete_client_" + client.pk + "' arial-label='Arial-Hidden' style='cursor: pointer;\'>Delete</span> &nbsp;&nbsp; " +
-                            "</tr>")
-                        $('#spn_delete_client_' + client.pk).click(function (event) {
-                            var spn = $(event.target);
-                            deleteClient(spn);
-                        })
+                        insertClientTableRow(clients_tbody, client.pk, client.fields.first_name, client.fields.last_name, client.fields.middle_name, client.fields.date_of_birth, true, client.fields.is_superuser);
                     })
                 }
                 else
@@ -646,42 +665,6 @@ $(document).ready(function () {
         $(formatted_target_id).val(formatted_date_string);
     })
     
-    $('#user-entry-form').submit(function (event) {
-        event.preventDefault();
-        var clientForm = $(event.target);
-        if(!validateClientForm(clientForm))
-            return;
-        var client_id = $('#client_id').val();
-        var post_url = client_id == null || client_id == '' ? 'clientSave/' : 'clientEdit/';
-        var csrftoken = getCookie('csrftoken');
-        $.ajax({
-            url : post_url,
-            type : "POST",
-            dataType: 'json',
-            data:$('#user-entry-form').serialize(),
-            success : function(data) {
-                var result = $.parseJSON(data)
-                if(result.status == "success"){
-                    $('#alert_enrollment_modal').modal('show');
-                    $('#alert_enrollment_modal_title').text('Enrollment Successful');
-                    $('#alert_enrollment_modal_content').text(result.message);
-                    $(location).attr("href", 'clients');
-                }
-                else{
-                    $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')
-                        .text(result.message)
-                        .trigger('madeVisible')
-                }
-            },
-
-            // handle a non-successful response
-            error : function(xhr,errmsg,err) {
-                $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')
-                        .text('An error occurred while enrolling client. Contact system administratior if this persists')
-                        .trigger('madeVisible')
-            }
-        });
-    })
 
     $('.delete_client').click(function (event) {
         var spn = $(event.target);
@@ -692,7 +675,7 @@ $(document).ready(function () {
         var client_id = spn.data('client_id');
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : 'clientDelete/',
+            url : '/clientDelete/',
             type : "GET",
             dataType: 'json',
             data:{'client_id':client_id},
@@ -726,6 +709,95 @@ $(document).ready(function () {
             }
         });
     }
+
+    $('#enrollment-modal').on('shown.bs.modal', function (e) {
+        var button = $(e.relatedTarget);
+        var client_id = button.data('client_id');
+        if(client_id != null && client_id != 0){
+            var csrftoken = getCookie('csrftoken');
+            $.ajax({
+                url : '/clientEdit', // the endpoint
+                type : "GET", // http method
+                dataType: 'json',
+                data:{'client_id':client_id},
+                success : function(response_data) {
+                    var response = JSON.parse(response_data.client);
+                    var client = response[0];
+
+                    // set client_id-- this is not named the same way in the model as in the form
+                    $('#enrollment-form #client_id').val(client.pk)
+                    $.each(client.fields, function (index, field) {
+                        $('#enrollment-form #' + index).val(field)
+                    })
+                },
+
+                // handle a non-successful response
+                error : function(xhr,errmsg,err) {
+                    //$(alert_id).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again')
+                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+
+                }
+            });
+        }
+    })
+
+    $('#enrollment-form').submit(function (event) {
+        event.preventDefault();
+        var enrollment_form_submit_mode = 'new';
+        var post_url = '/clientSave/';
+        var clientForm = $(event.target);
+        if(!validateClientForm(clientForm))
+            return;
+        var client_id = $('#client_id').val();
+        if(client_id != null && client_id != ''){
+            enrollment_form_submit_mode = 'edit';
+            post_url = '/clientEdit/';
+        }
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : post_url,
+            type : "POST",
+            dataType: 'json',
+            data:$('#enrollment-form').serialize(),
+            success : function(data) {
+                var result = $.parseJSON(data)
+                if(result.status == "success"){
+                    var clients_tbody = $('#dp-patient-list-body')
+                    if(enrollment_form_submit_mode == 'new'){
+                        // Prepend new line into the clients' table
+                        insertClientTableRow(clients_tbody, result.client_id, $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), $('#enrollment-form #date_of_birth').val(), false, true)
+                    }
+                    else{
+                        // Update relevant table line without reloading the page
+                        console.log('Editing');
+                        editClientTableRow('#dp-patient-list-body', '#clients_row_' + result.client_id , result.client_id, $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), $('#enrollment-form #date_of_birth').val(), false, true)
+                    }
+                    $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
+                        .text(result.message)
+                        .trigger('madeVisible')
+
+                    // Close enrollment modal when done
+                    $("#enrollment-modal").modal('hide');
+                }
+                else{
+                    $('#client_actions_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(result.message)
+                        .trigger('madeVisible')
+                }
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')
+                        .text('An error occurred while enrolling client. Contact system administratior if this persists')
+                        .trigger('madeVisible')
+            }
+        });
+    })
+
+
 });
 
 
