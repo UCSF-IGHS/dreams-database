@@ -38,14 +38,30 @@ $(document).ready(function () {
     }
 
     function insertClientTableRow(clients_tbody, pk, first_name, last_name, middle_name, date_of_birth, append, is_superuser) {
-        var row_string = "<tr style=\"cursor: pointer;\"><td >" + pk + "</td><td>" + first_name + " " + last_name + " " + middle_name +  "</td><td> "+ date_of_birth + "</td>" +
-                            "<td><span class='glyphicon glyphicon-pencil view_intervention_click' arial-label='Arial-Hidden' onclick=\"window.location='/client?client_id=" + pk + "'\" style='cursor: pointer;\'>Interventions</span> &nbsp;&nbsp; "
-
-        if(is_superuser){
-            row_string += "<span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' onclick=\"window.location='/clientEdit?client_id=" + pk + "'\" style='cursor: pointer;\'>Edit Enrollment</span> &nbsp;&nbsp; " +
-                "<span class='glyphicon glyphicon-trash delete_intervention_click ' data-client_id='" + pk + "' id='spn_delete_client_" + pk + "' arial-label='Arial-Hidden' style='cursor: pointer;\'>Delete Enrollment</span> &nbsp;&nbsp; "
-        }
-        row_string += "</td></tr>";
+        var is_superuser = $('#is_superuser').val();
+        var row_string = "<tr id='clients_row_" + pk +"' style='cursor: pointer;'>"
+                        + "<td>" + pk + "</td>"
+                        + "<td>" + first_name + " " + last_name + " " + middle_name +  "</td>"
+                        + "<td>" + date_of_birth + "</td>"
+                        + "<td id='client_' + " + pk + "'>"
+                            + "<div class='btn-group'>"
+                              + "<button type='button' class='btn btn-primary' onclick=\"window.location='/client?client_id=" + pk + "'\" style='cursor: pointer;'> Interventions </button>"
+                              + "<button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>"
+                                + "More <span class='caret'></span>"
+                                + "<span class='sr-only'>Toggle Dropdown</span>"
+                              + "</button>"
+                              + "<ul class='dropdown-menu'>"
+                                if(is_superuser){
+                                row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk +"' style='cursor: pointer;word-spacing: 0px !important;'> Edit Enrollment </a></li>"
+                                + "<li><a href='#' class='delete_intervention_click delete_client' data-client_id='" + pk +"' id='delete_client_a_" + pk +"'> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>"
+                                }
+                                else {
+                                 row_string += "<li><a href='#'> No more actions.</a></li>"
+                                }
+                              row_string += "</ul>"
+                            + "</div>"
+                        + "</td>"
+                    + "</tr>"
 
         if(append)
             clients_tbody.append(row_string);
@@ -53,9 +69,9 @@ $(document).ready(function () {
             clients_tbody.prepend(row_string);
 
         // Add delete event listener
-        $('#spn_delete_client_' + pk).click(function (event) {
-            var spn = $(event.target);
-            deleteClient(spn);
+        $('#delete_client_a_' + pk).click(function (event) {
+            var target = $(event.target);
+            deleteClient(target);
         })
     }
 
@@ -141,6 +157,27 @@ $(document).ready(function () {
         filterTable(targetTable, filterValue)
     })
 
+    $('.filter-enrollment').keyup(function (event) {
+        /*
+            This function filters clients table on typing
+         */
+        // check which key is pressed
+        var rex = new RegExp($(this).val(), 'i');
+        $('#dp-patient-list-body tr').hide();
+        $('#dp-patient-list-body tr').filter(function () {
+            return rex.test($(this).text());
+        }).show();
+
+        /*if($('#dp-patient-list-body tr:visible').length < 1 || $('#dp-patient-list-body tr').length < 1)
+            $('#dp-patient-list-body').append("<tr><td colspan='4' style='text-align: center'>0 Clients Found</td></tr>")
+        */
+        if($('#dp-patient-list-body tr:visible').length < 1 || $('#dp-patient-list-body tr').length < 1)
+            $('#client_actions_alert').removeClass('hidden').addClass('alert-danger')
+                        .text("0 Clients found")
+                        .trigger('madeVisible')
+
+    })
+
     $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
 
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -218,6 +255,7 @@ $(document).ready(function () {
         $(table_id + ' tr').filter(function () {
             return rex.test($(this).text());
         }).show();
+
     }
 
     function fetchRelatedInterventions(interventionCategoryCode) {
@@ -664,11 +702,10 @@ $(document).ready(function () {
         var formatted_date_string = split_date_string_array[2] + "-" + split_date_string_array[0] + "-" + split_date_string_array[1]
         $(formatted_target_id).val(formatted_date_string);
     })
-    
 
     $('.delete_client').click(function (event) {
-        var spn = $(event.target);
-        deleteClient(spn);
+        var target = $(event.target);
+        deleteClient(target);
     })
 
     function deleteClient(spn) {
@@ -741,6 +778,15 @@ $(document).ready(function () {
                 }
             });
         }
+        else {
+            return;
+        }
+    })
+
+    $('#enrollment-modal').on('hide.bs.modal', function (e) {
+        $('#enrollment-form .clear_value').val('');
+        $('#enrollment-form .clear_span').html('');
+        $('#enrollment-form .clear_true').prop('checked', false);
     })
 
     $('#enrollment-form').submit(function (event) {
@@ -797,6 +843,9 @@ $(document).ready(function () {
         });
     })
 
+    $('#btn_hide_enrollment').click(function (event) {
+        $('#enrollment-modal').modal('toggle');
+    })
 
 });
 

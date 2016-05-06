@@ -1,36 +1,38 @@
 {% load staticfiles %}
 
 
-<div class="row sub-header-section navbar navbar-default" id="dp-navbar">
-    <div class="container">
+<nav class="navbar dreams-navbar" role="navigation" style="background-color: #E5EBF0 !important;">
+    <div class="container" style="background-color: #E5EBF0 !important;">
+        <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#">
-              <img id="dp-logo" src="{% static 'images/logo.png' %}" class="img img-responsive"></a>
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">
+                <img id="dp-logo" src="{% static 'images/logo.png' %}" alt="Logo" class="img img-responsive">
+            </a>
         </div>
-        <div class="collapse navbar-collapse" style="margin-top: 25px; margin-bottom: 5px;">
-            <ul class="nav navbar-right navbar-nav">
-                <li><a href="/clients/">Clients and Interventions</a>
-                </li>
-                <li><a href="/reporting/">Reporting</a>
-                </li>
-                <li><a href="/help/">Help</a>
-                </li>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <!-- NAV -->
+                <li><a href="/clients/">CLIENTS AND INTERVENTIONS</a> </li>
+                <li><a href="/reporting/">REPORTING </a> </li>
+                <li><a href="/help/">HELP</a></li>
                 {% if user !=  None %}
                     <li class="dropdown">
-                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">ACCOUNT <span class="caret"></span></a>
                       <ul class="dropdown-menu">
                           <li><a href="/logout" class="text-danger">Logout: {{ user.username }}</a></li>
                       </ul>
                     </li>
                 {% endif %}
-                </li>
             </ul>
         </div>
+        <!-- /.navbar-collapse -->
     </div>
-</div>
+    <!-- /.container- -->
+</nav>
