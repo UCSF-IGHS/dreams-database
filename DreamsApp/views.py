@@ -169,7 +169,8 @@ def edit_client(request):
                 if request.is_ajax():
                     response_data = {
                         'status': 'success',
-                        'message': 'Client Details Updated successfuly.'
+                        'message': 'Client Details Updated successfuly.',
+                        'client_id': client.id
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
                 else:
