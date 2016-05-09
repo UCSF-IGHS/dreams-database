@@ -45,12 +45,13 @@ $(document).ready(function () {
                         + "<td>" + date_of_birth + "</td>"
                         + "<td id='client_' + " + pk + "'>"
                             + "<div class='btn-group'>"
-                              + "<button type='button' class='btn btn-primary' onclick=\"window.location='/client?client_id=" + pk + "'\" style='cursor: pointer;'> Interventions </button>"
-                              + "<button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>"
+                              + "<button type='button' class='btn btn-sm btn-primary' onclick=\"window.location='/client?client_id=" + pk + "'\" style='cursor: pointer;'> Interventions </button>"
+                              + "<button type='button' class='btn btn-sm btn-default dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>"
                                 + "More <span class='caret'></span>"
                                 + "<span class='sr-only'>Toggle Dropdown</span>"
                               + "</button>"
                               + "<ul class='dropdown-menu'>"
+                                + "<li><a href='#' class='edit_intervention_click edit_client' data-view_mode='view' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk + "' style='cursor: pointer;word-spacing: 0px !important;'> View Enrollment </a></li>"
                                 if(is_superuser){
                                 row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk +"' style='cursor: pointer;word-spacing: 0px !important;'> Edit Enrollment </a></li>"
                                 + "<li><a href='#' class='delete_intervention_click delete_client' data-client_id='" + pk +"' id='delete_client_a_" + pk +"'> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>"
@@ -745,6 +746,7 @@ $(document).ready(function () {
     $('#enrollment-modal').on('shown.bs.modal', function (e) {
         var button = $(e.relatedTarget);
         var client_id = button.data('client_id');
+        var view_mode = button.data('view_mode');
         if(client_id != null && client_id != 0){
             var csrftoken = getCookie('csrftoken');
             $.ajax({
@@ -756,6 +758,12 @@ $(document).ready(function () {
                     var response = JSON.parse(response_data.client);
                     var client = response[0];
 
+                    if(view_mode == 'view')
+                        $('#enrollment-form :input').attr('disabled', true);
+                    else
+                        $('#enrollment-form :input').attr('disabled', false);
+                    $('#enrollment-form #btn_hide_enrollment').attr('disabled', false);
+                    $('#enrollment-form #close__enrollment_modal').attr('disabled', false);
                     // set client_id-- this is not named the same way in the model as in the form
                     $('#enrollment-form #client_id').val(client.pk)
                     $.each(client.fields, function (index, field) {
