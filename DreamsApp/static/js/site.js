@@ -56,9 +56,6 @@ $(document).ready(function () {
                                 row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk +"' style='cursor: pointer;word-spacing: 0px !important;'> Edit Enrollment </a></li>"
                                 + "<li><a href='#' class='delete_intervention_click delete_client' data-client_id='" + pk +"' id='delete_client_a_" + pk +"'> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>"
                                 }
-                                else {
-                                 row_string += "<li><a href='#'> No more actions.</a></li>"
-                                }
                               row_string += "</ul>"
                             + "</div>"
                         + "</td>"
