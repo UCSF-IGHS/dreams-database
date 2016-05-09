@@ -2,6 +2,8 @@
 
 {% block content %}
 
+    {% include 'includes/enrollment_form.html' %}
+
     <!-- Beginning modal-->
         <!-- Modal -->
     <div class="modal fade" id="intervention-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -124,6 +126,28 @@
 
     <!-- End Confirm Delete Modal -->
 
+    <!-- Client profile section -->
+    <div class="row search-section" style="margin: 0px 15px !important;">
+        <div class="col-xs-12 col-sm-5">
+            <p><strong>Client: </strong> {{ client }} </p>
+            <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }}</p>
+            {% if user.is_superuser %}
+            <p style="cursor:pointer;" data-toggle="tooltip" title="Edit Enrollment">
+                <span class="label label-info tags edit_client" data-toggle="modal" data-target="#enrollment-modal" data-client_id='{{ client.id }}'><span class="glyphicon glyphicon-pencil"></span> Edit Enrollment</span>
+            </p>
+            {% endif %}
+        </div><!--/col-->
+        <div class="col-xs-12 col-sm-4">
+            <p><strong>DREAMS Id: </strong> {{ client.dreams_id }}</p>
+             <p><strong>Phone Number: </strong>
+                <span>{{ client.phone_number }} {% if client.guardian_phone_number != None and client.guardian_phone_number != '' %}(Guardian){{ client.guardian_phone_number }}{% endif %}</span>
+            </p>
+        </div><!--/col-->
+        <div class="col-xs-12 col-sm-3">
+
+        </div><!--/col-->
+    </div>
+    <!-- End of Client profile section -->
     <div class="row dp-margin" id="client_profile_tab_control">
         <ul class="nav nav-tabs">
             <li role="presentation"><a href="#behavioural-interventions" aria-controls="behavioural-interventions" role="tab" data-toggle="tab" data-intervention_category_code="1001" data-tab_intervention_table_id="#interventions_1001_table">Behavioural</a></li>
@@ -131,6 +155,7 @@
             <li role="presentation"><a href="#post-gbv-care" aria-controls="post-gbv-care" role="tab" data-toggle="tab" data-intervention_category_code="3001" data-tab_intervention_table_id="#interventions_3001_table">Post-GVB Care</a></li>
             <li role="presentation"><a href="#social-protection" aria-controls="social-protection" role="tab" data-toggle="tab" data-intervention_category_code="4001" data-tab_intervention_table_id="#interventions_4001_table">Social protection</a></li>
             <li role="presentation"><a href="#other-interventions" aria-controls="other-interventions" role="tab" data-toggle="tab" data-intervention_category_code="5001" data-tab_intervention_table_id="#interventions_5001_table">Other</a></li>
+            <li style="float: right;"><a class="no-hover" href="/clients/"><span class="glyphicon glyphicon-triangle-left"> </span> Back to Clients</a> </li>
         </ul>
 
         <div class="tab-content" >
@@ -154,6 +179,7 @@
 
                <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
                   <div class="panel-body" style="margin: 0px;padding: 0px;">
+
                       <table class="table table-striped" id="interventions_1001_table">
                           <thead>
                               <tr>
@@ -356,5 +382,5 @@
         </div>
     </div>
 
-    <input id="client_id" class="hidden" type="text" name="client_id" value="{{ client.id }}">
+    <input id="current_client_id" class="hidden" type="text" name="client_id" value="{{ client.id }}">
 {% endblock %}

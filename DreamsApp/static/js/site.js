@@ -75,11 +75,6 @@ $(document).ready(function () {
         })
     }
 
-    function editClientTableRow(clients_tbody_id,table_row_id, pk, first_name, last_name, middle_name, date_of_birth, append, is_superuser) {
-        $(clients_tbody_id + ' ' + table_row_id + ':nth-child(1)').text(pk);
-        $(clients_tbody_id + ' ' + table_row_id + ':nth-child(2)').val(first_name + " " + last_name + " " + middle_name);
-    }
-
     $('#clients_search_form').submit(function (event) {
         event.preventDefault();
         // do ajax
@@ -206,7 +201,7 @@ $(document).ready(function () {
             data : {
                 csrfmiddlewaretoken : csrftoken,
                 intervention_category_code : intervention_category_code,
-                client_id : $('#client_id').val()
+                client_id : $('#current_client_id').val()
             },
             success : function(data) {
                 var ivs = $.parseJSON(data.interventions)
@@ -796,7 +791,7 @@ $(document).ready(function () {
         var clientForm = $(event.target);
         if(!validateClientForm(clientForm))
             return;
-        var client_id = $('#client_id').val();
+        var client_id = $('#enrollment-form #client_id').val();
         if(client_id != null && client_id != ''){
             enrollment_form_submit_mode = 'edit';
             post_url = '/clientEdit/';
@@ -817,8 +812,10 @@ $(document).ready(function () {
                     }
                     else{
                         // Update relevant table line without reloading the page
-                        console.log('Editing');
-                        editClientTableRow('#dp-patient-list-body', '#clients_row_' + result.client_id , result.client_id, $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), $('#enrollment-form #date_of_birth').val(), false, true)
+                        console.log(result)
+                        $('#clients_row_' + result.client_id).remove(); // remove row
+                        // Insert updated value
+                        insertClientTableRow($('#dp-patient-list-body'), result.client_id, $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), $('#enrollment-form #date_of_birth').val(), false, $('#is_superuser').val());
                     }
                     $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
                         .text(result.message)
