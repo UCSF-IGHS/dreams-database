@@ -764,8 +764,38 @@ $(document).ready(function () {
                     // set client_id-- this is not named the same way in the model as in the form
                     $('#enrollment-form #client_id').val(client.pk)
                     $.each(client.fields, function (index, field) {
-                        $('#enrollment-form #' + index).val(field)
+                        $('#enrollment-form #' + index).val(field);
                     })
+
+                    // set IP values
+                    $('#implementing_partner option').each(function() {
+                        if($(this).data('ip_id') ==  client.fields.implementing_partner) {
+                            $(this).prop("selected", true);
+                        }
+                    });
+
+                    // Set Verification document values
+                    $('#verification_document option').each(function() {
+                        if($(this).data('verification_document_id') ==  client.fields.verification_document) {
+                            $(this).prop("selected", true);
+                        }
+                    });
+
+                    // Set Marital status values
+                    $('#marital_status option').each(function() {
+                        if($(this).data('marital_status_id') ==  client.fields.marital_status) {
+                            $(this).prop("selected", true);
+                        }
+                    });
+
+                    // Set County values
+                    $('#county_of_residence option').each(function() {
+                        if($(this).data('county_of_residence_id') ==  client.fields.county_of_residence) {
+                            $(this).prop("selected", true);
+                        }
+                    });
+
+                    getSubCounties(true, $('#county_of_residence').val(), client.fields.sub_county, client.fields.ward)   // bool, code and id
                 },
 
                 // handle a non-successful response
@@ -849,6 +879,89 @@ $(document).ready(function () {
         $('#enrollment-modal').modal('toggle');
     })
 
+
+    $('#county_of_residence').change(function (event) {
+        getSubCounties(false, null, null, null);
+    })
+
+    function getSubCounties(setSelected, c_code, sub_county_id, ward_id) {
+        var county_code = setSelected == true ? c_code : $('#county_of_residence').val();
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : "/getSubCounties/", // the endpoint
+            type : "GET", // http method
+            dataType: 'json',
+            data : {
+                county_code : county_code,
+            },
+            success : function(data) {
+                var sub_counties = $.parseJSON(data.sub_counties);
+                $("#sub_county option").remove();
+                $("#sub_county").append("<option value=''>Select Sub-County</option>");
+                $.each(sub_counties, function (index, field) {
+                    $("#sub_county").append("<option data-sub_county_id='" + field.pk + "' value='" + field.fields.code + "'>" + field.fields.name + "</option>");
+                })
+
+                // setting sub-county when necessary
+                if(setSelected){    // set selected sub county
+                    $('#sub_county option').each(function() {
+                        if(sub_county_id != null && $(this).data('sub_county_id') ==  sub_county_id ) {
+                            $(this).prop("selected", true);
+                            // Load wards since a subcounty has been selected
+                            getWards(true, $(this).val(), ward_id)
+                        }
+                    });
+                }
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    }
+
+    function getWards(setSelected, sc_code, ward_id) {
+        var sc_code = setSelected ? sc_code : $('#sub_county').val();
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : "/getWards/", // the endpoint
+            type : "GET", // http method
+            dataType: 'json',
+            data : {
+                sub_county_code : sc_code,
+            },
+            success : function(data) {
+                var wards = $.parseJSON(data.wards);
+                $("#ward option").remove();
+                $("#ward").append("<option value=''>Select Ward</option>");
+                $.each(wards, function (index, field) {
+                    $("#ward").append("<option data-ward_id='" + field.pk + "' value='" + field.fields.code + "'>" + field.fields.name + "</option>");
+                })
+
+                if(setSelected){
+                    $('#ward option').each(function() {
+                        if(ward_id != null && $(this).data('ward_id') ==  ward_id ) {
+                            $(this).prop("selected", true);
+                        }
+                    });
+                }
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    }
+    
+    $('#sub_county').change(function (event) {
+        getWards(false, null, null);
+    })
 });
 
 

@@ -32,6 +32,8 @@ urlpatterns = [
     url(r'^ivUpdate/$', views.updateIntervention),
     url(r'^ivDelete/$', views.deleteIntervention),
     url(r'^intervention/$', views.testajax),
+    url(r'^getSubCounties/$', views.getSubCounties),
+    url(r'^getWards/$', views.getWards),
     url(r'^logout/$', views.log_me_out),
     url(r'^reporting/$', views.reporting, name='reporting'),
     url(r'^help/$', views.user_help, name='user_help'),

@@ -3,6 +3,7 @@ from django.contrib import admin
 from models import *
 # Register your models here.
 
+
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'middle_name', 'last_name', 'date_of_birth')
     list_per_page = 15
@@ -30,3 +31,5 @@ admin.site.register(MaritalStatus)
 admin.site.register(County)
 admin.site.register(SubCounty)
 admin.site.register(Ward)
+admin.site.register(VerificationDocument)
+admin.site.register(ImplementingPartner)
