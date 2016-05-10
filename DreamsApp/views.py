@@ -11,6 +11,18 @@ from django.db.models import Q
 from DreamsApp.models import *
 
 
+def getEnrollmentFormConfigData():
+    config_data = {
+        'implementing_partners': ImplementingPartner.objects.all(),
+        'verification_documents': VerificationDocument.objects.all(),
+        'marital_status': MaritalStatus.objects.all(),
+        'counties': County.objects.all()
+        #  'sub_counties': SubCounty.objects.all(),
+        #  'wards': Ward.objects.all()
+    }
+    return config_data
+
+
 def index(request):
     if request.method == 'GET':
         return render(request, 'index.html')
@@ -38,7 +50,7 @@ def clients(request):
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
                 client_list = Client.objects.all()   # filter to get patients only. Not yet done
-                context = {'user': request.user, 'clients': client_list}
+                context = {'user': request.user, 'clients': client_list, 'config_data': getEnrollmentFormConfigData()}
                 return render(request, 'clients.html', context)
             elif request.method == 'POST' and request.is_ajax():
                 search_value = request.POST.get('searchValue', '')
@@ -83,11 +95,15 @@ def save_client(request):
             elif request.method == 'POST' and request.is_ajax():
                 # process saving user
                 client = Client.objects.create(
+                    implementing_partner=ImplementingPartner.objects.filter(
+                        code__exact=request.POST.get('implementing_partner', '')).first(),
                     first_name=request.POST.get('first_name', ''),
                     middle_name=request.POST.get('middle_name', ''),
                     last_name=request.POST.get('last_name', ''),
                     date_of_birth=request.POST.get('date_of_birth', ''),
                     is_date_of_birth_estimated=request.POST.get('is_date_of_birth_estimated', ''),
+                    verification_document=VerificationDocument.objects.filter(
+                        code__exact=request.POST.get('verification_document', '')).first(),
                     verification_doc_no=request.POST.get('verification_doc_no', ''),
                     date_of_enrollment=request.POST.get('date_of_enrollment', ''),
                     age_at_enrollment=int(request.POST.get('age_at_enrollment', 10)),
@@ -126,7 +142,7 @@ def save_client(request):
 
 def edit_client(request):
     try:
-        if request.user is not None and request.user.is_authenticated():
+        if request.user is not None and request.user.is_authenticated() and request.user.is_superuser:
             if request.method == 'GET':
                 client_id = int(request.GET['client_id'])
                 client = Client.objects.defer('date_of_enrollment', 'date_of_birth').get(id__exact=client_id)
@@ -143,11 +159,15 @@ def edit_client(request):
                 client_id = int(str(request.POST.get('client_id')))
                 client = Client.objects.filter(id=client_id).first()
                 # process editing user
+                client.implementing_partner = ImplementingPartner.objects.filter(
+                    code__exact=str(request.POST.get('implementing_partner', ''))).first()
                 client.first_name = str(request.POST.get('first_name', ''))
                 client.middle_name = str(request.POST.get('middle_name', ''))
                 client.last_name = str(request.POST.get('last_name', ''))
                 client.date_of_birth = str(request.POST.get('date_of_birth', datetime.now))
                 client.is_date_of_birth_estimated = bool(str(request.POST.get('is_date_of_birth_estimated')))
+                client.verification_document = VerificationDocument.objects.filter(
+                    code__exact=str(request.POST.get('verification_document', ''))).first()
                 client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
                 client.date_of_enrollment = str(request.POST.get('date_of_enrollment', datetime.now))
                 client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
@@ -387,6 +407,38 @@ def deleteIntervention(request):
             return HttpResponseServerError('Invalid Intervention Type')
     else:
         return PermissionDenied('Operation not allowed. [Missing Permission]')
+
+
+def getSubCounties(request):
+
+    if request.method == 'GET' and request.user is not None and request.user.is_authenticated():
+        response_data = {}
+        county_code = request.GET['county_code']
+
+        county = County.objects.get(code__exact=county_code)
+        sub_counties = SubCounty.objects.filter(county__exact=county.id)
+        sub_counties = serializers.serialize('json', sub_counties)
+        response_data["sub_counties"] = sub_counties
+        return JsonResponse(response_data)
+
+    else:
+        return HttpResponse("You issued bad request")
+
+
+def getWards(request):
+
+    if request.method == 'GET' and request.user is not None and request.user.is_authenticated():
+        response_data = {}
+        sub_county_code = request.GET['sub_county_code']
+
+        sub_county = SubCounty.objects.get(code__exact=sub_county_code)
+        wards = Ward.objects.filter(sub_county__exact=sub_county.id)
+        wards = serializers.serialize('json', wards)
+        response_data["wards"] = wards
+        return JsonResponse(response_data)
+
+    else:
+        return HttpResponse("You issued bad request")
 
 
 def log_me_out(request):

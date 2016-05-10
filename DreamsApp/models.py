@@ -43,7 +43,7 @@ class SubCounty(models.Model):
 
 
 class Ward(models.Model):
-    county = models.ForeignKey(SubCounty, null=True, blank=True)
+    sub_county = models.ForeignKey(SubCounty, null=True, blank=True)
     code = models.CharField(verbose_name='Ward Code', max_length=10, default='', null=False, blank=False)
     name = models.CharField(verbose_name='Ward', max_length=100, default='', null=False, blank=False)
 
@@ -55,16 +55,43 @@ class Ward(models.Model):
         verbose_name_plural = 'Wards'
 
 
+class VerificationDocument(models.Model):
+    code = models.IntegerField(name='code', verbose_name='Verification Document Code')
+    name = models.CharField(max_length=150, verbose_name='Verification Document Name')
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta:
+        verbose_name = 'Verification Document'
+        verbose_name_plural = 'Verification Documents'
+
+
+class ImplementingPartner(models.Model):
+    code = models.IntegerField(name='code', verbose_name='Implementing Partner Code')
+    name = models.CharField(max_length=150, verbose_name='Implementing Partner Name')
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta:
+        verbose_name = 'Implementing Partner'
+        verbose_name_plural = 'Implementing Partners'
+
+
 class Client(models.Model):
     first_name = models.CharField(verbose_name='First Name', max_length=100, null=True)
     middle_name = models.CharField(verbose_name='Middle Name', max_length=100, null=True)
     last_name = models.CharField(verbose_name='Last Name', max_length=100, null=True)
     date_of_birth = models.DateField(verbose_name='Date Of Birth', null=True)
     is_date_of_birth_estimated = models.BooleanField(verbose_name='Date of Birth Estimated')
+    verification_document = models.ForeignKey(VerificationDocument, null=True, blank=True)  # New
     verification_doc_no = models.CharField(verbose_name='Verification Doc. No.', max_length=50, null=True)
     date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True)
     age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=10, null=True)
     marital_status = models.ForeignKey(MaritalStatus, verbose_name='Marital Status', null=True)
+
+    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True)  # New
 
     phone_number = models.CharField(verbose_name='Phone Number(Client)', max_length=13, null=True)
     dss_id_number = models.CharField(verbose_name='DSS ID Number', max_length=50, null=True)

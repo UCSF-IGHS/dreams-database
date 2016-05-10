@@ -22,6 +22,17 @@
                         <!-- End of permanently hidden fields -->
 
                         <div class="form-group">
+                            <label for="implementing_partner">Name of IP</label>
+                            <select id="implementing_partner" name="implementing_partner" class="form-control validate_field clear_value required" >
+                                <option value="">Select Option</option>
+                                {% for ip in config_data.implementing_partners %}
+                                <option data-ip_id="{{ ip.id }}" value="{{ ip.code }}">{{ ip.name }}</option>
+                                {% endfor %}
+                            </select>
+                             <span id="spn_implementing_partner" class="clear_span"></span>
+                        </div>
+
+                        <div class="form-group">
                              <label for="middle_name" class="control-label">First Name</label>
                              <input type="text" class="form-control clear_value" id="first_name" name="first_name" >
                              <span id="spn_first_name" class="clear_span"></span>
@@ -59,13 +70,21 @@
                                 {% endif %}
                             </script>
                              <span id="spn_date_of_birth" class="clear_span"></span>
-                         </div>
-
-                         <div class="checkbox">
                             <label>
-                              <input type="checkbox" class="clear_true" id="is_date_of_birth_estimated" name="is_date_of_birth_estimated"> Date of Birth Estimated
+                              <input type="checkbox" class="clear_true" id="is_date_of_birth_estimated" name="is_date_of_birth_estimated"> Is Date of Birth Estimated?
                             </label>
                          </div>
+
+                        <div class="form-group">
+                            <label for="verification_document">Verification Document</label>
+                            <select id="verification_document" name="verification_document" class="form-control validate_field clear_value required" >
+                                <option value="">Select Option</option>
+                                {% for verification_document in config_data.verification_documents %}
+                                <option data-verification_document_id="{{ verification_document.id }}" value="{{ verification_document.code }}">{{ verification_document.name }}</option>
+                                {% endfor %}
+                            </select>
+                             <span id="spn_verification_document" class="clear_span"></span>
+                        </div>
 
                          <div class="form-group">
                              <label for="verification_doc_no" class="control-label">Verification Doc. No.</label>
@@ -108,10 +127,9 @@
                             <label for="marital_status">Marital Status</label>
                             <select id="marital_status" name="marital_status" class="form-control validate_field clear_value" >
                                 <option value="">Select Option</option>
-                                <option value="401">Single</option>
-                                <option value="402">Married/Cohabiting</option>
-                                <option value="403">Separated/Divorced</option>
-                                <option value="404">Widowed</option>
+                                {% for ms in config_data.marital_status %}
+                                <option data-marital_status_id="{{ ms.id }}" value="{{ ms.code }}" >{{ ms.name }}</option>
+                                {% endfor %}
                             </select>
                              <span id="spn_marital_status" class="clear_span"></span>
                         </div>
@@ -131,11 +149,10 @@
                          <div class="form-group">
                             <label for="county_of_residence">County of Residence</label>
                             <select id="county_of_residence" name="county_of_residence" class="form-control validate_field clear_value">
-                                <option value="">Select Option</option>
-                                <option value="NBI">Nairobi</option>
-                               <!-- <option value="KSM">Kisumu</option>
-                                <option value="HBY">Homa Bay</option>
-                                <option value="SYA">Siaya</option>-->
+                                <option value="">Select County</option>
+                                {% for county in config_data.counties %}
+                                    <option data-county_of_residence_id="{{ county.id }}" value="{{ county.code }}">{{ county.name }}</option>
+                                {% endfor %}
                             </select>
                              <span id="spn_county_of_residence" class="clear_span"></span>
                         </div>
@@ -143,15 +160,10 @@
                          <div class="form-group">
                             <label for="sub_county">Sub-County</label>
                             <select id="sub_county" name="sub_county" class="form-control validate_field clear_value" >
-                                <option value="">Select Option</option>
-                                <option value="NBI008">Westlands</option>
-                               <option value="NBI007">Langata</option>
-                                <option value="NBI006">Dagoretti</option>
-                                <option value="NBI005">Njiru</option>
-                               <option value="NBI004">Embakasi</option>
-                                <option value="NBI003">Makadara</option>
-                                <option value="NBI002">Kasarani</option>
-                                <option value="NBI001">Kamukunji</option>
+                                <option value="">Select Sub-County</option>
+                                {% for sub_county in config_data.sub_counties %}
+                                <option value="{{ sub_county.code }}" data-sub_county_id="{{ sub_county.id }}" data-county_code="{{ sub_county.county.code }}">{{ sub_county.name }}</option>
+                                {% endfor %}
                             </select>
                              <span id="spn_sub_county" class="clear_span"></span>
                          </div>
@@ -159,7 +171,11 @@
                          <div class="form-group">
                             <label for="ward">Ward</label>
                             <select id="ward" name="ward" class="form-control validate_field clear_value" >
-                                <option value="">Select Option</option>
+                                <option value="">Select Ward</option>
+                                {% for ward in config_data.wards %}
+                                <option value="{{ ward.code }}">{{ ward.name }}</option>
+                                {% endfor %}
+
                             </select>
                              <span id="spn_ward" class="clear_span"></span>
                          </div>
