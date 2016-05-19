@@ -23,7 +23,7 @@
 
                         <div class="form-group">
                             <label for="implementing_partner">Name of IP</label>
-                            <select id="implementing_partner" name="implementing_partner" class="form-control validate_field clear_value required" >
+                            <select id="implementing_partner" name="implementing_partner" class="form-control validate_field clear_value required_field" >
                                 <option value="">Select Option</option>
                                 {% for ip in config_data.implementing_partners %}
                                 <option data-ip_id="{{ ip.id }}" value="{{ ip.code }}">{{ ip.name }}</option>
@@ -34,7 +34,7 @@
 
                         <div class="form-group">
                              <label for="middle_name" class="control-label">First Name</label>
-                             <input type="text" class="form-control clear_value" id="first_name" name="first_name" >
+                             <input type="text" class="form-control required_field clear_value" id="first_name" name="first_name" >
                              <span id="spn_first_name" class="clear_span"></span>
                          </div>
 
@@ -52,7 +52,7 @@
 
                          <div class="form-group has-feedback">
                              <label for="date_of_birth" class="control-label">Date of Birth:</label>
-                             <input type="text" class="form-control clear_value" id="date_of_birth" name="date_of_birth" placeholder="Select date of birth" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                             <input type="text" class="form-control required_field clear_value" id="date_of_birth" name="date_of_birth" placeholder="Select date of birth" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                              <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                              <script>
                                 $(function() {
@@ -77,7 +77,7 @@
 
                         <div class="form-group">
                             <label for="verification_document">Verification Document</label>
-                            <select id="verification_document" name="verification_document" class="form-control validate_field clear_value required" >
+                            <select id="verification_document" name="verification_document" class="form-control validate_field clear_value required_field" >
                                 <option value="">Select Option</option>
                                 {% for verification_document in config_data.verification_documents %}
                                 <option data-verification_document_id="{{ verification_document.id }}" value="{{ verification_document.code }}">{{ verification_document.name }}</option>
@@ -94,7 +94,7 @@
 
                          <div class="form-group has-feedback">
                              <label for="date_of_enrollment" class="control-label">Date of Enrollment:</label>
-                             <input type="text" class="form-control format_date_event clear_value" name="date_of_enrollment" id="date_of_enrollment" placeholder="Select date of Enrollment" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                             <input type="text" class="form-control format_date_event required_field clear_value" name="date_of_enrollment" id="date_of_enrollment" placeholder="Select date of Enrollment" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                              <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                              <script>
                                 $(function() {
@@ -125,7 +125,7 @@
 
                          <div class="form-group">
                             <label for="marital_status">Marital Status</label>
-                            <select id="marital_status" name="marital_status" class="form-control validate_field clear_value" >
+                            <select id="marital_status" name="marital_status" class="form-control validate_field required_field clear_value" >
                                 <option value="">Select Option</option>
                                 {% for ms in config_data.marital_status %}
                                 <option data-marital_status_id="{{ ms.id }}" value="{{ ms.code }}" >{{ ms.name }}</option>
@@ -148,7 +148,7 @@
 
                          <div class="form-group">
                             <label for="county_of_residence">County of Residence</label>
-                            <select id="county_of_residence" name="county_of_residence" class="form-control validate_field clear_value">
+                            <select id="county_of_residence" name="county_of_residence" class="form-control validate_field required_field clear_value">
                                 <option value="">Select County</option>
                                 {% for county in config_data.counties %}
                                     <option data-county_of_residence_id="{{ county.id }}" value="{{ county.code }}">{{ county.name }}</option>
@@ -159,7 +159,7 @@
 
                          <div class="form-group">
                             <label for="sub_county">Sub-County</label>
-                            <select id="sub_county" name="sub_county" class="form-control validate_field clear_value" >
+                            <select id="sub_county" name="sub_county" class="form-control validate_field required_field clear_value" >
                                 <option value="">Select Sub-County</option>
                                 {% for sub_county in config_data.sub_counties %}
                                 <option value="{{ sub_county.code }}" data-sub_county_id="{{ sub_county.id }}" data-county_code="{{ sub_county.county.code }}">{{ sub_county.name }}</option>
@@ -170,7 +170,7 @@
 
                          <div class="form-group">
                             <label for="ward">Ward</label>
-                            <select id="ward" name="ward" class="form-control validate_field clear_value" >
+                            <select id="ward" name="ward" class="form-control validate_field required_field clear_value" >
                                 <option value="">Select Ward</option>
                                 {% for ward in config_data.wards %}
                                 <option value="{{ ward.code }}">{{ ward.name }}</option>

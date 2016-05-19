@@ -31,7 +31,7 @@ class County(models.Model):
 
 class SubCounty(models.Model):
     county = models.ForeignKey(County, null=True, blank=True)
-    code = models.CharField(verbose_name='Sub County Code', max_length=10, default='', null=False, blank=False)
+    code = models.CharField(verbose_name='Sub County Code', max_length=100, default='', null=False, blank=False)
     name = models.CharField(verbose_name='Sub County', max_length=100, default='', null=False, blank=False)
 
     def __str__(self):
@@ -44,7 +44,7 @@ class SubCounty(models.Model):
 
 class Ward(models.Model):
     sub_county = models.ForeignKey(SubCounty, null=True, blank=True)
-    code = models.CharField(verbose_name='Ward Code', max_length=10, default='', null=False, blank=False)
+    code = models.CharField(verbose_name='Ward Code', max_length=100, default='', null=False, blank=False)
     name = models.CharField(verbose_name='Ward', max_length=100, default='', null=False, blank=False)
 
     def __str__(self):
