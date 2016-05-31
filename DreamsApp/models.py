@@ -109,6 +109,16 @@ class Client(models.Model):
 
     enrolled_by = models.ForeignKey(User, null=True)
 
+    def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
+        super(Client, self).save(*args, **kwargs)
+        audit = Audit()
+        audit.user_id = user_id
+        audit.table = "DreamsApp_client"
+        audit.row_id = self.pk
+        audit.action = action
+        audit.search_text = None
+        audit.save()
+
     def __str__(self):
         return '{} {} {}'.format(self.first_name, self.middle_name, self.last_name)
 
@@ -185,9 +195,37 @@ class Intervention(models.Model):
     date_changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
 
+    def save(self,user_id=None, action=None, *args, **kwargs): # pass audit to args as the first object
+        super(Intervention, self).save(*args, **kwargs)
+        audit = Audit()
+        audit.user_id = user_id
+        audit.table = "DreamsApp_intervention"
+        audit.row_id = self.pk
+        audit.action = action
+        audit.search_text = None
+        audit.save()
+
     def __str__(self):
         return '{} {}'.format(self.intervention_type, self.created_by)
+
     class Meta:
         verbose_name = 'Intervention'
         verbose_name_plural = 'Interventions'
+
+
+class Audit(models.Model):
+    timestamp = models.DateTimeField(auto_now=True, blank=False, null=False)
+    user_id = models.IntegerField(blank=False, null=False)
+    table = models.CharField(max_length=200, default='', blank=False, null=False)
+    row_id = models.IntegerField(blank=True, null=True)
+    action = models.CharField(max_length=100, blank=False, null=False)
+    search_text = models.CharField(max_length=250, blank=True, null=True)
+
+    def __str__(self):
+        return '{} by user id {} at {}'.format(self.action, self.user_id, self.timestamp)
+
+    class Meta:
+        verbose_name = 'Audit'
+        verbose_name_plural = 'Audit log'
+
 

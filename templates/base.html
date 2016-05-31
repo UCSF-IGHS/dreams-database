@@ -5,6 +5,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel='icon' href='{% static 'images/favicon-32x32.png' %}' type='image/png' >
         <title>DREAMS Service Uptake Form</title>
 
         <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
@@ -20,12 +21,11 @@
         {% block pageJs %}{% endblock %}
 
     </head>
-    <body class="dp-full-height">
+    <body class="dp-full-height ">
         <input type="hidden" id="is_superuser" value="{{ user.is_superuser }}">
 
         {% include 'includes/header.html' %}
-        <div class="container dp-full-height" >
-
+        <div class="container dp-full-height main-container">
             <!-- Alert Modal -->
             <div class="modal fade" tabindex="-1" id="alert_modal" role="dialog" data-title="" data-content="">
               <div class="modal-dialog">
@@ -44,9 +44,9 @@
               </div><!-- /.modal-dialog -->
             </div><!-- /.modal -->
             <!-- End of Alert Modal -->
-
             {% block content %}{% endblock %}
-            {% include 'includes/footer.html' %}
+
         </div>
+        {% include 'includes/footer.html' %}
     </body>
 </html>

@@ -3,69 +3,153 @@
  html, body{
      width: 100%;
      height: 100%;
-     background-color: #f5f5f5;
+     background-color: ghostwhite;
 
  }
 
- .navbar-brand {
-    padding: 9px 15px;
+ .gen-font {
+    font-size: 16px;
+    font-weight: bold;
+    font-family: Helvetica, Arial;
+    text-decoration: none;
+    border: none
+}
+ /* Beginning of navbar */
+
+.navbar-main {
+  background-color: #3F458F;
+  border-color: #3F458F;
+}
+.navbar-main .navbar-brand {
+  color: #cccccc;
+}
+.navbar-main .navbar-brand:hover,
+.navbar-main .navbar-brand:focus {
+  color: #ffffff;
+}
+.navbar-main .navbar-text {
+  color: #cccccc;
 }
 
- @media(min-width:768px) {
-    .dreams-navbar {
-        background-color: #E5EBF0 !important;
-    }
-    .dreams-navbar .navbar-nav>li>a {
-        color: #555555;
-        font-family: 'Raleway', sans-serif;
-    }
-    .dreams-navbar .navbar-nav>li>a:hover {
-        color: #000000;
-        background-color: #E5EBF0;
-    }
-    .dreams-navbar .navbar-nav>li>a:focus {
-        color: #000000;
-        background-color: #E5EBF0;
-    }
-    .dreams-navbar {
-        -webkit-transition: all 1s;
-        -moz-transition: all 1s;
-        -o-transition: all 1s;
-        transition: all 1s;
-        z-index: 110;
-    }
-    .navbar-brand img {
-        padding-top: 25px;
-        height: 45px;
-        -webkit-transition: all 1s;
-        -moz-transition: all 1s;
-        -o-transition: all 1s;
-        transition: all 1s;
-    }
-    .dreams-navbar .navbar-nav>li>a {
-        -webkit-transition: all 1s;
-        -moz-transition: all 1s;
-        -o-transition: all 1s;
-        transition: all 1s;
-    }
-    .navbar-nav>li>a {
-        padding-top: 45px;
-    }
-}
-@media (max-width: 768px) {
-    .navbar-brand img {} .dreams-navbar {
-        background-color: #E5EBF0 !important;
-    }
+.navbar-main h1{
+    font: 300% helvetica, arial, sans-serif;
+    color: #f8f1e1;
+    font-variant: small-caps;
+    padding: 0;
+    margin: 0;
+    text-shadow: 2px 2px 2px #333;
 }
 
-.dreams-navbar .navbar-nav .active a,
-.dreams-navbar .navbar-nav .active a:hover,
-.dreams-navbar .navbar-nav .active a:focus {
-    background-color: black !important;
-    border-width: 2px;
-    border-radius: 4px;
-    border-color: #000000;
+.navbar-main h2{
+    font-size: 90%;
+    font-weight: 100;
+    letter-spacing: 1px;
+    color: #f8f1e1;
+    margin: 2px 0 6px;
 }
+
+.navbar-main .navbar-nav{
+    font-size: 100%;
+    font-weight: 200;
+    letter-spacing: 1px;
+    color: #f8f1e1;
+}
+
+.navbar-main .navbar-nav > li{
+    color: #cccccc;
+    background-color: #3F458F;
+}
+
+.navbar-main .navbar-nav > li > a {
+  color: #cccccc;
+}
+
+.navbar-main .navbar-nav > li > a:hover,
+.navbar-main .navbar-nav > li > a:focus {
+  color: #ffffff;
+    background-color: #3F458F;
+}
+
+.navbar-main .navbar-nav > .active > a,
+.navbar-main .navbar-nav > .active > a:hover,
+.navbar-main .navbar-nav > .active > a:focus{
+  color: #f0db91;
+    background-color: #3F458F;
+}
+
+.navbar-main .navbar-nav > li > .dropdown-menu {
+  background-color: #FFFFFF;
+}
+
+
+.navbar-main .navbar-nav > li > .dropdown-menu > li > a:hover,
+.navbar-main .navbar-nav > li > .dropdown-menu > li > a:focus {
+  color: #333;
+}
+.navbar-main .navbar-nav > li > .dropdown-menu > li > .divider {
+  background-color: #3F458F;
+}
+
+.navbar-main .navbar-nav .open .dropdown-menu > .active > a,
+.navbar-main .navbar-nav .open .dropdown-menu > .active > a:hover,
+.navbar-main .navbar-nav .open .dropdown-menu > .active > a:focus {
+  color: #333;
+}
+
+
+.navbar-main .navbar-nav > .open > a,
+.navbar-main .navbar-nav > .open > a:hover,
+.navbar-main .navbar-nav > .open > a:focus {
+  color: #ffffff;
+  background-color: #3F458F;
+}
+
+.navbar-main .navbar-toggle {
+  border-color: #3F458F;
+}
+
+.navbar-main .navbar-toggle:hover,
+.navbar-main .navbar-toggle:focus {
+  background-color: #3F458F;
+}
+
+.navbar-main .navbar-toggle .icon-bar {
+  color: #cccccc;
+}
+
+.navbar-main .navbar-collapse,
+.navbar-main .navbar-form {
+  border-color: #cccccc;
+}
+.navbar-main .navbar-link {
+  color: #cccccc;
+}
+.navbar-main .navbar-link:hover {
+  color: #ffffff;
+}
+
+/* Additions */
+
+
+ .main-container{
+    background-color: #FFFFFF;
+     margin: 5px auto;
+     padding: auto 3px;
+     border-radius: 3px;
+ }
+
+ .navbar-sub{
+     height: 53px;
+     background-color: #3F458F;
+ }
+
+ .navbar-sub .text{
+     margin: 7px 0 4px;
+    color: #f8f1e1;
+    font: 250% HNL, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    letter-spacing: 1px;
+ }
+ /* End of Navbar */
 
 
  .dp-center-vertical-parent{
@@ -76,12 +160,22 @@
      margin: auto;
  }
 
+ .dp-center-vertical-only-child{
+     margin: auto 0px;
+ }
+
  .dp-center-horizontal{
      text-align: center;
  }
 
  .dp-full-height{
      height: 100% !important;
+     background-color: #F8F1E1;
+ }
+
+
+ #dp-logo{
+  height: 60px;
  }
 
  .dp-margin{
@@ -101,32 +195,112 @@
      color: purple;
  }
 
- #dp-logo{
-     height: 64px;
- }
-
  .search-section{
      height: auto;
      background: none repeat scroll 0 0 #E5EBF0;
      padding: 15px 15px;
      margin: 0px 0px;
-     margin-top: 5px;
      margin-bottom: 10px;
-     border-radius: 5px;
+     border-radius: 0px;
      position: relative;
  }
 
  /* Patient table */
+.dp-tab-control{
+    background-color: #F8F1E1;
+    display: inline-block;
+    padding: 1px;
+    text-align: left;
+    margin: 0% 0 2% 0;
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px
+}
 
-.dp-patient-table-head{
-    background-color: dodgerblue;
-    color: #FFFFFF;
+#client_profile_tab_control>.nav-tabs> li > a{
+     color: #333;
+ }
+
+#client_profile_tab_control>.nav-tabs> .active > a{
+     background-color: #FFFFFF;
+     border: solid 1px #efc636;
+     border-bottom: solid 3px #FFFFFF;
+    z-index: 300;
+    margin-bottom: -5px;
+ }
+
+ .dp-tab-content{
+     background-color: #FFFFFF;
+     padding: 1%;
+ }
+
+
+
+ #patient-table {
+    background-color: transparent;
+ }
+
+.dp-listing-table-head{
+}
+
+.dp-table-head-black{
+    background-color: #333333;
+    color: #FFFFFF
+}
+
+.actions-col{
+    min-width: 150px;
+    width: 150px;
+    max-width: 150px;
 }
  /* End of patient table */
 
+.statusBox{
+    background-color: #f0db91;
+    display: inline-block;
+    padding: 1%;
+    text-align: left;
+    margin: 2% 0 2% 0;
+    width: 100%;
+    border: solid 3px #efc636;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px
+
+}
+
+.statusBox .floatLeftStatus {
+    font: 100% Arial, Helvetica, sans-serif;
+    float: left;
+    margin: 0;
+    margin-right: 20px;
+    border-right: 1px dotted #666;
+    width: 20%;
+    padding: 0 1% 0 0;
+    height: auto
+}
+
+.statusBox .floatRightLinks{
+    margin-bottom: 10px;
+}
+
+ .statusBox .floatRightLinks .rightItem {
+}
+
+.underline_hover:hover{
+    text-decoration: underline;
+}
 
  .fit-item{
      width: 100%;
+ }
+
+ .tab-content{
+     background-color: transparent;
  }
 
  .space{
@@ -143,7 +317,7 @@
   .message-view{
      color: gray;
      text-align: center;
-     margin: 3em auto;
+     margin: 10px auto;
      font-size: xx-large;
  }
 
@@ -181,3 +355,9 @@
 
   /* scrollable modal */
 
+
+
+.footer{
+    background-color: #333;
+    min-height: 0px;
+}

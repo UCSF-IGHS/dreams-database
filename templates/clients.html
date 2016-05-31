@@ -2,68 +2,76 @@
 {% load staticfiles %}
 
 {% block content %}
-
     {% include 'includes/enrollment_form.html' %}
 
-    <div class="row search-section">
-         <table class="fit-item space" >
-          <thead>
-              <tr>
-                  <th style="padding-right: 10px;">
-                      <form id="clients_search_form" method="post">
-                        {% csrf_token %}
-                          <div class="input-group">
-                              <span id="sumbitDefaultNameSearch" onclick="$(this).submit();" class="input-group-addon btn btn-sm btn-primary" style="color: #FFFFFF;" >Filter</span>
-                             <input id="search-term-default" type="text" name="searchValue" class="form-control filter-enrollment" placeholder="Search for client by Name or DREAMS ID" >
-                          </div>
-                      </form>
-                  </th>
-                  <th><button id="btn_show_enrollment_modal" class="btn btn-sm btn-default" data-toggle="modal" data-target="#enrollment-modal" ><i class="glyphicon glyphicon-plus text-success"></i> New Enrollment</button></th>
-              </tr>
-          </thead>
-         </table>
+
+    <div class="statusBox" >
+    <!--
+        <div class="floatLeftStatus">
+            <div id="btn_show_enrollment_modal" class="" data-toggle="modal" data-target="#enrollment-modal" data-toggle="tooltip" title="New Enrollment" style="float:left; cursor: pointer; height: 34px; padding-top: 8px; padding-left: 15px;"><i class="glyphicon glyphicon-plus text-default"></i> New Enrollment</div>
+        </div>
+    -->
+        <div class="gen-font">
+            <h4>DREAMS Client List</h4>
+        </div>
+        <div class="floatRightLinks">
+            <div class="rightItem">
+                <form id="clients_search_form" method="post">
+                    {% csrf_token %}
+                      <div class="form-group has-feedback" >
+                           <input id="search-term-default" type="text" name="searchValue" class="form-control filter-enrollment" placeholder="Search for client by Name or DREAMS ID">
+                           <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                           <span class="text-info" style="font-size: 12px; margin-top: -0px; margin-left: 5px;  "><span class="glyphicon glyphicon-info-sign"></span> Search for DREAMS clients by typing name or DREAMS id in the input above.</span>
+                      </div>
+
+                  </form>
+            </div>
+
+        </div>
+
     </div>
 
-    <div class=" alert hidden dp-action-alert" id="client_actions_alert" role="alert" style="margin-bottom: 15px;"></div>
-
+    <div class=" alert hidden dp-action-alert fade in" id="client_actions_alert" role="alert" style="margin-bottom: 15px;"></div>
 
     <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
-            <div class="panel-body" style="margin: 0px;padding: 0px;">
-                <table class="table table-striped dp-patient-table" id="dp-patient-list">
-                    <thead>
-                      <th>DREAMS ID</th>
-                        <th>Name</th>
-                        <th>Date of Enrollment</th>
-                        <th>Actions</th>
-                    </thead>
-                    <tbody id="dp-patient-list-body">
-                        {% for client in clients %}
-                        <tr id="clients_row_{{ client.id }}" style="cursor: pointer;">
-                            <td>{{ client.id}}</td>
-                            <td>{{ client.first_name }} {{ client.last_name }} {{ client.middle_name }}</td>
-                            <td>{{ client.date_of_birth }}</td>
-                            <td id="client_" + {{ client.id }}>
-                                <!-- Split button -->
-                                <div class="btn-group">
-                                  <button type="button" class="btn btn-sm btn-primary" onclick="window.location='/client?client_id={{ client.id }}'" style="cursor: pointer;"> Interventions </button>
-                                  <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    More <span class="caret"></span>
-                                    <span class="sr-only">Toggle Dropdown</span>
-                                  </button>
-                                  <ul class="dropdown-menu">
-                                    <li><a href="#" class="edit_intervention_click edit_client" data-view_mode="view" data-toggle="modal" data-target="#enrollment-modal" data-client_id='{{ client.id }}' style="cursor: pointer;word-spacing: 0px !important;"> View Enrollment </a></li>
-                                    {% if user.is_superuser %}
-                                    <li><a href="#" class="edit_intervention_click edit_client" data-toggle="modal" data-target="#enrollment-modal" data-client_id='{{ client.id }}' data-client="JSON.stringify({{ client }});" style="cursor: pointer;word-spacing: 0px !important;"> Edit Enrollment </a></li>
-                                    <li><a href="#" class="delete_intervention_click delete_client" data-client_id='{{ client.id }}'> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>
-                                    {% endif %}
-                                  </ul>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <div class="panel-body" style="margin: 0px;padding: 0px;background-color: #FFFFFF;">
+            <table class="table table-striped dp-patient-table" id="patient-table" style="background-color: transparent;margin: 0px;">
+                <thead class="dp-listing-table-head" style="background-color: #333333;color: #FFFFFF">
+                  <th>DREAMS ID</th>
+                    <th>Name</th>
+                    <th>Date of Enrollment</th>
+                    <th class="actions-col">Actions</th>
+                </thead>
+                <tbody id="dp-patient-list-body">
+                    {% for client in clients %}
+                    <tr id="clients_row_{{ client.id }}" style="cursor: pointer; background-color: transparent;">
+                        <td>{{ client.dreams_id}}</td>
+                        <td>{{ client.first_name }} {{ client.last_name }} {{ client.middle_name }}</td>
+                        <td>{{ client.date_of_birth }}</td>
+                        <td id="client_" + {{ client.id }}>
+                            <!-- Split button -->
+                            <div class="btn-group">
+                              <button type="button" class="btn btn-sm btn-default" onclick="window.location='/client?client_id={{ client.id }}'" style="cursor: pointer;"> Interventions </button>
+                              <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 <span class="caret"></span>
+                                <span class="sr-only">Toggle Dropdown</span>
+                              </button>
+                              <ul class="dropdown-menu">
+                                <li><a href="#" class="edit_intervention_click edit_client" data-view_mode="view" data-toggle="modal" data-target="#enrollment-modal" data-client_id='{{ client.id }}' style="cursor: pointer;word-spacing: 0px !important;"> View Enrollment </a></li>
+                                {% if user.is_superuser %}
+                                <li><a href="#" class="edit_intervention_click edit_client" data-toggle="modal" data-target="#enrollment-modal" data-client_id='{{ client.id }}' data-client="JSON.stringify({{ client }});" style="cursor: pointer;word-spacing: 0px !important;"> Edit Enrollment </a></li>
+                                <li><a href="#" class="delete_intervention_click delete_client" data-client_id='{{ client.id }}'> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>
+                                {% endif %}
+                              </ul>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
+
+
 
 {% endblock %}
