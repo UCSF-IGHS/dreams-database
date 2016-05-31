@@ -1,9 +1,8 @@
 {% load staticfiles %}
 
-
-<nav class="navbar dreams-navbar" role="navigation" style="background-color: #E5EBF0 !important;">
-    <div class="container" style="background-color: #E5EBF0 !important;">
-        <!-- Brand and toggle get grouped for better mobile display -->
+<nav class="navbar navbar-main " role="navigation" style="background-color: #3F458F; border-radius: 0px;padding-top: 10px; margin-bottom: 0px; height: 83px;padding-bottom: 10px;">
+    <div class="container" style="background-color: #3F458F;">
+        <!--
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
                 <span class="sr-only">Toggle navigation</span>
@@ -12,19 +11,25 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" href="#">
-                <img id="dp-logo" src="{% static 'images/logo.png' %}" alt="Logo" class="img img-responsive">
+
+                <img id="dp-logo" src="{% static 'images/logo.png' %}" alt="Logo" class="img img-responsive" style="height: 50px; margin-top: -15px;">
             </a>
         </div>
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        -->
+        <div class="nav navbar-nav navbar-left">
+            <h1>DREAMS</h1>
+            <h2>
+                Client Management and Service uptake.
+            </h2>
+        </div>
+        <div class="navbar-collapse collapse" style="padding: 0px 0px;">
             <ul class="nav navbar-nav navbar-right">
-                <!-- NAV -->
-                <li><a href="/clients/">CLIENTS AND INTERVENTIONS</a> </li>
-                <li><a href="/reporting/" onclick="return false;" >REPORTING </a> </li>
-                <li><a href="/help/" onclick="return false;">HELP</a></li>
+                <li class="active" ><a class="" href="/clients/" style="">Clients &amp; Interventions</a> </li>
+                <li><a href="/reporting/" onclick="return false;" >Reporting </a> </li>
+                <li><a href="/help/" onclick="return false;">Help</a></li>
                 {% if user !=  None %}
                     <li class="dropdown">
-                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">ACCOUNT <span class="caret"></span></a>
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
                       <ul class="dropdown-menu">
                           <li><a href="/logout" class="text-danger">Logout: {{ user.username }}</a></li>
                       </ul>
@@ -32,7 +37,14 @@
                 {% endif %}
             </ul>
         </div>
-        <!-- /.navbar-collapse -->
     </div>
-    <!-- /.container- -->
+
 </nav>
+<!--
+<div class="row navbar-sub">
+    <div class="container">
+
+    </div>
+</div>
+-->
+<!-- END .header -->

@@ -23,6 +23,15 @@ def getEnrollmentFormConfigData():
     return config_data
 
 
+def logCustomActions(user_id, table, row_id, action, search_text):
+    audit = Audit()
+    audit.user_id = user_id
+    audit.table = table
+    audit.row_id = row_id
+    audit.action = action
+    audit.search_text = search_text
+    audit.save()
+
 def index(request):
     if request.method == 'GET':
         return render(request, 'index.html')
@@ -52,18 +61,22 @@ def clients(request):
                 client_list = Client.objects.all()   # filter to get patients only. Not yet done
                 context = {'user': request.user, 'clients': client_list, 'config_data': getEnrollmentFormConfigData()}
                 return render(request, 'clients.html', context)
-            elif request.method == 'POST' and request.is_ajax():
-                search_value = request.POST.get('searchValue', '')
-                search_result = Client.objects.filter(Q(first_name__startswith=search_value) |
-                                                      Q(last_name__startswith=search_value) |
-                                                      Q(middle_name__startswith=search_value))
-                return JsonResponse(serializers.serialize('json', search_result), safe=False)
-            elif request.method == 'POST':
-                search_value = request.POST.get('searchValue', '')
-                search_result = Client.objects.filter(Q(first_name__startswith=search_value) |
-                                                      Q(last_name__startswith=search_value) |
-                                                      Q(middle_name__startswith=search_value))
-                return JsonResponse(serializers.serialize('json', search_result), safe=False)
+            else:
+                if request.method == 'POST' and request.is_ajax():
+                    search_value = request.POST.get('searchValue', '')
+                    search_result = Client.objects.filter(Q(first_name__startswith=search_value) |
+                                                          Q(last_name__startswith=search_value) |
+                                                          Q(middle_name__startswith=search_value))
+                    # Log this search action
+                    logCustomActions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
+                    return JsonResponse(serializers.serialize('json', search_result), safe=False)
+                elif request.method == 'POST':
+                    search_value = request.POST.get('searchValue', '')
+                    search_result = Client.objects.filter(Q(first_name__startswith=search_value) |
+                                                          Q(last_name__startswith=search_value) |
+                                                          Q(middle_name__startswith=search_value))
+                    logCustomActions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
+                    return JsonResponse(serializers.serialize('json', search_result), safe=False)
         else:
             return redirect('index')
     except Exception as e:
@@ -123,6 +136,7 @@ def save_client(request):
                     guardian_national_id=request.POST.get('guardian_national_id', ''),
                     enrolled_by=request.user
                 )
+                client.save(user_id=request.user.id, action="INSERT")
                 if request.is_ajax():
                     response_data = {
                         'status': 'success',
@@ -185,7 +199,7 @@ def edit_client(request):
                 client.relationship_with_guardian = str(request.POST.get('relationship_with_guardian', ''))
                 client.guardian_phone_number = str(request.POST.get('guardian_phone_number', ''))
                 client.guardian_national_id = str(request.POST.get('guardian_national_id', ''))
-                client.save()
+                client.save(user_id=request.user.id, action="UPDATE")
                 if request.is_ajax():
                     response_data = {
                         'status': 'success',
@@ -210,6 +224,8 @@ def delete_client(request):
                 client_id = int(request.GET['client_id'])
                 client = Client.objects.filter(id__exact=client_id).first()
                 client.delete()
+                # Upating audit log
+                logCustomActions(request.user.id, "DreamsApp_client", client_id, "DELETE", None)
                 response_data = {
                     'status': 'success',
                     'message': 'Client Details Deleted successfuly.'
@@ -276,7 +292,7 @@ def saveIntervention(request):
                 if i_type.has_no_of_sessions:
                     intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
-                intervention.save()
+                intervention.save(user_id=request.user.id, action="INSERT")
                 # using defer() miraculously solved serialization problem of datetime properties.
                 intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
 
@@ -371,7 +387,7 @@ def updateIntervention(request):
                 if i_type.has_no_of_sessions:
                     intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
-                intervention.save()
+                intervention.save(user_id=request.user.id, action="UPDATE")
                 # using defer() miraculously solved serialization problem of datetime properties.
                 intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
                 # construct response
@@ -398,7 +414,8 @@ def deleteIntervention(request):
         intervention_id = int(request.POST.get('intervention_delete_id'))
         if intervention_id is not None and type(intervention_id) is int:
             try:
-                Intervention.objects.filter(pk=intervention_id).delete();
+                Intervention.objects.filter(pk=intervention_id).delete()
+                logCustomActions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", None)
                 return JsonResponse(json.dumps({'result': 'success', 'intervention_id': intervention_id}), safe=False)
             except Exception as e:
                 tb = traceback.format_exc()

@@ -37,17 +37,17 @@ $(document).ready(function () {
      return cookieValue;
     }
 
-    function insertClientTableRow(clients_tbody, pk, first_name, last_name, middle_name, date_of_birth, append, is_superuser) {
+    function insertClientTableRow(clients_tbody, pk, dreams_id, first_name, last_name, middle_name, date_of_birth, append, is_superuser) {
         var is_superuser = $('#is_superuser').val();
         var row_string = "<tr id='clients_row_" + pk +"' style='cursor: pointer;'>"
-                        + "<td>" + pk + "</td>"
+                        + "<td>" + dreams_id + "</td>"
                         + "<td>" + first_name + " " + last_name + " " + middle_name +  "</td>"
                         + "<td>" + date_of_birth + "</td>"
                         + "<td id='client_' + " + pk + "'>"
                             + "<div class='btn-group'>"
-                              + "<button type='button' class='btn btn-sm btn-primary' onclick=\"window.location='/client?client_id=" + pk + "'\" style='cursor: pointer;'> Interventions </button>"
+                              + "<button type='button' class='btn btn-sm btn-default' onclick=\"window.location='/client?client_id=" + pk + "'\" style='cursor: pointer;'> Interventions </button>"
                               + "<button type='button' class='btn btn-sm btn-default dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>"
-                                + "More <span class='caret'></span>"
+                                + "<span class='caret'></span>"
                                 + "<span class='sr-only'>Toggle Dropdown</span>"
                               + "</button>"
                               + "<ul class='dropdown-menu'>"
@@ -92,7 +92,7 @@ $(document).ready(function () {
                 clients_tbody.empty();
                 if(clients.length > 0){
                     $.each(clients, function (index, client) {
-                        insertClientTableRow(clients_tbody, client.pk, client.fields.first_name, client.fields.last_name, client.fields.middle_name, client.fields.date_of_birth, true, client.fields.is_superuser);
+                        insertClientTableRow(clients_tbody, client.pk,client.fields.dreams_id, client.fields.first_name, client.fields.last_name, client.fields.middle_name, client.fields.date_of_birth, true, client.fields.is_superuser);
                     })
                 }
                 else
@@ -605,7 +605,7 @@ $(document).ready(function () {
 
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : 'ivDelete/', // the endpoint
+            url : '/ivDelete/', // the endpoint
             type : "POST", // http method
             dataType: 'json',
             data:$('#intervention_delete_form').serialize(),
@@ -841,16 +841,18 @@ $(document).ready(function () {
                 var result = $.parseJSON(data)
                 if(result.status == "success"){
                     var clients_tbody = $('#dp-patient-list-body')
+                    var dob = new Date($('#enrollment-form #date_of_birth').val());
+                    dob = $.datepicker.formatDate('MM d, yy', dob)
                     if(enrollment_form_submit_mode == 'new'){
                         // Prepend new line into the clients' table
-                        insertClientTableRow(clients_tbody, result.client_id, $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), $('#enrollment-form #date_of_birth').val(), false, true)
+                        insertClientTableRow(clients_tbody, result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), dob, false, true)
                     }
                     else{
                         // Update relevant table line without reloading the page
                         console.log(result)
                         $('#clients_row_' + result.client_id).remove(); // remove row
                         // Insert updated value
-                        insertClientTableRow($('#dp-patient-list-body'), result.client_id, $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), $('#enrollment-form #date_of_birth').val(), false, $('#is_superuser').val());
+                        insertClientTableRow($('#dp-patient-list-body'), result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), dob, false, $('#is_superuser').val());
                     }
                     $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
                         .text(result.message)
@@ -962,6 +964,7 @@ $(document).ready(function () {
     $('#sub_county').change(function (event) {
         getWards(false, null, null);
     })
+
 });
 
 
