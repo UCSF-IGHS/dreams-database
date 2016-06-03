@@ -17,8 +17,8 @@
  /* Beginning of navbar */
 
 .navbar-main {
-  background-color: #3F458F;
-  border-color: #3F458F;
+  background-color: #26247B;
+  border-color: #26247B;
 }
 .navbar-main .navbar-brand {
   color: #cccccc;
@@ -57,7 +57,7 @@
 
 .navbar-main .navbar-nav > li{
     color: #cccccc;
-    background-color: #3F458F;
+    background-color: #26247B;
 }
 
 .navbar-main .navbar-nav > li > a {
@@ -67,14 +67,18 @@
 .navbar-main .navbar-nav > li > a:hover,
 .navbar-main .navbar-nav > li > a:focus {
   color: #ffffff;
-    background-color: #3F458F;
+    background-color: #26247B;
 }
 
 .navbar-main .navbar-nav > .active > a,
 .navbar-main .navbar-nav > .active > a:hover,
 .navbar-main .navbar-nav > .active > a:focus{
-  color: #f0db91;
-    background-color: #3F458F;
+    /*
+    color: #333;
+    background-color: #F8F1E1;
+    border-radius: 4px 4px 0px 0px;
+    */
+  color: #efc636;
 }
 
 .navbar-main .navbar-nav > li > .dropdown-menu {
@@ -87,7 +91,7 @@
   color: #333;
 }
 .navbar-main .navbar-nav > li > .dropdown-menu > li > .divider {
-  background-color: #3F458F;
+  background-color: #26247B;
 }
 
 .navbar-main .navbar-nav .open .dropdown-menu > .active > a,
@@ -101,16 +105,16 @@
 .navbar-main .navbar-nav > .open > a:hover,
 .navbar-main .navbar-nav > .open > a:focus {
   color: #ffffff;
-  background-color: #3F458F;
+  background-color: #26247B;
 }
 
 .navbar-main .navbar-toggle {
-  border-color: #3F458F;
+  border-color: #26247B;
 }
 
 .navbar-main .navbar-toggle:hover,
 .navbar-main .navbar-toggle:focus {
-  background-color: #3F458F;
+  background-color: #26247B;
 }
 
 .navbar-main .navbar-toggle .icon-bar {
@@ -128,6 +132,7 @@
   color: #ffffff;
 }
 
+
 /* Additions */
 
 
@@ -138,9 +143,14 @@
      border-radius: 3px;
  }
 
+ .navbar-pre{
+     height: 3px;
+     background-image: url("../images/descriptor.jpg");
+ }
+
  .navbar-sub{
-     height: 53px;
-     background-color: #3F458F;
+     height: 3px;
+     background-image: url("../images/descriptor.jpg");
  }
 
  .navbar-sub .text{
@@ -169,7 +179,7 @@
  }
 
  .dp-full-height{
-     height: 100% !important;
+     /*min-height: 70% !important;*/
      background-color: #F8F1E1;
  }
 
@@ -355,9 +365,22 @@
 
   /* scrollable modal */
 
-
-
 .footer{
-    background-color: #333;
-    min-height: 0px;
+
+}
+
+.footer-sub{
+    height: 25px;
+    background-image: url("../images/descriptor.jpg");
+}
+
+.partner-row{
+    background-color: #FFFFFF;
+    margin-left: 0px;
+    height: 100%;
+    width: 100%;
+}
+
+.patner-logo{
+    width: 200px;
 }
