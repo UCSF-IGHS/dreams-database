@@ -28,14 +28,6 @@ body.cb{
 }
 
 
-.main-content .text-subheader-small{
-    font-weight: 300;
-    font-size: 2.125rem;
-    line-height: 2.5rem;
-    padding-bottom: 3.1812px;
-    padding-top: 3.1812px;
-}
-
 .div-logo{
     margin-top: 50px;
     margin-bottom: 5px;
@@ -53,6 +45,14 @@ body.cb{
     padding-bottom: 3.1812px;
     padding-top: 3.1812px;
     margin-bottom: 40px;
+}
+
+.main-content .text-subheader-small{
+    font-weight: 300;
+    font-size: 2.125rem;
+    line-height: 2.5rem;
+    padding-bottom: 3.1812px;
+    padding-top: 3.1812px;
 }
 
 .div-descriptor{
