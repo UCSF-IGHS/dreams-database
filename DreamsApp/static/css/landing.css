@@ -1,0 +1,131 @@
+html{
+    height:100%;
+    font-family: sans-serif;
+    background-color: #ffffff;
+    color: #000;
+}
+
+body.cb{
+    font-family: "Segoe UI Webfont",-apple-system,"Helvetica Neue","Lucida Grande","Roboto","Ebrima","Nirmala UI","Gadugi","Segoe Xbox Symbol","Segoe UI Symbol","Meiryo UI","Khmer UI","Tunga","Lao UI","Raavi","Iskoola Pota","Latha","Leelawadee","Microsoft YaHei UI","Microsoft JhengHei UI","Malgun Gothic","Estrangelo Edessa","Microsoft Himalaya","Microsoft New Tai Lue","Microsoft PhagsPa","Microsoft Tai Le","Microsoft Yi Baiti","Mongolian Baiti","MV Boli","Myanmar Text","Cambria Math";
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 400;
+    font-size: .9375rem;
+    line-height: 1.25rem;
+    padding-bottom: .227px;
+    padding-top: .227px;
+    padding-bottom: .227px;
+    padding-top: .227px;
+    color: #000;
+    background-color: #fff;
+    text-align: center;
+    display: flex;
+}
+
+.main-content{
+    max-width: 800px;
+    margin: auto;
+}
+
+
+.main-content .text-subheader-small{
+    font-weight: 300;
+    font-size: 2.125rem;
+    line-height: 2.5rem;
+    padding-bottom: 3.1812px;
+    padding-top: 3.1812px;
+}
+
+.div-logo{
+    margin-top: 50px;
+    margin-bottom: 5px;
+    margin-left: 5%;
+}
+
+.div-logo img{
+    width: 200px;
+}
+
+.main-content .text-subheader{
+    font-weight: 300;
+    font-size: 3.125rem;
+    line-height: 2.5rem;
+    padding-bottom: 3.1812px;
+    padding-top: 3.1812px;
+    margin-bottom: 40px;
+}
+
+.div-descriptor{
+    width: 100%;
+    margin-bottom: 1px;
+}
+
+.div-descriptor img{
+    width: 100%;
+}
+
+.div-sponsors{
+    display: flex;
+    height: 40px;
+    background-color: transparent;
+    text-align: center;
+    margin: auto;
+    margin-top: 0px;
+}
+
+.div-sponsors .sponsor{
+    margin: auto;
+    padding-top: .227px;
+    padding-bottom: .227px;
+}
+
+.div-login-form{
+    margin: auto;
+    margin-bottom: 80px;
+    background-color: transparent;
+}
+
+.div-login-form .credentials{
+    width: 327px;
+    margin: auto;
+    padding-top: 35px;
+}
+
+.div-login-form .credentials .text-subheader{
+    font-weight: 100;
+    font-size: 3.125rem;
+    line-height: 2.0rem;
+    padding-bottom: 1.1812px;
+    padding-top: 3.1812px;
+}
+
+.div-login-form .credentials .text-body{
+    font-weight: 300;
+    font-size: 1.15rem;
+    line-height: 1.25rem;
+    padding-bottom: 15px;
+    padding-top: 0px;
+}
+
+.div-login-form .credentials input{
+    border-radius: 0px !important;
+    border: #6f6f6f solid 2px;
+}
+
+.div-login-form .credentials button{
+    border-radius: 0px !important;
+    border: #0078d7 solid 2px;
+    background-color: #0078d7;
+    color: #ffffff;
+}
+
+.div-login-form .credentials .option{
+    font-weight: 300;
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+    color: #0078d7;
+}
+
+.underline{
+
+}
