@@ -3,8 +3,7 @@
  html, body{
      width: 100%;
      height: 100%;
-     background-color: ghostwhite;
-
+     background-color: #f8f1e1;
  }
 
  .gen-font {
@@ -179,7 +178,7 @@
  }
 
  .dp-full-height{
-     /*min-height: 70% !important;*/
+     min-height: 80% !important;
      background-color: #F8F1E1;
  }
 
@@ -196,13 +195,33 @@
      text-decoration: underline;
  }
 
- #dp-login-form{
-     margin-top: 20px;
+ #home-wrapper{
+    display: table;
  }
+
+ #home-wrapper .row-div{
+    display: table-row;
+}
+
+#home-wrapper .cell-div{
+    display: table-cell;
+}
+
+#home-wrapper hr{
+    border: 5px;
+}
+
+#home-wrapper .login-text{
+    font-size: 18px;
+}
+
+ #dp-login-form{
+     height: 100px;
+ }
+
 
  .dp-header-medium{
      font-size: large;
-     color: purple;
  }
 
  .search-section{
