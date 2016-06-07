@@ -1,27 +1,29 @@
 {% load staticfiles %}
-<div class="container footer">
-    <div class="footer-sub">
-
+<div class="navbar navbar-fixed-bottom" style="margin-bottom: 20px;">
+    <div class="main-content">
+        <div class="div-descriptor">
+    <img src="{% static 'images/descriptor.jpg' %}" alt="DREAMS Logo" />
+</div>
+        <div class="row div-sponsors">
+        <div class="col-md-2 sponsor ">
+            <img class="patner-logo img img-responsive pepfar" src="{% static 'images/Partner_Logo_PEPFAR.jpg' %}">
+        </div>
+        <div class="col-md-2 sponsor ">
+            <img class="patner-logo img img-responsive gates" src="{% static 'images/Partner_Logo_Gates.jpg' %}" >
+        </div>
+        <div class="col-md-2 sponsor ">
+            <img class="patner-logo img img-responsive girl" src="{% static 'images/Partner_Logo_Girl_Effect.jpg' %}">
+        </div>
+        <div class="col-md-2 sponsor">
+            <img class="patner-logo img img-responsive" src="{% static 'images/JohnsonandJohnsonLogo.jpg' %}" >
+        </div>
+        <div class="col-md-2 sponsor">
+            <img class="patner-logo img img-responsive" src="{% static 'images/viiv.jpeg' %}" width="60">
+        </div>
+        <div class="col-md-2 sponsor">
+            <img class="patner-logo img img-responsive" src="{% static 'images/Gilead_Sciences_Logo.jpg' %}" >
+        </div>
     </div>
-    <div class="row partner-row dp-center-vertical-parent">
-        <div class="col col-md-2 dp-center-vertical-only-child">
-            <img class="patner-logo img img-responsive" src="{% static 'images/Partner_Logo_PEPFAR.jpg' %}">
-        </div>
-        <div class="col col-md-2 dp-center-vertical-only-child">
-            <img class="patner-logo img img-responsive" src="{% static 'images/Partner_Logo_Gates.jpg' %}">
-        </div>
-        <div class="col col-md-2 dp-center-vertical-only-child">
-            <img class="patner-logo img img-responsive" src="{% static 'images/Partner_Logo_Girl_Effect.jpg' %}">
-        </div>
-        <div class="col col-md-2 dp-center-vertical-only-child">
-            <img class="patner-logo img img-responsive" src="{% static 'images/JohnsonandJohnsonLogo.jpg' %}" style="width: 100%;">
-        </div>
-        <div class="col col-md-2 dp-center-vertical-only-child">
-            <img class="patner-logo img img-responsive" src="{% static 'images/viiv.jpeg' %}">
-        </div>
-        <div class="col col-md-2 dp-center-vertical-only-child">
-            <img class="patner-logo img img-responsive" src="{% static 'images/Gilead_Sciences_Logo.jpg' %}">
-        </div>
     </div>
 
 </div>
