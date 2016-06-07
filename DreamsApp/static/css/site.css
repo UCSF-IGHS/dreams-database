@@ -409,3 +409,10 @@
     padding-top: .227px;
     padding-bottom: .227px;
 }
+
+.descriptor-image{
+    width: 100%;
+    background-image: url("../images/descriptor.jpg");
+    height:24px;
+    margin-bottom: 5px;
+}
