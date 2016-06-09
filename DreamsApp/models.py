@@ -111,6 +111,8 @@ class Client(models.Model):
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
+        if user_id is None:
+            return
         audit = Audit()
         audit.user_id = user_id
         audit.table = "DreamsApp_client"

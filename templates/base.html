@@ -8,26 +8,31 @@
         <link rel=' icon' href='{% static 'images/logo.png' %}' type='image/png' >
         <title>DREAMS Service Uptake Form</title>
 
-        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+        <link rel="stylesheet" href="{% static 'vendor/bootstrap-3.3.6-dist/css/bootstrap.min.css' %}">
+        <link rel="stylesheet" href="{% static 'vendor/bootstrap-3.3.6-dist/css/bootstrap-theme.min.css' %}">
+        <!--<link rel="stylesheet" href="{% static 'vendor/bootstrap-3.3.6-dist/css/font-awesome.min.css' %}">-->
+        <link rel="stylesheet" href="{% static 'vendor/jquery-ui-1.11.4/jquery-ui.min.css' %}">
         <link rel="stylesheet" href="{% static 'css/site.css' %}">
 
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-        <script type="text/javascript" src="{% static  'js/site.js'%}"></script>
-        {% block pageJs %}{% endblock %}
 
+        <script src="{% static 'vendor/jquery-1.12/jquery.js' %}"></script>
+
+        {% block pageJs %}{% endblock %}
     </head>
-    <body class="dp-full-height ">
+    <body>
         <input type="hidden" id="is_superuser" value="{{ user.is_superuser }}">
 
-        {% include 'includes/header.html' %}
-        <div class="container dp-full-height">
-            {% block content %}{% endblock %}
+        <div class="wrapper">
+            {% include 'includes/header.html' %}
+            <div class="container">
+                {% block content %}{% endblock %}
+            </div>
+            {% include 'includes/footer.html' %}
         </div>
-        {% include 'includes/footer.html' %}
+
+
+        <script src="{% static 'vendor/bootstrap-3.3.6-dist/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'vendor/jquery-ui-1.11.4/jquery-ui.min.js' %}"></script>
+        <script type="text/javascript" src="{% static  'js/site.js'%}"></script>
     </body>
 </html>

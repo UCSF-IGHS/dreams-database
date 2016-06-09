@@ -3,6 +3,7 @@ from django.http import HttpResponse, JsonResponse, HttpResponseServerError
 import traceback
 from django.core.exceptions import *
 from django.core import serializers
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout
 import json
 
@@ -23,7 +24,7 @@ def getEnrollmentFormConfigData():
     return config_data
 
 
-def logCustomActions(user_id, table, row_id, action, search_text):
+def log_custom_actions(user_id, table, row_id, action, search_text):
     audit = Audit()
     audit.user_id = user_id
     audit.table = table
@@ -32,26 +33,41 @@ def logCustomActions(user_id, table, row_id, action, search_text):
     audit.search_text = search_text
     audit.save()
 
-def index(request):
+
+def user_login(request):
     if request.method == 'GET':
-        return render(request, 'index.html')
+        return render(request, 'login.html')
     elif request.method == 'POST':
         user_name = request.POST.get('inputUsername', '')
         pass_word = request.POST.get('inputPassword', '')
+
+        audit = Audit()
+        audit.user_id = 0
+        audit.table = "DreamsApp_client"
+        audit.row_id = 0
+        audit.action = "LOGIN"
+
         if user_name == '' or pass_word == '':
-            return render(request, 'index.html')
+            audit.search_text = "Missing login Credentials"
+            audit.save()
+            return render(request, 'login.html')
         else:
             user = authenticate(username=user_name, password=pass_word)
             if user is not None:
                 if user.is_active:
                     login(request, user)
+                    audit.user_id = user.id
+                    audit.search_text = "Login Successful for username: " + user_name
+                    audit.save()
                     return redirect('clients')
                 else:
+                    audit.search_text = "Failed login for username: " + user_name
+                    audit.save()
                     return HttpResponse("Login Successful, but the account has been disabled!")
             else:
                 return HttpResponse('Login Failed')
     else:
-        return render(request, 'index.html')
+        return render(request, 'login.html')
 
 
 def clients(request):
@@ -68,19 +84,19 @@ def clients(request):
                                                           Q(last_name__startswith=search_value) |
                                                           Q(middle_name__startswith=search_value))
                     # Log this search action
-                    logCustomActions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
+                    log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
                     return JsonResponse(serializers.serialize('json', search_result), safe=False)
                 elif request.method == 'POST':
                     search_value = request.POST.get('searchValue', '')
                     search_result = Client.objects.filter(Q(first_name__startswith=search_value) |
                                                           Q(last_name__startswith=search_value) |
                                                           Q(middle_name__startswith=search_value))
-                    logCustomActions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
+                    log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
                     return JsonResponse(serializers.serialize('json', search_result), safe=False)
         else:
-            return redirect('index')
+            return redirect('login')
     except Exception as e:
-        return redirect('index')
+        return redirect('login')
 
 
 def client_profile(request):
@@ -96,8 +112,8 @@ def client_profile(request):
                 if client_found is not None:
                     return render(request, 'client_profile.html', {'client': client_found, 'user': request.user})
             except:
-                return render(request, 'index.html')
-    return render(request, 'index.html')
+                return render(request, 'login.html')
+    return render(request, 'login.html')
 
 
 def save_client(request):
@@ -225,7 +241,7 @@ def delete_client(request):
                 client = Client.objects.filter(id__exact=client_id).first()
                 client.delete()
                 # Upating audit log
-                logCustomActions(request.user.id, "DreamsApp_client", client_id, "DELETE", None)
+                log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", None)
                 response_data = {
                     'status': 'success',
                     'message': 'Client Details Deleted successfuly.'
@@ -415,7 +431,7 @@ def deleteIntervention(request):
         if intervention_id is not None and type(intervention_id) is int:
             try:
                 Intervention.objects.filter(pk=intervention_id).delete()
-                logCustomActions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", None)
+                log_custom_actions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", None)
                 return JsonResponse(json.dumps({'result': 'success', 'intervention_id': intervention_id}), safe=False)
             except Exception as e:
                 tb = traceback.format_exc()
@@ -460,7 +476,7 @@ def getWards(request):
 
 def log_me_out(request):
     logout(request)
-    return redirect('index')
+    return redirect('login')
 
 
 def reporting(request):
@@ -487,6 +503,32 @@ def user_help(request):
         else:
             return PermissionDenied('Operation not allowed. [Missing Permission]')
     except Exception as e:
-        tb = traceback.format_exc()
+        tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+
+
+def logs(request):
+    if request.user.is_authenticated() and request.user.is_superuser:
+        # user is allowed to view logs
+        try:
+            page = request.GET.get('page', 1)
+            filter_date = request.GET.get('filter_date')
+            logs = Audit.objects.all() if filter_date is None else Audit.objects.filter(Q(timestamp=filter_date))
+
+            paginator = Paginator(logs, 25)  # Showing 25 contacts per page
+
+
+            try:
+                logs_list = paginator.page(page)
+            except PageNotAnInteger:
+                logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
+            except EmptyPage:
+                logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
+            return render(request, 'log.html', {'logs': logs_list})
+        except Exception as e:
+            tb = traceback.format_exc(e)
+            return HttpResponseServerError(tb)
+    else:
+        # user is not allowed to view logs redirect to clients page with a message
+        return redirect('clients')
 

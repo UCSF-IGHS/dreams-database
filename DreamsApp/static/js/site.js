@@ -302,14 +302,6 @@ $(document).ready(function () {
         $('#date-of-completion-formatted').val(formatted_date_string);
     })
 
-    $('.validate-intervention-form-field').change(function () {
-
-
-
-        // If you are here... No validation errors... Submit form
-            
-    })
-
     function validateInterventionEntryForm() {
         // validate form
         var validation_errors_array =  $.merge([], validateInterventionType()) // validate intervention type is selected
@@ -963,6 +955,11 @@ $(document).ready(function () {
     
     $('#sub_county').change(function (event) {
         getWards(false, null, null);
+    })
+
+    $('#filter-log-date').change(function (event) {
+        // do a get with the new parameters
+        window.location.href = "/logs/?page=1&date=" + $('#filter-log-date').val();
     })
 
 });
