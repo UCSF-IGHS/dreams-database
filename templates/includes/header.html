@@ -1,10 +1,6 @@
 {% load staticfiles %}
 
-<!--
-<div class="row navbar-pre">
-</div>
--->
-<nav class="navbar navbar-main " role="navigation" style="background-color: #26247B; border-radius: 0px;padding-top: 10px; margin-bottom: 0px; height: 150px;">
+<nav id="dreams-navbar" class="navbar navbar-main " role="navigation" style="background-color: #26247B; border-radius: 0px;padding-top: 10px; margin-bottom: 0px; height: 150px;">
     <div class="container" style="background-color: #26247B;">
 
         <div class="navbar-header">
@@ -14,7 +10,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="/clients">
                 <img id="dp-logo" src="{% static 'images/logo.jpg' %}" alt="Logo" class="img img-responsive" style="height: 164px; margin-top: -40px;z-index: -1;">
             </a>
 
@@ -22,8 +18,14 @@
 
         <div id="bs-example-navbar-collapse-1" class="navbar-collapse collapse" style="height:100px; padding: 0px 0px;margin-top:20px;">
             <ul class="nav navbar-nav navbar-right" style="margin-bottom: 0px;">
+            {% if user.is_anonymous %}
+                <!--<li><a>Please log below</a></li>-->
+                <li><a href="/help/" onclick="return false;">Help</a></li>
+            {% else %}
                 <li class="active" ><a class="" href="/clients/" style="">Clients &amp; Interventions</a> </li>
-                <li><a href="/reporting/" onclick="return false;" >Reporting </a> </li>
+                {% if user.is_superuser %}
+                    <li><a href="/logs/" >Logs </a> </li>
+                {% endif %}
                 <li><a href="/help/" onclick="return false;">Help</a></li>
                 {% if user !=  None %}
                     <li class="dropdown">
@@ -33,21 +35,8 @@
                       </ul>
                     </li>
                 {% endif %}
+            {% endif %}
             </ul>
         </div>
     </div>
 </nav>
-
-
-<!--
-<nav class="navbar navbar-main " role="navigation" style="background-color: #20247B; border-radius: 0px; margin-bottom: 0px; height: 53px;">
-    <div class="container" style="background-color: #26247B;">
-
-    </div>
-
-</nav>
-
-<div class="row navbar-sub">
-</div>
--->
-<!-- END .header -->

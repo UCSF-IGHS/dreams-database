@@ -1,293 +1,152 @@
- /* DREAMS PROJECT */
-
- html, body{
-     width: 100%;
-     height: 100%;
-     background-color: #ffffff;
- }
-
- /* Beginning of navbar */
-
- .main-content{
-    max-width: 800px;
-    margin: auto;
-}
-
-.navbar-main {
-  background-color: #26247B;
-  border-color: #26247B;
-
-}
-
- .navbar-main .navbar-brand {
-  color: #cccccc;
-}
-
-.navbar-main .navbar-brand:hover,
-.navbar-main .navbar-brand:focus {
-  color: #ffffff;
-}
-
-.navbar-main .navbar-text {
-  color: #cccccc;
-}
-
-.navbar-main h1{
-    font: 300% helvetica, arial, sans-serif;
-    color: #f8f1e1;
-    font-variant: small-caps;
-    padding: 0;
-    margin: 0;
-    text-shadow: 2px 2px 2px #333;
-}
-
-.navbar-main h2{
-    font-size: 90%;
-    font-weight: 100;
-    letter-spacing: 1px;
-    color: #f8f1e1;
-    margin: 2px 0 6px;
-}
-
-.navbar-main .navbar-nav{
-    font-size: 100%;
-    font-weight: 200;
-    letter-spacing: 1px;
-    color: #f8f1e1;
-}
-
-.navbar-main .navbar-nav > li{
-    color: #cccccc;
-    background-color: #26247B;
-}
-
-.navbar-main .navbar-nav > li > a {
-  color: #cccccc;
-}
-
-.navbar-main .navbar-nav > li > a:hover,
-.navbar-main .navbar-nav > li > a:focus {
-  color: #ffffff;
-    background-color: #26247B;
-}
-
-.navbar-main .navbar-nav > .active > a,
-.navbar-main .navbar-nav > .active > a:hover,
-.navbar-main .navbar-nav > .active > a:focus{
-    /*
-    color: #333;
-    background-color: #F8F1E1;
-    border-radius: 4px 4px 0px 0px;
-    */
-  color: #efc636;
-}
-
-.navbar-main .navbar-nav > li > .dropdown-menu {
-  background-color: #FFFFFF;
-}
-
-
-.navbar-main .navbar-nav > li > .dropdown-menu > li > a:hover,
-.navbar-main .navbar-nav > li > .dropdown-menu > li > a:focus {
-  color: #333;
-}
-.navbar-main .navbar-nav > li > .dropdown-menu > li > .divider {
-  background-color: #26247B;
-}
-
-.navbar-main .navbar-nav .open .dropdown-menu > .active > a,
-.navbar-main .navbar-nav .open .dropdown-menu > .active > a:hover,
-.navbar-main .navbar-nav .open .dropdown-menu > .active > a:focus {
-  color: #333;
-}
-
-
-.navbar-main .navbar-nav > .open > a,
-.navbar-main .navbar-nav > .open > a:hover,
-.navbar-main .navbar-nav > .open > a:focus {
-  color: #ffffff;
-  background-color: #26247B;
-}
-
-.navbar-main .navbar-toggle {
-  border-color: #26247B;
-}
-
-.navbar-main .navbar-toggle:hover,
-.navbar-main .navbar-toggle:focus {
-  background-color: #26247B;
-}
-
-.navbar-main .navbar-toggle .icon-bar {
-  color: #cccccc;
-}
-
-.navbar-main .navbar-collapse,
-.navbar-main .navbar-form {
-  border-color: #cccccc;
-}
-.navbar-main .navbar-link {
-  color: #cccccc;
-}
-.navbar-main .navbar-link:hover {
-  color: #ffffff;
-}
-
-
-/* Additions */
-
-
- .main-container{
+html, body{
+    height: 100%;
     background-color: #FFFFFF;
-     margin: 5px auto;
-     padding: auto 3px;
-     border-radius: 3px;
- }
-
- .navbar-pre{
-     height: 3px;
-     background-image: url("../images/descriptor.jpg");
- }
-
- .navbar-sub{
-     height: 3px;
-     background-image: url("../images/descriptor.jpg");
- }
-
- .navbar-sub .text{
-     margin: 7px 0 4px;
-    color: #f8f1e1;
-    font: 250% HNL, "Helvetica Neue", Helvetica, Arial, sans-serif;
-    letter-spacing: 1px;
- }
- /* End of Navbar */
-
-
- .dp-center-vertical-parent{
-     display: flex;
- }
-
- .dp-center-vertical-child{
-     margin: auto;
- }
-
- .dp-center-vertical-only-child{
-     margin: auto 0px;
- }
-
- .dp-center-horizontal{
-     text-align: center;
- }
-
- .dp-full-height{
-     min-height: 80% !important;
-     background-color: #ffffff;
- }
-
-
- #dp-logo{
-  height: 60px;
- }
-
- .dp-margin{
-     margin: 15px;
- }
-
- .dp-underline{
-     text-decoration: underline;
- }
-
- #home-wrapper{
-    display: table;
- }
-
- #home-wrapper .row-div{
-    display: table-row;
 }
 
-#home-wrapper .cell-div{
-    display: table-cell;
-}
-
-#home-wrapper hr{
-    border: 5px;
-}
-
-#home-wrapper .login-text{
-    font-size: 18px;
-}
-
- #dp-login-form{
-     height: 100px;
- }
-
-
- .dp-header-medium{
-     font-size: large;
- }
-
- .search-section{
-     height: auto;
-     background: none repeat scroll 0 0 #E5EBF0;
-     padding: 15px 15px;
-     margin: 0px 0px;
-     margin-bottom: 10px;
-     border-radius: 0px;
-     position: relative;
- }
-
- /* Patient table */
-.dp-tab-control{
-    background-color: #F8F1E1;
-    display: inline-block;
-    padding: 1px;
-    text-align: left;
-    margin: 0% 0 2% 0;
+.wrapper{
+    min-width: 600px;
     width: 100%;
-    border: none;
-    border-radius: 10px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -khtml-border-radius: 10px
+    height: 100%;
 }
 
-#client_profile_tab_control>.nav-tabs> li > a{
-     color: #333;
- }
+/* Start nav-bar */
 
-#client_profile_tab_control>.nav-tabs> .active > a{
-     background-color: #FFFFFF;
-     border: solid 1px #efc636;
-     border-bottom: solid 3px #FFFFFF;
-    z-index: 300;
-    margin-bottom: -5px;
- }
+#dreams-navbar{
 
- .dp-tab-content{
-     background-color: #FFFFFF;
-     padding: 1%;
- }
+}
+
+#dreams-navbar .navbar-nav > li{
+
+}
+
+#dreams-navbar .navbar-nav > li > a{
+    color: #CCCCCC;
+}
+
+#dreams-navbar .navbar-nav > li > a:hover,
+#dreams-navbar .navbar-nav > li > a:focus {
+  color: #ffffff;
+    background-color: #26247B;
+
+}
+
+#dreams-navbar .navbar-nav > .active > a,
+#dreams-navbar .navbar-nav > .active > a:hover,
+#dreams-navbar .navbar-nav > .active > a:focus{
+  color: #efc636;
+    background-color: #201070;
+    border-radius: 50px;
+    margin-top: 13px;
+    padding: 3px 10px 3px;
+}
 
 
+/* End nav-bar */
 
- #patient-table {
+/* Start of login */
+
+.login-wrapper{
+    font-family: "Segoe UI Webfont",-apple-system,"Helvetica Neue","Lucida Grande","Roboto","Ebrima","Nirmala UI","Gadugi","Segoe Xbox Symbol","Segoe UI Symbol","Meiryo UI","Khmer UI","Tunga","Lao UI","Raavi","Iskoola Pota","Latha","Leelawadee","Microsoft YaHei UI","Microsoft JhengHei UI","Malgun Gothic","Estrangelo Edessa","Microsoft Himalaya","Microsoft New Tai Lue","Microsoft PhagsPa","Microsoft Tai Le","Microsoft Yi Baiti","Mongolian Baiti","MV Boli","Myanmar Text","Cambria Math";
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 400;
+    font-size: .9375rem;
+    line-height: 1.25rem;
+    padding-bottom: .227px;
+    padding-top: .227px;
+    padding-bottom: .227px;
+    padding-top: .227px;
+    color: #000;
+    background-color: #fff;
+    text-align: center;
+    display: flex;
+    margin: auto;
+    max-width: 800px;
+}
+
+.div-login-form{
+    margin: auto;
+    margin-bottom: 80px;
     background-color: transparent;
+}
+
+.div-login-form .credentials{
+    width: 327px;
+    margin: auto;
+    padding-top: 35px;
+}
+
+.div-login-form .credentials .text-subheader{
+    font-weight: 100;
+    font-size: 3.125rem;
+    line-height: 2.0rem;
+    padding-bottom: 1.1812px;
+    padding-top: 3.1812px;
+    margin-bottom: 20px;
+}
+
+.div-login-form .credentials .text-body{
+    font-weight: 300;
+    font-size: 1.15rem;
+    line-height: 1.25rem;
+    padding-bottom: 15px;
+    padding-top: 0px;
+}
+
+.div-login-form .credentials input{
+    border-radius: 0px !important;
+    border: #6f6f6f solid 2px;
+}
+
+.div-login-form .credentials button{
+    border-radius: 0px !important;
+    border: #0078d7 solid 2px;
+    background-color: #0078d7;
+    color: #ffffff;
+}
+
+.div-login-form .credentials .option{
+    font-weight: 300;
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+    color: #0078d7;
+}
+
+/* End of Login*/
+
+/* Start Footer */
+
+.footer{
+     background-color: #ffffff;
+     margin-bottom: 0px;
+     padding-bottom: 20px;
  }
 
-.dp-listing-table-head{
+.descriptor-image{
+    width: 100%;
+    background-image: url("../images/descriptor.jpg");
+    height:24px;
+    margin-bottom: 10px;
 }
 
-.dp-table-head-black{
-    background-color: #333333;
-    color: #FFFFFF
+.div-sponsors{
+    display: flex;
+    height: 40px;
+    background-color: transparent;
+    text-align: center;
+    margin: auto;
+    margin-top: 0px;
 }
 
-.actions-col{
-    min-width: 150px;
-    width: 150px;
-    max-width: 150px;
+.div-sponsors .sponsor{
+    margin: auto;
+    padding-top: .227px;
+    padding-bottom: .227px;
 }
- /* End of patient table */
+
+/* End Footer */
+
+/* Start StatusBox */
 
 .statusBox{
     background-color: #f0db91;
@@ -300,39 +159,123 @@
     border-radius: 10px;
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
-    -khtml-border-radius: 10px
-
-}
-
-.statusBox .floatLeftStatus {
-    font: 100% Arial, Helvetica, sans-serif;
-    float: left;
-    margin: 0;
-    margin-right: 20px;
-    border-right: 1px dotted #666;
-    width: 20%;
-    padding: 0 1% 0 0;
-    height: auto
+    -khtml-border-radius: 10px;
 }
 
 .statusBox .floatRightLinks{
     margin-bottom: 10px;
 }
 
- .statusBox .floatRightLinks .rightItem {
+.statusBox .floatRightLinks .rightItem {
+
+}
+
+.statusBox .text-info{
+    font-size: 12px;
+    margin-top: -0px;
+    margin-left: 5px;
+}
+
+/* End StatusBox */
+
+/* Start Clients List */
+
+#dreams-client-table {
+    background-color: transparent;
+}
+
+#dreams-client-table .actions-col{
+    min-width: 150px;
+    width: 150px;
+    max-width: 150px;
+}
+
+    /* Start Enrollment */
+        #enrollment-modal{
+
+        }
+
+        #enrollment-form{
+
+        }
+
+        .modal-body {
+            max-height: calc(100vh - 210px);
+            overflow-y: auto;
+        }
+
+    /* End Enrollment */
+
+/* End Clients List */
+
+/* Start Client Profile Section */
+
+.dreams-profile-tab-control {
+    background-color: #F8F1E1;
+    display: inline-block;
+    padding: 1px;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-top: 1px;
+    text-align: left;
+    margin: 0% 0 2% 0;
+    width: 100%;
+    border: solid 1px #efc636;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px
+}
+
+#dreams-profile-tab-control >.nav-tabs> li > a{
+     color: #333;
+ }
+
+#dreams-profile-tab-control >.nav-tabs> li > a:focus,
+#dreams-profile-tab-control >.nav-tabs> li > a:active,
+#dreams-profile-tab-control >.nav-tabs> li > a:hover{
+     text-decoration: underline;
+     background-color: inherit;
+     border: none;
+ }
+
+#dreams-profile-tab-control >.nav-tabs> .active > a,
+#dreams-profile-tab-control >.nav-tabs> .active > a:focus,
+#dreams-profile-tab-control >.nav-tabs> .active > a:active,
+#dreams-profile-tab-control >.nav-tabs> .active > a:hover{
+     background-color: #FFFFFF;
+     border: solid 1px #efc636;
+     border-bottom: solid 3px #FFFFFF;
+    z-index: 300;
+    margin-bottom: -5px;
+    text-decoration: none ;
+ }
+
+.dp-tab-content{
+    background-color: #FFFFFF;
+    border: solid 1px #efc636;
+    padding: 1%;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
 .underline_hover:hover{
     text-decoration: underline;
 }
 
- .fit-item{
+.fit-item{
      width: 100%;
  }
 
- .tab-content{
-     background-color: transparent;
+.tab-content{
+
  }
+
+.dp-table-head-black{
+    background-color: #333333;
+    color: #FFFFFF
+}
 
  .space{
      margin-bottom: 15px;
@@ -346,10 +289,12 @@
  }
 
   .message-view{
-     color: gray;
+     color: #333333;
      text-align: center;
      margin: 10px auto;
-     font-size: xx-large;
+      margin-top: 0px;
+      padding-top: 0px;
+     font-size: 12px;
  }
 
   .edit_intervention_click{
@@ -375,44 +320,21 @@
       color: green;
   }
 
-  /* Enrollment form */
 
- /* scrollable modal */
+/* End Client Profile Section */
 
- .modal-body {
-    max-height: calc(100vh - 210px);
-    overflow-y: auto;
-}
+/* Audit log */
 
-  /* scrollable modal */
+/*audit log table */
 
-.div-descriptor{
-    width: 100%;
-    margin-bottom: 1px;
-}
-
-.div-descriptor img{
-    width: 100%;
-}
-
-.div-sponsors{
-    display: flex;
-    height: 40px;
+#date-filter-button:hover, #date-filter-button:active, #date-filter-button:focus{
     background-color: transparent;
-    text-align: center;
-    margin: auto;
-    margin-top: 0px;
+    color: #ffffff;
+    border: none;
 }
 
-.div-sponsors .sponsor{
-    margin: auto;
-    padding-top: .227px;
-    padding-bottom: .227px;
+#date-filter-button .dropdown-menu ul{
+    background-color: #333333;
 }
 
-.descriptor-image{
-    width: 100%;
-    background-image: url("../images/descriptor.jpg");
-    height:24px;
-    margin-bottom: 10px;
-}
+/* End Audit Log */

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+
+    <div>
+        <div class="audit-log-header" style="text-align: center;">
+            <h4>Audit Log</h4>
+        </div>
+        <div class="audit-log-section" style="max-height: calc(100vh - 350px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
+
+            <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table" style="background-color: transparent;margin: 0px;">
+                <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
+                    <!--<th>Timestamp
+                        <div class="dropdown" style="float: right;margin-top: -10px;">
+                          <button id="date-filter-button" class="btn dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" style="background-color: transparent;">
+                            <span class="glyphicon glyphicon-filter"></span>
+                          </button>
+                          <ul class="dropdown-menu" aria-labelledby="dropdownMenu1" style="">
+                            <li>
+                                <div class="form-group has-feedback" style="padding-right: 10px;padding-left: 10px;">
+                                     <input type="text" class="form-control required_field clear_value" id="filter-log-date" name="filter-log-date" placeholder="Select filter date" style="cursor: pointer;width: 220px;"><span class="add-on"><i class="icon-th"></i></span></p>
+                                     <i class="glyphicon glyphicon-calendar form-control-feedback" style="color: #333333;margin-right: 5px;" ></i>
+                                     <script>
+                                        $(function() {
+                                          $( "#filter-log-date" ).datepicker({
+                                              dateFormat: 'yy-mm-dd'
+                                          });
+                                        });
+                                    </script>
+                                 </div>
+                            </li>
+                          </ul>
+                        </div>-->
+                    <th>User Id</th>
+                    <th>Row Id</th>
+                    <th>Actions</th>
+                    <th>Text</th>
+                </thead>
+                <tbody id="dp-patient-list-body">
+                    {% for log in logs %}
+                        <tr id="clients_row_{{ client.id }}" style="cursor: pointer; background-color: transparent;">
+                            <td>{{ log.timestamp}}</td>
+                            <td>{{ log.user_id }}</td>
+                            <td>{{ log.table }}</td>
+                            <td>{{ log.action }}</td>
+                            <td>{{ log.search_text }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+
+        </div>
+        <div class="pagination">
+            <span class="step-links">
+                {% if logs.has_previous %}
+                    <a href="?page={{ logs.previous_page_number }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ logs.number }} of {{ logs.paginator.num_pages }}.
+                </span>
+
+                {% if logs.has_next %}
+                    <a href="?page={{ logs.next_page_number }}">next</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+
+{% endblock %}
