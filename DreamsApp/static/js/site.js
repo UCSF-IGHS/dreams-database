@@ -962,6 +962,17 @@ $(document).ready(function () {
         window.location.href = "/logs/?page=1&date=" + $('#filter-log-date').val();
     })
 
+    /* Enrollemnt form tab
+
+    $('#enrollment-modal .nav-tabs > li > a').click(function (e) {
+        var activeLi = $(this).parent();
+        if(activeLi.is(':first-child')){
+            alert("I'm first child my dears!!");
+        }
+        // Check if list item is first
+    })
+    */
+
 });
 
 
