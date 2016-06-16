@@ -75,7 +75,7 @@ def clients(request):
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
                 client_list = Client.objects.all()   # filter to get patients only. Not yet done
-                context = {'user': request.user, 'clients': client_list, 'config_data': getEnrollmentFormConfigData()}
+                context = {'page': 'clients', 'user': request.user, 'clients': client_list, 'config_data': getEnrollmentFormConfigData()}
                 return render(request, 'clients.html', context)
             else:
                 if request.method == 'POST' and request.is_ajax():
@@ -110,7 +110,7 @@ def client_profile(request):
             try:
                 client_found = Client.objects.get(id=client_id)
                 if client_found is not None:
-                    return render(request, 'client_profile.html', {'client': client_found, 'user': request.user})
+                    return render(request, 'client_profile.html', {'page': 'clients', 'client': client_found, 'user': request.user})
             except:
                 return render(request, 'login.html')
     return render(request, 'login.html')
@@ -513,7 +513,7 @@ def logs(request):
         try:
             page = request.GET.get('page', 1)
             filter_date = request.GET.get('filter_date')
-            logs = Audit.objects.all() if filter_date is None else Audit.objects.filter(Q(timestamp=filter_date))
+            logs = Audit.objects.all().order_by('-timestamp') if filter_date is None else Audit.objects.filter(Q(timestamp=filter_date))
 
             paginator = Paginator(logs, 25)  # Showing 25 contacts per page
 
@@ -524,7 +524,7 @@ def logs(request):
                 logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
             except EmptyPage:
                 logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
-            return render(request, 'log.html', {'logs': logs_list})
+            return render(request, 'log.html', {'page': 'logs', 'logs': logs_list})
         except Exception as e:
             tb = traceback.format_exc(e)
             return HttpResponseServerError(tb)

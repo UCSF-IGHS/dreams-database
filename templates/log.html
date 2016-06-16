@@ -32,14 +32,15 @@
                             </li>
                           </ul>
                         </div>-->
+                    <th>Timestamp</th>
                     <th>User Id</th>
-                    <th>Row Id</th>
-                    <th>Actions</th>
+                    <th>Table</th>
+                    <th>Action</th>
                     <th>Text</th>
                 </thead>
                 <tbody id="dp-patient-list-body">
                     {% for log in logs %}
-                        <tr id="clients_row_{{ client.id }}" style="cursor: pointer; background-color: transparent;">
+                        <tr style="cursor: pointer; background-color: transparent;">
                             <td>{{ log.timestamp}}</td>
                             <td>{{ log.user_id }}</td>
                             <td>{{ log.table }}</td>
