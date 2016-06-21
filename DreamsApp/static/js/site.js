@@ -5,7 +5,7 @@ $(document).ready(function () {
         setTimeout(function(){
             // hide alert_modal after 2 seconds
             $('#alert_modal').modal('hide');
-        }, 3000);
+        }, 5000);
     })
 
     $('#alert_enrollment_modal').on('shown.bs.modal', function (e) {
@@ -13,7 +13,7 @@ $(document).ready(function () {
         setTimeout(function(){
             // hide alert_modal after 2 seconds
             $('#alert_enrollment_modal').modal('hide');
-        }, 3000);
+        }, 5000);
     })
 
     $('#i_types').change(function () {
@@ -54,7 +54,7 @@ $(document).ready(function () {
                                 + "<li><a href='#' class='edit_intervention_click edit_client' data-view_mode='view' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk + "' style='cursor: pointer;word-spacing: 0px !important;'> View Enrollment </a></li>"
                                 if(is_superuser){
                                 row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk +"' style='cursor: pointer;word-spacing: 0px !important;'> Edit Enrollment </a></li>"
-                                + "<li><a href='#' class='delete_intervention_click delete_client' data-client_id='" + pk +"' id='delete_client_a_" + pk +"'> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>"
+                                + "<li><a href='#' class='delete_intervention_click ' data-client_id='" + pk +"' id='delete_client_a_" + pk +"' data-confirm-client-delete='Are you sure you want to delete?'> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>"
                                 }
                               row_string += "</ul>"
                             + "</div>"
@@ -65,12 +65,17 @@ $(document).ready(function () {
             clients_tbody.append(row_string);
         else
             clients_tbody.prepend(row_string);
-
-        // Add delete event listener
         $('#delete_client_a_' + pk).click(function (event) {
-            var target = $(event.target);
-            deleteClient(target);
+        var clientId = $(this).data('client_id');
+        $('#confirmationModal #frm_title').html('Confirm Client Delete Action');
+        $('#confirmationModal #frm_body > h4').html('Are you sure you want to delete this client? Changes cannot be undone');
+        $('#confirmationModal').modal({show:true});
+        // Add delete event listener on confirmation
+        $('#confirmationModal #dataConfirmOK').click(function (event) {
+            console.log(clientId);
+            deleteClient(clientId);
         })
+    })
     }
 
     $('#clients_search_form').submit(function (event) {
@@ -588,7 +593,7 @@ $(document).ready(function () {
             alert_space.removeClass('alert-success').removeClass('alert-danger')
                 .addClass('hidden')
                 .text("")
-        }, 2000);
+        }, 5000);
     })
 
     $('#btn_delete_intervention_confirmation').click(function (event) {
@@ -688,13 +693,8 @@ $(document).ready(function () {
         $(formatted_target_id).val(formatted_date_string);
     })
 
-    $('.delete_client').click(function (event) {
-        var target = $(event.target);
-        deleteClient(target);
-    })
-
-    function deleteClient(spn) {
-        var client_id = spn.data('client_id');
+    function deleteClient(client_id) {
+        var client_id = client_id;
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url : '/clientDelete/',
@@ -721,12 +721,14 @@ $(document).ready(function () {
                         .text(result.message)
                         .trigger('madeVisible')
                 }
+                $('#confirmationModal').modal('hide');
             },
 
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
+                $('#confirmationModal').modal('hide');
                 $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')
-                        .text('An error occurred while enrolling client. Contact system administratior if this persists')
+                        .text('An error occurred while deleting client. Contact system administratior if this persists')
                         .trigger('madeVisible')
             }
         });
@@ -863,7 +865,7 @@ $(document).ready(function () {
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
                 $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')
-                        .text('An error occurred while enrolling client. Contact system administratior if this persists')
+                        .text('An error occurred while processing client details. Contact system administratior if this persists')
                         .trigger('madeVisible')
             }
         });
@@ -872,7 +874,6 @@ $(document).ready(function () {
     $('#btn_hide_enrollment').click(function (event) {
         $('#enrollment-modal').modal('toggle');
     })
-
 
     $('#county_of_residence').change(function (event) {
         getSubCounties(false, null, null, null);
@@ -962,16 +963,18 @@ $(document).ready(function () {
         window.location.href = "/logs/?page=1&date=" + $('#filter-log-date').val();
     })
 
-    /* Enrollemnt form tab
-
-    $('#enrollment-modal .nav-tabs > li > a').click(function (e) {
-        var activeLi = $(this).parent();
-        if(activeLi.is(':first-child')){
-            alert("I'm first child my dears!!");
-        }
-        // Check if list item is first
+    /* Confirmation modal*/
+    $('a[data-confirm-client-delete]').click(function (event) {
+        var clientId = $(this).data('client_id');
+        $('#confirmationModal #frm_title').html('Confirm Client Delete Action');
+        $('#confirmationModal #frm_body > h4').html('Are you sure you want to delete this client? Changes cannot be undone');
+        $('#confirmationModal').modal({show:true});
+        // Add delete event listener on confirmation
+        $('#confirmationModal #dataConfirmOK').click(function (event) {
+            deleteClient(clientId);
+        })
     })
-    */
+    /* End of Confirmation modal*/
 
 });
 
