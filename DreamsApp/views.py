@@ -239,13 +239,22 @@ def delete_client(request):
             if request.method == 'GET' and request.is_ajax():
                 client_id = int(request.GET['client_id'])
                 client = Client.objects.filter(id__exact=client_id).first()
-                client.delete()
-                # Upating audit log
-                log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", None)
-                response_data = {
-                    'status': 'success',
-                    'message': 'Client Details Deleted successfuly.'
-                }
+                # check if client has interventions
+                if Intervention.objects.filter(client=client).count() > 0:
+                    # Upating audit log
+                    log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", 'FAILED')
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'This client cannot be deleted because they have interventions.'
+                    }
+                else:
+                    client.delete()
+                    # Upating audit log
+                    log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", 'SUCCESS')
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Client Details Deleted successfuly.'
+                    }
                 return JsonResponse(json.dumps(response_data), safe=False)
             elif request.method == 'POST':
                 return PermissionDenied('Operation not allowed. [Missing Permission]')

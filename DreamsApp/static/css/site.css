@@ -355,3 +355,12 @@ html, body{
     opacity: 1;
 }
 
+
+#confirmationModal #frm_title{
+    font-weight: bold;
+}
+
+#confirmationModal #frm_body > h4{
+    font-weight: normal;
+    font-size: 15px;
+}
