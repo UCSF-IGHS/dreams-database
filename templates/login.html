@@ -6,7 +6,7 @@
     <div class="login-wrapper">
         <div class="div-login-form">
             <div class="credentials">
-                <form action="#" method="post" id="dp-login-form" class="form-horizontal" >
+                <form action="/" method="post" id="dp-login-form" class="form-horizontal" >
                     {% csrf_token %}
                   <div class="text-subheader">
                       Sign in
@@ -21,7 +21,10 @@
                     <input type="password" class="form-control" id="inputPassword" name="inputPassword" placeholder="Password">
                   </div>
                   <div class="form-group">
-                    <button type="submit" class="form-control" class="btn btn-default">Log in</button>
+                      <span class="text-danger invalid-password-span hidden">Invalid username or password</span>
+                  </div>
+                  <div class="form-group" style="text-align: left;">
+                    <button type="submit" class="form-control" class="btn btn-default ">Log in</button>
                   </div>
                     <div class="form-group">
                         <a href="#" class="option">I forgot my password</a>

@@ -4,34 +4,41 @@
 {% block content %}
 
     <div>
-        <div class="audit-log-header" style="text-align: center;">
-            <h4>Audit Log</h4>
+        <div class="gen-font">
+            <div style="margin-top: 25px;">
+                <h4>DREAMS Audit Log</h4>
+            </div>
+                <div class="filter-log-wrapper">
+                    <form id="filter-log-form" class="form-inline" method="post" action="/logs/">
+                        {% csrf_token %}
+                        <div class="form-group form-group-sm" id="text-div">
+                            <label for="exampleInputName2" style="font-weight: normal;">Filter: &nbsp;&nbsp;&nbsp;</label>
+                            <input type="text" class="form-control" name="filter-log-text" id="filter-log-text" placeholder="Type text" value="{{ filter_text }}">
+                        </div>
+                        <div class="form-group form-group-sm has-feedback" id="date-div">
+                             <input type="text" class="form-control " id="filter-log-date" name="filter-log-date" value="{{ filter_date }}" placeholder="Select date" style="cursor: pointer;">
+                                <span class="add-on"><i class="icon-th"></i></span></p>
+                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                             <script>
+                                $(function() {
+                                  $( "#filter-log-date" ).datepicker({
+                                      dateFormat: 'yy-mm-dd'
+                                  });
+                                });
+                            </script>
+                        </div>
+                        <div class="btn-group" role="group" aria-label="...">
+                            <button type="submit" class="btn btn-primary btn-sm">Filter Logs</button>
+                            <button class="btn btn-default btn-sm" title="Clear filters" id="audit-log-clear-filtes"><span class="glyphicon glyphicon-remove"></span></button>
+                        </div>
+                    </form>
+                </div>
         </div>
-        <div class="audit-log-section" style="max-height: calc(100vh - 350px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
 
-            <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table" style="background-color: transparent;margin: 0px;">
+        <div class="audit-log-section" style="max-height: calc(100vh - 355px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
+
+            <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table" style="margin: 0px;">
                 <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
-                    <!--<th>Timestamp
-                        <div class="dropdown" style="float: right;margin-top: -10px;">
-                          <button id="date-filter-button" class="btn dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" style="background-color: transparent;">
-                            <span class="glyphicon glyphicon-filter"></span>
-                          </button>
-                          <ul class="dropdown-menu" aria-labelledby="dropdownMenu1" style="">
-                            <li>
-                                <div class="form-group has-feedback" style="padding-right: 10px;padding-left: 10px;">
-                                     <input type="text" class="form-control required_field clear_value" id="filter-log-date" name="filter-log-date" placeholder="Select filter date" style="cursor: pointer;width: 220px;"><span class="add-on"><i class="icon-th"></i></span></p>
-                                     <i class="glyphicon glyphicon-calendar form-control-feedback" style="color: #333333;margin-right: 5px;" ></i>
-                                     <script>
-                                        $(function() {
-                                          $( "#filter-log-date" ).datepicker({
-                                              dateFormat: 'yy-mm-dd'
-                                          });
-                                        });
-                                    </script>
-                                 </div>
-                            </li>
-                          </ul>
-                        </div>-->
                     <th>Timestamp</th>
                     <th>User Id</th>
                     <th>Table</th>
@@ -45,7 +52,7 @@
                             <td>{{ log.user_id }}</td>
                             <td>{{ log.table }}</td>
                             <td>{{ log.action }}</td>
-                            <td>{{ log.search_text }}</td>
+                            <td>{% if log.search_text != None %} {{ log.search_text }} {% endif %}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -56,7 +63,7 @@
         <div class="pagination">
             <span class="step-links">
                 {% if logs.has_previous %}
-                    <a href="?page={{ logs.previous_page_number }}">previous</a>
+                    <a href="?page={{ logs.previous_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">previous</a>
                 {% endif %}
 
                 <span class="current">
@@ -64,7 +71,7 @@
                 </span>
 
                 {% if logs.has_next %}
-                    <a href="?page={{ logs.next_page_number }}">next</a>
+                    <a href="?page={{ logs.next_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">next</a>
                 {% endif %}
             </span>
         </div>

@@ -120,6 +120,11 @@ html, body{
     color: #0078d7;
 }
 
+.invalid-password-span{
+    font-size: 14px;
+    text-align: left;
+}
+
 /* End of Login*/
 
 /* Start Footer */
@@ -336,14 +341,15 @@ html, body{
 
 /*audit log table */
 
-#date-filter-button:hover, #date-filter-button:active, #date-filter-button:focus{
-    background-color: transparent;
-    color: #ffffff;
-    border: none;
+.filter-log-wrapper{
+    margin-top: -45px;
+    margin-bottom: 5px;
+    text-align: right;
 }
 
-#date-filter-button .dropdown-menu ul{
-    background-color: #333333;
+
+.filter-log-wrapper #date-div{
+    margin-top: 10px;
 }
 
 /* End Audit Log */
