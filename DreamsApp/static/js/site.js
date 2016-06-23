@@ -37,6 +37,42 @@ $(document).ready(function () {
      return cookieValue;
     }
 
+    /* Login form submission */
+
+    $('#dp-login-form').submit(function (event) {
+        event.preventDefault();
+        // Do ajax for login
+        var csrftoken = getCookie('csrftoken');
+        console.log(csrftoken);
+        $.ajax({
+            url : '/', // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data:$('#dp-login-form').serialize(),
+            success : function(data) {
+                result = $.parseJSON(data);
+                if(result.status == 'success'){
+                    window.location.href = "/clients";
+                }
+                else{
+                    // Indicate error
+                    $('.invalid-password-span').removeClass('hidden');
+                    $('.invalid-password-span').html(result.message);
+                }
+
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    })
+
+    /* End Login form submission */
+
     function insertClientTableRow(clients_tbody, pk, dreams_id, first_name, last_name, middle_name, date_of_birth, append, is_superuser) {
         var is_superuser = $('#is_superuser').val();
         var row_string = "<tr id='clients_row_" + pk +"' style='cursor: pointer;'>"
@@ -958,10 +994,12 @@ $(document).ready(function () {
         getWards(false, null, null);
     })
 
+    /*
     $('#filter-log-date').change(function (event) {
         // do a get with the new parameters
         window.location.href = "/logs/?page=1&date=" + $('#filter-log-date').val();
     })
+    */
 
     /* Confirmation modal*/
     $('a[data-confirm-client-delete]').click(function (event) {
@@ -976,6 +1014,15 @@ $(document).ready(function () {
     })
     /* End of Confirmation modal*/
 
+    $('#filter-log-form').submit(function (event) {
+        // this is going as expected!
+    })
+
+    $('#audit-log-clear-filtes').click(function (event) {
+        $('#filter-log-text').val('');
+        $('#filter-log-date').val('');
+        window.location.href = "/logs/";
+    })
 });
 
 

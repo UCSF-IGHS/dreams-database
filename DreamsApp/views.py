@@ -6,6 +6,7 @@ from django.core import serializers
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout
 import json
+from datetime import date
 
 from django.contrib.auth import authenticate
 from django.db.models import Q
@@ -47,10 +48,18 @@ def user_login(request):
         audit.row_id = 0
         audit.action = "LOGIN"
 
+        response_data = {
+            'status': 'success',
+            'message': 'Client Details Deleted successfuly.'
+        }
+
         if user_name == '' or pass_word == '':
             audit.search_text = "Missing login Credentials"
             audit.save()
-            return render(request, 'login.html')
+            response_data = {
+                'status': 'fail',
+                'message': 'Missing username or password.'
+            }
         else:
             user = authenticate(username=user_name, password=pass_word)
             if user is not None:
@@ -59,13 +68,23 @@ def user_login(request):
                     audit.user_id = user.id
                     audit.search_text = "Login Successful for username: " + user_name
                     audit.save()
-                    return redirect('clients')
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Login successfull'
+                    }
                 else:
                     audit.search_text = "Failed login for username: " + user_name
                     audit.save()
-                    return HttpResponse("Login Successful, but the account has been disabled!")
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Sorry, your account is disabled'
+                    }
             else:
-                return HttpResponse('Login Failed')
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Incorrect username or password'
+                }
+        return JsonResponse(json.dumps(response_data), safe=False)
     else:
         return render(request, 'login.html')
 
@@ -519,24 +538,67 @@ def user_help(request):
 def logs(request):
     if request.user.is_authenticated() and request.user.is_superuser:
         # user is allowed to view logs
-        try:
-            page = request.GET.get('page', 1)
-            filter_date = request.GET.get('filter_date')
-            logs = Audit.objects.all().order_by('-timestamp') if filter_date is None else Audit.objects.filter(Q(timestamp=filter_date))
-
-            paginator = Paginator(logs, 25)  # Showing 25 contacts per page
-
-
+        if request.method == 'GET':
             try:
-                logs_list = paginator.page(page)
+                page = request.GET.get('page', 1)
+                filter_text = request.GET.get('filter-log-text', '')
+                filter_date = request.GET.get('filter-log-date', '')
+                # getting logs
+                if filter_date == '':
+                    logs = Audit.objects.filter(Q(table__contains=filter_text) |
+                                                Q(action__contains=filter_text) |
+                                                Q(search_text__contains=filter_text)
+                                                ).order_by('-timestamp')
+                else:
+                    yr, mnth, dt = filter_date.split('-')
+                    constructed_date = date(int(yr), int(mnth), int(dt))
+                    logs = Audit.objects.filter((Q(table__contains=filter_text) |
+                                                 Q(action__contains=filter_text) |
+                                                 Q(search_text__contains=filter_text)) &
+                                                Q(timestamp__year=constructed_date.year,
+                                                  timestamp__month=constructed_date.month,
+                                                  timestamp__day=constructed_date.day)
+                                                ).order_by('-timestamp')
+                paginator = Paginator(logs, 25)  # Showing 25 contacts per page
+                try:
+                    logs_list = paginator.page(page)
+                except PageNotAnInteger:
+                    logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
+                except EmptyPage:
+                    logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
+                return render(request, 'log.html', {'page': 'logs', 'logs': logs_list, 'filter_text': filter_text,
+                                                    'filter_date': filter_date
+                                                    }
+                              )
+            except Exception as e:
+                tb = traceback.format_exc(e)
+                return HttpResponseServerError(tb)
+        elif request.method == 'POST':
+            # get the form data
+            filter_text = request.POST.get('filter-log-text', '')
+            filter_date = request.POST.get('filter-log-date', '')
+            if filter_date == '':
+                logs = Audit.objects.filter(Q(table__contains=filter_text) |
+                                            Q(action__contains=filter_text) |
+                                            Q(search_text__contains=filter_text)
+                                            )
+            else:
+                yr, mnth, dt = filter_date.split('-')
+                constructed_date = date(int(yr), int(mnth), int(dt))
+                logs = Audit.objects.filter((Q(table__contains=filter_text) |
+                                            Q(action__contains=filter_text) |
+                                            Q(search_text__contains=filter_text)) &
+                                            Q(timestamp__year=constructed_date.year, timestamp__month=constructed_date.month, timestamp__day=constructed_date.day)
+                                            )
+            paginator = Paginator(logs, 25)
+            try:
+                logs_list = paginator.page(1)
             except PageNotAnInteger:
                 logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
             except EmptyPage:
                 logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
-            return render(request, 'log.html', {'page': 'logs', 'logs': logs_list})
-        except Exception as e:
-            tb = traceback.format_exc(e)
-            return HttpResponseServerError(tb)
+            return render(request, 'log.html', {'page': 'logs', 'logs': logs_list, 'filter_text': filter_text,
+                                                'filter_date': filter_date})
     else:
         # user is not allowed to view logs redirect to clients page with a message
         return redirect('clients')
