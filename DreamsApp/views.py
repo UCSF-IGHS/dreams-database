@@ -6,14 +6,14 @@ from django.core import serializers
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout
 import json
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth import authenticate
 from django.db.models import Q
 from DreamsApp.models import *
 
 
-def getEnrollmentFormConfigData():
+def get_enrollment_form_config_data():
     config_data = {
         'implementing_partners': ImplementingPartner.objects.all(),
         'verification_documents': VerificationDocument.objects.all(),
@@ -47,11 +47,11 @@ def user_login(request):
         audit.table = "DreamsApp_client"
         audit.row_id = 0
         audit.action = "LOGIN"
-
-        response_data = {
-            'status': 'success',
-            'message': 'Client Details Deleted successfuly.'
-        }
+        #
+        # response_data = {
+        #     'status': 'success',
+        #     'message': 'Client Details Deleted successfuly.'
+        # }
 
         if user_name == '' or pass_word == '':
             audit.search_text = "Missing login Credentials"
@@ -93,23 +93,35 @@ def clients(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
-                client_list = Client.objects.all()   # filter to get patients only. Not yet done
-                context = {'page': 'clients', 'user': request.user, 'clients': client_list, 'config_data': getEnrollmentFormConfigData()}
+                client_list = Client.objects.filter(id__exact=0)   # Clients list should be empty on start
+                context = {'page': 'clients', 'user': request.user, 'clients': client_list, 'config_data': get_enrollment_form_config_data()}
                 return render(request, 'clients.html', context)
-            else:
-                if request.method == 'POST' and request.is_ajax():
-                    search_value = request.POST.get('searchValue', '')
-                    search_result = Client.objects.filter(Q(first_name__startswith=search_value) |
-                                                          Q(last_name__startswith=search_value) |
-                                                          Q(middle_name__startswith=search_value))
+            elif request.method == 'POST':
+                search_value = request.POST.get('searchValue', '')
+
+                # Data entrant can only see data entered from 5 days ago
+                # Data entrant can only saerch by exact dreams id
+                if request.user.groups.filter(name='Data entrant').exists():
+                    search_result = Client.objects.filter(dreams_id__exact=search_value, date_of_enrollment__range=[datetime.now() - timedelta(days=7), datetime.now()])
+                    log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
+                    return JsonResponse(serializers.serialize('json', search_result), safe=False)
+                # Program officer, can search by name and is not restricted to data entered the previous 5 days
+                # Search by dreams id has to be exact
+                # Search by any name has to be exact
+                elif request.user.groups.filter(name='Program officer').exists():
+                    search_result = Client.objects.filter(Q(dreams_id__exact=search_value) |
+                                                          Q(first_name__exact=search_value) |
+                                                          Q(last_name__exact=search_value) |
+                                                          Q(middle_name__exact=search_value))
                     # Log this search action
                     log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
                     return JsonResponse(serializers.serialize('json', search_result), safe=False)
-                elif request.method == 'POST':
-                    search_value = request.POST.get('searchValue', '')
-                    search_result = Client.objects.filter(Q(first_name__startswith=search_value) |
-                                                          Q(last_name__startswith=search_value) |
-                                                          Q(middle_name__startswith=search_value))
+                else:
+                    search_result = Client.objects.filter(Q(dreams_id__exact=search_value) |
+                                                          Q(first_name__exact=search_value) |
+                                                          Q(last_name__exact=search_value) |
+                                                          Q(middle_name__exact=search_value))
+                    # Log this search action
                     log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
                     return JsonResponse(serializers.serialize('json', search_result), safe=False)
         else:
@@ -191,7 +203,7 @@ def save_client(request):
 
 def edit_client(request):
     try:
-        if request.user is not None and request.user.is_authenticated() and request.user.is_superuser:
+        if request.user is not None and request.user.is_authenticated():  # and request.user.is_superuser:
             if request.method == 'GET':
                 client_id = int(request.GET['client_id'])
                 client = Client.objects.defer('date_of_enrollment', 'date_of_birth').get(id__exact=client_id)
@@ -207,44 +219,54 @@ def edit_client(request):
             elif request.method == 'POST':
                 client_id = int(str(request.POST.get('client_id')))
                 client = Client.objects.filter(id=client_id).first()
-                # process editing user
-                client.implementing_partner = ImplementingPartner.objects.filter(
-                    code__exact=str(request.POST.get('implementing_partner', ''))).first()
-                client.first_name = str(request.POST.get('first_name', ''))
-                client.middle_name = str(request.POST.get('middle_name', ''))
-                client.last_name = str(request.POST.get('last_name', ''))
-                client.date_of_birth = str(request.POST.get('date_of_birth', datetime.now))
-                client.is_date_of_birth_estimated = bool(str(request.POST.get('is_date_of_birth_estimated')))
-                client.verification_document = VerificationDocument.objects.filter(
-                    code__exact=str(request.POST.get('verification_document', ''))).first()
-                client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
-                client.date_of_enrollment = str(request.POST.get('date_of_enrollment', datetime.now))
-                client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
-                client.marital_status = MaritalStatus.objects.filter(code__exact=str(request.POST.get('marital_status', ''))).first()
-                client.phone_number = str(request.POST.get('phone_number', ''))
-                client.dss_id_number = str(request.POST.get('dss_id_number', ''))
-                client.county_of_residence = County.objects.filter(code__exact=request.POST.get('county_of_residence', '')).first()
-                client.sub_county = SubCounty.objects.filter(code__exact=request.POST.get('sub_county', '')).first()
-                client.ward = Ward.objects.filter(code__exact=request.POST.get('ward', 0)).first()
-                client.informal_settlement = str(request.POST.get('informal_settlement', ''))
-                client.village = str(request.POST.get('village', ''))
-                client.landmark = str(request.POST.get('landmark', ''))
-                client.dreams_id = str(request.POST.get('dreams_id', ''))
-                client.guardian_name = str(request.POST.get('guardian_name', ''))
-                client.relationship_with_guardian = str(request.POST.get('relationship_with_guardian', ''))
-                client.guardian_phone_number = str(request.POST.get('guardian_phone_number', ''))
-                client.guardian_national_id = str(request.POST.get('guardian_national_id', ''))
-                client.save(user_id=request.user.id, action="UPDATE")
-                if request.is_ajax():
+                # check if user is from enrolling IP
+                if client.implementing_partner == request.user.implementingpartneruser.implementing_partner:
+                    # process editing user
+                    client.implementing_partner = ImplementingPartner.objects.filter(
+                        code__exact=str(request.POST.get('implementing_partner', ''))).first()
+                    client.first_name = str(request.POST.get('first_name', ''))
+                    client.middle_name = str(request.POST.get('middle_name', ''))
+                    client.last_name = str(request.POST.get('last_name', ''))
+                    client.date_of_birth = str(request.POST.get('date_of_birth', datetime.now))
+                    client.is_date_of_birth_estimated = bool(str(request.POST.get('is_date_of_birth_estimated')))
+                    client.verification_document = VerificationDocument.objects.filter(
+                        code__exact=str(request.POST.get('verification_document', ''))).first()
+                    client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
+                    client.date_of_enrollment = str(request.POST.get('date_of_enrollment', datetime.now))
+                    client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
+                    client.marital_status = MaritalStatus.objects.filter(code__exact=str(request.POST.get('marital_status', ''))).first()
+                    client.phone_number = str(request.POST.get('phone_number', ''))
+                    client.dss_id_number = str(request.POST.get('dss_id_number', ''))
+                    client.county_of_residence = County.objects.filter(code__exact=request.POST.get('county_of_residence', '')).first()
+                    client.sub_county = SubCounty.objects.filter(code__exact=request.POST.get('sub_county', '')).first()
+                    client.ward = Ward.objects.filter(code__exact=request.POST.get('ward', 0)).first()
+                    client.informal_settlement = str(request.POST.get('informal_settlement', ''))
+                    client.village = str(request.POST.get('village', ''))
+                    client.landmark = str(request.POST.get('landmark', ''))
+                    client.dreams_id = str(request.POST.get('dreams_id', ''))
+                    client.guardian_name = str(request.POST.get('guardian_name', ''))
+                    client.relationship_with_guardian = str(request.POST.get('relationship_with_guardian', ''))
+                    client.guardian_phone_number = str(request.POST.get('guardian_phone_number', ''))
+                    client.guardian_national_id = str(request.POST.get('guardian_national_id', ''))
+                    client.save(user_id=request.user.id, action="UPDATE")
+                    if request.is_ajax():
+                        response_data = {
+                            'status': 'success',
+                            'message': 'Client Details Updated successfuly.',
+                            'client_id': client.id
+                        }
+                        return JsonResponse(json.dumps(response_data), safe=False)
+                    else:
+                        # redirect to page
+                        return redirect('clients')
+                else:
+                    # user and client IPs dont match. Return error message
                     response_data = {
-                        'status': 'success',
-                        'message': 'Client Details Updated successfuly.',
+                        'status': 'failed',
+                        'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
                         'client_id': client.id
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
-                else:
-                    # redirect to page
-                    return redirect('clients')
         else:
             return PermissionDenied('Operation not allowed. [Missing Permission]')
     except Exception as e:
@@ -258,22 +280,32 @@ def delete_client(request):
             if request.method == 'GET' and request.is_ajax():
                 client_id = int(request.GET['client_id'])
                 client = Client.objects.filter(id__exact=client_id).first()
-                # check if client has interventions
-                if Intervention.objects.filter(client=client).count() > 0:
-                    # Upating audit log
-                    log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", 'FAILED')
-                    response_data = {
-                        'status': 'fail',
-                        'message': 'This client cannot be deleted because they have interventions.'
-                    }
+                # check if client and user IPs match
+                if client.implementing_partner == request.user.implementingpartneruser.implementing_partner:
+                    # check if client has interventions
+                    if Intervention.objects.filter(client=client).count() > 0:
+                        # Upating audit log
+                        log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", 'FAILED')
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'This client cannot be deleted because they have interventions.'
+                        }
+                    else:
+                        client.delete()
+                        # Upating audit log
+                        log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", 'SUCCESS')
+                        response_data = {
+                            'status': 'success',
+                            'message': 'Client Details Deleted successfuly.'
+                        }
+
                 else:
-                    client.delete()
-                    # Upating audit log
-                    log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", 'SUCCESS')
                     response_data = {
-                        'status': 'success',
-                        'message': 'Client Details Deleted successfuly.'
+                        'status': 'failed',
+                        'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
+                        'client_id': client.id
                     }
+                    # client and user IPs do not match
                 return JsonResponse(json.dumps(response_data), safe=False)
             elif request.method == 'POST':
                 return PermissionDenied('Operation not allowed. [Missing Permission]')
@@ -320,7 +352,8 @@ def saveIntervention(request):
                 intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
                 intervention.intervention_type = i_type
                 intervention.intervention_date = request.POST.get('intervention_date')
-                intervention.created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
+                created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
+                intervention.created_by = created_by
                 intervention.date_created = datetime.now()
                 intervention.comment = request.POST.get('comment')
 
@@ -336,11 +369,15 @@ def saveIntervention(request):
                 if i_type.has_no_of_sessions:
                     intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
+                # Update implementing Partner
+                intervention.implementing_partner = ImplementingPartner.objects.get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
                 intervention.save(user_id=request.user.id, action="INSERT")
                 # using defer() miraculously solved serialization problem of datetime properties.
                 intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
 
                 response_data = {
+                    'status': 'success',
+                    'message': 'Intervention successfully saved',
                     'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
                     'i_type': serializers.serialize('json', [i_type])
                 }
@@ -411,38 +448,47 @@ def updateIntervention(request):
         if intervention_id is not None and type(intervention_id) is int:
             try:
                 intervention = Intervention.objects.get(id__exact=intervention_id)
-                intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
-                intervention.intervention_date = request.POST.get('intervention_date')
-                intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
-                intervention.date_changed = datetime.now()
-                intervention.comment = request.POST.get('comment')
+                # check if intervention belongs to the ip
+                if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
+                    intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                    intervention.intervention_date = request.POST.get('intervention_date')
+                    intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
+                    intervention.date_changed = datetime.now()
+                    intervention.comment = request.POST.get('comment')
 
-                i_type = InterventionType.objects.get(id__exact=intervention.intervention_type.id)
+                    i_type = InterventionType.objects.get(id__exact=intervention.intervention_type.id)
 
-                if i_type.has_hts_result:
-                    intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
+                    if i_type.has_hts_result:
+                        intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
 
-                if i_type.has_pregnancy_result:
-                    intervention.pregnancy_test_result = PregnancyTestResult.objects.get(code__exact=int(request.POST.get('pregnancy_test_result')))
+                    if i_type.has_pregnancy_result:
+                        intervention.pregnancy_test_result = PregnancyTestResult.objects.get(code__exact=int(request.POST.get('pregnancy_test_result')))
 
-                if i_type.has_ccc_number:
-                    intervention.client_ccc_number = request.POST.get('client_ccc_number')
+                    if i_type.has_ccc_number:
+                        intervention.client_ccc_number = request.POST.get('client_ccc_number')
 
-                if i_type.has_no_of_sessions:
-                    intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
+                    if i_type.has_no_of_sessions:
+                        intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
-                intervention.save(user_id=request.user.id, action="UPDATE")
-                # using defer() miraculously solved serialization problem of datetime properties.
-                intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
-                # construct response
 
-                response_data = {
-                    'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
-                    'i_type': serializers.serialize('json', [i_type])
-                }
-                # response_data['intervention'] = serializers.serialize('json', [intervention, ], ensure_ascii=False)
-                # response_data['i_type'] = serializers.serialize('json', [i_type])
+                    intervention.save(user_id=request.user.id, action="UPDATE")
+                    # using defer() miraculously solved serialization problem of datetime properties.
+                    intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
+                    # construct response
 
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Intervention successfully updated',
+                        'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
+                        'i_type': serializers.serialize('json', [i_type])
+                    }
+                else:
+                    # Intervention does not belong to Implementing partner. Send back error message
+                    response_data = {
+                        'status': 'failed',
+                        'message': 'You do not have the rights to update this intervention because it was created by a '
+                                   'different Implementing Partner'
+                    }
                 return JsonResponse(response_data)
             except Exception as e:
                 tb = traceback.format_exc()
@@ -458,9 +504,27 @@ def deleteIntervention(request):
         intervention_id = int(request.POST.get('intervention_delete_id'))
         if intervention_id is not None and type(intervention_id) is int:
             try:
-                Intervention.objects.filter(pk=intervention_id).delete()
-                log_custom_actions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", None)
-                return JsonResponse(json.dumps({'result': 'success', 'intervention_id': intervention_id}), safe=False)
+                # get intervention
+                # Check if intervention belongs to IP
+                intervention = Intervention.objects.filter(pk=intervention_id).first()
+                if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
+                    intervention.delete()
+                    log_custom_actions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", None)
+                    response_data = {
+                        'result': 'success',
+                        'message': 'Intervention has been successfully deleted',
+                        'intervention_id': intervention_id
+                    }
+                else:
+                    # Intervention does not belong to IP
+                    log_custom_actions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", "Failed attempt")
+                    response_data = {
+                        'result': 'failed',
+                        'message': 'You do not have the rights to delete this intervention because it was created by a '
+                                   'different Implementing Partner',
+                        'intervention_id': intervention_id
+                    }
+                return JsonResponse(json.dumps(response_data), safe=False)
             except Exception as e:
                 tb = traceback.format_exc()
                 return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception

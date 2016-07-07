@@ -192,9 +192,11 @@ $(document).ready(function () {
     })
 
     $('.filter-enrollment').keyup(function (event) {
+        return
         /*
             This function filters clients table on typing
-         */
+            It has been disabled for enrollment
+
         // check which key is pressed
         var rex = new RegExp($(this).val(), 'i');
         $('#dp-patient-list-body tr').hide();
@@ -202,14 +204,11 @@ $(document).ready(function () {
             return rex.test($(this).text());
         }).show();
 
-        /*if($('#dp-patient-list-body tr:visible').length < 1 || $('#dp-patient-list-body tr').length < 1)
-            $('#dp-patient-list-body').append("<tr><td colspan='4' style='text-align: center'>0 Clients Found</td></tr>")
-        */
         if($('#dp-patient-list-body tr:visible').length < 1 || $('#dp-patient-list-body tr').length < 1)
             $('#client_actions_alert').removeClass('hidden').addClass('alert-danger')
                         .text("0 Clients found")
                         .trigger('madeVisible')
-
+        */
     })
 
     $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
@@ -569,42 +568,52 @@ $(document).ready(function () {
             dataType: 'json',
             data:$('#intervention-entry-form').serialize(),
             success : function(data) {
-                var iv = $.parseJSON(data.intervention)[0]
-                var iv_type = $.parseJSON(data.i_type)[0]
+                var status = data.status
+                var message = data.message
                 var alert_id = '#action_alert_' + currentInterventionCategoryCode_Global
-                if(modalMode != "edit"){
-                    insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, true)
-                    $(alert_id).removeClass('hidden').addClass('alert-success')
-                        .text('Intervention has been Saved successfully!')
+                if(status == 'failed'){
+                    $(alert_id).removeClass('hidden').addClass('alert-danger')
+                        .text(message)
                         .trigger('madeVisible')
+                    $("#intervention-modal").each( function() { this.reset; });
+                    $('#intervention-modal').modal('hide');
                 }
                 else{
-                    // Add existing record on the view
-                    // get table name and row id
-                    var row_id = 'intervention_' + iv.pk
-                    $('#' + row_id + ' .intervention_date').text(iv.fields.intervention_date)
+                    var iv = $.parseJSON(data.intervention)[0]
+                    var iv_type = $.parseJSON(data.i_type)[0]
+                    if(modalMode != "edit"){
+                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, true)
+                        $(alert_id).removeClass('hidden').addClass('alert-success')
+                            .text('Intervention has been Saved successfully!')
+                            .trigger('madeVisible')
+                    }
+                    else{
+                        // Add existing record on the view
+                        // get table name and row id
+                        var row_id = 'intervention_' + iv.pk
+                        $('#' + row_id + ' .intervention_date').text(iv.fields.intervention_date)
 
-                    // check for the rest of the fields
-                    if(iv_type.fields.has_hts_result)
-                        $('#' + row_id + ' .hts_result').text(iv.fields.hts_result)
-                    // ccc number
-                    if(iv_type.fields.has_ccc_number)
-                        $('#' + row_id + ' .client_ccc_number').text(iv.fields.client_ccc_number)
-                    // pregnancy
-                    if(iv_type.fields.has_pregnancy_result)
-                        $('#' + row_id + ' .pregnancy_test_result').text(iv.fields.pregnancy_test_result)
-                    // number of sessions
-                    if(iv_type.fields.has_no_of_sessions)
-                        $('#' + row_id + ' .no_of_sessions_attended').text(iv.fields.no_of_sessions_attended)
-                    // notes
-                    $('#' + row_id + ' .comment').text(iv.fields.comment)
+                        // check for the rest of the fields
+                        if(iv_type.fields.has_hts_result)
+                            $('#' + row_id + ' .hts_result').text(iv.fields.hts_result)
+                        // ccc number
+                        if(iv_type.fields.has_ccc_number)
+                            $('#' + row_id + ' .client_ccc_number').text(iv.fields.client_ccc_number)
+                        // pregnancy
+                        if(iv_type.fields.has_pregnancy_result)
+                            $('#' + row_id + ' .pregnancy_test_result').text(iv.fields.pregnancy_test_result)
+                        // number of sessions
+                        if(iv_type.fields.has_no_of_sessions)
+                            $('#' + row_id + ' .no_of_sessions_attended').text(iv.fields.no_of_sessions_attended)
+                        // notes
+                        $('#' + row_id + ' .comment').text(iv.fields.comment)
 
-                    setInterventionActionHandler(iv, iv_type, intervention_category_code)
-                    $(alert_id).removeClass('hidden').addClass('alert-success').text('Intervention has been Updated successfully!')
+                        setInterventionActionHandler(iv, iv_type, intervention_category_code)
+                        $(alert_id).removeClass('hidden').addClass('alert-success').text('Intervention has been Updated successfully!')
+                    }
+                    $("#intervention-modal").each( function() { this.reset; });
+                    $('#intervention-modal').modal('hide');
                 }
-                $("#intervention-modal").each( function() { this.reset; });
-                $('#intervention-modal').modal('hide');
-
             },
 
             // handle a non-successful response
@@ -618,10 +627,6 @@ $(document).ready(function () {
 
 
     });
-
-    $('.edit_intervention_click').click(function (event) {
-        var target = $(event.target)
-    })
 
     $('.dp-action-alert').on('madeVisible', function (event) {
         setTimeout(function(){
@@ -661,7 +666,11 @@ $(document).ready(function () {
                     }
                 }
                 else
-                    $(alert_id).removeClass('hidden').addClass('alert-danger').text('Error deleting Intervention. Please try again')
+                    $(alert_id).removeClass('hidden').addClass('alert-danger').text('You do not have the rights to ' +
+                        'delete this intervention because it was created by a ' +
+                        'different Implementing Partner').
+                    trigger('madeVisible')
+
                 $('#confirm-delete-mordal').modal('hide');
 
             },
@@ -892,6 +901,7 @@ $(document).ready(function () {
                     $("#enrollment-modal").modal('hide');
                 }
                 else{
+                    $("#enrollment-modal").modal('hide');
                     $('#client_actions_alert').removeClass('hidden').addClass('alert-danger')
                         .text(result.message)
                         .trigger('madeVisible')
