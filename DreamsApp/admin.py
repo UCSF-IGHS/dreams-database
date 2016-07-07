@@ -33,3 +33,17 @@ admin.site.register(SubCounty)
 admin.site.register(Ward)
 admin.site.register(VerificationDocument)
 admin.site.register(ImplementingPartner)
+
+
+class ImplementingPartnerUserAdmin(admin.ModelAdmin):
+    model = ImplementingPartnerUser
+    list_display = ('get_username', 'implementing_partner')
+    list_per_page = 15
+
+    def get_username(self, object):
+        return object.user
+
+    get_username.short_description = 'Username'
+
+
+admin.site.register(ImplementingPartnerUser, ImplementingPartnerUserAdmin)

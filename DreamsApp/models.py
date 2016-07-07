@@ -79,6 +79,18 @@ class ImplementingPartner(models.Model):
         verbose_name_plural = 'Implementing Partners'
 
 
+class ImplementingPartnerUser(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True)
+
+    def __str__(self):
+        return '{} {}'.format(self.user.first_name, self.user.last_name)
+
+    class Meta:
+        verbose_name = 'Implementing Partner User'
+        verbose_name_plural = 'Implementing Partner Users'
+
+
 class Client(models.Model):
     first_name = models.CharField(verbose_name='First Name', max_length=100, null=True)
     middle_name = models.CharField(verbose_name='Middle Name', max_length=100, null=True)
@@ -196,6 +208,8 @@ class Intervention(models.Model):
     created_by = models.ForeignKey(User, null=True, related_name='created_by')
     date_changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
+    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True,
+                                             related_name='implementing_partner')
 
     def save(self,user_id=None, action=None, *args, **kwargs): # pass audit to args as the first object
         super(Intervention, self).save(*args, **kwargs)
