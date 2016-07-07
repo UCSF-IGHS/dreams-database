@@ -73,12 +73,12 @@ $(document).ready(function () {
 
     /* End Login form submission */
 
-    function insertClientTableRow(clients_tbody, pk, dreams_id, first_name, last_name, middle_name, date_of_birth, append, is_superuser) {
+    function insertClientTableRow(clients_tbody, pk, dreams_id, first_name, last_name, middle_name, date_of_enrollment, append, is_superuser) {
         var is_superuser = $('#is_superuser').val();
         var row_string = "<tr id='clients_row_" + pk +"' style='cursor: pointer;'>"
                         + "<td>" + dreams_id + "</td>"
                         + "<td>" + first_name + " " + last_name + " " + middle_name +  "</td>"
-                        + "<td>" + date_of_birth + "</td>"
+                        + "<td>" + date_of_enrollment + "</td>"
                         + "<td id='client_' + " + pk + "'>"
                             + "<div class='btn-group'>"
                               + "<button type='button' class='btn btn-sm btn-default' onclick=\"window.location='/client?client_id=" + pk + "'\" style='cursor: pointer;'> Interventions </button>"
@@ -133,7 +133,7 @@ $(document).ready(function () {
                 clients_tbody.empty();
                 if(clients.length > 0){
                     $.each(clients, function (index, client) {
-                        insertClientTableRow(clients_tbody, client.pk,client.fields.dreams_id, client.fields.first_name, client.fields.last_name, client.fields.middle_name, client.fields.date_of_birth, true, client.fields.is_superuser);
+                        insertClientTableRow(clients_tbody, client.pk,client.fields.dreams_id, client.fields.first_name, client.fields.last_name, client.fields.middle_name, client.fields.date_of_enrollment, true, client.fields.is_superuser);
                     })
                 }
                 else
