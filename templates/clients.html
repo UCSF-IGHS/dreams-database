@@ -10,14 +10,14 @@
         </div>
         <div class="floatRightLinks">
             <div class="rightItem">
-                <form id="clients_search_form" method="post">
+                <form id="clients_search_form" class="form-inline" method="post">
                     {% csrf_token %}
                       <div class="form-group has-feedback" >
-                           <input id="search-term-default" type="text" name="searchValue" class="form-control filter-enrollment" placeholder="Search for client by Name or DREAMS ID">
-                           <span class="glyphicon glyphicon-search form-control-feedback"></span>
-                           <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for DREAMS clients by typing name or DREAMS id in the input above. <strong>Press Enter to search.</strong></span>
+                           <input id="search-term-default" type="text" name="searchValue" class="form-control filter-enrollment" placeholder="Enter DREAMS ID or Name" style="width: 400px;">
+                           <button type="submit" class="btn btn-primary btn-sm">Search </button>
                       </div>
                 </form>
+                <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for DREAMS clients by typing name or DREAMS id in the input above.</span>
             </div>
         </div>
     </div>
@@ -60,8 +60,8 @@
                         </tr>
                     {% endfor %}
                 {% else %}
-                    <tr id="clients_row_{{ client.id }}" style="cursor: pointer; background-color: transparent;">
-                        <td colspan="4" style="text-align: center;font-weight: normal; color: #bbb;">0 clients. Search to find clients</td>
+                    <tr>
+                        <td colspan="4" class="table-message">Search to find clients</td>
                     </tr>
                 {% endif %}
                 </tbody>

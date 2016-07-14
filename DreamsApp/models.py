@@ -245,3 +245,8 @@ class Audit(models.Model):
         verbose_name_plural = 'Audit log'
 
 
+class InitApp(models.Model):
+    timestamp = models.DateTimeField(auto_now=True, blank=False, null=False)
+    inited = models.BooleanField(default=False, blank=False, null=False)
+
+

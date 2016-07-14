@@ -1,14 +1,12 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseServerError
-import traceback
-from django.core.exceptions import *
 from django.core import serializers
+from django.core.exceptions import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, authenticate
 import json
+import traceback
 from datetime import date, timedelta
-
-from django.contrib.auth import authenticate
 from django.db.models import Q
 from DreamsApp.models import *
 
@@ -36,6 +34,7 @@ def log_custom_actions(user_id, table, row_id, action, search_text):
 
 
 def user_login(request):
+
     if request.method == 'GET':
         return render(request, 'login.html')
     elif request.method == 'POST':
@@ -94,36 +93,24 @@ def clients(request):
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
                 client_list = Client.objects.filter(id__exact=0)   # Clients list should be empty on start
-                context = {'page': 'clients', 'user': request.user, 'clients': client_list, 'config_data': get_enrollment_form_config_data()}
+                implementing_partner_user = ImplementingPartnerUser.objects.filter(user=request.user).first()
+                context = {'page': 'clients', 'user': request.user, 'clients': client_list,
+                           'implementing_partner_user': implementing_partner_user,
+                           'config_data': get_enrollment_form_config_data()}
                 return render(request, 'clients.html', context)
             elif request.method == 'POST':
                 search_value = request.POST.get('searchValue', '')
 
-                # Data entrant can only see data entered from 5 days ago
-                # Data entrant can only saerch by exact dreams id
-                if request.user.groups.filter(name='Data entrant').exists():
-                    search_result = Client.objects.filter(dreams_id__exact=search_value, date_of_enrollment__range=[datetime.now() - timedelta(days=7), datetime.now()])
-                    log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
-                    return JsonResponse(serializers.serialize('json', search_result), safe=False)
-                # Program officer, can search by name and is not restricted to data entered the previous 5 days
-                # Search by dreams id has to be exact
-                # Search by any name has to be exact
-                elif request.user.groups.filter(name='Program officer').exists():
+                if request.user.has_perm('auth.can_search_client_by_name'):
                     search_result = Client.objects.filter(Q(dreams_id__exact=search_value) |
                                                           Q(first_name__exact=search_value) |
                                                           Q(last_name__exact=search_value) |
                                                           Q(middle_name__exact=search_value))
-                    # Log this search action
-                    log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
-                    return JsonResponse(serializers.serialize('json', search_result), safe=False)
                 else:
-                    search_result = Client.objects.filter(Q(dreams_id__exact=search_value) |
-                                                          Q(first_name__exact=search_value) |
-                                                          Q(last_name__exact=search_value) |
-                                                          Q(middle_name__exact=search_value))
-                    # Log this search action
-                    log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
-                    return JsonResponse(serializers.serialize('json', search_result), safe=False)
+                    search_result = Client.objects.filter(dreams_id__exact=search_value)
+                # check if user can see clients enrolled more than a week ago
+                log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
+                return JsonResponse(serializers.serialize('json', search_result), safe=False)
         else:
             return redirect('login')
     except Exception as e:
@@ -323,7 +310,9 @@ def testajax(request):
 # Use /ivgetTypes/ in the post url to access the method
 # Handles post request for intervention types.
 # Receives category_code from request and searches for types in the database
-def getInterventionTypes(request):
+
+
+def get_intervention_types(request):
 
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
         response_data = {}
@@ -342,7 +331,9 @@ def getInterventionTypes(request):
 
 # use /ivSave/ to post to the method
 # Gets intervention_type_id,  from request
-def saveIntervention(request):
+
+
+def save_intervention(request):
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
         intervention_type_code = int(request.POST.get('intervention_type_code'))
         if intervention_type_code is not None and type(intervention_type_code) is int:
@@ -393,7 +384,9 @@ def saveIntervention(request):
 
 # method that returns a list of interventions of given category for a given client
 # use /ivList/ url pattern to access the method
-def getInterventionList(request):
+
+
+def get_intervention_list(request):
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
         if 'client_id' not in request.POST or request.POST.get('client_id') == 0:
             return ValueError('No Client id found in your request! Ensure it is provided')
@@ -406,11 +399,23 @@ def getInterventionList(request):
             iv_category = InterventionCategory.objects.get(code__exact=intervention_category_code)
             list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
             iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
-            list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').filter(client__exact=client_id).filter(intervention_type__in=iv_type_ids)
+            # check for see_other_ip_data persmission
 
-            response_data = {'iv_types': serializers.serialize('json', list_of_related_iv_types),
-                             'interventions': serializers.serialize('json', list_of_interventions)
-                             }
+            list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date',
+                                                               'date_created').filter(client__exact=client_id,
+                                                                                      intervention_type__in=iv_type_ids)
+            if not request.user.has_perm('auth.can_view_other_ip_data'):
+                list_of_interventions = list_of_interventions.filter(implementing_partner_id=request.user.implementingpartneruser.implementing_partner.id)
+
+            if not request.user.has_perm('auth.can_view_records_older_than_a_week'):
+                list_of_interventions = list_of_interventions.filter(date_created__range=
+                                                                     [datetime.now() - timedelta(days=7),
+                                                                      datetime.now()]
+                                                                     )
+            response_data = {
+                'iv_types': serializers.serialize('json', list_of_related_iv_types),
+                'interventions': serializers.serialize('json', list_of_interventions)
+            }
             return JsonResponse(response_data)
         except ObjectDoesNotExist as nf:
             return ObjectDoesNotExist(traceback.format_exc())
@@ -421,7 +426,9 @@ def getInterventionList(request):
 
 # Gets an intervention. Takes intervention_id and returns Intervention object
 # use /ivGet/ to access this method
-def getIntervention(request):
+
+
+def get_intervention(request):
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
         intervention_id = request.POST.get('intervention_id')
         if 'intervention_id' not in request.POST:
@@ -442,7 +449,9 @@ def getIntervention(request):
 
 # Updates an intervention
 # use /ivUpdate/ to access the method
-def updateIntervention(request):
+
+
+def update_intervention(request):
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
         intervention_id = int(request.POST.get('intervention_id'))
         if intervention_id is not None and type(intervention_id) is int:
@@ -499,7 +508,7 @@ def updateIntervention(request):
         return PermissionDenied('Operation not allowed. [Missing Permission]')
 
 
-def deleteIntervention(request):
+def delete_intervention(request):
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
         intervention_id = int(request.POST.get('intervention_delete_id'))
         if intervention_id is not None and type(intervention_id) is int:
@@ -534,7 +543,7 @@ def deleteIntervention(request):
         return PermissionDenied('Operation not allowed. [Missing Permission]')
 
 
-def getSubCounties(request):
+def get_sub_counties(request):
 
     if request.method == 'GET' and request.user is not None and request.user.is_authenticated():
         response_data = {}
@@ -550,7 +559,7 @@ def getSubCounties(request):
         return HttpResponse("You issued bad request")
 
 
-def getWards(request):
+def get_wards(request):
 
     if request.method == 'GET' and request.user is not None and request.user.is_authenticated():
         response_data = {}
@@ -600,7 +609,9 @@ def user_help(request):
 
 
 def logs(request):
-    if request.user.is_authenticated() and request.user.is_superuser:
+    if request.user.is_authenticated():
+        if not request.user.has_perm('auth.can_view_logs'):
+            return PermissionDenied('Operation not allowed. [Missing Permission]')
         # user is allowed to view logs
         if request.method == 'GET':
             try:
@@ -645,7 +656,7 @@ def logs(request):
                 logs = Audit.objects.filter(Q(table__contains=filter_text) |
                                             Q(action__contains=filter_text) |
                                             Q(search_text__contains=filter_text)
-                                            )
+                                            ).order_by('-timestamp')
             else:
                 yr, mnth, dt = filter_date.split('-')
                 constructed_date = date(int(yr), int(mnth), int(dt))

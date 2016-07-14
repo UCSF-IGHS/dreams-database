@@ -7,7 +7,7 @@
 *.pyc
 __pycache__/
 local_settings.py
-#*.sqlite3
+*.sqlite3
 media
 
 
@@ -66,6 +66,9 @@ coverage.xml
 # Django stuff:
 *.log
 local_settings.py
+
+# settings file. Remove this is settings changes need to be pushed
+settings.py
 
 # Flask instance folder
 instance/

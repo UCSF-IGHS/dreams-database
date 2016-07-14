@@ -22,7 +22,9 @@
                              <script>
                                 $(function() {
                                   $( "#filter-log-date" ).datepicker({
-                                      dateFormat: 'yy-mm-dd'
+                                      dateFormat: 'yy-mm-dd',
+                                      changeMonth: true,
+                                      changeYear: true
                                   });
                                 });
                             </script>
@@ -46,18 +48,23 @@
                     <th>Text</th>
                 </thead>
                 <tbody id="dp-patient-list-body">
-                    {% for log in logs %}
-                        <tr style="cursor: pointer; background-color: transparent;">
-                            <td>{{ log.timestamp}}</td>
-                            <td>{{ log.user_id }}</td>
-                            <td>{{ log.table }}</td>
-                            <td>{{ log.action }}</td>
-                            <td>{% if log.search_text != None %} {{ log.search_text }} {% endif %}</td>
+                    {% if logs.count > 0 %}
+                        {% for log in logs %}
+                            <tr style="cursor: pointer; background-color: transparent;">
+                                <td>{{ log.timestamp}}</td>
+                                <td>{{ log.user_id }}</td>
+                                <td>{{ log.table }}</td>
+                                <td>{{ log.action }}</td>
+                                <td>{% if log.search_text != None %} {{ log.search_text }} {% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="table-message">0 Records found.</td>
                         </tr>
-                    {% endfor %}
+                    {% endif %}
                 </tbody>
             </table>
-
 
         </div>
         <div class="pagination">

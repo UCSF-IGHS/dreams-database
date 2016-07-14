@@ -167,13 +167,12 @@
             <br/>
             <div role="tabpanel" id="behavioural-interventions" class="tab-pane fade in active client_profile_tab" data-tabpanel_id="#behavioural-interventions" data-intervention_category_code="1001">
 
-               <table class="fit-item space" >
+               <table class="fit-item" >
                   <thead>
                       <tr>
-                          <th style="padding-right: 10px;">
+                          <th>
                               <div class="form-group has-feedback" >
-                                   <input id="filter_1001" type="text" class="form-control filter" data-target_tbody="#interventions_1001_tbody" data-intervention_category_code="1001" data-tab_intervention_table_id="#interventions_1001_table" placeholder="Type to search...">
-                                   <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                                   <input id="filter_1001" type="text" class="form-control filter" style="width: 500px;" data-target_tbody="#interventions_1001_tbody" data-intervention_category_code="1001" data-tab_intervention_table_id="#interventions_1001_table" placeholder="Type to search...">
                               </div>
                           </th>
                           <th width="130"><button class="btn btn-sm btn-default" data-toggle="modal" data-target="#intervention-modal" data-whatever="1001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus text-success"></i> Add Intervention</button></th>
@@ -186,24 +185,21 @@
                <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
                   <div class="panel-body" style="margin: 0px;padding: 0px;">
 
-                      <table class="table table-striped " id="interventions_1001_table">
+                      <table class="table table-striped " id="interventions_1001_table" data-cols="4">
                           <thead class="dp-table-head-black">
                               <tr>
                                   <th>Intervention Type</th>
                                   <th>Date Completed</th>
                                   <th>Comment/Notes</th>
-                                  <th>Actions</th>
+                                  <th class="actions-col">Actions</th>
                               </tr>
                           </thead>
-                          <tbody class="searchable" id="interventions_1001_tbody" >
+                          <tbody class="searchable" id="interventions_1001_tbody">
                           </tbody>
                       </table>
                       <div class="spinner hidden fit-item">
                             <i class='fa fa-spinner fa-spin'></i>
                             <p style="font-size: large">Loading interventions</p>
-                      </div>
-                      <div class=" hidden fit-item ç-view" style="text-align: center">
-                          <p style="font-size: large">0 interventions found</p>
                       </div>
                   </div>
                   </div>
@@ -212,15 +208,13 @@
 
             <div role="tabpanel" id="biomedical-interventions" class="tab-pane fade client_profile_tab" data-tabpanel_id="#biomedical-interventions" data-intervention_category_code="2001">
 
-                  <table class="fit-item space" >
+                  <table class="fit-item" >
                       <thead class="">
                           <tr>
-                              <th style="padding-right: 10px;">
+                              <th>
                                   <div class="form-group has-feedback" >
-                                       <input id="filter_2001" type="text" class="form-control filter" data-target_tbody="#interventions_2001_tbody" data-intervention_category_code="2001" data-tab_intervention_table_id="#interventions_2001_table" placeholder="Type to search...">
-                                       <span class="glyphicon glyphicon-search form-control-feedback"></span>
-                                       <!--<span class="text-info" style="font-size: 12px; margin-top: -0px; margin-left: 5px;  "><span class="glyphicon glyphicon-info-sign"></span> Search for Interventions typing Intervention Name in the input above.</span>-->
-                                  </div>
+                                       <input id="filter_2001" type="text" class="form-control filter" style="width: 500px;" data-target_tbody="#interventions_2001_tbody" data-intervention_category_code="2001" data-tab_intervention_table_id="#interventions_2001_table" placeholder="Type to search...">
+                                   </div>
                               </th>
                               <th width="130">
                                   <button class="btn btn-sm btn-default" data-toggle="modal" data-target="#intervention-modal" data-whatever="2001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus text-success"></i> Add Intervention</button>
@@ -233,7 +227,7 @@
 
                 <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
                       <div class="panel-body" style="margin: 0px;padding: 0px;">
-                            <table class="table table-striped" id="interventions_2001_table">
+                            <table class="table table-striped" id="interventions_2001_table" data-cols="6">
                               <thead class="dp-table-head-black">
                                   <tr>
                                       <th>Intervention Type</th>
@@ -241,7 +235,7 @@
                                       <th>Test Result</th>
                                       <th>CCC Number</th>
                                       <th>Comment/Notes</th>
-                                      <th>Actions</th>
+                                      <th class="actions-col">Actions</th>
                                   </tr>
                               </thead>
                               <tbody class="searchable" id="interventions_2001_tbody">
@@ -251,40 +245,36 @@
                                 <i class='fa fa-spinner fa-spin'></i>
                                 <p style="font-size: large">Loading interventions</p>
                             </div>
-                            <div class=" hidden fit-item message-view" style="text-align: center">
-                                <p style="font-size: large">0 interventions found</p>
-                            </div>
                       </div>
                   </div>
             </div>
 
             <div role="tabpanel" id="post-gbv-care" class="tab-pane fade client_profile_tab" data-tabpanel_id="#post-gbv-care" data-intervention_category_code="3001">
 
-                  <table class="fit-item space">
+                  <table class="fit-item">
                       <thead>
                           <tr>
-                              <th style="padding-right: 10px;">
+                              <th>
                                   <div class="form-group has-feedback" >
-                                       <input id="filter_3001" type="text" class="form-control filter" data-target_tbody="#interventions_3001_tbody" data-intervention_category_code="3001" data-tab_intervention_table_id="#interventions_3001_table" placeholder="Type to search...">
-                                       <span class="glyphicon glyphicon-search form-control-feedback"></span>
-                                  </div>
+                                       <input id="filter_3001" type="text" class="form-control filter" style="width: 500px;" data-target_tbody="#interventions_3001_tbody" data-intervention_category_code="3001" data-tab_intervention_table_id="#interventions_3001_table" placeholder="Type to search...">
+                                   </div>
                               </th>
                               <th width="130"><button class="btn btn-sm btn-default" data-toggle="modal" data-target="#intervention-modal" data-whatever="3001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus text-success"></i> Add Intervention</button></th>
                           </tr>
                       </thead>
                   </table>
 
-                <div class="alert hidden dp-action-alert" id="action_alert_3001" role="alert"></div>
+                <div class="alert hidden dp-action-alert" id="action_alert_3001 " role="alert"></div>
 
                 <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
                     <div class="panel-body" style="margin: 0px;padding: 0px;">
-                      <table class="table table-striped" id="interventions_3001_table">
+                      <table class="table table-striped" id="interventions_3001_table" data-cols="4">
                           <thead class="dp-table-head-black">
                               <tr>
                                   <th>Intervention Type</th>
                                   <th>Date Given</th>
                                   <th>Comment/Notes</th>
-                                  <th>Actions</th>
+                                  <th class="actions-col">Actions</th>
                               </tr>
                          </thead>
                          <tbody class="searchable" id="interventions_3001_tbody">
@@ -295,22 +285,18 @@
                         <i class='fa fa-spinner fa-spin'></i>
                         <p style="font-size: large">Loading interventions</p>
                       </div>
-                      <div class=" hidden fit-item message-view" style="text-align: center">
-                        <p style="font-size: large">0 interventions found</p>
-                      </div>
                    </div>
                </div>
             </div>
 
             <div role="tabpanel" id="social-protection" class="tab-pane fade client_profile_tab" data-tabpanel_id="#social-protection" data-intervention_category_code="4001">
 
-                  <table class="fit-item space" >
+                  <table class="fit-item" >
                       <thead>
                           <tr>
-                              <th style="padding-right: 10px;">
+                              <th>
                                   <div class="form-group has-feedback" >
-                                       <input id="filter_4001" type="text" class="form-control filter" data-target_tbody="#interventions_4001_tbody" data-intervention_category_code="4001" data-tab_intervention_table_id="#interventions_4001_table" placeholder="Type to search...">
-                                       <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                                       <input id="filter_4001" type="text" class="form-control filter" style="width: 500px;" data-target_tbody="#interventions_4001_tbody" data-intervention_category_code="4001" data-tab_intervention_table_id="#interventions_4001_table" placeholder="Type to search...">
                                   </div>
                               </th>
                               <th width="130"><button class="btn btn-sm btn-default" data-toggle="modal" data-target="#intervention-modal" data-whatever="4001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus text-success"></i> Add Intervention</button></th>
@@ -318,17 +304,17 @@
                       </thead>
                   </table>
 
-                <div class="alert hidden dp-action-alert" id="action_alert_4001" role="alert"></div>
+                <div class="alert hidden dp-action-alert" id="action_alert_4001"  role="alert"></div>
 
                   <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
                       <div class="panel-body" style="margin: 0px;padding: 0px;">
-                          <table class="table table-striped" id="interventions_4001_table">
+                          <table class="table table-striped" id="interventions_4001_table" data-cols="4">
                               <thead class="dp-table-head-black">
                                   <tr>
                                       <th>Intervention Type</th>
                                       <th>Date Completed</th>
                                       <th>Comment/Notes</th>
-                                      <th>Actions</th>
+                                      <th class="actions-col">Actions</th>
                                   </tr>
                              </thead>
                              <tbody class="searchable" id="interventions_4001_tbody">
@@ -339,9 +325,6 @@
                                 <i class='fa fa-spinner fa-spin'></i>
                                 <p style="font-size: large">Loading interventions</p>
                             </div>
-                            <div class=" hidden fit-item message-view" style="text-align: center">
-                                <p style="font-size: large">0 interventions found</p>
-                            </div>
                       </div>
                   </div>
 
@@ -349,13 +332,12 @@
 
             <div role="tabpanel" id="other-interventions" class="tab-pane fade client_profile_tab" data-tabpanel_id="#other-interventions" data-intervention_category_code="5001">
 
-                  <table class="fit-item space" >
+                  <table class="fit-item" >
                       <thead>
                           <tr>
-                              <th style="padding-right: 10px;">
+                              <th>
                                   <div class="form-group has-feedback" >
-                                       <input id="filter_5001" type="text" class="form-control filter" data-target_tbody="#interventions_5001_tbody" data-intervention_category_code="5001" data-tab_intervention_table_id="#interventions_5001_table" placeholder="Type to search...">
-                                       <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                                       <input id="filter_5001" type="text" class="form-control filter" style="width: 500px;" data-target_tbody="#interventions_5001_tbody" data-intervention_category_code="5001" data-tab_intervention_table_id="#interventions_5001_table" placeholder="Type to search...">
                                   </div>
                               </th>
                               <th width="130"><button class="btn btn-sm btn-default" data-toggle="modal" data-target="#intervention-modal" data-whatever="5001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus text-success"></i> Add Intervention</button></th>
@@ -367,14 +349,14 @@
 
                   <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
                       <div class="panel-body" style="margin: 0px;padding: 0px;">
-                          <table class="table table-striped" id="interventions_5001_table">
+                          <table class="table table-striped" id="interventions_5001_table" data-cols="5">
                               <thead class="dp-table-head-black">
                                   <tr>
                                       <th>Intervention Type</th>
                                       <th>Date Completed</th>
                                       <th>Number of SS Sessions Attended</th>
                                       <th>Comment/Notes</th>
-                                      <th>Actions</th>
+                                      <th class="actions-col">Actions</th>
                                   </tr>
                              </thead>
                              <tbody class="searchable" id="interventions_5001_tbody">
@@ -383,9 +365,6 @@
                           <div class="spinner hidden fit-item">
                                 <i class='fa fa-spinner fa-spin'></i>
                                 <p style="font-size: large">Loading interventions</p>
-                            </div>
-                            <div class=" hidden fit-item message-view" style="text-align: center">
-                                <p style="font-size: large">0 interventions found</p>
                             </div>
                       </div>
                   </div>

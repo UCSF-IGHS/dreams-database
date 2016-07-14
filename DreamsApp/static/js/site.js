@@ -137,7 +137,7 @@ $(document).ready(function () {
                     })
                 }
                 else
-                    clients_tbody.append("<tr><td colspan='4' style='text-align: center'>0 Clients Found</td></tr>")
+                    clients_tbody.append("<tr><td colspan='4' style='text-align: center;font-weight: normal; color: #bbb;'>No clients found matching your search.</td></tr>")
             },
 
             // handle a non-successful response
@@ -244,6 +244,8 @@ $(document).ready(function () {
             success : function(data) {
                 var ivs = $.parseJSON(data.interventions)
                 var ivTypes = $.parseJSON(data.iv_types)
+                // Clear table
+                $(table_id + '  tbody').empty();
                 // populate table
                 $.each(ivs, function(index, iv){
                     // Get corresponding iv_type
@@ -264,10 +266,12 @@ $(document).ready(function () {
 
                 // Check for number of rows added
                 var new_row_count = $(table_id + '  tbody  tr').length
-                if(new_row_count < 1)
-                    $(panel_id + ' .message-view').removeClass('hidden')
-                else
-                    $(panel_id + ' .message-view').addClass('hidden')
+                // check if no records and insert empty table message
+                if(new_row_count < 1){
+                    var cols = $(table_id).data('cols');
+                    $(table_id + '  tbody').append("<tr><td  colspan='"+ cols +"' class='table-message'> No interventions found</td></tr>")
+                }
+
 
             },
 
@@ -880,18 +884,18 @@ $(document).ready(function () {
                 var result = $.parseJSON(data)
                 if(result.status == "success"){
                     var clients_tbody = $('#dp-patient-list-body')
-                    var dob = new Date($('#enrollment-form #date_of_birth').val());
-                    dob = $.datepicker.formatDate('MM d, yy', dob)
+                    var date_of_enrollment = new Date($('#enrollment-form #date_of_enrollment').val());
+                    date_of_enrollment = $.datepicker.formatDate('MM d, yy', date_of_enrollment)
                     if(enrollment_form_submit_mode == 'new'){
                         // Prepend new line into the clients' table
-                        insertClientTableRow(clients_tbody, result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), dob, false, true)
+                        insertClientTableRow(clients_tbody, result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, true)
                     }
                     else{
                         // Update relevant table line without reloading the page
                         console.log(result)
                         $('#clients_row_' + result.client_id).remove(); // remove row
                         // Insert updated value
-                        insertClientTableRow($('#dp-patient-list-body'), result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), dob, false, $('#is_superuser').val());
+                        insertClientTableRow($('#dp-patient-list-body'), result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, $('#is_superuser').val());
                     }
                     $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
                         .text(result.message)

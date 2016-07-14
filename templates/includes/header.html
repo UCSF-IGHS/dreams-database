@@ -22,12 +22,14 @@
                 <!--<li><a>Please log below</a></li>-->
                 <li><a href="/help/" onclick="return false;">Help</a></li>
             {% else %}
-                <li class="{% if page == 'clients' or page == 'interventions' %}active{% endif %}" ><a class="" href="/clients/" style="">Clients &amp; Interventions</a> </li>
-                {% if user.is_superuser %}
-                    <li class="{% if page == 'logs' %}active{% endif %}"><a href="/logs/" >Logs </a> </li>
+                {% if user.is_authenticated %}
+                    <li class="{% if page == 'clients' or page == 'interventions' %}active{% endif %}" ><a class="" href="/clients/" style="">Clients &amp; Interventions</a> </li>
+                    {% if perms.auth.can_view_logs %}
+                        <li class="{% if page == 'logs' %}active{% endif %}"><a href="/logs/" >Logs </a> </li>
+                    {% endif %}
                 {% endif %}
                 <li class="{% if page == 'help' %}active{% endif %}" ><a href="/help/" onclick="return false;">Help</a></li>
-                {% if user !=  None %}
+                {% if user.is_authenticated %}
                     <li class="dropdown">
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
                       <ul class="dropdown-menu">
