@@ -370,3 +370,17 @@ html, body{
     font-weight: normal;
     font-size: 15px;
 }
+
+
+/* general style */
+.actions-col{
+    width: 200px;
+    max-width: 200px;
+}
+
+.table-message{
+    text-align: center;
+    font-weight: normal;
+    color: #bbb;
+}
+/* End --general style */

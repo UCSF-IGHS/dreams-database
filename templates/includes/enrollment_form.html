@@ -19,18 +19,8 @@
                     <div style="margin: auto 15px;">
                         <!-- Permanently hidden Fields -->
                         <input class="hidden clear_value" name="client_id" id="client_id"/>
+                        <input class="hidden clear_value" type="text" name="implementing_partner" value="{{ implementing_partner_user.implementing_partner.code }}">
                         <!-- End of permanently hidden fields -->
-
-                        <div class="form-group">
-                            <label for="implementing_partner">Name of IP</label>
-                            <select id="implementing_partner" name="implementing_partner" class="form-control validate_field clear_value required_field" >
-                                <option value="">Select Option</option>
-                                {% for ip in config_data.implementing_partners %}
-                                <option data-ip_id="{{ ip.id }}" value="{{ ip.code }}">{{ ip.name }}</option>
-                                {% endfor %}
-                            </select>
-                             <span id="spn_implementing_partner" class="clear_span"></span>
-                        </div>
 
                         <div class="form-group">
                              <label for="middle_name" class="control-label">First Name</label>
@@ -57,7 +47,11 @@
                              <script>
                                 $(function() {
                                   $( "#date_of_birth" ).datepicker({
-                                      dateFormat: 'yy-mm-dd'
+                                      dateFormat: 'yy-mm-dd',
+                                      minDate: '-24y',
+                                      maxDate: '-10y',
+                                      changeMonth: true,
+                                      changeYear: true
                                   });
                                 });
                                 {% if client != None %}
@@ -96,7 +90,10 @@
                                 $(function() {
                                   $( "#date_of_enrollment").datepicker({
                                       dateFormat: 'yy-mm-dd',
-                                      maxDate: '+0m +0d'
+                                      maxDate: '+0m +0d +0y',
+                                      minDate:'-2y',
+                                      changeMonth: true,
+                                      changeYear: true
                                   });
                                 });
                                 {% if client != None %}
