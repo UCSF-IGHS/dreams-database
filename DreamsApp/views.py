@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse, HttpResponseServerError
+from django.http import HttpResponse, JsonResponse, HttpResponseServerError, HttpResponseRedirect
 from django.core import serializers
 from django.core.exceptions import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -8,7 +8,9 @@ import json
 import traceback
 from datetime import date, timedelta
 from django.db.models import Q
+from DreamsApp.forms import *
 from DreamsApp.models import *
+from DreamsApp.Dreams_Utils import *
 
 
 def get_enrollment_form_config_data():
@@ -677,4 +679,26 @@ def logs(request):
     else:
         # user is not allowed to view logs redirect to clients page with a message
         return redirect('clients')
+
+
+def upload_dreams_excel_database(request):
+
+    if request.method == 'POST':
+        form = EnrollmentDocumentUpload(request.POST, request.FILES)
+        if form.is_valid():
+            dreams_doc = request.FILES['docfile']
+
+            excel_db = DreamsEnrollmentExcelDatabase()
+            excel_db.create_tmp_file(dreams_doc)
+            tmp_file_path = excel_db.document_path
+            if tmp_file_path is not None:
+
+                print excel_db.excel_enrollment_data()
+            else:
+                print 'Temp file not created'
+
+            return HttpResponseRedirect('test')
+    else:
+        form = EnrollmentDocumentUpload()
+        return render(request, 'excel_db_upload.html', {'form': form})
 
