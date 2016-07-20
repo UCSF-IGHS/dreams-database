@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseServerError
+from django.core.exceptions import PermissionDenied
 from django.core import serializers
 from django.core.exceptions import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -13,81 +14,93 @@ from DreamsApp.models import *
 
 
 def get_enrollment_form_config_data():
-    config_data = {
-        'implementing_partners': ImplementingPartner.objects.all(),
-        'verification_documents': VerificationDocument.objects.all(),
-        'marital_status': MaritalStatus.objects.all(),
-        'counties': County.objects.all()
-        #  'sub_counties': SubCounty.objects.all(),
-        #  'wards': Ward.objects.all()
-    }
-    return config_data
+    try:
+        config_data = {
+            'implementing_partners': ImplementingPartner.objects.all(),
+            'verification_documents': VerificationDocument.objects.all(),
+            'marital_status': MaritalStatus.objects.all(),
+            'counties': County.objects.all()
+            #  'sub_counties': SubCounty.objects.all(),
+            #  'wards': Ward.objects.all()
+        }
+        return config_data
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 
 def log_custom_actions(user_id, table, row_id, action, search_text):
-    audit = Audit()
-    audit.user_id = user_id
-    audit.table = table
-    audit.row_id = row_id
-    audit.action = action
-    audit.search_text = search_text
-    audit.save()
+    try:
+        audit = Audit()
+        audit.user_id = user_id
+        audit.table = table
+        audit.row_id = row_id
+        audit.action = action
+        audit.search_text = search_text
+        audit.save()
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 
 def user_login(request):
-    if request.user.is_authenticated():
-        return redirect('clients')
-    if request.method == 'GET':
-        return render(request, 'login.html')
-    elif request.method == 'POST':
-        user_name = request.POST.get('inputUsername', '')
-        pass_word = request.POST.get('inputPassword', '')
+    try:
+        if request.user.is_authenticated():
+            return redirect('clients')
+        if request.method == 'GET':
+            return render(request, 'login.html')
+        elif request.method == 'POST':
+            user_name = request.POST.get('inputUsername', '')
+            pass_word = request.POST.get('inputPassword', '')
 
-        audit = Audit()
-        audit.user_id = 0
-        audit.table = "DreamsApp_client"
-        audit.row_id = 0
-        audit.action = "LOGIN"
-        #
-        # response_data = {
-        #     'status': 'success',
-        #     'message': 'Client Details Deleted successfuly.'
-        # }
+            audit = Audit()
+            audit.user_id = 0
+            audit.table = "DreamsApp_client"
+            audit.row_id = 0
+            audit.action = "LOGIN"
+            #
+            # response_data = {
+            #     'status': 'success',
+            #     'message': 'Client Details Deleted successfuly.'
+            # }
 
-        if user_name == '' or pass_word == '':
-            audit.search_text = "Missing login Credentials"
-            audit.save()
-            response_data = {
-                'status': 'fail',
-                'message': 'Missing username or password.'
-            }
-        else:
-            user = authenticate(username=user_name, password=pass_word)
-            if user is not None:
-                if user.is_active:
-                    login(request, user)
-                    audit.user_id = user.id
-                    audit.search_text = "Login Successful for username: " + user_name
-                    audit.save()
-                    response_data = {
-                        'status': 'success',
-                        'message': 'Login successfull'
-                    }
-                else:
-                    audit.search_text = "Failed login for username: " + user_name
-                    audit.save()
-                    response_data = {
-                        'status': 'fail',
-                        'message': 'Sorry, your account is disabled'
-                    }
-            else:
+            if user_name == '' or pass_word == '':
+                audit.search_text = "Missing login Credentials"
+                audit.save()
                 response_data = {
                     'status': 'fail',
-                    'message': 'Incorrect username or password'
+                    'message': 'Missing username or password.'
                 }
-        return JsonResponse(json.dumps(response_data), safe=False)
-    else:
-        return render(request, 'login.html')
+            else:
+                user = authenticate(username=user_name, password=pass_word)
+                if user is not None:
+                    if user.is_active:
+                        login(request, user)
+                        audit.user_id = user.id
+                        audit.search_text = "Login Successful for username: " + user_name
+                        audit.save()
+                        response_data = {
+                            'status': 'success',
+                            'message': 'Login successfull'
+                        }
+                    else:
+                        audit.search_text = "Failed login for username: " + user_name
+                        audit.save()
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'Sorry, your account is disabled'
+                        }
+                else:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Incorrect username or password'
+                    }
+            return JsonResponse(json.dumps(response_data), safe=False)
+        else:
+            return render(request, 'login.html')
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 
 def clients(request):
@@ -116,7 +129,8 @@ def clients(request):
         else:
             return redirect('login')
     except Exception as e:
-        return redirect('login')
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 
 def client_profile(request):
@@ -133,12 +147,13 @@ def client_profile(request):
                     return render(request, 'client_profile.html', {'page': 'clients', 'client': client_found, 'user': request.user})
             except:
                 return render(request, 'login.html')
-    return render(request, 'login.html')
+    else:
+        raise PermissionDenied
 
 
 def save_client(request):
     try:
-        if request.user is not None and request.user.is_authenticated():
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
                 return render(request, 'enrollment.html', {'client': None})
             elif request.method == 'POST' and request.is_ajax():
@@ -184,15 +199,15 @@ def save_client(request):
                     # redirect to page
                     return redirect('clients')
         else:
-            return PermissionDenied('Operation not allowed. [Missing Permission]')
+            raise PermissionDenied
     except Exception as e:
-        tb = traceback.format_exc()
-        return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 
 def edit_client(request):
     try:
-        if request.user is not None and request.user.is_authenticated():  # and request.user.is_superuser:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:  # and request.user.is_superuser:
             if request.method == 'GET':
                 client_id = int(request.GET['client_id'])
                 client = Client.objects.defer('date_of_enrollment', 'date_of_birth').get(id__exact=client_id)
@@ -257,15 +272,15 @@ def edit_client(request):
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
         else:
-            return PermissionDenied('Operation not allowed. [Missing Permission]')
+            raise PermissionDenied
     except Exception as e:
-        tb = traceback.format_exc()
-        return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 
 def delete_client(request):
     try:
-        if request.user is not None and request.user.is_authenticated():
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET' and request.is_ajax():
                 client_id = int(request.GET['client_id'])
                 client = Client.objects.filter(id__exact=client_id).first()
@@ -287,23 +302,20 @@ def delete_client(request):
                             'status': 'success',
                             'message': 'Client Details Deleted successfuly.'
                         }
-
                 else:
                     response_data = {
                         'status': 'failed',
                         'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
                         'client_id': client.id
                     }
-                    # client and user IPs do not match
                 return JsonResponse(json.dumps(response_data), safe=False)
             elif request.method == 'POST':
-                return PermissionDenied('Operation not allowed. [Missing Permission]')
-
+                raise PermissionDenied
         else:
-            return PermissionDenied('Operation not allowed. [Missing Permission]')
+            raise PermissionDenied
     except Exception as e:
-        tb = traceback.format_exc()
-        return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 
 def testajax(request):
@@ -315,31 +327,33 @@ def testajax(request):
 
 
 def get_intervention_types(request):
+    try:
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            response_data = {}
+            category_code = request.POST.get('category_code')
 
-    if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
-        response_data = {}
-        category_code = request.POST.get('category_code')
-
-        # Get category by code and gets all related types
-        # Returns an object with itypes property
-        i_category = InterventionCategory.objects.get(code__exact=category_code)
-        i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id)
-        i_types = serializers.serialize('json', i_types)
-        response_data["itypes"] = i_types
-        return JsonResponse(response_data)
-
-    else:
-        return HttpResponse("You issued bad request")
+            # Get category by code and gets all related types
+            # Returns an object with itypes property
+            i_category = InterventionCategory.objects.get(code__exact=category_code)
+            i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id)
+            i_types = serializers.serialize('json', i_types)
+            response_data["itypes"] = i_types
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 # use /ivSave/ to post to the method
 # Gets intervention_type_id,  from request
 
 
 def save_intervention(request):
-    if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
-        intervention_type_code = int(request.POST.get('intervention_type_code'))
-        if intervention_type_code is not None and type(intervention_type_code) is int:
-            try:
+    try:
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            intervention_type_code = int(request.POST.get('intervention_type_code'))
+            if intervention_type_code is not None and type(intervention_type_code) is int:
                 i_type = InterventionType.objects.get(code__exact=intervention_type_code)
                 intervention = Intervention()
                 intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
@@ -376,28 +390,29 @@ def save_intervention(request):
                 }
 
                 return JsonResponse(response_data)
-            except Exception as e:
-                tb = traceback.format_exc()
-                return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+            else:
+                return HttpResponseServerError('Invalid Intervention Type')
         else:
-            return HttpResponseServerError('Invalid Intervention Type')
-    else:
-        return PermissionDenied('Operation not allowed. [Missing Permission]')
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
 
 # method that returns a list of interventions of given category for a given client
 # use /ivList/ url pattern to access the method
 
 
 def get_intervention_list(request):
-    if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
-        if 'client_id' not in request.POST or request.POST.get('client_id') == 0:
-            return ValueError('No Client id found in your request! Ensure it is provided')
-        if 'intervention_category_code' not in request.POST or request.POST.get('intervention_category_code') == 0:
-            return ValueError('No Intervention Category Code found in your request! Ensure it is provided')
+    try:
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if 'client_id' not in request.POST or request.POST.get('client_id') == 0:
+                return ValueError('No Client id found in your request! Ensure it is provided')
+            if 'intervention_category_code' not in request.POST or request.POST.get('intervention_category_code') == 0:
+                return ValueError('No Intervention Category Code found in your request! Ensure it is provided')
 
-        client_id = request.POST.get('client_id')
-        intervention_category_code = request.POST.get('intervention_category_code')
-        try:
+            client_id = request.POST.get('client_id')
+            intervention_category_code = request.POST.get('intervention_category_code')
             iv_category = InterventionCategory.objects.get(code__exact=intervention_category_code)
             list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
             iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
@@ -419,34 +434,33 @@ def get_intervention_list(request):
                 'interventions': serializers.serialize('json', list_of_interventions)
             }
             return JsonResponse(response_data)
-        except ObjectDoesNotExist as nf:
-            return ObjectDoesNotExist(traceback.format_exc())
-        except Exception as e:
-            return HttpResponseServerError(traceback.format_exc())
-    else:
-        return PermissionDenied('Missing permissions')
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 # Gets an intervention. Takes intervention_id and returns Intervention object
 # use /ivGet/ to access this method
 
 
 def get_intervention(request):
-    if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
-        intervention_id = request.POST.get('intervention_id')
-        if 'intervention_id' not in request.POST:
-            return ValueError('No intervention id found in your request!')
-        try:
+    try:
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            intervention_id = request.POST.get('intervention_id')
+            if 'intervention_id' not in request.POST:
+                return ValueError('No intervention id found in your request!')
             intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention_id)
             if intervention is not None:
                 response_data = {'intervention': serializers.serialize('json', [intervention, ])}
                 return JsonResponse(response_data)
             else:
-                return ObjectDoesNotExist('No Intervention with the provided Id')
-        except Exception as e:
-            return HttpResponseServerError(traceback.format_exc())
-
-    else:
-        return PermissionDenied('Operation not allowed. [Missing permission]')
+                raise Exception
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 
 # Updates an intervention
@@ -454,10 +468,10 @@ def get_intervention(request):
 
 
 def update_intervention(request):
-    if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
-        intervention_id = int(request.POST.get('intervention_id'))
-        if intervention_id is not None and type(intervention_id) is int:
-            try:
+    try:
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            intervention_id = int(request.POST.get('intervention_id'))
+            if intervention_id is not None and type(intervention_id) is int:
                 intervention = Intervention.objects.get(id__exact=intervention_id)
                 # check if intervention belongs to the ip
                 if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
@@ -481,7 +495,6 @@ def update_intervention(request):
                     if i_type.has_no_of_sessions:
                         intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
-
                     intervention.save(user_id=request.user.id, action="UPDATE")
                     # using defer() miraculously solved serialization problem of datetime properties.
                     intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
@@ -501,20 +514,20 @@ def update_intervention(request):
                                    'different Implementing Partner'
                     }
                 return JsonResponse(response_data)
-            except Exception as e:
-                tb = traceback.format_exc()
-                return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+            else:
+                return HttpResponseServerError('Invalid Intervention Type')
         else:
-            return HttpResponseServerError('Invalid Intervention Type')
-    else:
-        return PermissionDenied('Operation not allowed. [Missing Permission]')
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 
 def delete_intervention(request):
-    if request.method == 'POST' and request.user is not None and request.user.is_authenticated():
-        intervention_id = int(request.POST.get('intervention_delete_id'))
-        if intervention_id is not None and type(intervention_id) is int:
-            try:
+    try:
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            intervention_id = int(request.POST.get('intervention_delete_id'))
+            if intervention_id is not None and type(intervention_id) is int:
                 # get intervention
                 # Check if intervention belongs to IP
                 intervention = Intervention.objects.filter(pk=intervention_id).first()
@@ -536,37 +549,36 @@ def delete_intervention(request):
                         'intervention_id': intervention_id
                     }
                 return JsonResponse(json.dumps(response_data), safe=False)
-            except Exception as e:
-                tb = traceback.format_exc()
-                return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+            else:
+                return HttpResponseServerError('Invalid Intervention Type')
         else:
-            return HttpResponseServerError('Invalid Intervention Type')
-    else:
-        return PermissionDenied('Operation not allowed. [Missing Permission]')
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 
 def get_sub_counties(request):
-
-    if request.method == 'GET' and request.user is not None and request.user.is_authenticated():
-        response_data = {}
-        county_code = request.GET['county_code']
-
-        county = County.objects.get(code__exact=county_code)
-        sub_counties = SubCounty.objects.filter(county__exact=county.id)
-        sub_counties = serializers.serialize('json', sub_counties)
-        response_data["sub_counties"] = sub_counties
-        return JsonResponse(response_data)
-
-    else:
-        return HttpResponse("You issued bad request")
+    try:
+        if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            response_data = {}
+            county_code = request.GET['county_code']
+            county = County.objects.get(code__exact=county_code)
+            sub_counties = SubCounty.objects.filter(county__exact=county.id)
+            sub_counties = serializers.serialize('json', sub_counties)
+            response_data["sub_counties"] = sub_counties
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
 
 
 def get_wards(request):
-
-    if request.method == 'GET' and request.user is not None and request.user.is_authenticated():
+    if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
         response_data = {}
         sub_county_code = request.GET['sub_county_code']
-
         sub_county = SubCounty.objects.get(code__exact=sub_county_code)
         wards = Ward.objects.filter(sub_county__exact=sub_county.id)
         wards = serializers.serialize('json', wards)
@@ -574,23 +586,26 @@ def get_wards(request):
         return JsonResponse(response_data)
 
     else:
-        return HttpResponse("You issued bad request")
+        raise PermissionDenied
 
 
 def log_me_out(request):
-    logout(request)
-    return redirect('login')
+    if request.user.is_authenticated():
+        logout(request)
+        return redirect('login')
+    else:
+        raise PermissionDenied
 
 
 def reporting(request):
     try:
-        if request.user is not None and request.user.is_authenticated():
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
                 return render(request, 'reporting.html', {'user': request.user})
             elif request.method == 'POST' and request.is_ajax():
                 return render(request, 'reporting.html', {'user': request.user})
         else:
-            return PermissionDenied('Operation not allowed. [Missing Permission]')
+            raise PermissionDenied
     except Exception as e:
         tb = traceback.format_exc()
         return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
@@ -598,20 +613,20 @@ def reporting(request):
 
 def user_help(request):
     try:
-        if request.user is not None and request.user.is_authenticated():
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
                 return render(request, 'help.html', {'user': request.user})
             elif request.method == 'POST' and request.is_ajax():
                 return render(request, 'help.html', {'user': request.user})
         else:
-            return PermissionDenied('Operation not allowed. [Missing Permission]')
+            raise PermissionDenied
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
 
 
 def logs(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated() and request.user.is_active:
         if not request.user.has_perm('auth.can_view_logs'):
             return PermissionDenied('Operation not allowed. [Missing Permission]')
         # user is allowed to view logs
@@ -644,7 +659,9 @@ def logs(request):
                 except EmptyPage:
                     logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
                 return render(request, 'log.html', {'page': 'logs', 'logs': logs_list, 'filter_text': filter_text,
-                                                    'filter_date': filter_date
+                                                    'filter_date': filter_date,
+                                                    'items_in_page': (logs_list.end_index() -
+                                                                      logs_list.start_index() + 1)
                                                     }
                               )
             except Exception as e:
@@ -675,17 +692,14 @@ def logs(request):
             except EmptyPage:
                 logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
             return render(request, 'log.html', {'page': 'logs', 'logs': logs_list, 'filter_text': filter_text,
-                                                'filter_date': filter_date})
+                                                'filter_date': filter_date, 'items_in_page': (logs_list.end_index() - logs_list.start_index() + 1)})
     else:
-        # user is not allowed to view logs redirect to clients page with a message
-        return redirect('clients')
+        raise PermissionDenied
 
 
 # user management
 def users(request):
-    # check if user is authenticated and has permission
-
-    if request.user.is_authenticated() and request.user.has_perm('auth.can_manage_users'):
+    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm('auth.can_manage_users'):
         try:
             if request.method == 'GET':
                 page = request.GET.get('page', 1)
@@ -709,15 +723,13 @@ def users(request):
             final_ip_user_list = paginator.page(1)  # Deliver the first page is page is not an integer
         except EmptyPage:
             final_ip_user_list = paginator.page(0)  # Deliver the last page if page is out of scope
-            # proceed to show clients page
-
         return render(request, 'users.html', {'page': 'users', 'ip_users': final_ip_user_list, 'filter_text': filter_text, 'items_in_page': (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1)})
     else:
-        return redirect('clients')  # this should be a redirection to the permissions denied page
+        raise PermissionDenied  # this should be a redirection to the permissions denied page
 
 
 def save_user(request):
-    if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.has_perm('auth.can_manage_users'):
+    if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm('auth.can_manage_users'):
         try:
             # Check to see if IP user exists already or not
             ip_user_id = request.POST.get('ip_user_id', 0)
@@ -752,12 +764,12 @@ def save_user(request):
             tb = traceback.format_exc()
             return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
     else:
-        return PermissionDenied('Operation not allowed. [Missing Permission]')
+        raise PermissionDenied
 
 
 def toggle_status(request):
-    if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.has_perm(
-            'auth.can_manage_users'):
+    if request.method == 'GET' and request.user is not None and request.user.is_authenticated() \
+            and request.user.is_active and request.user.has_perm('auth.can_manage_users'):
         try:
             if request.method == 'GET':
                 ip_user_id = request.GET.get('ip_user_id', 0)
@@ -786,7 +798,7 @@ def toggle_status(request):
             tb = traceback.format_exc()
             return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
     else:
-        return PermissionDenied('Operation not allowed. [Missing Permission]')
+        raise PermissionDenied
 
 
 def change_cred(request):
@@ -835,5 +847,33 @@ def change_cred(request):
 
     else:   # User is not logged in. Redirect user to login page
         # return PermissionDenied('Operation not allowed. [Missing Permission]')
-        return redirect('login')
+        raise PermissionDenied
 
+
+def bad_request(request):
+    context = {'user': request.user, 'error_code': 400, 'error_title': 'Bad Request (Error 400)',
+               'error_message':
+                   'Your browser sent a request that this server could not understand<br>. '}
+    return render(request, 'error_page.html', context)
+
+
+def permission_denied(request):  # PermissionDenied('Operation not allowed. [Missing Permission]')
+    context = {'user': request.user, 'error_code': 403, 'error_title': 'Permission Denied (Error 403)',
+               'error_message':
+                   'You do not have permission to view this page [Missing Permission]. '
+                   'Go back to previous page or Home page'}
+    return render(request, 'error_page.html', context)
+
+
+def page_not_found(request):
+    context = {'user': request.user, 'error_code': 404, 'error_title': 'Page Not Found (Error 404)',
+               'error_message': 'The page you are looking for does not exist. Go back to previous page or Home page'}
+    return render(request, 'error_page.html', context)
+
+
+def server_error(request):
+    context = {'user': request.user, 'error_code': 500, 'error_title': 'Server Error (Error 500)',
+               'error_message':
+                   'A server error occurred while processing your request. Please try again or contact your '
+                   'administrator if the error persists.<br>. '}
+    return render(request, 'error_page.html', context)

@@ -15,7 +15,7 @@
                     {% csrf_token %}
                       <div class="form-group has-feedback" >
                            <input id="search-term-default" type="text" name="filter-user-text" class="form-control filter-enrollment" value="{{ filter_text }}" placeholder="Enter Username" style="width: 400px;">
-                           <button type="submit" class="btn btn-primary btn-sm">Search </button>
+                           <button type="submit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-search"></span> Search </button>
                       </div>
                 </form>
                 <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for users by typing username in the input above.</span>
@@ -23,7 +23,8 @@
         </div>
     </div>
     <div class=" alert hidden dp-action-alert fade in" id="user_actions_alert" role="alert" style="margin-bottom: 10px;"></div>
-    <div id="user-list" style="max-height: calc(100vh - 530px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
+
+    <div id="user-list" style="max-height: calc(100vh - 490px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
         <table class="table table-striped dp-user-table table-bordered" id="dreams-user-table" style="margin: 0px;">
             <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                 <th>username</th>
@@ -46,7 +47,7 @@
                                 {% endfor %}
                             </td>
                             <td>{{ ip_user.implementing_partner }}</td>
-                            <td>{% if ip_user.user.is_active %} Active {% else %} Disabled {% endif %}</td>
+                            <td>{% if ip_user.user.is_active %} Active {% else %} <span style="opacity: 0.6" title="Disabled user"> Disabled </span>{% endif %}</td>
                             <td>{{ ip_user.user.date_joined|date:"M d, Y"  }}</td>
                             <td>
                                 <div class="btn-group fit-item" role="group" aria-label="...">
@@ -92,7 +93,7 @@
                     <a href="?page={{ ip_users.next_page_number }}&filter-user-text={{ filter_text }}">next</a>
                 {% endif %}
                 <span>
-                    . ({{ items_in_page }} users listed)
+                    . ( {{ items_in_page }} users listed )
                 </span>
 
             </span>
