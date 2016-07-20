@@ -384,3 +384,13 @@ html, body{
     color: #bbb;
 }
 /* End --general style */
+
+/* Users section */
+#user-list{
+    margin-top: 10px;
+}
+
+.edited-row{
+    background-color: lightyellow;
+}
+/* end of users section */

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    {% include 'includes/user_form.html' %}
+    {% include 'includes/confirn_modal.html' %}
+
+    <div class="statusBox" >
+        <div class="gen-font">
+            <h4>DREAMS User List</h4>
+        </div>
+        <div class="floatRightLinks">
+            <div class="rightItem">
+                <form id="user_search_form" class="form-inline" method="post" action="/admin/users/">
+                    {% csrf_token %}
+                      <div class="form-group has-feedback" >
+                           <input id="search-term-default" type="text" name="filter-user-text" class="form-control filter-enrollment" value="{{ filter_text }}" placeholder="Enter Username" style="width: 400px;">
+                           <button type="submit" class="btn btn-primary btn-sm">Search </button>
+                      </div>
+                </form>
+                <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for users by typing username in the input above.</span>
+            </div>
+        </div>
+    </div>
+    <div class=" alert hidden dp-action-alert fade in" id="user_actions_alert" role="alert" style="margin-bottom: 10px;"></div>
+    <div id="user-list" style="max-height: calc(100vh - 530px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
+        <table class="table table-striped dp-user-table table-bordered" id="dreams-user-table" style="margin: 0px;">
+            <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
+                <th>username</th>
+                <th>Full name</th>
+                <th>Roles</th>
+                <th>Implementing partner</th>
+                <th>Status</th>
+                <th>Date Joined</th>
+                <th style="width: 150px;max-width: 150px; min-width: 150px;">Action</th>
+            </thead>
+            <tbody id="dp-user-list-body">
+                {% if ip_users.count > 0 %}
+                    {% for ip_user in ip_users %}
+                        <tr style="cursor: pointer; background-color: transparent;">
+                            <td>{{ ip_user.user.username}}</td>
+                            <td>{{ ip_user.user.first_name }} {{ ip_user.user.last_name }}</td>
+                            <td>
+                                {% for ip_user_group in ip_user.user.groups.all %}
+                                    {{ ip_user_group.name }}
+                                {% endfor %}
+                            </td>
+                            <td>{{ ip_user.implementing_partner }}</td>
+                            <td>{% if ip_user.user.is_active %} Active {% else %} Disabled {% endif %}</td>
+                            <td>{{ ip_user.user.date_joined|date:"M d, Y"  }}</td>
+                            <td>
+                                <div class="btn-group fit-item" role="group" aria-label="...">
+
+                                    <button style="width:100px" type="button" class="btn btn-sm btn-danger user_action {% if not ip_user.user.is_active %} hidden {% endif %}" data-user_action="deactivate_user" data-ip_user_id="{{ ip_user.id }}" > Deactivate</button>
+                                    <button style="width:100px" type="button" class="btn btn-sm btn-success user_action {% if ip_user.user.is_active %} hidden {% endif %}" data-user_action="activate_user" data-ip_user_id="{{ ip_user.id }}"> Activate</button>
+
+                                    <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                         <span class="caret"></span>
+                                        <span class="sr-only">Toggle Dropdown</span>
+                                    </button>
+                                      <ul class="dropdown-menu">
+                                        <!--
+                                        <li><a href="#" class="user_action " data-user_action="delete_user" data-ip_user_id="{{ ip_user.id }}" data-confirm-client-delete="Are you sure you want to delete?"> Delete &nbsp;&nbsp;&nbsp;</a></li>
+                                        -->
+                                          <li><a href="#"> No more actions </a></li>
+                                      </ul>
+
+                                </div>
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="table-message">0 Records found.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination">
+            <span class="step-links">
+                {% if ip_users.has_previous %}
+                    <a href="?page={{ ip_users.previous_page_number }}&filter-user-text={{ filter_text }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ ip_users.number }} of {{ ip_users.paginator.num_pages }}
+                </span>
+
+                {% if ip_users.has_next %}
+                    <a href="?page={{ ip_users.next_page_number }}&filter-user-text={{ filter_text }}">next</a>
+                {% endif %}
+                <span>
+                    . ({{ items_in_page }} users listed)
+                </span>
+
+            </span>
+        </div>
+    <div>
+        <button id="btn_show_user_modal" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#user-modal" data-toggle="tooltip" title="New User" style="" ><i class="glyphicon glyphicon-plus text-default"></i> Add user</button>
+    </div>
+
+
+
+
+{% endblock %}

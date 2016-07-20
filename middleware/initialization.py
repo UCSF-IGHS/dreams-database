@@ -10,6 +10,7 @@ import datetime
 class InitializationMiddleware(object):
     def process_request(self, request):
         # check if application is initialized
+        content_type = ContentType.objects.get_for_model(Group)
         if InitApp.objects.all().count() < 1:
             try:
                 # create permission
@@ -34,6 +35,18 @@ class InitializationMiddleware(object):
                 if Permission.objects.filter(codename='can_view_logs').count() < 1:
                     permission = Permission.objects.create(codename='can_view_logs',
                                                            name='Can View Logs',
+                                                           content_type=content_type)
+                if Permission.objects.filter(codename='can_manage_users').count() < 1:
+                    permission = Permission.objects.create(codename='can_manage_users',
+                                                           name='Can Manage Users',
+                                                           content_type=content_type)
+                if Permission.objects.filter(codename='can_manage_program_officers').count() < 1:
+                    permission = Permission.objects.create(codename='can_manage_program_officers',
+                                                           name='Can Manage Program Officers',
+                                                           content_type=content_type)
+                if Permission.objects.filter(codename='can_manage_data_entrants').count() < 1:
+                    permission = Permission.objects.create(codename='can_manage_data_entrants',
+                                                           name='Can Manage Data Entrants',
                                                            content_type=content_type)
                 init_app = InitApp(
                     timestamp=datetime.datetime.now(),

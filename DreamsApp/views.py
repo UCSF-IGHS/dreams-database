@@ -4,6 +4,7 @@ from django.core import serializers
 from django.core.exceptions import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.models import User, Group
 import json
 import traceback
 from datetime import date, timedelta
@@ -34,7 +35,8 @@ def log_custom_actions(user_id, table, row_id, action, search_text):
 
 
 def user_login(request):
-
+    if request.user.is_authenticated():
+        return redirect('clients')
     if request.method == 'GET':
         return render(request, 'login.html')
     elif request.method == 'POST':
@@ -677,4 +679,161 @@ def logs(request):
     else:
         # user is not allowed to view logs redirect to clients page with a message
         return redirect('clients')
+
+
+# user management
+def users(request):
+    # check if user is authenticated and has permission
+
+    if request.user.is_authenticated() and request.user.has_perm('auth.can_manage_users'):
+        try:
+            if request.method == 'GET':
+                page = request.GET.get('page', 1)
+                filter_text = request.GET.get('filter-user-text', '')
+            elif request.method == 'POST':
+                page = request.POST.get('page', 1)
+                filter_text = request.POST.get('filter-user-text', '')
+            # get list of users with the filter incorporated
+            items_per_page = 10
+            ip_user_list = ImplementingPartnerUser.objects.filter(Q(user__first_name__contains=filter_text) |
+                                                                  Q(user__last_name__contains=filter_text)|
+                                                                  Q(user__username__contains=filter_text)
+                                                                  ).order_by('-user__date_joined')
+            # filter ip specific users if user is not allowed to see other ip data
+            if not request.user.has_perm('auth.can_view_other_ip_data'):
+                ip_user_list = ip_user_list.filter(implementing_partner=request.user.implementingpartneruser.implementing_partner)
+            # do pagination
+            paginator = Paginator(ip_user_list, items_per_page)
+            final_ip_user_list = paginator.page(page)
+        except PageNotAnInteger:
+            final_ip_user_list = paginator.page(1)  # Deliver the first page is page is not an integer
+        except EmptyPage:
+            final_ip_user_list = paginator.page(0)  # Deliver the last page if page is out of scope
+            # proceed to show clients page
+
+        return render(request, 'users.html', {'page': 'users', 'ip_users': final_ip_user_list, 'filter_text': filter_text, 'items_in_page': (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1)})
+    else:
+        return redirect('clients')  # this should be a redirection to the permissions denied page
+
+
+def save_user(request):
+    if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.has_perm('auth.can_manage_users'):
+        try:
+            # Check to see if IP user exists already or not
+            ip_user_id = request.POST.get('ip_user_id', 0)
+            if ip_user_id == 0 or ip_user_id is None or ip_user_id == u'':
+                # This is a new user
+                # create user
+                username = request.POST.get('username', '')
+                email = request.POST.get('emailaddress', '')
+                role = request.POST.get('role', '')
+                # get group
+                user_group = Group.objects.filter(name__exact=role).first() # get the first group that matches this
+                user = User.objects.create_user(
+                    username=username, email=email, password='p@ssword!'
+                )
+                user.first_name = request.POST.get('firstname', '')
+                user.last_name = request.POST.get('lastname', '')
+                user.groups.add(user_group)
+                user.save()  # save user changes first
+                ip_user = ImplementingPartnerUser.objects.create(
+                    user=user,
+                    implementing_partner=request.user.implementingpartneruser.implementing_partner
+                )
+            else:
+                pass
+            response_data = {
+                'status': 'success',
+                'message': 'User successfully saved',
+                'ip_users': serializers.serialize('json', [ip_user, ])
+            }
+            return JsonResponse(response_data)
+        except Exception as e:
+            tb = traceback.format_exc()
+            return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+    else:
+        return PermissionDenied('Operation not allowed. [Missing Permission]')
+
+
+def toggle_status(request):
+    if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.has_perm(
+            'auth.can_manage_users'):
+        try:
+            if request.method == 'GET':
+                ip_user_id = request.GET.get('ip_user_id', 0)
+                toggle = str(request.GET.get('toggle', False))
+                #  get ip user
+                ip_user = ImplementingPartnerUser.objects.filter(id__exact=ip_user_id).first()
+                if ip_user is not None:
+                    # Get user object
+                    user = User.objects.filter(id__exact=ip_user.user.id).first()
+                    if user is not None:
+                        user.is_active = toggle in ["True", "true", 1, "Yes", "yes", "Y", "y", "T", "t"]
+                        user.save()
+                        # return success message
+                        response_data = {
+                            'status': 'success',
+                            'message': 'User status changed successfully'
+                        }
+                        return JsonResponse(response_data)
+            # Toggle not successful. Return error message
+            response_data = {
+                'status': 'fail',
+                'message': 'An error occurred while changing User status.'
+            }
+            return JsonResponse(response_data)
+        except Exception as e:
+            tb = traceback.format_exc()
+            return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+    else:
+        return PermissionDenied('Operation not allowed. [Missing Permission]')
+
+
+def change_cred(request):
+    # check if user is logged in
+    if request.user.is_authenticated() and request.user.is_active:  # user is authenticated
+        if request.method == 'GET':
+            # return password change view
+            context = {'page': 'users', 'user': request.user, }
+            return render(request, 'change_cred.html', context)
+        elif request.method == 'POST':
+            # do post functionality here!!
+            # retrieve all fields
+            ch_username = request.POST.get('ch_username', '')
+            ch_current_password = request.POST.get('ch_current_password', '')
+            ch_new_password = request.POST.get('ch_new_password', '')
+            ch_confirm_new_password = request.POST.get('ch_confirm_new_password', '')
+            # check if any details is missing
+            if ch_username == '' or ch_current_password == '' or ch_new_password == '' or ch_confirm_new_password == '' or ch_confirm_new_password == '':
+                # return error
+                response_data = {
+                    'status': 'fail',
+                    'message': 'An error occurred as a result of missing details.'
+                }
+                return JsonResponse(response_data)
+            else:
+                # all details exist. Check if credentials match
+                # check username
+                if request.user.get_username() == ch_username and request.user.check_password(ch_current_password) and ch_new_password == ch_confirm_new_password:
+                    # all details match. Change user password
+                    request.user.set_password(ch_new_password)
+                    request.user.save()
+                    # return success message
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Password changed successfully. Proceed to login with your new credentials'
+                    }
+                    return JsonResponse(response_data)
+
+                else:
+                    # username or password mismatch. return error message
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'An error occurred as a result of wrong credentials.'
+                    }
+                    return JsonResponse(response_data)
+
+    else:   # User is not logged in. Redirect user to login page
+        # return PermissionDenied('Operation not allowed. [Missing Permission]')
+        return redirect('login')
 
