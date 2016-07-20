@@ -38,4 +38,8 @@ urlpatterns = [
     url(r'^reporting/$', views.reporting, name='reporting'),
     url(r'^help/$', views.user_help, name='user_help'),
     url(r'^logs/$', views.logs, name='logs'),
+    url(r'^admin/users/$', views.users, name='users'),
+    url(r'^admin/users/save/$', views.save_user, name='new user'),
+    url(r'^admin/users/change_cred/$', views.change_cred, name='change_cred'),
+    url(r'^admin/users/toggle_status/$', views.toggle_status, name='toggle_user_status'),
 ]

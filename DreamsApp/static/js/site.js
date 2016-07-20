@@ -641,6 +641,25 @@ $(document).ready(function () {
         }, 5000);
     })
 
+    $('tr').on('rowChangeMade', function (event) {
+        var tr = $(this).addClass('success');
+        //tr.css('background-color', '#5bc0de');
+
+        setTimeout(function(){
+            tr.removeClass('success');
+        }, 5000);
+    })
+
+    $('#user_credentials_alert').on('madeVisible_logout', function (event) {
+        setTimeout(function(){
+            var alert_space = $(event.target)
+            alert_space.removeClass('alert-success').removeClass('alert-danger')
+                .addClass('hidden')
+                .text("")
+            window.location.href = "/logout";
+        }, 1000);
+    })
+
     $('#btn_delete_intervention_confirmation').click(function (event) {
         var btn = $(event.target);
         // do an ajax post delete
@@ -1037,6 +1056,261 @@ $(document).ready(function () {
         $('#filter-log-date').val('');
         window.location.href = "/logs/";
     })
+
+    /* users section */
+
+    $('.user_action').click(function (event) {
+        var btn = event.target;
+        var u_action = $(btn).data('user_action');
+        var ip_user_id = $(btn).data('ip_user_id');
+
+        var confirm_title = "";
+        var confirm_message = "";
+        var active = false
+        var callback_func = null;
+        switch (u_action){
+            case "deactivate_user":
+                confirm_title = 'Confirm User Deactivation Action'
+                confirm_message = 'Are you sure you want to Deactivate User?'
+                callback_func = toggleUserStatus
+                active = false;
+                break;
+            case "activate_user":
+                confirm_title = 'Confirm User Activation Action'
+                confirm_message = 'Are you sure you want to Activate User?'
+                callback_func = toggleUserStatus
+                active = true;
+                break;
+            case "delete_user":
+                confirm_title = 'Confirm User Delete Action'
+                confirm_message = 'Are you sure you want to Delete User? This action cannot be undone.'
+                callback_func = deleteUser
+                break;
+            default:
+                break;
+        }
+
+        $('#confirmationModal #frm_title').html(confirm_title);
+        $('#confirmationModal #frm_body > h4').html(confirm_message);
+        $('#confirmationModal').modal({show:true});
+        // Add delete event listener on confirmation
+        $('#confirmationModal #dataConfirmOK').click(function (event) {
+            callback_func(ip_user_id, active, btn);
+            $(event.target).off('click'); // Works like a charm
+        })
+    })
+
+    function toggleUserStatus(ip_user_id, activate, target) {
+        // deactivate using ajax
+            // No form, just a normal get
+        $.ajax({
+            url : '/admin/users/toggle_status/',
+            type : "GET",
+            dataType: 'json',
+            data:{
+                'ip_user_id': ip_user_id,
+                'toggle': activate
+            },
+            success : function(data) {
+                if(data.status == "success"){
+                    // Show message
+                    $('#user_actions_alert').removeClass('hidden').addClass('alert-success')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                    // Change view
+                    $(target).addClass('hidden')// Hide current
+                    $(target).siblings('.hidden').removeClass('hidden') // Show sibling
+                    // change status text
+                    var tblData = $(target).parent().parent() // <td>
+                    tblData.siblings().eq(4).html(activate ? "Active" : "Disabled");
+                    tblRow = tblData.parent()  // <tr>
+                    tblRow.trigger('rowChangeMade')
+                }
+                else{
+                    // We wil also know what to do here
+                    $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
+                        .text('An error occurred while processing client details. Contact system administratior if this persists')
+                        .trigger('madeVisible')
+            }
+        });
+
+        // hide modal
+        $("#confirmationModal").modal('hide');
+    }
+
+    function deleteUser(ip_user_id, active, target) {
+        //alert("Deleting: " + ip_user_id)
+    }
+
+    $("#user-entry-form").validate({
+        rules: {
+            reg_role: "required",
+            reg_firstname: {
+                required: true,
+                minlength: 2
+            },
+            reg_lastname: {
+                required: true,
+                minlength: 2
+            },
+            reg_username: {
+                required: true,
+                minlength: 2
+            },
+            reg_email: {
+                required: true,
+                email: true
+            }
+        },
+        messages: {
+            reg_firstname: "* Please enter your First Name",
+            reg_lastname: "* Please enter your Last Name",
+            reg_username: {
+                required: "* Please enter a username",
+                minlength: "* Your username must consist of at least 2 characters"
+            },
+            reg_email: "* Please enter a valid email address"
+        },
+        highlight: function (element) {
+            $(element).parent().addClass('text-danger')
+        },
+        unhighlight: function (element) {
+            $(element).parent().removeClass('text-danger')
+        }
+    });
+
+    $('#reg_emailaddress').on('input', function (e) {
+        $('#reg_username').val($(e.target).val().split('@')[0])
+    })
+
+    $("#user-entry-form").submit(function (e) {
+        e.preventDefault();
+        if(!$(e.target).valid())
+            return false;
+
+        /* Form is valid. You can proceed to submit and register user. We are using an ajax call */
+        var csrftoken = getCookie('csrftoken');
+
+        $.ajax({
+            url : '/admin/users/save/',
+            type : "POST",
+            dataType: 'json',
+            data:$('#user-entry-form').serialize(),
+            success : function(data) {
+                console.log(data.status + " " + data.message);
+                if(data.status == "success"){
+                    alert(data.message);
+                    $("#user-modal").modal('hide');
+                    window.location.href = "/admin/users";
+                }
+                else{
+                    $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                    $("#user-modal").modal('hide');
+                }
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
+                        .text('An error occurred while processing client details. Contact system administratior if this persists')
+                        .trigger('madeVisible')
+            }
+        });
+    })
+    
+    $('#user-clear-filters').click(function (e) {
+        window.location.href = "/admin/users";
+    })
+
+    $("#user_change_password_form").validate({
+        rules: {
+            ch_username: {
+                required: true,
+                minlength: 2
+            },
+            ch_current_password: {
+                required: true,
+                minlength: 2
+            },
+            ch_new_password: {
+                required: true,
+                minlength: 2
+            },
+            ch_confirm_new_password: {
+                required: true,
+                minlength: 2,
+                equalTo: "#ch_new_password"
+            }
+        },
+        messages: {
+            ch_username: {
+                required: "* Please enter your Username",
+                minlength: "* Your username must consist of at least 2 characters"
+            },
+            ch_current_password: {
+               required:  "* Please enter your current password"
+            },
+            ch_new_password: "* Please enter your new password",
+            ch_confirm_new_password: {
+                required: "* Please confirm your new password",
+                equalTo: "Please enter matching new and confirmation passwords"
+            }
+        },
+        highlight: function (element) {
+            $(element).parent().addClass('text-danger')
+        },
+        unhighlight: function (element) {
+            $(element).parent().removeClass('text-danger')
+        }
+    });
+
+    $("#user_change_password_form").submit(function (event) {
+        event.preventDefault()
+        if(!$(event.target).valid()) // Check if form is valid
+            return false;   // return, form is not valid
+
+        // Form is valid, do an ajax call
+        var csrftoken = getCookie('csrftoken');
+
+        $.ajax({
+            url : '/admin/users/change_cred/',
+            type : "POST",
+            dataType: 'json',
+            data:$('#user_change_password_form').serialize(),
+            success : function(data) {
+                console.log(data.status + " " + data.message);
+                if(data.status == "success"){
+                    $('#user_credentials_alert').removeClass('hidden').addClass('alert-success')
+                        .text(data.message)
+                        .trigger('madeVisible_logout')
+                }
+                else{
+                    $('#user_credentials_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible_logout')
+                    $("#user-modal").modal('hide');
+                }
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#user_credentials_alert').removeClass('hidden').addClass('alert-danger')
+                        .text('An error occurred while processing client details. Contact system administratior if this persists')
+                        .trigger('madeVisible')
+            }
+        });
+    })
+    /* end of users section */
 });
 
 
