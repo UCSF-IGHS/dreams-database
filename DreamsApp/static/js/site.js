@@ -122,7 +122,7 @@ $(document).ready(function () {
         // do an ajax post
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : '/clients/', // the endpoint
+            url : '/clients', // the endpoint
             type : "POST", // http method
             dataType: 'json',
             data:$('#clients_search_form').serialize(),
@@ -233,7 +233,7 @@ $(document).ready(function () {
         $('#intervention_category_code').val(intervention_category_code)
 
         $.ajax({
-            url : "/ivList/", // the endpoint
+            url : "/ivList", // the endpoint
             type : "POST", // http method
             dataType: 'json',
             data : {
@@ -299,7 +299,7 @@ $(document).ready(function () {
         currentInterventionCategoryCode_Global = interventionCategoryCode
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : "/ivgetTypes/", // the endpoint
+            url : "/ivgetTypes", // the endpoint
             type : "POST", // http method
             dataType: 'json',
             data : {
@@ -560,9 +560,9 @@ $(document).ready(function () {
         if(!validateInterventionEntryForm())
             return false
 
-        var postUrl = "/ivSave/" // by default
+        var postUrl = "/ivSave" // by default
         if(modalMode == "edit")
-            postUrl = "/ivUpdate/"
+            postUrl = "/ivUpdate"
 
         // do an ajax post
         var csrftoken = getCookie('csrftoken');
@@ -666,7 +666,7 @@ $(document).ready(function () {
 
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : '/ivDelete/', // the endpoint
+            url : '/ivDelete', // the endpoint
             type : "POST", // http method
             dataType: 'json',
             data:$('#intervention_delete_form').serialize(),
@@ -765,7 +765,7 @@ $(document).ready(function () {
         var client_id = client_id;
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : '/clientDelete/',
+            url : '/clientDelete',
             type : "GET",
             dataType: 'json',
             data:{'client_id':client_id},
@@ -884,14 +884,14 @@ $(document).ready(function () {
     $('#enrollment-form').submit(function (event) {
         event.preventDefault();
         var enrollment_form_submit_mode = 'new';
-        var post_url = '/clientSave/';
+        var post_url = '/clientSave';
         var clientForm = $(event.target);
         if(!validateClientForm(clientForm))
             return;
         var client_id = $('#enrollment-form #client_id').val();
         if(client_id != null && client_id != ''){
             enrollment_form_submit_mode = 'edit';
-            post_url = '/clientEdit/';
+            post_url = '/clientEdit';
         }
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -952,7 +952,7 @@ $(document).ready(function () {
         var county_code = setSelected == true ? c_code : $('#county_of_residence').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : "/getSubCounties/", // the endpoint
+            url : "/getSubCounties", // the endpoint
             type : "GET", // http method
             dataType: 'json',
             data : {
@@ -991,7 +991,7 @@ $(document).ready(function () {
         var sc_code = setSelected ? sc_code : $('#sub_county').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : "/getWards/", // the endpoint
+            url : "/getWards", // the endpoint
             type : "GET", // http method
             dataType: 'json',
             data : {
@@ -1054,7 +1054,7 @@ $(document).ready(function () {
     $('#audit-log-clear-filtes').click(function (event) {
         $('#filter-log-text').val('');
         $('#filter-log-date').val('');
-        window.location.href = "/logs/";
+        window.location.href = "/logs";
     })
 
     /* users section */
@@ -1104,7 +1104,7 @@ $(document).ready(function () {
         // deactivate using ajax
             // No form, just a normal get
         $.ajax({
-            url : '/admin/users/toggle_status/',
+            url : '/admin/users/toggle_status',
             type : "GET",
             dataType: 'json',
             data:{
@@ -1180,10 +1180,12 @@ $(document).ready(function () {
             reg_email: "* Please enter a valid email address"
         },
         highlight: function (element) {
-            $(element).parent().addClass('text-danger')
+            //$(element).parent().addClass('text-danger')
+            //console.log();
+            $(element).parent().find('label.error').addClass('text-danger')
         },
         unhighlight: function (element) {
-            $(element).parent().removeClass('text-danger')
+            $(element).parent().find('label.error').removeClass('text-danger')
         }
     });
 
@@ -1200,7 +1202,7 @@ $(document).ready(function () {
         var csrftoken = getCookie('csrftoken');
 
         $.ajax({
-            url : '/admin/users/save/',
+            url : '/admin/users/save',
             type : "POST",
             dataType: 'json',
             data:$('#user-entry-form').serialize(),
@@ -1255,12 +1257,16 @@ $(document).ready(function () {
         messages: {
             ch_username: {
                 required: "* Please enter your Username",
-                minlength: "* Your username must consist of at least 2 characters"
+                minlength: "* Your username must be at least 2 characters long"
             },
             ch_current_password: {
-               required:  "* Please enter your current password"
+               required:  "* Please enter your current password",
+                minlength: "Your current password must be at least 2 characters long"
             },
-            ch_new_password: "* Please enter your new password",
+            ch_new_password: {
+                required: "* Please enter your new password",
+                minlength: "Your new password must be at least 2 characters long"
+            },
             ch_confirm_new_password: {
                 required: "* Please confirm your new password",
                 equalTo: "Please enter matching new and confirmation passwords"
@@ -1283,7 +1289,7 @@ $(document).ready(function () {
         var csrftoken = getCookie('csrftoken');
 
         $.ajax({
-            url : '/admin/users/change_cred/',
+            url : '/admin/users/change_cred',
             type : "POST",
             dataType: 'json',
             data:$('#user_change_password_form').serialize(),
@@ -1311,6 +1317,11 @@ $(document).ready(function () {
         });
     })
     /* end of users section */
+
+    /* Custom error pages */
+
+    /* End Custom error pages */
+
 });
 
 

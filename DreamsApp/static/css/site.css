@@ -349,7 +349,7 @@ html, body{
 
 
 .filter-log-wrapper #date-div{
-    margin-top: 10px;
+    margin-top: 0px;
 }
 
 /* End Audit Log */
@@ -383,6 +383,7 @@ html, body{
     font-weight: normal;
     color: #bbb;
 }
+
 /* End --general style */
 
 /* Users section */
