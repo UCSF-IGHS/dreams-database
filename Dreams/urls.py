@@ -38,4 +38,5 @@ urlpatterns = [
     url(r'^reporting/$', views.reporting, name='reporting'),
     url(r'^help/$', views.user_help, name='user_help'),
     url(r'^logs/$', views.logs, name='logs'),
+    url(r'^excel_database/$', views.upload_dreams_excel_database, name='excel_database'),
 ]

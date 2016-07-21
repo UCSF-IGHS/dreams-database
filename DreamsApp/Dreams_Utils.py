@@ -1,5 +1,9 @@
 from django.core.files.storage import default_storage
 import openpyxl as xl
+import xlrd
+import traceback
+from Dreams_Excel_Mapping import *
+from string import Template
 
 
 class DreamsEnrollmentExcelDatabase(object):
@@ -45,66 +49,108 @@ class DreamsEnrollmentExcelDatabase(object):
     def excel_enrollment_data(self):
         if self.validate_excel_document():
             try:
-                print 'Loading the doc'
-                row5 = self.get_row_data(5)
+                print self.generate_insert_SQL(4, 100)
 
-                print row5
-
-                # for row in main_db_sheet.rows:
-                #     for cell in row:
-                #         print(cell.value)
-
-            except:
-                print 'There was an error'
+            except Exception as e:
+                tb = traceback.format_exc()
+                print 'There was an error ' + tb
             return
 
+    def generate_insert_SQL(self, start, end):
+        if self.validate_excel_document():
+            try:
+                print 'Loading the doc'
+
+                sql_statement = """
+INSERT INTO DreamsApp_client
+(first_name, middle_name, last_name, dreams_id, dss_id_number, implementing_partner_id, date_of_birth, date_of_enrollment, marital_status_id, phone_number,
+county_of_residence_id, sub_county_id, ward_id, informal_settlement, village, landmark, guardian_name, relationship_with_guardian, guardian_phone_number, guardian_national_id )
+VALUES """
+
+                rangeList = range(start, end)
+                lastNumber = rangeList[-1]
+                row_qry = ''
+                for rowid in range(start, end):
+
+                    if rowid != lastNumber:
+                        row_qry += self.generate_row_insert_SQL(rowid) + ', \n'
+                    else:
+                        row_qry += " " + self.generate_row_insert_SQL(rowid)
+
+                return Template('$insert $values').substitute(insert=sql_statement, values=row_qry)
+
+            except Exception as e:
+                tb = traceback.format_exc()
+                print 'There was an error ' + tb
+            return
+
+    def get_enrollment_sheet_openpyxl(self):
+        return xl.load_workbook(self.get_document_path(), read_only=True, data_only=True).get_sheet_by_name('Main Database')
+
     def get_enrollment_sheet(self):
-        return xl.load_workbook(self.get_document_path(), read_only=True).get_sheet_by_name('Main Database')
+        return self.get_wb().sheet_by_name('Main Database')
+
+    def get_wb(self):
+        return xlrd.open_workbook(self.get_document_path(), on_demand=True)
 
     def get_row_data(self, row_num):
-        sheet = self.get_enrollment_sheet()
-        cols = self.excel_demographic_columns()
+
+        sheet = self.get_enrollment_sheet_openpyxl()
+        cols = self.openpyxl_demographic_columns()
+
+        # map fields that should mirror webapp's
+
+        ver_doc = str(sheet.cell(row=row_num, column=cols.get('verification_doc')).value)
+        ver_doc = ExcelDreamsMapping.verification_document().get(ver_doc)
+
+        marital_status = str(sheet.cell(row=row_num, column=cols.get('marital_status')).value)
+        marital_status = ExcelDreamsMapping.marital_status_codes().get(marital_status)
+
+        county = str(sheet.cell(row=row_num, column=cols.get('county')).value)
+        county = ExcelDreamsMapping.county().get(county)
+
+        sub_county = str(sheet.cell(row=row_num, column=cols.get('sub_county')).value)
+        sub_county = ExcelDreamsMapping.sub_county().get(sub_county)
+
+        ward = str(sheet.cell(row=row_num, column=cols.get('ward')).value)
+        ward = ExcelDreamsMapping.ward_by_name().get(ward)
+
         row_values = {
-            'serial_No': sheet.cell(row=row_num, column=cols.get('serial_No')).value,
-            'IP': sheet.cell(row=row_num, column=cols.get('IP')).value,
-            'first_name': sheet.cell(row=row_num, column=cols.get('first_name')).value,
-            'middle_name': sheet.cell(row=row_num, column=cols.get('middle_name')).value,
-            'last_name': sheet.cell(row=row_num, column=cols.get('last_name')).value,
-            'dob': sheet.cell(row=row_num, column=cols.get('dob')).value,
-            'verification_doc': sheet.cell(row=row_num, column=cols.get('verification_doc')).value,
-            'verification_doc_other': sheet.cell(row=row_num, column=cols.get('verification_doc_other')).value,
-            'verification_doc_no': sheet.cell(row=row_num, column=cols.get('verification_doc_no')).value,
-            'date_of_enrollment': sheet.cell(row=row_num, column=cols.get('date_of_enrollment')).value,
-            'marital_status': sheet.cell(row=row_num, column=cols.get('marital_status')).value,
-            'client_phone_no': sheet.cell(row=row_num, column=cols.get('client_phone_no')).value,
-            'county': sheet.cell(row=row_num, column=cols.get('county')).value,
-            'sub_county': sheet.cell(row=row_num, column=cols.get('sub_county')).value,
-            'ward': sheet.cell(row=row_num, column=cols.get('ward')).value,
-            'informal_settlement': sheet.cell(row=row_num, column=cols.get('informal_settlement')).value,
-            'village': sheet.cell(row=row_num, column=cols.get('village')).value,
-            'land_mark': sheet.cell(row=row_num, column=cols.get('land_mark')).value,
-            'dreams_id': sheet.cell(row=row_num, column=cols.get('dreams_id')).value,
-            'dss_id': sheet.cell(row=row_num, column=cols.get('dss_id')).value,
-            'caregiver_first_name': sheet.cell(row=row_num, column=cols.get('caregiver_first_name')).value,
-            'caregiver_middle_name': sheet.cell(row=row_num, column=cols.get('caregiver_middle_name')).value,
-            'caregiver_last_name': sheet.cell(row=row_num, column=cols.get('caregiver_last_name')).value,
-            'caregiver_relationship': sheet.cell(row=row_num, column=cols.get('caregiver_relationship')).value,
-            'caregiver_relationship_other': sheet.cell(row=row_num, column=cols.get('caregiver_relationship_other')).value,
-            'caregiver_phone_no': sheet.cell(row=row_num, column=cols.get('caregiver_phone_no')).value,
-            'caregiver_id_no': sheet.cell(row=row_num, column=cols.get('caregiver_id_no')).value,
+            'serial_No': str(sheet.cell(row=row_num, column=cols.get('serial_No')).value),
+            'IP': str(sheet.cell(row=row_num, column=cols.get('IP')).value),
+            'first_name': str(sheet.cell(row=row_num, column=cols.get('first_name')).value),
+            'middle_name': str(sheet.cell(row=row_num, column=cols.get('middle_name')).value),
+            'last_name': str(sheet.cell(row=row_num, column=cols.get('last_name')).value),
+            'dob': str(sheet.cell(row=row_num, column=cols.get('dob')).value),
+            'verification_doc': ver_doc,
+            'verification_doc_other': str(sheet.cell(row=row_num, column=cols.get('verification_doc_other')).value),
+            'verification_doc_no': str(sheet.cell(row=row_num, column=cols.get('verification_doc_no')).value),
+            'date_of_enrollment': str(sheet.cell(row=row_num, column=cols.get('date_of_enrollment')).value),
+            'marital_status': marital_status,
+            'client_phone_no': str(sheet.cell(row=row_num, column=cols.get('client_phone_no')).value),
+            'county': county,
+            'sub_county': sub_county,
+            'ward': ward,
+            'informal_settlement': str(sheet.cell(row=row_num, column=cols.get('informal_settlement')).value),
+            'village': str(sheet.cell(row=row_num, column=cols.get('village')).value),
+            'land_mark': str(sheet.cell(row=row_num, column=cols.get('land_mark')).value),
+            'dreams_id': str(sheet.cell(row=row_num, column=cols.get('dreams_id')).value),
+            'dss_id': str(sheet.cell(row=row_num, column=cols.get('dss_id')).value),
+            'caregiver_first_name': str(sheet.cell(row=row_num, column=cols.get('caregiver_first_name')).value),
+            'caregiver_middle_name': str(sheet.cell(row=row_num, column=cols.get('caregiver_middle_name')).value),
+            'caregiver_last_name': str(sheet.cell(row=row_num, column=cols.get('caregiver_last_name')).value),
+            'caregiver_relationship': str(sheet.cell(row=row_num, column=cols.get('caregiver_relationship')).value),
+            'caregiver_relationship_other': str(sheet.cell(row=row_num, column=cols.get('caregiver_relationship_other')).value),
+            'caregiver_phone_no': str(sheet.cell(row=row_num, column=cols.get('caregiver_phone_no')).value),
+            'caregiver_id_no': str(sheet.cell(row=row_num, column=cols.get('caregiver_id_no')).value),
         }
         return row_values
 
-
-
-
-
-
-    def excel_demographic_columns(self):
+    def openpyxl_demographic_columns(self):
 
         demographics = {
             'serial_No': 1,
-            'IP': 2,
+            'IP': 3,
             'first_name': 4,
             'middle_name': 5,
             'last_name': 6,
@@ -113,27 +159,78 @@ class DreamsEnrollmentExcelDatabase(object):
             'verification_doc_other': 9,
             'verification_doc_no': 10,
             'date_of_enrollment': 11,
-            'marital_status': 15,
-            'client_phone_no': 16,
-            'county': 17,
-            'sub_county': 18,
-            'ward': 19,
-            'informal_settlement': 21,
-            'village': 22,
-            'land_mark': 23,
-            'dreams_id': 24,
-            'dss_id': 25,
-            'caregiver_first_name': 26,
-            'caregiver_middle_name': 27,
-            'caregiver_last_name': 28,
-            'caregiver_relationship': 29,
-            'caregiver_relationship_other': 30,
-            'caregiver_phone_no': 31,
-            'caregiver_id_no': 32,
+            'marital_status': 16,
+            'client_phone_no': 17,
+            'county': 18,
+            'sub_county': 19,
+            'ward': 20,
+            'informal_settlement': 22,
+            'village': 23,
+            'land_mark': 24,
+            'dreams_id': 25,
+            'dss_id': 26,
+            'caregiver_first_name': 27,
+            'caregiver_middle_name': 28,
+            'caregiver_last_name': 29,
+            'caregiver_relationship': 30,
+            'caregiver_relationship_other': 31,
+            'caregiver_phone_no': 32,
+            'caregiver_id_no': 33,
         }
 
         return demographics
 
+    def generate_row_insert_SQL(self, row_num):
+
+        row_data = self.get_row_data(row_num)
+        caregiver_fname = row_data.get('caregiver_first_name')
+        caregiver_mname = row_data.get('caregiver_middle_name')
+        caregiver_lname = row_data.get('caregiver_last_name')
+
+        coded_rel = row_data.get('caregiver_relationship')
+        other_rel = row_data.get('caregiver_relationship_other')
+
+        # django app has no field for other relationship. check which one has value
+
+        if coded_rel != 'None' or other_rel != 'None':
+            if other_rel != 'None':
+                caregiver_relationship = other_rel
+            else:
+                caregiver_relationship = coded_rel
+        else:
+            caregiver_relationship = ''
+
+        guardian_name = (caregiver_fname + " " if caregiver_fname != 'None' else "") + (caregiver_mname + " " if caregiver_mname != 'None' else "") + (caregiver_lname if caregiver_lname != 'None' else "")
+
+        values_template = Template(
+            '("$first_name", "$middle_name", "$last_name", "$dreams_id", "$dss_id_number", "$implementing_partner_id", "$date_of_birth", "$date_of_enrollment", "$marital_status_id", "$phone_number", \
+    "$county_of_residence_id", "$sub_county_id", "$ward_id", "$informal_settlement", "$village", "$landmark", "$guardian_name", "$relationship_with_guardian", "$guardian_phone_number", "$guardian_national_id" )').safe_substitute(
+            first_name=row_data.get('first_name') if row_data.get('first_name') !='None' else '',
+            middle_name=row_data.get('middle_name') if row_data.get('middle_name') !='None' else '',
+            last_name=row_data.get('last_name') if row_data.get('last_name') !='None' else '',
+            dreams_id=row_data.get('dreams_id'),
+            dss_id_number=row_data.get('dss_id') if row_data.get('dss_id') !='None' else '',
+            implementing_partner_id=row_data.get('IP') if row_data.get('IP') !='None' else '',
+            date_of_birth=row_data.get('dob') if row_data.get('dob') !='None' else '0000-00-00',
+            date_of_enrollment=row_data.get('date_of_enrollment') if row_data.get('date_of_enrollment') !='None' else '0000-00-00',
+            marital_status_id=row_data.get('marital_status') if row_data.get('marital_status') !='None' else '',
+            phone_number=row_data.get('client_phone_no') if row_data.get('client_phone_no') !='None' else '',
+            county_of_residence_id=row_data.get('county'),
+            sub_county_id=row_data.get('sub_county'),
+            ward_id=row_data.get('ward'),
+            informal_settlement=row_data.get('informal_settlement') if row_data.get('informal_settlement') !='None' else '',
+            village=row_data.get('village') if row_data.get('village') !='None' else '',
+            landmark=row_data.get('land_mark') if row_data.get('land_mark') !='None' else '',
+            guardian_name=guardian_name,
+            relationship_with_guardian=caregiver_relationship,
+            guardian_phone_number=row_data.get('caregiver_phone_no') if row_data.get('caregiver_phone_no') !='None' else '',
+            guardian_national_id=row_data.get('caregiver_id_no') if row_data.get('caregiver_id_no') !='None' else ''
+        )
+
+        return values_template
+
     def excel_service_uptake_data(self):
         return
+
+
 
