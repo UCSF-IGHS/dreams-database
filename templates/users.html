@@ -11,7 +11,7 @@
         </div>
         <div class="floatRightLinks">
             <div class="rightItem">
-                <form id="user_search_form" class="form-inline" method="post" action="/admin/users/">
+                <form id="user_search_form" class="form-inline" method="post" action="/admin/users">
                     {% csrf_token %}
                       <div class="form-group has-feedback" >
                            <input id="search-term-default" type="text" name="filter-user-text" class="form-control filter-enrollment" value="{{ filter_text }}" placeholder="Enter Username" style="width: 400px;">
@@ -24,7 +24,7 @@
     </div>
     <div class=" alert hidden dp-action-alert fade in" id="user_actions_alert" role="alert" style="margin-bottom: 10px;"></div>
 
-    <div id="user-list" style="max-height: calc(100vh - 490px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
+    <div id="user-list" style="max-height: calc(100vh - 510px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
         <table class="table table-striped dp-user-table table-bordered" id="dreams-user-table" style="margin: 0px;">
             <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                 <th>username</th>
@@ -36,7 +36,7 @@
                 <th style="width: 150px;max-width: 150px; min-width: 150px;">Action</th>
             </thead>
             <tbody id="dp-user-list-body">
-                {% if ip_users.count > 0 %}
+                {% if items_in_page > 0 %}
                     {% for ip_user in ip_users %}
                         <tr style="cursor: pointer; background-color: transparent;">
                             <td>{{ ip_user.user.username}}</td>
@@ -73,33 +73,34 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="5" class="table-message">0 Records found.</td>
+                        <td colspan="7" class="table-message">0 Records found.</td>
                     </tr>
                 {% endif %}
             </tbody>
         </table>
     </div>
-    <div class="pagination">
-            <span class="step-links">
-                {% if ip_users.has_previous %}
-                    <a href="?page={{ ip_users.previous_page_number }}&filter-user-text={{ filter_text }}">previous</a>
-                {% endif %}
+    <div class="pagination fit-item" >
+        <span class="step-links">
+            {% if ip_users.has_previous %}
+                <a href="?page={{ ip_users.previous_page_number }}&filter-user-text={{ filter_text }}">previous</a>
+            {% endif %}
 
-                <span class="current">
-                    Page {{ ip_users.number }} of {{ ip_users.paginator.num_pages }}
-                </span>
-
-                {% if ip_users.has_next %}
-                    <a href="?page={{ ip_users.next_page_number }}&filter-user-text={{ filter_text }}">next</a>
-                {% endif %}
-                <span>
-                    . ( {{ items_in_page }} users listed )
-                </span>
-
+            <span class="current">
+                Page {{ ip_users.number }} of {{ ip_users.paginator.num_pages }}
             </span>
-        </div>
-    <div>
-        <button id="btn_show_user_modal" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#user-modal" data-toggle="tooltip" title="New User" style="" ><i class="glyphicon glyphicon-plus text-default"></i> Add user</button>
+
+            {% if ip_users.has_next %}
+                <a href="?page={{ ip_users.next_page_number }}&filter-user-text={{ filter_text }}">next</a>
+            {% endif %}
+            <span >
+                 ( {{ items_in_page }} users listed )
+            </span>
+        </span>
+        <br>
+        <span style="margin-top: 10px;">
+            <button id="btn_show_user_modal" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#user-modal" data-toggle="tooltip" title="New User" ><i class="glyphicon glyphicon-plus text-default"></i> Add user</button>
+        </span>
+
     </div>
 
 

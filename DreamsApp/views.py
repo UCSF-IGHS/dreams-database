@@ -351,52 +351,63 @@ def get_intervention_types(request):
 
 def save_intervention(request):
     try:
-        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
-            intervention_type_code = int(request.POST.get('intervention_type_code'))
-            if intervention_type_code is not None and type(intervention_type_code) is int:
-                i_type = InterventionType.objects.get(code__exact=intervention_type_code)
-                intervention = Intervention()
-                intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
-                intervention.intervention_type = i_type
-                intervention.intervention_date = request.POST.get('intervention_date')
-                created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
-                intervention.created_by = created_by
-                intervention.date_created = datetime.now()
-                intervention.comment = request.POST.get('comment')
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() \
+                and request.user.is_active:
+            # Check if user belongs to an Ip
+            if request.user.implementingpartneruser.implementing_partner is not None:
+                intervention_type_code = int(request.POST.get('intervention_type_code'))
+                if intervention_type_code is not None and type(intervention_type_code) is int:
+                    i_type = InterventionType.objects.get(code__exact=intervention_type_code)
+                    intervention = Intervention()
+                    intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                    intervention.intervention_type = i_type
+                    intervention.intervention_date = request.POST.get('intervention_date')
+                    created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
+                    intervention.created_by = created_by
+                    intervention.date_created = datetime.now()
+                    intervention.comment = request.POST.get('comment', '')
 
-                if i_type.has_hts_result:
-                    intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
+                    if i_type.has_hts_result:
+                        intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
 
-                if i_type.has_pregnancy_result:
-                    intervention.pregnancy_test_result = PregnancyTestResult.objects.get(code__exact=int(request.POST.get('pregnancy_test_result')))
+                    if i_type.has_pregnancy_result:
+                        intervention.pregnancy_test_result = PregnancyTestResult.objects.get(code__exact=int(request.POST.get('pregnancy_test_result')))
 
-                if i_type.has_ccc_number:
-                    intervention.client_ccc_number = request.POST.get('client_ccc_number')
+                    if i_type.has_ccc_number:
+                        intervention.client_ccc_number = request.POST.get('client_ccc_number')
 
-                if i_type.has_no_of_sessions:
-                    intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
+                    if i_type.has_no_of_sessions:
+                        intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
-                # Update implementing Partner
-                intervention.implementing_partner = ImplementingPartner.objects.get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
-                intervention.save(user_id=request.user.id, action="INSERT")
-                # using defer() miraculously solved serialization problem of datetime properties.
-                intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
-
-                response_data = {
-                    'status': 'success',
-                    'message': 'Intervention successfully saved',
-                    'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
-                    'i_type': serializers.serialize('json', [i_type])
-                }
-
-                return JsonResponse(response_data)
-            else:
-                return HttpResponseServerError('Invalid Intervention Type')
+                    # Update implementing Partner
+                    intervention.implementing_partner = ImplementingPartner.objects.\
+                        get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
+                    intervention.save(user_id=request.user.id, action="INSERT")
+                    # using defer() miraculously solved serialization problem of datetime properties.
+                    intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').\
+                        get(id__exact=intervention.id)
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Intervention successfully saved',
+                        'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
+                        'i_type': serializers.serialize('json', [i_type])
+                    }
+                    return JsonResponse(response_data)
+                else:   # Invalid Intervention Type
+                    raise Exception("Error: Invalid Intervention Type. "
+                                    "Please select a valid Intervention Type to Proceed")
+            else:  # User has no valid IP.
+                raise Exception("Error: You do not belong to an Implementing Partner. "
+                                "Please contact your system admin to add you to the relevant Implementing Partner.")
         else:
             raise PermissionDenied
     except Exception as e:
-        tb = traceback.format_exc(e)
-        return HttpResponseServerError(tb)
+        # Return error with message
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
 
 
 # method that returns a list of interventions of given category for a given client
@@ -469,93 +480,106 @@ def get_intervention(request):
 
 def update_intervention(request):
     try:
-        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
-            intervention_id = int(request.POST.get('intervention_id'))
-            if intervention_id is not None and type(intervention_id) is int:
-                intervention = Intervention.objects.get(id__exact=intervention_id)
-                # check if intervention belongs to the ip
-                if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
-                    intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
-                    intervention.intervention_date = request.POST.get('intervention_date')
-                    intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
-                    intervention.date_changed = datetime.now()
-                    intervention.comment = request.POST.get('comment')
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and \
+                request.user.is_active:
+            # Check if user belongs to an Ip
+            if request.user.implementingpartneruser.implementing_partner is not None:
+                intervention_id = int(request.POST.get('intervention_id'))
+                if intervention_id is not None and type(intervention_id) is int:
+                    intervention = Intervention.objects.get(id__exact=intervention_id)
+                    # check if intervention belongs to the ip
+                    if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
+                        intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                        intervention.intervention_date = request.POST.get('intervention_date')
+                        intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
+                        intervention.date_changed = datetime.now()
+                        intervention.comment = request.POST.get('comment')
 
-                    i_type = InterventionType.objects.get(id__exact=intervention.intervention_type.id)
+                        i_type = InterventionType.objects.get(id__exact=intervention.intervention_type.id)
 
-                    if i_type.has_hts_result:
-                        intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
+                        if i_type.has_hts_result:
+                            intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
 
-                    if i_type.has_pregnancy_result:
-                        intervention.pregnancy_test_result = PregnancyTestResult.objects.get(code__exact=int(request.POST.get('pregnancy_test_result')))
+                        if i_type.has_pregnancy_result:
+                            intervention.pregnancy_test_result = PregnancyTestResult.objects.get(code__exact=int(request.POST.get('pregnancy_test_result')))
 
-                    if i_type.has_ccc_number:
-                        intervention.client_ccc_number = request.POST.get('client_ccc_number')
+                        if i_type.has_ccc_number:
+                            intervention.client_ccc_number = request.POST.get('client_ccc_number')
 
-                    if i_type.has_no_of_sessions:
-                        intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
+                        if i_type.has_no_of_sessions:
+                            intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
-                    intervention.save(user_id=request.user.id, action="UPDATE")
-                    # using defer() miraculously solved serialization problem of datetime properties.
-                    intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
-                    # construct response
+                        intervention.save(user_id=request.user.id, action="UPDATE")
+                        # using defer() miraculously solved serialization problem of datetime properties.
+                        intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
+                        # construct response
 
-                    response_data = {
-                        'status': 'success',
-                        'message': 'Intervention successfully updated',
-                        'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
-                        'i_type': serializers.serialize('json', [i_type])
-                    }
+                        response_data = {
+                            'status': 'success',
+                            'message': 'Intervention successfully updated',
+                            'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
+                            'i_type': serializers.serialize('json', [i_type])
+                        }
+                    else:
+                        # Intervention does not belong to Implementing partner. Send back error message
+                        raise Exception(
+                            'You do not have the rights to update this intervention because it was created by a '
+                            'different Implementing Partner'
+                            )
+                    return JsonResponse(response_data)
                 else:
-                    # Intervention does not belong to Implementing partner. Send back error message
-                    response_data = {
-                        'status': 'failed',
-                        'message': 'You do not have the rights to update this intervention because it was created by a '
-                                   'different Implementing Partner'
-                    }
-                return JsonResponse(response_data)
-            else:
-                return HttpResponseServerError('Invalid Intervention Type')
+                    raise Exception("Error: No intervention selected for update")
+            else:  # Raise an exception. User does not belong to any IP
+                raise Exception("Error: You do not belong to an Implementing Partner. "
+                                "Please contact your system admin to add you to the relevant Implementing Partner.")
         else:
             raise PermissionDenied
     except Exception as e:
-        tb = traceback.format_exc(e)
-        return HttpResponseServerError(tb)
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
 
 
 def delete_intervention(request):
     try:
-        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
-            intervention_id = int(request.POST.get('intervention_delete_id'))
-            if intervention_id is not None and type(intervention_id) is int:
-                # get intervention
-                # Check if intervention belongs to IP
-                intervention = Intervention.objects.filter(pk=intervention_id).first()
-                if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
-                    intervention.delete()
-                    log_custom_actions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", None)
-                    response_data = {
-                        'result': 'success',
-                        'message': 'Intervention has been successfully deleted',
-                        'intervention_id': intervention_id
-                    }
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and \
+                request.user.is_active:
+            # Check if user belongs to an Ip
+            if request.user.implementingpartneruser.implementing_partner is not None:
+                intervention_id = int(request.POST.get('intervention_delete_id'))
+                if intervention_id is not None and type(intervention_id) is int:
+                    # get intervention
+                    # Check if intervention belongs to IP
+                    intervention = Intervention.objects.filter(pk=intervention_id).first()
+                    if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
+                        intervention.delete()
+                        log_custom_actions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", None)
+                        response_data = {
+                            'status': 'success',
+                            'message': 'Intervention has been successfully deleted',
+                            'intervention_id': intervention_id
+                        }
+                        return JsonResponse(response_data)
+                    else:
+                        raise Exception(
+                            'You do not have the rights to delete this intervention because it was created by a '
+                            'different Implementing Partner'
+                        )
                 else:
-                    # Intervention does not belong to IP
-                    log_custom_actions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", "Failed attempt")
-                    response_data = {
-                        'result': 'failed',
-                        'message': 'You do not have the rights to delete this intervention because it was created by a '
-                                   'different Implementing Partner',
-                        'intervention_id': intervention_id
-                    }
-                return JsonResponse(json.dumps(response_data), safe=False)
+                    raise Exception("Error: No intervention selected for deletion")
             else:
-                return HttpResponseServerError('Invalid Intervention Type')
+                raise Exception("Error: You do not belong to an Implementing Partner. "
+                                "Please contact your system admin to add you to the relevant Implementing Partner.")
         else:
             raise PermissionDenied
     except Exception as e:
-        tb = traceback.format_exc(e)
-        return HttpResponseServerError(tb)
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
 
 
 def get_sub_counties(request):
@@ -660,8 +684,8 @@ def logs(request):
                     logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
                 return render(request, 'log.html', {'page': 'logs', 'logs': logs_list, 'filter_text': filter_text,
                                                     'filter_date': filter_date,
-                                                    'items_in_page': (logs_list.end_index() -
-                                                                      logs_list.start_index() + 1)
+                                                    'items_in_page': 0 if logs_list.end_index() == 0 else
+                                                    (logs_list.end_index() -logs_list.start_index() + 1)
                                                     }
                               )
             except Exception as e:
@@ -692,7 +716,9 @@ def logs(request):
             except EmptyPage:
                 logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
             return render(request, 'log.html', {'page': 'logs', 'logs': logs_list, 'filter_text': filter_text,
-                                                'filter_date': filter_date, 'items_in_page': (logs_list.end_index() - logs_list.start_index() + 1)})
+                                                'filter_date': filter_date,
+                                                'items_in_page': 0 if logs_list.end_index() == 0 else
+                                                (logs_list.end_index() - logs_list.start_index() + 1)})
     else:
         raise PermissionDenied
 
@@ -708,7 +734,7 @@ def users(request):
                 page = request.POST.get('page', 1)
                 filter_text = request.POST.get('filter-user-text', '')
             # get list of users with the filter incorporated
-            items_per_page = 10
+            items_per_page = 15
             ip_user_list = ImplementingPartnerUser.objects.filter(Q(user__first_name__contains=filter_text) |
                                                                   Q(user__last_name__contains=filter_text)|
                                                                   Q(user__username__contains=filter_text)
@@ -723,7 +749,10 @@ def users(request):
             final_ip_user_list = paginator.page(1)  # Deliver the first page is page is not an integer
         except EmptyPage:
             final_ip_user_list = paginator.page(0)  # Deliver the last page if page is out of scope
-        return render(request, 'users.html', {'page': 'users', 'ip_users': final_ip_user_list, 'filter_text': filter_text, 'items_in_page': (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1)})
+        return render(request, 'users.html', {'page': 'users', 'ip_users': final_ip_user_list,
+                                              'filter_text': filter_text,
+                                              'items_in_page': 0 if final_ip_user_list.end_index() == 0 else
+                                              (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1)})
     else:
         raise PermissionDenied  # this should be a redirection to the permissions denied page
 
@@ -731,38 +760,52 @@ def users(request):
 def save_user(request):
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm('auth.can_manage_users'):
         try:
-            # Check to see if IP user exists already or not
-            ip_user_id = request.POST.get('ip_user_id', 0)
-            if ip_user_id == 0 or ip_user_id is None or ip_user_id == u'':
-                # This is a new user
-                # create user
-                username = request.POST.get('username', '')
-                email = request.POST.get('emailaddress', '')
-                role = request.POST.get('role', '')
-                # get group
-                user_group = Group.objects.filter(name__exact=role).first() # get the first group that matches this
-                user = User.objects.create_user(
-                    username=username, email=email, password='p@ssword!'
-                )
-                user.first_name = request.POST.get('firstname', '')
-                user.last_name = request.POST.get('lastname', '')
-                user.groups.add(user_group)
-                user.save()  # save user changes first
-                ip_user = ImplementingPartnerUser.objects.create(
-                    user=user,
-                    implementing_partner=request.user.implementingpartneruser.implementing_partner
-                )
-            else:
-                pass
+            # check if registering user belongs to an IP
+            if request.user.implementingpartneruser.implementing_partner is not None:
+                # Registering user belongs to an IP. Proceed
+                # Check to see if IP user exists already or not
+                ip_user_id = request.POST.get('ip_user_id', 0)
+                if ip_user_id == 0 or ip_user_id is None or ip_user_id == u'':
+                    # This is a new user
+                    username = request.POST.get('username', '')
+                    email = request.POST.get('emailaddress', '')
+                    role = request.POST.get('role', '')
+                    # Check if provided username is in db
+                    if User.objects.filter(username__exact=username).first() is None:
+                        # user with this username does not exist
+                        user_group = Group.objects.filter(name__exact=role).first()  # get group
+                        user = User.objects.create_user(
+                            username=username, email=email, password='PTZ%hz^+&mny+9Av'
+                        )
+                        user.first_name = request.POST.get('firstname', '')
+                        user.last_name = request.POST.get('lastname', '')
+                        user.groups.add(user_group)
+                        user.save()  # save user changes first
+                        ip_user = ImplementingPartnerUser.objects.create(
+                            user=user,
+                            implementing_partner=request.user.implementingpartneruser.implementing_partner
+                        )
+                        response_data = {
+                            'status': 'success',
+                            'message': 'User successfully saved',
+                            'ip_users': serializers.serialize('json', [ip_user, ])
+                        }
+                        return JsonResponse(response_data)
+                    else:   # raise an exception for existing username
+                        raise Exception("Error: The username '" + username +
+                                        "' is already take. Please enter a different username and continue")
+                else:   # raise exception
+                    raise Exception('User with id ' + ip_user_id + ' exists already')
+            else:   # Registering user does not belong to an IP. Raise exception
+                raise Exception("Error: You do not belong to an Implementing Partner. "
+                                "Please contact your system admin to add you to the relevant Implementing Partner.")
+        except Exception as e:
             response_data = {
-                'status': 'success',
-                'message': 'User successfully saved',
-                'ip_users': serializers.serialize('json', [ip_user, ])
+                'status': 'fail',
+                'message': e.message,
+                'ip_users': ''
             }
             return JsonResponse(response_data)
-        except Exception as e:
-            tb = traceback.format_exc()
-            return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
     else:
         raise PermissionDenied
 

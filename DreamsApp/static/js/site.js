@@ -193,22 +193,6 @@ $(document).ready(function () {
 
     $('.filter-enrollment').keyup(function (event) {
         return
-        /*
-            This function filters clients table on typing
-            It has been disabled for enrollment
-
-        // check which key is pressed
-        var rex = new RegExp($(this).val(), 'i');
-        $('#dp-patient-list-body tr').hide();
-        $('#dp-patient-list-body tr').filter(function () {
-            return rex.test($(this).text());
-        }).show();
-
-        if($('#dp-patient-list-body tr:visible').length < 1 || $('#dp-patient-list-body tr').length < 1)
-            $('#client_actions_alert').removeClass('hidden').addClass('alert-danger')
-                        .text("0 Clients found")
-                        .trigger('madeVisible')
-        */
     })
 
     $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
@@ -546,23 +530,19 @@ $(document).ready(function () {
 
     }
 
-    $('#btn_save_intervention').click(function (event) {
-
-        var target = $(event.target)
-        var intervention_category_code = currentInterventionCategoryCode_Global
-        var table_id = "#interventions_" + intervention_category_code + "_table"
+    $('#intervention-entry-form').submit(function (event) {
+        event.preventDefault()
+        var intervention_category_code = currentInterventionCategoryCode_Global;
+        var table_id = "#interventions_" + intervention_category_code + "_table";
 
         if (intervention_category_code == null || intervention_category_code == "" || table_id == null || table_id == "")
-            return
-        event.preventDefault()
+            return false;
 
         // validate form
         if(!validateInterventionEntryForm())
-            return false
+            return false;
 
-        var postUrl = "/ivSave" // by default
-        if(modalMode == "edit")
-            postUrl = "/ivUpdate"
+        var postUrl = modalMode == "edit" ? "/ivUpdate" : "/ivSave"; // by default
 
         // do an ajax post
         var csrftoken = getCookie('csrftoken');
@@ -575,7 +555,7 @@ $(document).ready(function () {
                 var status = data.status
                 var message = data.message
                 var alert_id = '#action_alert_' + currentInterventionCategoryCode_Global
-                if(status == 'failed'){
+                if(status == 'fail'){
                     $(alert_id).removeClass('hidden').addClass('alert-danger')
                         .text(message)
                         .trigger('madeVisible')
@@ -587,9 +567,13 @@ $(document).ready(function () {
                     var iv_type = $.parseJSON(data.i_type)[0]
                     if(modalMode != "edit"){
                         insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, true)
+                        // Remove last table row
+                        console.log($(table_id + ' tr').last())
+                        $(table_id + ' tr').last().remove();
                         $(alert_id).removeClass('hidden').addClass('alert-success')
                             .text('Intervention has been Saved successfully!')
                             .trigger('madeVisible')
+
                     }
                     else{
                         // Add existing record on the view
@@ -619,13 +603,10 @@ $(document).ready(function () {
                     $('#intervention-modal').modal('hide');
                 }
             },
-
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
-                $(alert_id).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again')
-                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                $('#action_alert_' + currentInterventionCategoryCode_Global).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again: ' + errmsg)
+                console.log(xhr.status + " " +err + ": " + xhr.responseText); // provide a bit more info about the error to the console
             }
         });
 
@@ -633,12 +614,13 @@ $(document).ready(function () {
     });
 
     $('.dp-action-alert').on('madeVisible', function (event) {
+        var alert_space = $(event.target);
+        var timeout = alert_space.hasClass('alert-danger') ? 15000 : 5000;  // Errors display longer!
         setTimeout(function(){
-            var alert_space = $(event.target)
             alert_space.removeClass('alert-success').removeClass('alert-danger')
                 .addClass('hidden')
                 .text("")
-        }, 5000);
+        }, timeout);
     })
 
     $('tr').on('rowChangeMade', function (event) {
@@ -671,40 +653,32 @@ $(document).ready(function () {
             dataType: 'json',
             data:$('#intervention_delete_form').serialize(),
             success : function(data) {
-                var result = $.parseJSON(data)
-                // remove row from table
-
                 var alert_id = '#action_alert_' + currentInterventionCategoryCode_Global;
-                if(result.result == "success"){
-                    $('#intervention_' + result.intervention_id).remove();
+                if(data.status == "success"){
+                    $('#intervention_' + data.intervention_id).remove();
                     $(alert_id).removeClass('hidden').addClass('alert-success')
                         .text('Intervention has been deleted successfully!')
                         .trigger('madeVisible')
-                    // check the number of remaining rows
                     var tbody_id = '#interventions_' + currentInterventionCategoryCode_Global + '_tbody'
                     if($(tbody_id + ' tr').length < 1){
-                        // No more record in the table
                         var col_span = $('#interventions_' + currentInterventionCategoryCode_Global + '_table' + ' thead tr')[0].cells.length
                         $(tbody_id).append("<tr><td colspan='" + col_span + "' style='text-align: center'>0 Interventions</td></tr>")
                     }
                 }
                 else
-                    $(alert_id).removeClass('hidden').addClass('alert-danger').text('You do not have the rights to ' +
-                        'delete this intervention because it was created by a ' +
-                        'different Implementing Partner').
-                    trigger('madeVisible')
-
+                    $(alert_id).removeClass('hidden')
+                        .addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
                 $('#confirm-delete-mordal').modal('hide');
-
             },
-
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
-                //$(alert_id).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again')
-                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-
+                $('#action_alert_' + currentInterventionCategoryCode_Global).removeClass('hidden')
+                        .addClass('alert-danger')
+                        .text(errmsg)
+                        .trigger('madeVisible')
+                $('#confirm-delete-mordal').modal('hide');
             }
         });
 
@@ -1209,7 +1183,7 @@ $(document).ready(function () {
             success : function(data) {
                 console.log(data.status + " " + data.message);
                 if(data.status == "success"){
-                    alert(data.message);
+                    // Prepend added users! This needs to be done!
                     $("#user-modal").modal('hide');
                     window.location.href = "/admin/users";
                 }
@@ -1220,12 +1194,12 @@ $(document).ready(function () {
                     $("#user-modal").modal('hide');
                 }
             },
-
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
                 $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
-                        .text('An error occurred while processing client details. Contact system administratior if this persists')
+                        .text('Error: ' + errmsg)
                         .trigger('madeVisible')
+                $("#user-modal").modal('hide');
             }
         });
     })
