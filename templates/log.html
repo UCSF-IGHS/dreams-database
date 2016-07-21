@@ -49,7 +49,7 @@
                 <th>Text</th>
             </thead>
             <tbody id="dp-patient-list-body">
-                {% if logs.count > 0 %}
+                {% if items_in_page > 0 %}
                     {% for log in logs %}
                         <tr style="cursor: pointer; background-color: transparent;">
                             <td>{{ log.timestamp}}</td>
@@ -74,14 +74,14 @@
             {% endif %}
 
             <span class="current">
-                Page {{ logs.number }} of {{ logs.paginator.num_pages }}.
+                Page {{ logs.number }} of {{ logs.paginator.num_pages }}
             </span>
 
             {% if logs.has_next %}
                 <a href="?page={{ logs.next_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">next</a>
             {% endif %}
             <span>
-                . ( {{ items_in_page }} records listed )
+                 ( {{ items_in_page }} records listed )
             </span>
         </span>
     </div>
