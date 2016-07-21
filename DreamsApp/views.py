@@ -331,11 +331,22 @@ def get_intervention_types(request):
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
             response_data = {}
             category_code = request.POST.get('category_code')
-
+            current_client_id = request.POST.get('current_client_id', 0)
+            # get current client
+            current_client = Client.objects.filter(id__exact=current_client_id).first()
+            if current_client is None:
+                raise Exception
             # Get category by code and gets all related types
             # Returns an object with itypes property
+            given_intervention_type_ids = Intervention.objects.values_list('intervention_type', flat=True).\
+                filter(client=current_client).\
+                distinct()  # select distinct intervention type ids given to a user
             i_category = InterventionCategory.objects.get(code__exact=category_code)
-            i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id)
+            i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id,)\
+                .exclude(is_age_restricted=True, min_age__gt=current_client.age_at_enrollment)\
+                .exclude(is_age_restricted=True, max_age__lt=current_client.age_at_enrollment)\
+                .exclude(is_given_once=True, id__in=given_intervention_type_ids)
+            # get id's of interventions that can only be given once and are already given
             i_types = serializers.serialize('json', i_types)
             response_data["itypes"] = i_types
             return JsonResponse(response_data)

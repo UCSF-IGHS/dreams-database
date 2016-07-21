@@ -154,10 +154,10 @@ $(document).ready(function () {
          // check the mode... Can be new or edit
         var button = $(event.relatedTarget) // Button that triggered the modal
         var interventionCategoryCode = button.data('whatever')
-
+        var currentClientId = $('#current_client_id').val();
          // Check if this is null.
          if (interventionCategoryCode != null && interventionCategoryCode != "edit") { // This is a new mode
-             fetchRelatedInterventions(interventionCategoryCode)
+             fetchRelatedInterventions(interventionCategoryCode, currentClientId)
              modalMode = "new";
          }
          else{
@@ -279,7 +279,7 @@ $(document).ready(function () {
 
     }
 
-    function fetchRelatedInterventions(interventionCategoryCode) {
+    function fetchRelatedInterventions(interventionCategoryCode, currentClientId) {
         currentInterventionCategoryCode_Global = interventionCategoryCode
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -288,7 +288,8 @@ $(document).ready(function () {
             dataType: 'json',
             data : {
                 csrfmiddlewaretoken : csrftoken,
-                category_code : interventionCategoryCode//$('#i_types').val()
+                category_code : interventionCategoryCode,   //$('#i_types').val()
+                current_client_id: currentClientId
             },
             success : function(data) {
                 interventionTypes = $.parseJSON(data.itypes); // Gloabal variable
