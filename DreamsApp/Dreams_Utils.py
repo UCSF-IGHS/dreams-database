@@ -51,7 +51,7 @@ class DreamsEnrollmentExcelDatabase(object):
     def excel_enrollment_data(self):
         if self.validate_excel_document():
             try:
-                sql_statement = self.generate_insert_SQL(52, 60)
+                sql_statement = self.generate_insert_SQL(6, 50)
                 # print sql_statement
                 self.execute_SQL_Query(sql_statement)
 

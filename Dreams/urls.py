@@ -13,9 +13,14 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf.urls import url, handler400, handler403, handler404, handler500
 from django.contrib import admin
 from DreamsApp import views
+
+# handler400 = 'DreamsApp.views.bad_request'
+handler403 = 'DreamsApp.views.permission_denied'
+# handler404 = 'DreamsApp.views.page_not_found'
+# handler500 = 'DreamsApp.views.server_error'
 
 urlpatterns = [
     url(r'^$', views.user_login, name='login'),

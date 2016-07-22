@@ -122,7 +122,7 @@ $(document).ready(function () {
         // do an ajax post
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : '/clients/', // the endpoint
+            url : '/clients', // the endpoint
             type : "POST", // http method
             dataType: 'json',
             data:$('#clients_search_form').serialize(),
@@ -154,10 +154,10 @@ $(document).ready(function () {
          // check the mode... Can be new or edit
         var button = $(event.relatedTarget) // Button that triggered the modal
         var interventionCategoryCode = button.data('whatever')
-
+        var currentClientId = $('#current_client_id').val();
          // Check if this is null.
          if (interventionCategoryCode != null && interventionCategoryCode != "edit") { // This is a new mode
-             fetchRelatedInterventions(interventionCategoryCode)
+             fetchRelatedInterventions(interventionCategoryCode, currentClientId)
              modalMode = "new";
          }
          else{
@@ -193,22 +193,6 @@ $(document).ready(function () {
 
     $('.filter-enrollment').keyup(function (event) {
         return
-        /*
-            This function filters clients table on typing
-            It has been disabled for enrollment
-
-        // check which key is pressed
-        var rex = new RegExp($(this).val(), 'i');
-        $('#dp-patient-list-body tr').hide();
-        $('#dp-patient-list-body tr').filter(function () {
-            return rex.test($(this).text());
-        }).show();
-
-        if($('#dp-patient-list-body tr:visible').length < 1 || $('#dp-patient-list-body tr').length < 1)
-            $('#client_actions_alert').removeClass('hidden').addClass('alert-danger')
-                        .text("0 Clients found")
-                        .trigger('madeVisible')
-        */
     })
 
     $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
@@ -233,7 +217,7 @@ $(document).ready(function () {
         $('#intervention_category_code').val(intervention_category_code)
 
         $.ajax({
-            url : "/ivList/", // the endpoint
+            url : "/ivList", // the endpoint
             type : "POST", // http method
             dataType: 'json',
             data : {
@@ -295,16 +279,17 @@ $(document).ready(function () {
 
     }
 
-    function fetchRelatedInterventions(interventionCategoryCode) {
+    function fetchRelatedInterventions(interventionCategoryCode, currentClientId) {
         currentInterventionCategoryCode_Global = interventionCategoryCode
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : "/ivgetTypes/", // the endpoint
+            url : "/ivgetTypes", // the endpoint
             type : "POST", // http method
             dataType: 'json',
             data : {
                 csrfmiddlewaretoken : csrftoken,
-                category_code : interventionCategoryCode//$('#i_types').val()
+                category_code : interventionCategoryCode,   //$('#i_types').val()
+                current_client_id: currentClientId
             },
             success : function(data) {
                 interventionTypes = $.parseJSON(data.itypes); // Gloabal variable
@@ -546,23 +531,19 @@ $(document).ready(function () {
 
     }
 
-    $('#btn_save_intervention').click(function (event) {
-
-        var target = $(event.target)
-        var intervention_category_code = currentInterventionCategoryCode_Global
-        var table_id = "#interventions_" + intervention_category_code + "_table"
+    $('#intervention-entry-form').submit(function (event) {
+        event.preventDefault()
+        var intervention_category_code = currentInterventionCategoryCode_Global;
+        var table_id = "#interventions_" + intervention_category_code + "_table";
 
         if (intervention_category_code == null || intervention_category_code == "" || table_id == null || table_id == "")
-            return
-        event.preventDefault()
+            return false;
 
         // validate form
         if(!validateInterventionEntryForm())
-            return false
+            return false;
 
-        var postUrl = "/ivSave/" // by default
-        if(modalMode == "edit")
-            postUrl = "/ivUpdate/"
+        var postUrl = modalMode == "edit" ? "/ivUpdate" : "/ivSave"; // by default
 
         // do an ajax post
         var csrftoken = getCookie('csrftoken');
@@ -575,7 +556,7 @@ $(document).ready(function () {
                 var status = data.status
                 var message = data.message
                 var alert_id = '#action_alert_' + currentInterventionCategoryCode_Global
-                if(status == 'failed'){
+                if(status == 'fail'){
                     $(alert_id).removeClass('hidden').addClass('alert-danger')
                         .text(message)
                         .trigger('madeVisible')
@@ -587,9 +568,13 @@ $(document).ready(function () {
                     var iv_type = $.parseJSON(data.i_type)[0]
                     if(modalMode != "edit"){
                         insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, true)
+                        // Remove last table row
+                        console.log($(table_id + ' tr').last())
+                        $(table_id + ' tr').last().remove();
                         $(alert_id).removeClass('hidden').addClass('alert-success')
                             .text('Intervention has been Saved successfully!')
                             .trigger('madeVisible')
+
                     }
                     else{
                         // Add existing record on the view
@@ -619,13 +604,10 @@ $(document).ready(function () {
                     $('#intervention-modal').modal('hide');
                 }
             },
-
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
-                $(alert_id).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again')
-                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                $('#action_alert_' + currentInterventionCategoryCode_Global).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again: ' + errmsg)
+                console.log(xhr.status + " " +err + ": " + xhr.responseText); // provide a bit more info about the error to the console
             }
         });
 
@@ -633,12 +615,32 @@ $(document).ready(function () {
     });
 
     $('.dp-action-alert').on('madeVisible', function (event) {
+        var alert_space = $(event.target);
+        var timeout = alert_space.hasClass('alert-danger') ? 15000 : 5000;  // Errors display longer!
+        setTimeout(function(){
+            alert_space.removeClass('alert-success').removeClass('alert-danger')
+                .addClass('hidden')
+                .text("")
+        }, timeout);
+    })
+
+    $('tr').on('rowChangeMade', function (event) {
+        var tr = $(this).addClass('success');
+        //tr.css('background-color', '#5bc0de');
+
+        setTimeout(function(){
+            tr.removeClass('success');
+        }, 5000);
+    })
+
+    $('#user_credentials_alert').on('madeVisible_logout', function (event) {
         setTimeout(function(){
             var alert_space = $(event.target)
             alert_space.removeClass('alert-success').removeClass('alert-danger')
                 .addClass('hidden')
                 .text("")
-        }, 5000);
+            window.location.href = "/logout";
+        }, 1000);
     })
 
     $('#btn_delete_intervention_confirmation').click(function (event) {
@@ -647,45 +649,37 @@ $(document).ready(function () {
 
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : '/ivDelete/', // the endpoint
+            url : '/ivDelete', // the endpoint
             type : "POST", // http method
             dataType: 'json',
             data:$('#intervention_delete_form').serialize(),
             success : function(data) {
-                var result = $.parseJSON(data)
-                // remove row from table
-
                 var alert_id = '#action_alert_' + currentInterventionCategoryCode_Global;
-                if(result.result == "success"){
-                    $('#intervention_' + result.intervention_id).remove();
+                if(data.status == "success"){
+                    $('#intervention_' + data.intervention_id).remove();
                     $(alert_id).removeClass('hidden').addClass('alert-success')
                         .text('Intervention has been deleted successfully!')
                         .trigger('madeVisible')
-                    // check the number of remaining rows
                     var tbody_id = '#interventions_' + currentInterventionCategoryCode_Global + '_tbody'
                     if($(tbody_id + ' tr').length < 1){
-                        // No more record in the table
                         var col_span = $('#interventions_' + currentInterventionCategoryCode_Global + '_table' + ' thead tr')[0].cells.length
                         $(tbody_id).append("<tr><td colspan='" + col_span + "' style='text-align: center'>0 Interventions</td></tr>")
                     }
                 }
                 else
-                    $(alert_id).removeClass('hidden').addClass('alert-danger').text('You do not have the rights to ' +
-                        'delete this intervention because it was created by a ' +
-                        'different Implementing Partner').
-                    trigger('madeVisible')
-
+                    $(alert_id).removeClass('hidden')
+                        .addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
                 $('#confirm-delete-mordal').modal('hide');
-
             },
-
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
-                //$(alert_id).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again')
-                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-
+                $('#action_alert_' + currentInterventionCategoryCode_Global).removeClass('hidden')
+                        .addClass('alert-danger')
+                        .text(errmsg)
+                        .trigger('madeVisible')
+                $('#confirm-delete-mordal').modal('hide');
             }
         });
 
@@ -746,7 +740,7 @@ $(document).ready(function () {
         var client_id = client_id;
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : '/clientDelete/',
+            url : '/clientDelete',
             type : "GET",
             dataType: 'json',
             data:{'client_id':client_id},
@@ -865,14 +859,14 @@ $(document).ready(function () {
     $('#enrollment-form').submit(function (event) {
         event.preventDefault();
         var enrollment_form_submit_mode = 'new';
-        var post_url = '/clientSave/';
+        var post_url = '/clientSave';
         var clientForm = $(event.target);
         if(!validateClientForm(clientForm))
             return;
         var client_id = $('#enrollment-form #client_id').val();
         if(client_id != null && client_id != ''){
             enrollment_form_submit_mode = 'edit';
-            post_url = '/clientEdit/';
+            post_url = '/clientEdit';
         }
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -933,7 +927,7 @@ $(document).ready(function () {
         var county_code = setSelected == true ? c_code : $('#county_of_residence').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : "/getSubCounties/", // the endpoint
+            url : "/getSubCounties", // the endpoint
             type : "GET", // http method
             dataType: 'json',
             data : {
@@ -972,7 +966,7 @@ $(document).ready(function () {
         var sc_code = setSelected ? sc_code : $('#sub_county').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : "/getWards/", // the endpoint
+            url : "/getWards", // the endpoint
             type : "GET", // http method
             dataType: 'json',
             data : {
@@ -1035,8 +1029,274 @@ $(document).ready(function () {
     $('#audit-log-clear-filtes').click(function (event) {
         $('#filter-log-text').val('');
         $('#filter-log-date').val('');
-        window.location.href = "/logs/";
+        window.location.href = "/logs";
     })
+
+    /* users section */
+
+    $('.user_action').click(function (event) {
+        var btn = event.target;
+        var u_action = $(btn).data('user_action');
+        var ip_user_id = $(btn).data('ip_user_id');
+
+        var confirm_title = "";
+        var confirm_message = "";
+        var active = false
+        var callback_func = null;
+        switch (u_action){
+            case "deactivate_user":
+                confirm_title = 'Confirm User Deactivation Action'
+                confirm_message = 'Are you sure you want to Deactivate User?'
+                callback_func = toggleUserStatus
+                active = false;
+                break;
+            case "activate_user":
+                confirm_title = 'Confirm User Activation Action'
+                confirm_message = 'Are you sure you want to Activate User?'
+                callback_func = toggleUserStatus
+                active = true;
+                break;
+            case "delete_user":
+                confirm_title = 'Confirm User Delete Action'
+                confirm_message = 'Are you sure you want to Delete User? This action cannot be undone.'
+                callback_func = deleteUser
+                break;
+            default:
+                break;
+        }
+
+        $('#confirmationModal #frm_title').html(confirm_title);
+        $('#confirmationModal #frm_body > h4').html(confirm_message);
+        $('#confirmationModal').modal({show:true});
+        // Add delete event listener on confirmation
+        $('#confirmationModal #dataConfirmOK').click(function (event) {
+            callback_func(ip_user_id, active, btn);
+            $(event.target).off('click'); // Works like a charm
+        })
+    })
+
+    function toggleUserStatus(ip_user_id, activate, target) {
+        // deactivate using ajax
+            // No form, just a normal get
+        $.ajax({
+            url : '/admin/users/toggle_status',
+            type : "GET",
+            dataType: 'json',
+            data:{
+                'ip_user_id': ip_user_id,
+                'toggle': activate
+            },
+            success : function(data) {
+                if(data.status == "success"){
+                    // Show message
+                    $('#user_actions_alert').removeClass('hidden').addClass('alert-success')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                    // Change view
+                    $(target).addClass('hidden')// Hide current
+                    $(target).siblings('.hidden').removeClass('hidden') // Show sibling
+                    // change status text
+                    var tblData = $(target).parent().parent() // <td>
+                    tblData.siblings().eq(4).html(activate ? "Active" : "Disabled");
+                    tblRow = tblData.parent()  // <tr>
+                    tblRow.trigger('rowChangeMade')
+                }
+                else{
+                    // We wil also know what to do here
+                    $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
+                        .text('An error occurred while processing client details. Contact system administratior if this persists')
+                        .trigger('madeVisible')
+            }
+        });
+
+        // hide modal
+        $("#confirmationModal").modal('hide');
+    }
+
+    function deleteUser(ip_user_id, active, target) {
+        //alert("Deleting: " + ip_user_id)
+    }
+
+    $("#user-entry-form").validate({
+        rules: {
+            reg_role: "required",
+            reg_firstname: {
+                required: true,
+                minlength: 2
+            },
+            reg_lastname: {
+                required: true,
+                minlength: 2
+            },
+            reg_username: {
+                required: true,
+                minlength: 2
+            },
+            reg_email: {
+                required: true,
+                email: true
+            }
+        },
+        messages: {
+            reg_firstname: "* Please enter your First Name",
+            reg_lastname: "* Please enter your Last Name",
+            reg_username: {
+                required: "* Please enter a username",
+                minlength: "* Your username must consist of at least 2 characters"
+            },
+            reg_email: "* Please enter a valid email address"
+        },
+        highlight: function (element) {
+            //$(element).parent().addClass('text-danger')
+            //console.log();
+            $(element).parent().find('label.error').addClass('text-danger')
+        },
+        unhighlight: function (element) {
+            $(element).parent().find('label.error').removeClass('text-danger')
+        }
+    });
+
+    $('#reg_emailaddress').on('input', function (e) {
+        $('#reg_username').val($(e.target).val().split('@')[0])
+    })
+
+    $("#user-entry-form").submit(function (e) {
+        e.preventDefault();
+        if(!$(e.target).valid())
+            return false;
+
+        /* Form is valid. You can proceed to submit and register user. We are using an ajax call */
+        var csrftoken = getCookie('csrftoken');
+
+        $.ajax({
+            url : '/admin/users/save',
+            type : "POST",
+            dataType: 'json',
+            data:$('#user-entry-form').serialize(),
+            success : function(data) {
+                console.log(data.status + " " + data.message);
+                if(data.status == "success"){
+                    // Prepend added users! This needs to be done!
+                    $("#user-modal").modal('hide');
+                    window.location.href = "/admin/users";
+                }
+                else{
+                    $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                    $("#user-modal").modal('hide');
+                }
+            },
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
+                        .text('Error: ' + errmsg)
+                        .trigger('madeVisible')
+                $("#user-modal").modal('hide');
+            }
+        });
+    })
+    
+    $('#user-clear-filters').click(function (e) {
+        window.location.href = "/admin/users";
+    })
+
+    $("#user_change_password_form").validate({
+        rules: {
+            ch_username: {
+                required: true,
+                minlength: 2
+            },
+            ch_current_password: {
+                required: true,
+                minlength: 2
+            },
+            ch_new_password: {
+                required: true,
+                minlength: 2
+            },
+            ch_confirm_new_password: {
+                required: true,
+                minlength: 2,
+                equalTo: "#ch_new_password"
+            }
+        },
+        messages: {
+            ch_username: {
+                required: "* Please enter your Username",
+                minlength: "* Your username must be at least 2 characters long"
+            },
+            ch_current_password: {
+               required:  "* Please enter your current password",
+                minlength: "Your current password must be at least 2 characters long"
+            },
+            ch_new_password: {
+                required: "* Please enter your new password",
+                minlength: "Your new password must be at least 2 characters long"
+            },
+            ch_confirm_new_password: {
+                required: "* Please confirm your new password",
+                equalTo: "Please enter matching new and confirmation passwords"
+            }
+        },
+        highlight: function (element) {
+            $(element).parent().addClass('text-danger')
+        },
+        unhighlight: function (element) {
+            $(element).parent().removeClass('text-danger')
+        }
+    });
+
+    $("#user_change_password_form").submit(function (event) {
+        event.preventDefault()
+        if(!$(event.target).valid()) // Check if form is valid
+            return false;   // return, form is not valid
+
+        // Form is valid, do an ajax call
+        var csrftoken = getCookie('csrftoken');
+
+        $.ajax({
+            url : '/admin/users/change_cred',
+            type : "POST",
+            dataType: 'json',
+            data:$('#user_change_password_form').serialize(),
+            success : function(data) {
+                console.log(data.status + " " + data.message);
+                if(data.status == "success"){
+                    $('#user_credentials_alert').removeClass('hidden').addClass('alert-success')
+                        .text(data.message)
+                        .trigger('madeVisible_logout')
+                }
+                else{
+                    $('#user_credentials_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible_logout')
+                    $("#user-modal").modal('hide');
+                }
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#user_credentials_alert').removeClass('hidden').addClass('alert-danger')
+                        .text('An error occurred while processing client details. Contact system administratior if this persists')
+                        .trigger('madeVisible')
+            }
+        });
+    })
+    /* end of users section */
+
+    /* Custom error pages */
+
+    /* End Custom error pages */
+
 });
 
 

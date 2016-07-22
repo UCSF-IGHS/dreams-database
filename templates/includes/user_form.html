@@ -1,0 +1,62 @@
+{% load staticfiles %}
+
+<!-- Beginning modal-->
+        <!-- Modal -->
+    <div class="modal fade" id="user-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel">New User</h4>
+              </div>
+              <div class="modal-body">
+                <form id="user-entry-form" action="/admin/users/save/" method="post">
+                    {% csrf_token %}
+                    <!-- Hidden fields -->
+                    <input type="number" class="form-control hidden" id="reg_ip_user_id" name="ip_user_id"/>
+                    <!-- End Hidden fields -->
+                    <div class="form-group">
+                      <label for="role-select">Role</label>
+                      <select id="role" name="role" class="form-control validate-intervention-form-field" required>
+                          <option value="">Select Option</option>
+                          {% if perms.auth.can_manage_program_officers %}
+                            <option value="Program officer">Program Officer</option>
+                          {% endif %}
+                          {% if perms.auth.can_manage_data_entrants %}
+                            <option value="Data entrant">Data entrant</option>
+                          {% endif %}
+                      </select>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="firstname" class="control-label">First Name</label>
+                        <input type="text" class="form-control" id="reg_firstname" name="firstname" required minlength="2"></input>
+                    </div>
+
+                    <div class="form-group" >
+                        <label for="lastname" class="control-label">Last Name</label>
+                        <input type="text" class="form-control" id="reg_lastname" name="last-name" required minlength="2"> </input>
+                    </div>
+
+                    <div class="form-group" >
+                        <label for="emailaddress" class="control-label">Email Address</label>
+                        <input type="email" required class="form-control" id="reg_emailaddress" name="emailaddress"></input>
+                    </div>
+
+                    <div class="form-group" >
+                        <label for="username" class="control-label">Username</label>
+                        <input type="text" class="form-control" id="reg_username" name="username"></input>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="btn_cancel_user" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
+                        <button id="btn_save_user" type="submit" class="btn btn-sm btn-primary" > Save </button>
+                    </div>
+                </form>
+              </div>
+
+            </div>
+          </div>
+    </div>
+    <!-- End modal-->

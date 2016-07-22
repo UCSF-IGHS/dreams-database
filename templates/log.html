@@ -3,85 +3,87 @@
 
 {% block content %}
 
-    <div>
-        <div class="gen-font">
-            <div style="margin-top: 25px;">
-                <h4>DREAMS Audit Log</h4>
+    <div class="statusBox" >
+        <div class="gen-font" style="margin-bottom: 2px;">
+            <h4>DREAMS Audit Log</h4>
+        </div>
+        <div class="floatRightLinks" style="margin-bottom: 2px;">
+            <div class="rightItem">
+                <form id="filter-log-form" class="form-inline" method="post" action="/logs">
+                    {% csrf_token %}
+                    <div class="form-group" id="text-div">
+                        <input type="text" class="form-control" name="filter-log-text" id="filter-log-text" placeholder="Filter text" value="{{ filter_text }}" style="width: 300px;">
+                    </div>
+                    <div class="form-group  has-feedback" style="margin-top: 10px;">
+                         <input type="text" class="form-control " id="filter-log-date" name="filter-log-date" value="{{ filter_date }}" placeholder="Select filter date" style="cursor: pointer;">
+                            <span class="add-on"><i class="icon-th"></i></span></p>
+                         <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                         <script>
+                            $(function() {
+                              $( "#filter-log-date" ).datepicker({
+                                  dateFormat: 'yy-mm-dd',
+                                  changeMonth: true,
+                                  changeYear: true
+                              });
+                            });
+                        </script>
+                    </div>
+                    <div class="form-group " role="group" aria-label="...">
+                        <button type="submit" class="btn btn-primary" style="height: 32px;"><span class="glyphicon glyphicon-filter"></span> Filter logs</button>
+                    </div>
+                    <div class="form-group hidden" role="group"  aria-label="...">
+                        <button class="btn btn-default" title="Clear filters" id="audit-log-clear-filtes" style="height: 32px;"><span class="glyphicon glyphicon-remove"></span> Clear filters</button>
+                    </div>
+                </form>
+                <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Filter DREAMS logs by typing text and/or selecting date in the input above.</span>
             </div>
-                <div class="filter-log-wrapper">
-                    <form id="filter-log-form" class="form-inline" method="post" action="/logs/">
-                        {% csrf_token %}
-                        <div class="form-group form-group-sm" id="text-div">
-                            <label for="exampleInputName2" style="font-weight: normal;">Filter: &nbsp;&nbsp;&nbsp;</label>
-                            <input type="text" class="form-control" name="filter-log-text" id="filter-log-text" placeholder="Type text" value="{{ filter_text }}">
-                        </div>
-                        <div class="form-group form-group-sm has-feedback" id="date-div">
-                             <input type="text" class="form-control " id="filter-log-date" name="filter-log-date" value="{{ filter_date }}" placeholder="Select date" style="cursor: pointer;">
-                                <span class="add-on"><i class="icon-th"></i></span></p>
-                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
-                             <script>
-                                $(function() {
-                                  $( "#filter-log-date" ).datepicker({
-                                      dateFormat: 'yy-mm-dd',
-                                      changeMonth: true,
-                                      changeYear: true
-                                  });
-                                });
-                            </script>
-                        </div>
-                        <div class="btn-group" role="group" aria-label="...">
-                            <button type="submit" class="btn btn-primary btn-sm">Filter Logs</button>
-                            <button class="btn btn-default btn-sm" title="Clear filters" id="audit-log-clear-filtes"><span class="glyphicon glyphicon-remove"></span></button>
-                        </div>
-                    </form>
-                </div>
         </div>
-
-        <div class="audit-log-section" style="max-height: calc(100vh - 355px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
-
-            <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table" style="margin: 0px;">
-                <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
-                    <th>Timestamp</th>
-                    <th>User Id</th>
-                    <th>Table</th>
-                    <th>Action</th>
-                    <th>Text</th>
-                </thead>
-                <tbody id="dp-patient-list-body">
-                    {% if logs.count > 0 %}
-                        {% for log in logs %}
-                            <tr style="cursor: pointer; background-color: transparent;">
-                                <td>{{ log.timestamp}}</td>
-                                <td>{{ log.user_id }}</td>
-                                <td>{{ log.table }}</td>
-                                <td>{{ log.action }}</td>
-                                <td>{% if log.search_text != None %} {{ log.search_text }} {% endif %}</td>
-                            </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="5" class="table-message">0 Records found.</td>
+    </div>
+    <div class="audit-log-section" style="max-height: calc(100vh - 490px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
+        <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table" style="margin: 0px;">
+            <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
+                <th>Timestamp</th>
+                <th>User Id</th>
+                <th>Table</th>
+                <th>Action</th>
+                <th>Text</th>
+            </thead>
+            <tbody id="dp-patient-list-body">
+                {% if items_in_page > 0 %}
+                    {% for log in logs %}
+                        <tr style="cursor: pointer; background-color: transparent;">
+                            <td>{{ log.timestamp}}</td>
+                            <td>{{ log.user_id }}</td>
+                            <td>{{ log.table }}</td>
+                            <td>{{ log.action }}</td>
+                            <td>{% if log.search_text != None %} {{ log.search_text }} {% endif %}</td>
                         </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-
-        </div>
-        <div class="pagination">
-            <span class="step-links">
-                {% if logs.has_previous %}
-                    <a href="?page={{ logs.previous_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">previous</a>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="table-message">0 Records found.</td>
+                    </tr>
                 {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination">
+        <span class="step-links">
+            {% if logs.has_previous %}
+                <a href="?page={{ logs.previous_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">previous</a>
+            {% endif %}
 
-                <span class="current">
-                    Page {{ logs.number }} of {{ logs.paginator.num_pages }}.
-                </span>
-
-                {% if logs.has_next %}
-                    <a href="?page={{ logs.next_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">next</a>
-                {% endif %}
+            <span class="current">
+                Page {{ logs.number }} of {{ logs.paginator.num_pages }}
             </span>
-        </div>
+
+            {% if logs.has_next %}
+                <a href="?page={{ logs.next_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">next</a>
+            {% endif %}
+            <span>
+                 ( {{ items_in_page }} records listed )
+            </span>
+        </span>
     </div>
 
 

@@ -161,6 +161,10 @@ class InterventionType(models.Model):
     has_pregnancy_result = models.BooleanField(default=False, verbose_name='Intervention collects Pregnancy Result')
     has_ccc_number = models.BooleanField(default=False, verbose_name='Intervention collects CCC details')
     has_no_of_sessions = models.BooleanField(default=False, verbose_name='Intervention collects No. of sessions')
+    min_age = models.IntegerField(verbose_name='Minimum AGYW Age', default=0, null=False, blank=False)
+    max_age = models.IntegerField(verbose_name='Maximum AGYW Age', default=0, null=False, blank=False)
+    is_age_restricted = models.BooleanField(default=False, verbose_name='Intervention is Age Restricted')
+    is_given_once = models.BooleanField(default=False, verbose_name='Intervention is given Once')
 
     def __str__(self):
         return '{}'.format(self.name)

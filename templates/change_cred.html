@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    {% include 'includes/user_form.html' %}
+    {% include 'includes/confirn_modal.html' %}
+
+    <div class="statusBox"  style="">
+        <div class="gen-font">
+            <h4>DREAMS User: Change Password &nbsp;</h4>
+        </div>
+        <div class="floatRightLinks">
+            <div class="rightItem">
+                <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Fill current and new details then click Submit to change your password.</span>
+            </div>
+        </div>
+    </div>
+
+    <div class=" alert hidden dp-action-alert fade in" id="user_credentials_alert" role="alert" style="margin-bottom: 10px;"></div>
+
+    <div class="div_center_wrapper" style="text-align: center">
+        <div class="div_center_wrapper_inner" style="display: inline-block;">
+
+            <form id="user_change_password_form" style="width: 360px; text-align: left;" method="post" action="/admin/users/change_cred/">
+                {% csrf_token %}
+                <h4 style="text-align: left;">Enter details below.</h4>
+              <div class="form-group">
+                <input type="text" class="form-control" id="ch_username" required minlength="2" name="ch_username" placeholder="Username" readonly value="{{ user.get_username }}" >
+              </div>
+              <div class="form-group">
+                <input type="password" class="form-control" id="ch_current_password" required minlength="2" name="ch_current_password" placeholder="Current Password">
+              </div>
+              <div class="form-group">
+                <input type="password" class="form-control" id="ch_new_password" required minlength="2" name="ch_new_password" placeholder="New Password">
+              </div>
+              <div class="form-group">
+                <input type="password" class="form-control" id="ch_confirm_new_password" required minlength="2" name="ch_confirm_new_password" placeholder="Confirm New Password">
+              </div>
+              <div class="form-group">
+                <p class="text-info">Submit to change your password</p>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block btn-sm">Submit</button>
+            </form>
+        </div>
+    </div>
+
+
+
+
+{% endblock %}
