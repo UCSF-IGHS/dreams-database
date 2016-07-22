@@ -693,11 +693,11 @@ def upload_dreams_excel_database(request):
             tmp_file_path = excel_db.document_path
             if tmp_file_path is not None:
 
-                print excel_db.excel_enrollment_data()
+                excel_db.excel_enrollment_data()
             else:
                 print 'Temp file not created'
 
-            return HttpResponseRedirect('test')
+            return render(request, 'excel_upload_progress.html')
     else:
         form = EnrollmentDocumentUpload()
         return render(request, 'excel_db_upload.html', {'form': form})
