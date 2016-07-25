@@ -117,10 +117,10 @@ def clients(request):
                 search_value = request.POST.get('searchValue', '')
 
                 if request.user.has_perm('auth.can_search_client_by_name'):
-                    search_result = Client.objects.filter(Q(dreams_id__exact=search_value) |
-                                                          Q(first_name__exact=search_value) |
-                                                          Q(last_name__exact=search_value) |
-                                                          Q(middle_name__exact=search_value))
+                    search_result = Client.objects.filter(Q(dreams_id__in=search_value.split(" ")) |
+                                                          Q(first_name__in=search_value.split(" ")) |
+                                                          Q(last_name__in=search_value.split(" ")) |
+                                                          Q(middle_name__in=search_value.split(" ")))
                 else:
                     search_result = Client.objects.filter(dreams_id__exact=search_value)
                 # check if user can see clients enrolled more than a week ago
@@ -672,16 +672,16 @@ def logs(request):
                 filter_date = request.GET.get('filter-log-date', '')
                 # getting logs
                 if filter_date == '':
-                    logs = Audit.objects.filter(Q(table__contains=filter_text) |
-                                                Q(action__contains=filter_text) |
-                                                Q(search_text__contains=filter_text)
+                    logs = Audit.objects.filter(Q(table__in=filter_text.split(" ")) |
+                                                Q(action__in=filter_text.split(" ")) |
+                                                Q(search_text__in=filter_text.split(" "))
                                                 ).order_by('-timestamp')
                 else:
                     yr, mnth, dt = filter_date.split('-')
                     constructed_date = date(int(yr), int(mnth), int(dt))
-                    logs = Audit.objects.filter((Q(table__contains=filter_text) |
-                                                 Q(action__contains=filter_text) |
-                                                 Q(search_text__contains=filter_text)) &
+                    logs = Audit.objects.filter((Q(table__in=filter_text.split(" ")) |
+                                                 Q(action__in=filter_text.split(" ")) |
+                                                 Q(search_text__in=filter_text.split(" "))) &
                                                 Q(timestamp__year=constructed_date.year,
                                                   timestamp__month=constructed_date.month,
                                                   timestamp__day=constructed_date.day)
@@ -738,18 +738,28 @@ def logs(request):
 def users(request):
     if request.user.is_authenticated() and request.user.is_active and request.user.has_perm('auth.can_manage_users'):
         try:
+            items_per_page = 15
             if request.method == 'GET':
                 page = request.GET.get('page', 1)
                 filter_text = request.GET.get('filter-user-text', '')
+                ip_user_list = ImplementingPartnerUser.objects.filter(Q(user__first_name__contains=filter_text) |
+                                                                      Q(user__last_name__contains=filter_text) |
+                                                                      Q(user__username__contains=filter_text)
+                                                                      ).order_by('-user__date_joined')
             elif request.method == 'POST':
                 page = request.POST.get('page', 1)
                 filter_text = request.POST.get('filter-user-text', '')
             # get list of users with the filter incorporated
-            items_per_page = 15
-            ip_user_list = ImplementingPartnerUser.objects.filter(Q(user__first_name__contains=filter_text) |
-                                                                  Q(user__last_name__contains=filter_text)|
-                                                                  Q(user__username__contains=filter_text)
-                                                                  ).order_by('-user__date_joined')
+                if filter_text is not u'' and filter_text is not " ":
+                    ip_user_list = ImplementingPartnerUser.objects.filter(Q(user__first_name__in=filter_text.split(" ")) |
+                                                                          Q(user__last_name__in=filter_text.split(" ")) |
+                                                                          Q(user__username__in=filter_text.split(" "))
+                                                                          ).order_by('-user__date_joined')
+                else:
+                    ip_user_list = ImplementingPartnerUser.objects.filter(Q(user__first_name__contains=filter_text) |
+                                                                          Q(user__last_name__contains=filter_text) |
+                                                                          Q(user__username__contains=filter_text)
+                                                                          ).order_by('-user__date_joined')
             # filter ip specific users if user is not allowed to see other ip data
             if not request.user.has_perm('auth.can_view_other_ip_data'):
                 ip_user_list = ip_user_list.filter(implementing_partner=request.user.implementingpartneruser.implementing_partner)
@@ -822,9 +832,9 @@ def save_user(request):
 
 
 def toggle_status(request):
-    if request.method == 'GET' and request.user is not None and request.user.is_authenticated() \
-            and request.user.is_active and request.user.has_perm('auth.can_manage_users'):
-        try:
+    try:
+        if request.method == 'GET' and request.user is not None and request.user.is_authenticated()\
+                and request.user.is_active and request.user.has_perm('auth.can_manage_users'):
             if request.method == 'GET':
                 ip_user_id = request.GET.get('ip_user_id', 0)
                 toggle = str(request.GET.get('toggle', False))
@@ -834,25 +844,34 @@ def toggle_status(request):
                     # Get user object
                     user = User.objects.filter(id__exact=ip_user.user.id).first()
                     if user is not None:
-                        user.is_active = toggle in ["True", "true", 1, "Yes", "yes", "Y", "y", "T", "t"]
-                        user.save()
-                        # return success message
-                        response_data = {
-                            'status': 'success',
-                            'message': 'User status changed successfully'
-                        }
-                        return JsonResponse(response_data)
-            # Toggle not successful. Return error message
-            response_data = {
-                'status': 'fail',
-                'message': 'An error occurred while changing User status.'
-            }
-            return JsonResponse(response_data)
-        except Exception as e:
-            tb = traceback.format_exc()
-            return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
-    else:
-        raise PermissionDenied
+                        # check if user is same as requesting user
+                        if user.id == request.user.id:
+                            raise Exception('Error: you cannot deactivate your own account. '
+                                            'Please contact system admin for assistance')
+                        else:
+                            user.is_active = toggle in ["True", "true", 1, "Yes", "yes", "Y", "y", "T", "t"]
+                            user.save()
+                            # return success message
+                            response_data = {
+                                'status': 'success',
+                                'message': 'User status changed successfully'
+                            }
+                            return JsonResponse(response_data)
+                    else:
+                        raise Exception('Error: you did not select a valid user. Please try again')
+                else:
+                    raise Exception('Error: you did not select a valid user. Please try again')
+            else:
+                raise Exception("Invalid user request!")
+        else:
+            raise Exception('Error: You do not have permission to perform this operation. Please contact your server '
+                            'administrator for assistance')
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
 
 
 def change_cred(request):

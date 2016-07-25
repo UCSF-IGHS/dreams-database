@@ -1102,7 +1102,6 @@ $(document).ready(function () {
                     tblRow.trigger('rowChangeMade')
                 }
                 else{
-                    // We wil also know what to do here
                     $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
                         .text(data.message)
                         .trigger('madeVisible')
@@ -1112,7 +1111,7 @@ $(document).ready(function () {
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
                 $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
-                        .text('An error occurred while processing client details. Contact system administratior if this persists')
+                        .text(errmsg)
                         .trigger('madeVisible')
             }
         });
