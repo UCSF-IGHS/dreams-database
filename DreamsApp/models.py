@@ -136,6 +136,31 @@ class Client(models.Model):
     def __str__(self):
         return '{} {} {}'.format(self.first_name, self.middle_name, self.last_name)
 
+    def get_full_name(self):
+        try:
+            f_name = '' if not self.first_name else self.first_name
+            m_name = ' ' if not self.middle_name else self.middle_name
+            l_name = ' ' if not self.last_name else self.last_name
+            return f_name + ' ' + m_name + ' ' + l_name
+        except:
+            return "Invalid Client Name"
+
+    def get_age_at_enrollment(self):
+        try:
+            return self.date_of_enrollment.year - self.date_of_birth.year - (
+            (self.date_of_enrollment.month, self.date_of_enrollment.day) < (
+                self.date_of_birth.month, self.date_of_birth.day))
+        except:
+            return 10
+
+    def get_current_age(self):
+        try:
+            return datetime.now().year - self.date_of_birth.year - (
+                (datetime.now().month, datetime.now().day) < (
+                    self.date_of_birth.month, self.date_of_birth.day))
+        except:
+            return 10
+
     class Meta:
         verbose_name = 'Client'
         verbose_name_plural = 'Clients'

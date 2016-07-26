@@ -43,7 +43,6 @@ $(document).ready(function () {
         event.preventDefault();
         // Do ajax for login
         var csrftoken = getCookie('csrftoken');
-        console.log(csrftoken);
         $.ajax({
             url : '/', // the endpoint
             type : "POST", // http method
@@ -108,7 +107,6 @@ $(document).ready(function () {
         $('#confirmationModal').modal({show:true});
         // Add delete event listener on confirmation
         $('#confirmationModal #dataConfirmOK').click(function (event) {
-            console.log(clientId);
             deleteClient(clientId);
         })
     })
@@ -133,7 +131,10 @@ $(document).ready(function () {
                 clients_tbody.empty();
                 if(clients.length > 0){
                     $.each(clients, function (index, client) {
-                        insertClientTableRow(clients_tbody, client.pk,client.fields.dreams_id, client.fields.first_name, client.fields.last_name, client.fields.middle_name, client.fields.date_of_enrollment, true, client.fields.is_superuser);
+                        f_name = client.fields.first_name == null ? ' ' : client.fields.first_name
+                        m_name = client.fields.middle_name == null ? ' ' : client.fields.middle_name
+                        l_name = client.fields.last_name == null ? ' ' : client.fields.last_name
+                        insertClientTableRow(clients_tbody, client.pk,client.fields.dreams_id, f_name, l_name, m_name, client.fields.date_of_enrollment, true, client.fields.is_superuser);
                     })
                 }
                 else
@@ -197,6 +198,19 @@ $(document).ready(function () {
 
     $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
 
+    function getHTSResult(hts_result_list, iv_type_has_hts_result, iv_hts_result_id) {
+        var hts_name = ""
+        if(!iv_type_has_hts_result)
+            return hts_name;
+        else{
+            $.each(hts_result_list, function (index, hts_result) {
+                if(hts_result.pk == iv_hts_result_id)
+                    hts_name =  hts_result.fields.name;
+            })
+        }
+        return hts_name;
+    }
+
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         //Load tabs
         var target = $(e.target)    // this is the tab anchor.. Get the table
@@ -228,11 +242,10 @@ $(document).ready(function () {
             success : function(data) {
                 var ivs = $.parseJSON(data.interventions)
                 var ivTypes = $.parseJSON(data.iv_types)
+                var hts_results = $.parseJSON(data.hts_results)
                 // Clear table
                 $(table_id + '  tbody').empty();
-                // populate table
                 $.each(ivs, function(index, iv){
-                    // Get corresponding iv_type
                     var iv_type = {}
                     $.each(ivTypes, function (index, obj) {
 
@@ -241,8 +254,10 @@ $(document).ready(function () {
                             return false
                         }
                     })
-                    insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, false)
-
+                    var hts_result = getHTSResult(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result)
+                    iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
+                    iv.fields.no_of_sessions_attended = iv.fields.no_of_sessions_attended == null ? "" : iv.fields.no_of_sessions_attended;
+                    insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, false)
                 });
 
                 // hide spinner
@@ -253,7 +268,7 @@ $(document).ready(function () {
                 // check if no records and insert empty table message
                 if(new_row_count < 1){
                     var cols = $(table_id).data('cols');
-                    $(table_id + '  tbody').append("<tr><td  colspan='"+ cols +"' class='table-message'> No interventions found</td></tr>")
+                    $(table_id + '  tbody').append("<tr class='zero_message_row'><td  colspan='"+ cols +"' class='table-message'> No interventions found</td></tr>")
                 }
 
 
@@ -282,6 +297,7 @@ $(document).ready(function () {
     function fetchRelatedInterventions(interventionCategoryCode, currentClientId) {
         currentInterventionCategoryCode_Global = interventionCategoryCode
         var csrftoken = getCookie('csrftoken');
+        $('#intervention-entry-form .processing-indicator').removeClass('hidden')
         $.ajax({
             url : "/ivgetTypes", // the endpoint
             type : "POST", // http method
@@ -294,13 +310,13 @@ $(document).ready(function () {
             success : function(data) {
                 interventionTypes = $.parseJSON(data.itypes); // Gloabal variable
                 setInterventionTypesSelect(interventionTypes)
+                $('#intervention-entry-form .processing-indicator').addClass('hidden')
             },
-
-            // handle a non-successful response
             error : function(xhr,errmsg,err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
                     " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                $('#intervention-entry-form .processing-indicator').addClass('hidden')
             }
         });
     }
@@ -418,7 +434,7 @@ $(document).ready(function () {
         return []
     }
 
-    function insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, top) { // top is a boolean for either position to insert the record
+    function insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, top) { // top is a boolean for either position to insert the record
         var tabpanel_id = '#behavioural-interventions'
         switch (intervention_category_code){
             case 1001:
@@ -429,9 +445,9 @@ $(document).ready(function () {
                 break;
             case 2001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='hts_result'> "+  iv.fields.hts_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='hts_result'> "+  hts_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='hts_result'> "+  iv.fields.hts_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number+ "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='hts_result'> "+  hts_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number+ "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 tabpanel_id = '#biomedical-interventions';
                 break;
             case 3001:
@@ -566,25 +582,23 @@ $(document).ready(function () {
                 else{
                     var iv = $.parseJSON(data.intervention)[0]
                     var iv_type = $.parseJSON(data.i_type)[0]
-                    if(modalMode != "edit"){
-                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, true)
-                        // Remove last table row
-                        console.log($(table_id + ' tr').last())
-                        $(table_id + ' tr').last().remove();
+                    var hts_results = $.parseJSON(data.hts_results)
+                    var hts_result = getHTSResult(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result)
+                    iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
+                    iv.fields.no_of_sessions_attended = iv.fields.no_of_sessions_attended == null ? "" : iv.fields.no_of_sessions_attended;
+                    if(modalMode != "insert"){
+                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, true)
+                        $(table_id + ' tr.zero_message_row').remove(); // Remove the Zero message tr
                         $(alert_id).removeClass('hidden').addClass('alert-success')
                             .text('Intervention has been Saved successfully!')
                             .trigger('madeVisible')
-
                     }
                     else{
-                        // Add existing record on the view
-                        // get table name and row id
                         var row_id = 'intervention_' + iv.pk
                         $('#' + row_id + ' .intervention_date').text(iv.fields.intervention_date)
-
                         // check for the rest of the fields
                         if(iv_type.fields.has_hts_result)
-                            $('#' + row_id + ' .hts_result').text(iv.fields.hts_result)
+                            $('#' + row_id + ' .hts_result').text(hts_result)
                         // ccc number
                         if(iv_type.fields.has_ccc_number)
                             $('#' + row_id + ' .client_ccc_number').text(iv.fields.client_ccc_number)
@@ -663,7 +677,7 @@ $(document).ready(function () {
                     var tbody_id = '#interventions_' + currentInterventionCategoryCode_Global + '_tbody'
                     if($(tbody_id + ' tr').length < 1){
                         var col_span = $('#interventions_' + currentInterventionCategoryCode_Global + '_table' + ' thead tr')[0].cells.length
-                        $(tbody_id).append("<tr><td colspan='" + col_span + "' style='text-align: center'>0 Interventions</td></tr>")
+                        $(tbody_id).append("<tr class='zero_message_row'><td colspan='" + col_span + "' style='text-align: center'>0 Interventions</td></tr>")
                     }
                 }
                 else
@@ -683,7 +697,6 @@ $(document).ready(function () {
             }
         });
 
-        //console.log(intervention)
     })
 
     function validateClientForm(clientForm) {
@@ -885,8 +898,6 @@ $(document).ready(function () {
                         insertClientTableRow(clients_tbody, result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, true)
                     }
                     else{
-                        // Update relevant table line without reloading the page
-                        console.log(result)
                         $('#clients_row_' + result.client_id).remove(); // remove row
                         // Insert updated value
                         insertClientTableRow($('#dp-patient-list-body'), result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, $('#is_superuser').val());
@@ -1154,8 +1165,6 @@ $(document).ready(function () {
             reg_email: "* Please enter a valid email address"
         },
         highlight: function (element) {
-            //$(element).parent().addClass('text-danger')
-            //console.log();
             $(element).parent().find('label.error').addClass('text-danger')
         },
         unhighlight: function (element) {
@@ -1181,7 +1190,6 @@ $(document).ready(function () {
             dataType: 'json',
             data:$('#user-entry-form').serialize(),
             success : function(data) {
-                console.log(data.status + " " + data.message);
                 if(data.status == "success"){
                     // Prepend added users! This needs to be done!
                     $("#user-modal").modal('hide');
@@ -1261,14 +1269,15 @@ $(document).ready(function () {
 
         // Form is valid, do an ajax call
         var csrftoken = getCookie('csrftoken');
-
+        // start spinner
+        $('#user_change_password_form .processing-indicator').removeClass('hidden')
+        $('#user_change_password_form .btn-toggle-enabled').addClass('disabled')
         $.ajax({
             url : '/admin/users/change_cred',
             type : "POST",
             dataType: 'json',
             data:$('#user_change_password_form').serialize(),
             success : function(data) {
-                console.log(data.status + " " + data.message);
                 if(data.status == "success"){
                     $('#user_credentials_alert').removeClass('hidden').addClass('alert-success')
                         .text(data.message)
@@ -1280,6 +1289,8 @@ $(document).ready(function () {
                         .trigger('madeVisible_logout')
                     $("#user-modal").modal('hide');
                 }
+                $('#user_change_password_form .processing-indicator').addClass('hidden')
+                $('#user_change_password_form .btn-toggle-enabled').removeClass('disabled')
             },
 
             // handle a non-successful response
@@ -1287,8 +1298,11 @@ $(document).ready(function () {
                 $('#user_credentials_alert').removeClass('hidden').addClass('alert-danger')
                         .text('An error occurred while processing client details. Contact system administratior if this persists')
                         .trigger('madeVisible')
+                $('#user_change_password_form .processing-indicator').addClass('hidden')
+                $('#user_change_password_form .btn-toggle-enabled').removeClass('disabled')
             }
         });
+
     })
     /* end of users section */
 
