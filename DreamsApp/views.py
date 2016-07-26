@@ -342,9 +342,11 @@ def get_intervention_types(request):
                 filter(client=current_client).\
                 distinct()  # select distinct intervention type ids given to a user
             i_category = InterventionCategory.objects.get(code__exact=category_code)
+            # compute age at enrollment
+            current_age = current_client.get_current_age()
             i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id,)\
-                .exclude(is_age_restricted=True, min_age__gt=current_client.age_at_enrollment)\
-                .exclude(is_age_restricted=True, max_age__lt=current_client.age_at_enrollment)\
+                .exclude(is_age_restricted=True, min_age__gt=current_age)\
+                .exclude(is_age_restricted=True, max_age__lt=current_age)\
                 .exclude(is_given_once=True, id__in=given_intervention_type_ids)
             # get id's of interventions that can only be given once and are already given
             i_types = serializers.serialize('json', i_types)
@@ -401,7 +403,8 @@ def save_intervention(request):
                         'status': 'success',
                         'message': 'Intervention successfully saved',
                         'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
-                        'i_type': serializers.serialize('json', [i_type])
+                        'i_type': serializers.serialize('json', [i_type]),
+                        'hts_results': serializers.serialize('json', HTSResult.objects.all())
                     }
                     return JsonResponse(response_data)
                 else:   # Invalid Intervention Type
@@ -448,12 +451,13 @@ def get_intervention_list(request):
 
             if not request.user.has_perm('auth.can_view_records_older_than_a_week'):
                 list_of_interventions = list_of_interventions.filter(date_created__range=
-                                                                     [datetime.now() - timedelta(days=7),
+                                                                     [datetime.now() - timedelta(days=31),
                                                                       datetime.now()]
                                                                      )
             response_data = {
                 'iv_types': serializers.serialize('json', list_of_related_iv_types),
-                'interventions': serializers.serialize('json', list_of_interventions)
+                'interventions': serializers.serialize('json', list_of_interventions),
+                'hts_results': serializers.serialize('json', HTSResult.objects.all())
             }
             return JsonResponse(response_data)
         else:
@@ -529,7 +533,8 @@ def update_intervention(request):
                             'status': 'success',
                             'message': 'Intervention successfully updated',
                             'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
-                            'i_type': serializers.serialize('json', [i_type])
+                            'i_type': serializers.serialize('json', [i_type]),
+                            'hts_results': serializers.serialize('json', HTSResult.objects.all())
                         }
                     else:
                         # Intervention does not belong to Implementing partner. Send back error message
