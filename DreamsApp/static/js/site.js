@@ -213,7 +213,7 @@ $(document).ready(function () {
 
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         //Load tabs
-        var target = $(e.target)    // this is the tab anchor.. Get the table
+        var target = $(e.target)
         var panel_id = target.attr('href')
         var intervention_category_code = target.data("intervention_category_code");
         var table_id = $(this).data("tab_intervention_table_id")
