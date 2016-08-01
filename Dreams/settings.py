@@ -132,3 +132,13 @@ TEMPLATE_DIRS = (
 # Use manage.py loaddata fixture-name
 # e.g manage.py loaddata initial_data.json
 FIXTURE_DIRS = ()
+
+# mail server settings
+DEFAULT_FROM_EMAIL = 'dreams.globalhealthapp@gmail.com'
+SERVER_EMAIL = 'dreams.globalhealthapp@gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'dreams.globalhealthapp@gmail.com'
+EMAIL_HOST_PASSWORD = 'dreamsdev123#'
+

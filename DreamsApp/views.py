@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseServerError
 from django.core.exceptions import PermissionDenied
+from django.core.mail import EmailMessage
 from django.core import serializers
 from django.core.exceptions import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -11,6 +12,7 @@ import traceback
 from datetime import date, timedelta
 from django.db.models import Q
 from DreamsApp.models import *
+from Dreams import settings
 
 
 def get_enrollment_form_config_data():
@@ -811,9 +813,18 @@ def save_user(request):
                             user=user,
                             implementing_partner=request.user.implementingpartneruser.implementing_partner
                         )
+                        # send email with user credentials
+                        msg = EmailMessage('DREAMS Credentials',
+                                           'Dear ' + user.first_name + ',\n\n Welcome to DREAMS. You can login to your account at http://dreams-dev.globalhealthapp.net.'
+                                                                       '\n\n\t Username: ' + username +
+                                           '\n\t Password:  PTZ%hz^+&mny+9Av'
+                                           '\n\nThank you,'
+                                           '\nDREAMS Administrator',
+                                           to=[email])
+                        msg.send()
                         response_data = {
                             'status': 'success',
-                            'message': 'User successfully saved',
+                            'message': 'User successfully saved. Your temporary password has been sent to ' + email,
                             'ip_users': serializers.serialize('json', [ip_user, ])
                         }
                         return JsonResponse(response_data)
