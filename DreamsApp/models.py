@@ -190,6 +190,7 @@ class InterventionType(models.Model):
     max_age = models.IntegerField(verbose_name='Maximum AGYW Age', default=0, null=False, blank=False)
     is_age_restricted = models.BooleanField(default=False, verbose_name='Intervention is Age Restricted')
     is_given_once = models.BooleanField(default=False, verbose_name='Intervention is given Once')
+    is_specified = models.BooleanField(default=False, verbose_name='Intervention is specified')
 
     def __str__(self):
         return '{}'.format(self.name)
@@ -227,6 +228,7 @@ class Intervention(models.Model):
     intervention_date = models.DateField()
     client = models.ForeignKey(Client)
     intervention_type = models.ForeignKey(InterventionType, null=True, blank=True)
+    name_specified = models.CharField(max_length=250, null=True, blank=True)
     hts_result = models.ForeignKey(HTSResult, null=True, blank=True)
     pregnancy_test_result = models.ForeignKey(PregnancyTestResult, null=True, blank=True)
     client_ccc_number = models.CharField(max_length=11, blank=True, null=True)
@@ -239,6 +241,9 @@ class Intervention(models.Model):
     changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
     implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True,
                                              related_name='implementing_partner')
+
+    def get_name_specified(self):
+        return self.name_specified if self.name_specified else ''
 
     def save(self,user_id=None, action=None, *args, **kwargs): # pass audit to args as the first object
         super(Intervention, self).save(*args, **kwargs)
