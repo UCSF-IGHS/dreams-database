@@ -97,9 +97,11 @@
             </span>
         </span>
         <br>
+        {% if user.is_superuser %}
         <span style="margin-top: 10px;">
             <button id="btn_show_user_modal" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#user-modal" data-toggle="tooltip" title="New User" ><i class="glyphicon glyphicon-plus text-default"></i> Add user</button>
         </span>
+        {% endif %}
 
     </div>
 

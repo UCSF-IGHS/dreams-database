@@ -122,12 +122,12 @@ def clients(request):
                     search_result = Client.objects.filter(Q(dreams_id__in=search_value.split(" ")) |
                                                           Q(first_name__in=search_value.split(" ")) |
                                                           Q(last_name__in=search_value.split(" ")) |
-                                                          Q(middle_name__in=search_value.split(" ")))
+                                                          Q(middle_name__in=search_value.split(" "))).first()
                 else:
                     search_result = Client.objects.filter(dreams_id__exact=search_value)
                 # check if user can see clients enrolled more than a week ago
                 log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
-                return JsonResponse(serializers.serialize('json', search_result), safe=False)
+                return JsonResponse(serializers.serialize('json', [search_result]), safe=False)
         else:
             return redirect('login')
     except Exception as e:
@@ -349,7 +349,7 @@ def get_intervention_types(request):
             i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id,)\
                 .exclude(is_age_restricted=True, min_age__gt=current_age)\
                 .exclude(is_age_restricted=True, max_age__lt=current_age)\
-                .exclude(is_given_once=True, id__in=given_intervention_type_ids)
+                .exclude(is_given_once=True, id__in=given_intervention_type_ids).order_by('code')
             # get id's of interventions that can only be given once and are already given
             i_types = serializers.serialize('json', i_types)
             response_data["itypes"] = i_types
@@ -376,6 +376,7 @@ def save_intervention(request):
                     intervention = Intervention()
                     intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
                     intervention.intervention_type = i_type
+                    intervention.name_specified = request.POST.get('other_specify', '') if i_type.is_specified else ''
                     intervention.intervention_date = request.POST.get('intervention_date')
                     created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
                     intervention.created_by = created_by
@@ -406,7 +407,8 @@ def save_intervention(request):
                         'message': 'Intervention successfully saved',
                         'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
                         'i_type': serializers.serialize('json', [i_type]),
-                        'hts_results': serializers.serialize('json', HTSResult.objects.all())
+                        'hts_results': serializers.serialize('json', HTSResult.objects.all()),
+                        'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
                     }
                     return JsonResponse(response_data)
                 else:   # Invalid Intervention Type
@@ -447,7 +449,7 @@ def get_intervention_list(request):
 
             list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date',
                                                                'date_created').filter(client__exact=client_id,
-                                                                                      intervention_type__in=iv_type_ids)
+                                                                                      intervention_type__in=iv_type_ids).order_by('-intervention_date', '-date_created', '-date_changed')
             if not request.user.has_perm('auth.can_view_other_ip_data'):
                 list_of_interventions = list_of_interventions.filter(implementing_partner_id=request.user.implementingpartneruser.implementing_partner.id)
 
@@ -459,7 +461,8 @@ def get_intervention_list(request):
             response_data = {
                 'iv_types': serializers.serialize('json', list_of_related_iv_types),
                 'interventions': serializers.serialize('json', list_of_interventions),
-                'hts_results': serializers.serialize('json', HTSResult.objects.all())
+                'hts_results': serializers.serialize('json', HTSResult.objects.all()),
+                'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
             }
             return JsonResponse(response_data)
         else:
@@ -507,6 +510,7 @@ def update_intervention(request):
                     # check if intervention belongs to the ip
                     if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
                         intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                        intervention.name_specified = request.POST.get('other_specify', '') if intervention.intervention_type.is_specified else ''
                         intervention.intervention_date = request.POST.get('intervention_date')
                         intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
                         intervention.date_changed = datetime.now()
@@ -536,7 +540,8 @@ def update_intervention(request):
                             'message': 'Intervention successfully updated',
                             'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
                             'i_type': serializers.serialize('json', [i_type]),
-                            'hts_results': serializers.serialize('json', HTSResult.objects.all())
+                            'hts_results': serializers.serialize('json', HTSResult.objects.all()),
+                            'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
                         }
                     else:
                         # Intervention does not belong to Implementing partner. Send back error message

@@ -20,7 +20,7 @@ admin.site.register(InterventionCategory, InterventionCategoryAdmin)
 
 
 class InterventionTypeAdmin(admin.ModelAdmin):
-    list_display = ('code', 'name', 'is_age_restricted', 'min_age', 'max_age', 'is_given_once')
+    list_display = ('code', 'name', 'is_age_restricted', 'min_age', 'max_age', 'is_given_once', 'is_specified')
     search_fields = ('name',)
 
 admin.site.register(InterventionType, InterventionTypeAdmin)

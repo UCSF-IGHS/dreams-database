@@ -38,15 +38,23 @@
                             <p style="font-size: medium">Loading...</p>
                         </div>
 
+                        <div class="form-group hidden" id="other_specify_section">
+                            <label for="other_specify" class="control-label">Specify Intervention</label>
+                            <input type="text" class="form-control validate-intervention-form-field" id="other_specify" name="other_specify"></input>
+                        </div>
 
                          <div class="form-group has-feedback hidden" id="intervention_date_section">
-                            <label for="date-of-completion" class="control-label">Date of Completion:</label>
-                            <input type="text" class="form-control validate-intervention-form-field" id="date-of-completion"  placeholder="Select date of completion" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                            <label for="date-of-completion" class="control-label">Date: </label>
+                            <input type="text" class="form-control validate-intervention-form-field" id="date-of-completion"  placeholder="Select date " style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                             <input type="text" class="form-control validate-intervention-form-field hidden" id="date-of-completion-formatted" name="intervention_date"/>
                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                           <script>
                               $(function() {
-                                $( "#date-of-completion" ).datepicker();
+                                $( "#date-of-completion" ).datepicker({
+                                      maxDate: '0y 0m 0d',
+                                      changeMonth: true,
+                                      changeYear: true
+                                });
                               });
                           </script>
                         </div>
@@ -59,7 +67,6 @@
                               <option value="201">Negative</option>
                               <option value="202">Positive</option>
                               <option value="203">Known Positive</option>
-                              <option value="204">Linked to HTS</option>
                           </select>
                         </div>
 
@@ -73,15 +80,14 @@
                           <label for="intervention-type-select">Pregnancy Test Result</label>
                           <select id="pregnancy-result-select" name="pregnancy_test_result" class="form-control validate-intervention-form-field">
                               <option value="">Select Option</option>
-                              <option value="102">Not Pregnant</option>
+                              <option value="101">Not Pregnant</option>
                               <option value="102">Pregnant</option>
-                              <option value="103">Linked to HTS</option>
                           </select>
                         </div>
 
                          <div class="form-group hidden" id="no_of_sessions_section">
                             <label for="number-of-ss-sessions-attended" class="control-label">Number of SS Sessions Attended</label>
-                            <input type="number" class="form-control validate-intervention-form-field" id="number-of-ss-sessions-attended" name="no_of_sessions_attended"></input>
+                            <input type="number" class="form-control validate-intervention-form-field" id="number-of-ss-sessions-attended" min="1" name="no_of_sessions_attended"></input>
                         </div>
 
                          <div class="form-group hidden" id="notes_section">
