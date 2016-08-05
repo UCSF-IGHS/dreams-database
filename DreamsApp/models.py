@@ -284,3 +284,321 @@ class InitApp(models.Model):
     inited = models.BooleanField(default=False, blank=False, null=False)
 
 
+class YesNoCategoricalResponse(models.Model):
+    """ Include the Yes, No, Unknown responses to questions"""
+    name = models.CharField(max_length=50, blank=False, null=False, verbose_name='Response Name')
+    code = models.IntegerField(verbose_name='Response Code')
+
+    def __str__(self):
+        return "{} {} ".format(self.name, self.code)
+
+    class Meta:
+        verbose_name = 'Yes|No Response'
+        verbose_name_plural = 'Yes|No Responses'
+
+
+class PeriodResponse(models.Model):
+    """Include answers to the how frequent event occurs e.g last 3 months, last 6 months etc"""
+    name = models.CharField(max_length=50, blank=False, null=False,  verbose_name='Response Name')
+    code = models.IntegerField(verbose_name='Response Code')
+
+    def __str__(self):
+        return "{} {} ".format(self.name, self.code)
+
+    class Meta:
+        verbose_name = 'Duration Response'
+        verbose_name_plural = 'Duration Responses'
+
+
+class HouseholdHead(models.Model):
+    name = models.CharField(max_length=50, blank=False, null=False)
+    code = models.IntegerField(verbose_name='Household Head Code')
+
+    def __str__(self):
+        return "{} {} ".format(self.name, self.code)
+
+    class Meta:
+        verbose_name = 'Head of Household Category'
+        verbose_name_plural = 'Head of Household Categories'
+
+
+class RoofingMaterial(models.Model):
+    name = models.CharField(verbose_name='Material Name', max_length=50, blank=False, null=False)
+    code = models.IntegerField(verbose_name='Material Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Main Roofing Materials'
+        verbose_name = 'Main Roofing Material'
+
+
+class WallMaterial(models.Model):
+    name = models.CharField(verbose_name='Material Name', max_length=50, blank=False, null=False)
+    code = models.IntegerField(verbose_name='Material Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Main Wall Materials'
+        verbose_name = 'Main Wall Material'
+
+
+class FloorMaterial(models.Model):
+    name = models.CharField(verbose_name='Material Name', max_length=50, blank=False, null=False)
+    code = models.IntegerField(verbose_name='Material Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Main Floor Materials'
+        verbose_name = 'Main Floor Material'
+
+
+class DrinkingWater(models.Model):
+    """Documents main source of household's drinking water"""
+    name = models.CharField(verbose_name='Water Source', max_length=50, blank=False, null=False)
+    code = models.IntegerField(verbose_name='Source Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Drinking water Sources'
+        verbose_name = 'Drinking Water Source'
+
+
+class DisabilityType(models.Model):
+    """Documents type of disability i.e hearing etc"""
+    name = models.CharField(verbose_name='Name of Disability', max_length=50, blank=False, null=False)
+    code = models.IntegerField(verbose_name='Disability Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Disability Types'
+        verbose_name = 'Disability Type'
+
+
+class SchoolType(models.Model):
+    """A model for school type i.e formal, informal"""
+    name = models.CharField(max_length=50, blank=False, null=False)
+    code = models.IntegerField(verbose_name='Type Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'School Types'
+        verbose_name = 'School Type'
+
+
+class EducationLevel(models.Model):
+    """A model for level of educaton i.e Primary, Secondary etc"""
+    name = models.CharField(verbose_name='Education Level Name', max_length=50, blank=False, null=False)
+    code = models.IntegerField(verbose_name='Education Level Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Levels of Education'
+        verbose_name = 'Level of Education'
+
+
+class EducationSupport(models.Model):
+    """A model for source of education support i.e Gov bursary, NGO etc"""
+    name = models.CharField(max_length=50, blank=False, null=False, verbose_name='Name')
+    code = models.IntegerField(blank=False)
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Sources of Education Support'
+        verbose_name = 'Source of Education Support'
+
+
+class ReasonNotInSchool(models.Model):
+    """Reason why one is not in school"""
+    name = models.CharField(verbose_name='Reason', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Reason Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Reasons not in School'
+        verbose_name = 'Reason not in School'
+
+
+class LifeWish(models.Model):
+    """One's life wish"""
+    name = models.CharField(verbose_name='Wish', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Wish Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Life Wishes'
+        verbose_name = 'Life Wish'
+
+
+class SourceOfIncome(models.Model):
+    """Main source of income"""
+    name = models.CharField(verbose_name='Source', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Sources of Income'
+        verbose_name = 'Source of Income'
+
+
+class BankingPlace(models.Model):
+    """A place where savings are kept e.g Bank etc"""
+    name = models.CharField(verbose_name='Banking Place', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Banking Places'
+        verbose_name = 'Banking Place'
+
+
+class HivTestResultResponse(models.Model):
+    """Record of last HIV test result and includes Don't know and Declined"""
+    name = models.CharField(verbose_name='Response', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'HIV Test Responses'
+        verbose_name = 'HIV Test Response'
+
+
+class ReasonNotInHIVCare(models.Model):
+    """Reason one doesn't seek HIV care"""
+    name = models.CharField(verbose_name='Response', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Reasons not in HIV Care'
+        verbose_name = 'Reason not in HIV Care'
+
+
+class ReasonNotTestedForHIV(models.Model):
+    """Reason one has never been tested for HIV"""
+    name = models.CharField(verbose_name='Response', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Reasons not tested for HIV '
+        verbose_name = 'Reason not tested for HIV'
+
+
+class AgeOfSexualPartner(models.Model):
+    """Age of sexual partner"""
+    name = models.CharField(verbose_name='Age Category', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Age of Sexual Partner '
+
+
+class FrequencyResponse(models.Model):
+    """Captures frequency of an event i.e always, sometimes, never etc """
+    name = models.CharField(verbose_name='Frequency', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Frequency Responses'
+        verbose_name = 'Frequency Response'
+
+
+class FamilyPlanningMethod(models.Model):
+    """model for Family Planning Method i.e Pills, Injectables etc """
+    name = models.CharField(verbose_name='Method', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Family Planning methods'
+        verbose_name = 'Family Planning method'
+
+
+class ReasonNotUsingFamilyPlanning(models.Model):
+    """Reason why one doesn't use FP  """
+    name = models.CharField(verbose_name='Reason', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Reasons not using Family Planning'
+        verbose_name = 'Reason not using Family Planning'
+
+
+class GBVSupport(models.Model):
+    """Source of GBV support """
+    name = models.CharField(verbose_name='Source of Support', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Sources of GBV Support'
+        verbose_name = 'Source of GBV Support'
+
+
+class DrugAbuse(models.Model):
+    """Drug abuse/addiction i.e miraa, bhang etc """
+    name = models.CharField(verbose_name='Drug Abuse/Addiction', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Drug Abuse'
+
+
+class DreamsProgramme(models.Model):
+    """Drug abuse/addiction i.e miraa, bhang etc """
+    name = models.CharField(verbose_name='Name of Programme', max_length=50, blank=False, null=False)
+    code = models.IntegerField(blank=False, verbose_name='Code')
+
+    def __str__(self):
+        return '{} {}'.format(self.name, self.code)
+
+    class Meta:
+        verbose_name_plural = 'Dreams Programmes'
+        verbose_name = 'Dreams Programme'
+
