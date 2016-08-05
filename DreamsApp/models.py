@@ -284,7 +284,10 @@ class InitApp(models.Model):
     inited = models.BooleanField(default=False, blank=False, null=False)
 
 
-class YesNoCategoricalResponse(models.Model):
+""" Models for Responses to questions on enrollment form"""
+
+
+class CategoricalResponse(models.Model):
     """ Include the Yes, No, Unknown responses to questions"""
     name = models.CharField(max_length=50, blank=False, null=False, verbose_name='Response Name')
     code = models.IntegerField(verbose_name='Response Code')
@@ -601,4 +604,98 @@ class DreamsProgramme(models.Model):
     class Meta:
         verbose_name_plural = 'Dreams Programmes'
         verbose_name = 'Dreams Programme'
+
+
+""" Models for the different modules in enrollment form """
+
+
+class IndividualAndHouseholdInformation(models.Model):
+    """ Holds individual and household information about Dreams client"""
+    client = models.ForeignKey(Client)
+    household_head = models.ForeignKey(HouseholdHead)
+    household_head_other = models.CharField(max_length=50, blank=True, null=True)
+    age_of_household_head = models.IntegerField(default=0, blank=True)
+    hh_father_alive = models.IntegerField(verbose_name='Father alive?')
+    hh_mother_alive = models.IntegerField(verbose_name='Mother alive?')
+    hh_parent_chronical_illness = models.IntegerField(verbose_name='Is any of your parent/guardian chronically ill?')
+    hh_main_floor_material = models.ForeignKey(FloorMaterial, verbose_name='Main floor material', null=True)
+    hh_main_floor_material_other = models.CharField(max_length=50, verbose_name='Main floor material: other', blank=True, null=True)
+    hh_main_roof_material = models.ForeignKey(RoofingMaterial, verbose_name='Main roof material', null=True)
+    hh_main_roof_material_other = models.CharField(max_length=50, verbose_name='Main roof material: other', blank=True, null=True)
+    hh_main_wall_material = models.ForeignKey(RoofingMaterial, verbose_name='Main wall material', null=True)
+    hh_main_wall_material_other = models.CharField(max_length=50, verbose_name='Main wall material: other', blank=True,
+                                                   null=True)
+    hh_drinking_water = models.ForeignKey(DrinkingWater, verbose_name='Main source of drinking water', null=True)
+    hh_drinking_water_other = models.CharField(max_length=50, verbose_name='Main source of drinking water: other', blank=True,
+                                                   null=True)
+    hh_missed_food_within_4wks = models.ForeignKey(CategoricalResponse, null=True)
+    hh_days_missed_food_within_4wks = models.ForeignKey(FrequencyResponse, blank=True)
+    hh_has_disability = models.ForeignKey(CategoricalResponse, verbose_name='Disabled?', blank=True, null=True)
+    hh_disability_type = models.ForeignKey(DisabilityType, null=True, verbose_name='Disability Type')
+    hh_disability_type_other = models.CharField(verbose_name='Other disability type', blank=True, null=True)
+    hh_no_of_people_in_household = models.IntegerField(verbose_name='No of people living in your house')
+    hh_no_of_females = models.IntegerField(verbose_name='No of females')
+    hh_no_of_males = models.IntegerField(verbose_name='No of Males')
+    hh_no_adults = models.IntegerField(verbose_name='No of adults')
+    hh_no_children = models.IntegerField(verbose_name='No of children')
+    hh_ever_enrolled_in_ct = models.ForeignKey(CategoricalResponse, verbose_name='Ever enrolled in Cash Transfer?')
+    hh_currently_in_ct = models.ForeignKey(CategoricalResponse, verbose_name="Currently enrolled in Cash Transfer?")
+    hh_current_ct_prog_enrolled = models.CharField(verbose_name='Cash Transfer Programme currently enrolled in')
+
+
+class ClientEducationAndEmployment(models.Model):
+    """ Holds education and employment information about Dreams client"""
+    client = models.ForeignKey(Client)
+    edu_currently_schooling = models.ForeignKey(CategoricalResponse, verbose_name='Currently schooling')
+    edu_name_of_school = models.CharField(verbose_name='Name of school', blank=True, null=True)
+    edu_type_of_school = models.ForeignKey(SchoolType, verbose_name='Type of school', blank=True, null=True)
+    edu_current_edu_level = models.ForeignKey(EducationLevel, verbose_name='Current school level', null=True, blank=True)
+    edu_current_edu_level_class = models.CharField(verbose_name='Class', max_length=10, blank=True, null=True)
+    edu_current_edu_level_other = models.CharField(verbose_name='Other Education Level', max_length=20, blank=True, null=True)
+    edu_current_education_support = models.ForeignKey(EducationSupport, verbose_name='Support towards current education')
+    edu_current_education_support_other = models.CharField(max_length=25, verbose_name='Support towards current education: other')
+    edu_reason_not_in_school = models.ForeignKey(ReasonNotInSchool, verbose_name='Reason for not going to school')
+    edu_reason_not_in_school_other = models.CharField(verbose_name='Reason for not going to school: other')
+    edu_last_time_in_school = models.ForeignKey(PeriodResponse, verbose_name='Last time in school')
+    edu_drop_out_school_level = models.ForeignKey(EducationLevel, 'In which class/form did you stop schooling?')
+    edu_drop_out_class = models.CharField(max_length=15, verbose_name='Drop out class')
+    edu_life_wish = models.ForeignKey(LifeWish, verbose_name='Wish in life', blank=True, null=True)
+    edu_life_wish_other = models.CharField(verbose_name='Wish in life: other', max_length=50, blank=True, null=True)
+    edu_current_income_source = models.ForeignKey(SourceOfIncome, verbose_name='Current source of income')
+    edu_current_income_source_other = models.CharField(verbose_name='Source of income: other', max_length=30)
+    edu_has_savings = models.ForeignKey(CategoricalResponse, verbose_name='Do you have savings?')
+    edu_banking_place = models.ForeignKey(BankingPlace, verbose_name='Where do you keep your savings?', blank=True, null=True)
+    edu_banking_place_other = models.CharField(max_length=20, verbose_name='Other place for savings')
+
+
+class ClientHIVTesting(models.Model):
+    """ Holds HIV testing information about a client"""
+    pass
+
+
+class ClientSexualActivity(models.Model):
+    """ Holds Sexual activity information about a client"""
+    pass
+
+
+class ClientReproductivity(models.Model):
+    """ Holds information about client's reproductivity """
+    pass
+
+
+class ClientGBV(models.Model):
+    """Holds Gender Based Violence information about a client"""
+    pass
+
+
+class ClientDrugUse(models.Model):
+    """ Holds Drug use information about client"""
+    pass
+
+
+class ClientParticipationInHIVProgramme(models.Model):
+    """ Holds information of client's participation in HIV programmes"""
+    pass
+
+
 
