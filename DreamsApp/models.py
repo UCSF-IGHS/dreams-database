@@ -413,7 +413,7 @@ class EducationLevel(models.Model):
         verbose_name = 'Level of Education'
 
 
-class EducationSupport(models.Model):
+class EducationSupporter(models.Model):
     """A model for source of education support i.e Gov bursary, NGO etc"""
     name = models.CharField(max_length=50, blank=False, null=False, verbose_name='Name')
     code = models.IntegerField(blank=False)
@@ -568,7 +568,7 @@ class ReasonNotUsingFamilyPlanning(models.Model):
         verbose_name = 'Reason not using Family Planning'
 
 
-class GBVSupport(models.Model):
+class GBVHelpProvider(models.Model):
     """Source of GBV support """
     name = models.CharField(verbose_name='Source of Support', max_length=50, blank=False, null=False)
     code = models.IntegerField(blank=False, verbose_name='Code')
@@ -581,7 +581,7 @@ class GBVSupport(models.Model):
         verbose_name = 'Source of GBV Support'
 
 
-class DrugAbuse(models.Model):
+class Drug(models.Model):
     """Drug abuse/addiction i.e miraa, bhang etc """
     name = models.CharField(verbose_name='Drug Abuse/Addiction', max_length=50, blank=False, null=False)
     code = models.IntegerField(blank=False, verbose_name='Code')
@@ -652,7 +652,7 @@ class ClientEducationAndEmployment(models.Model):
     edu_current_edu_level = models.ForeignKey(EducationLevel, verbose_name='Current school level', null=True, blank=True)
     edu_current_edu_level_class = models.CharField(verbose_name='Class', max_length=10, blank=True, null=True)
     edu_current_edu_level_other = models.CharField(verbose_name='Other Education Level', max_length=20, blank=True, null=True)
-    edu_current_education_support = models.ForeignKey(EducationSupport, verbose_name='Support towards current education')
+    edu_current_education_support = models.ForeignKey(EducationSupporter, verbose_name='Support towards current education')
     edu_current_education_support_other = models.CharField(max_length=25, verbose_name='Support towards current education: other')
     edu_reason_not_in_school = models.ForeignKey(ReasonNotInSchool, verbose_name='Reason for not going to school')
     edu_reason_not_in_school_other = models.CharField(verbose_name='Reason for not going to school: other')
@@ -670,32 +670,122 @@ class ClientEducationAndEmployment(models.Model):
 
 class ClientHIVTesting(models.Model):
     """ Holds HIV testing information about a client"""
-    pass
+    client = models.ForeignKey(Client)
+    hiv_ever_tested = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    hiv_date_last_tested = models.ForeignKey(PeriodResponse, blank=False , null=False)
+    hiv_last_test_result = models.ForeignKey(HivTestResultResponse, blank=False, null=False)
+    hiv_enrolled_in_care = models.ForeignKey(CategoricalResponse, blank=True, null=True)
+    hiv_facility_enrolled = models.CharField(max_length=50, blank=True, null=False)
+    hiv_why_not_in_hiv_care = models.ForeignKey(ReasonNotInHIVCare, blank=True, null=True)
+    hiv_why_not_in_hiv_care_other = models.CharField(max_length=50, blank=True, null=True)
+    hiv_test_places_awareness = models.ForeignKey(CategoricalResponse)
 
 
 class ClientSexualActivity(models.Model):
     """ Holds Sexual activity information about a client"""
-    pass
+    client = models.ForeignKey(Client)
+    sex_ever_had_sex = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    sex_age_at_first_sex = models.IntegerField(verbose_name='Age at first sexual encounter')
+    sex_has_sexual_partner = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    sex_noof_sex_partners_last_12months = models.IntegerField(verbose_name='Sexual partners in the last 12 months', null=False)
+    sex_age_of_last_partner = models.ForeignKey(AgeOfSexualPartner, null=True, blank=True)
+    sex_age_of_second_last_partner = models.ForeignKey(AgeOfSexualPartner, null=True, blank=True)
+    sex_age_of_third_last_partner = models.ForeignKey(AgeOfSexualPartner, null=True, blank=True)
+    sex_last_partner_circumcised = models.ForeignKey(CategoricalResponse, null=True, blank=True)
+    sex_second_last_partner_circumcised = models.ForeignKey(CategoricalResponse, null=True, blank=True)
+    sex_third_last_partner_circumcised = models.ForeignKey(CategoricalResponse, null=True, blank=True)
+    sex_last_partner_hiv_status_known = models.ForeignKey(CategoricalResponse, null=True, blank=True)
+    sex_second_last_partner_hiv_status_known = models.ForeignKey(CategoricalResponse, null=True, blank=True)
+    sex_third_last_partner_hiv_status_known = models.ForeignKey(CategoricalResponse, null=True, blank=True)
+    sex_last_partner_condom_use = models.ForeignKey(FrequencyResponse, null=True, blank=True)
+    sex_second_last_partner_condom_use = models.ForeignKey(FrequencyResponse, null=True, blank=True)
+    sex_third_last_partner_condom_use = models.ForeignKey(FrequencyResponse, null=True, blank=True)
+    sex_money_gift_for_sex = models.ForeignKey(CategoricalResponse, blank=True, null=True)
 
 
-class ClientReproductivity(models.Model):
+class ClientReproductiveHealth(models.Model):
     """ Holds information about client's reproductivity """
-    pass
+    client = models.ForeignKey(Client)
+    rh_has_biological_children = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    rh_no_of_biological_children = models.IntegerField(blank=True, null=True)
+    rh_pregnant = models.ForeignKey(CategoricalResponse)
+    rh_enrolled_in_anc = models.ForeignKey(CategoricalResponse, blank=True, null=True)
+    rh_anc_facility = models.CharField(max_length=50, blank=True, null=True)
+    rh_fp_awareness = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    rh_use_modern_fp = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    rh_modern_fp_method_used = models.ForeignKey(FamilyPlanningMethod, blank=True, null=True)
+    rh_modern_fp_method_used_other = models.CharField(max_length=50, verbose_name='Other Modern FP method used',
+                                                       blank=True, null=True)
 
 
 class ClientGBV(models.Model):
     """Holds Gender Based Violence information about a client"""
-    pass
+    client = models.ForeignKey(Client)
+    gbv_humiliated_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    gbv_humiliated_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
+    gbv_threat_to_hurt_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    gbv_threat_to_hurt_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
+    gbv_insulted_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    gbv_insulted_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
+    gbv_economic_threat_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    gbv_economic_threat_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
+    gbv_physical_violence_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    gbv_physical_violence_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
+    gbv_raped_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    gbv_raped_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
+    gbv_forced_other_sex_acts_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    gbv_forced_other_sex_acts_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
+    gbv_threatened_for_sex_acts_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    gbv_threatened_for_sex_acts_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
+    gbv_sought_help = models.ForeignKey(CategoricalResponse, blank=True, null=False)
+    gbv_source_of_help_other = models.CharField(max_length=50, verbose_name='Other source of GBV help')
+    gbv_source_of_help_awareness = models.ForeignKey(CategoricalResponse, blank=True, null=True)
+    gbv_preferred_help_provider_other = models.CharField(max_length=50, blank=True, null=True)
 
 
-class ClientDrugUse(models.Model):
+class ClientDrugUseModule(models.Model):
     """ Holds Drug use information about client"""
-    pass
+    client = models.ForeignKey(Client)
+    drugs_used_alcohol_last_12months = models.ForeignKey(CategoricalResponse)
+    drugs_frequency_of_alcohol_last_12months = models.ForeignKey(FrequencyResponse)
+    drugs_used_drugs_12months = models.ForeignKey(CategoricalResponse)
+    drugs_drug_used_other = models.CharField(max_length=50, blank=True, null=True)
+    drugs_alcohol_production_12months = models.ForeignKey(CategoricalResponse)
 
 
 class ClientParticipationInHIVProgramme(models.Model):
     """ Holds information of client's participation in HIV programmes"""
-    pass
+    client = models.ForeignKey(Client)
+    dreams_enrolled_in_program_other = models.CharField(max_length=50, blank=True, null=True)
 
+
+class ClientDrugUsed(models.Model):
+    """ A join table for client and used drugs"""
+    client = models.ForeignKey(Client)
+    drug = models.ForeignKey(Drug)
+
+
+class ClientGBVHelpProvider(models.Model):
+    """ A join table for client and GBV help provider"""
+    client = models.ForeignKey(Client)
+    provider = models.ForeignKey(GBVHelpProvider)
+
+
+class ClientKnownFamilyPlanningMethod(models.Model):
+    """ A join table for client and known family planning method"""
+    client = models.ForeignKey(Client)
+    fp_method = models.ForeignKey(FamilyPlanningMethod)
+
+
+class ClientReasonForNotTestedForHIV(models.Model):
+    """ A join table for client and reason for not tested for HIV"""
+    client = models.ForeignKey(Client)
+    reason = models.ForeignKey(ReasonNotTestedForHIV)
+
+
+class ClientEducationSupportProvider(models.Model):
+    """ A join table for client and current education supporter"""
+    client = models.ForeignKey(Client)
+    supporter = models.ForeignKey(EducationSupporter)
 
 
