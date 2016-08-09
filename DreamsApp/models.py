@@ -666,6 +666,7 @@ class ClientEducationAndEmployment(models.Model):
     edu_has_savings = models.ForeignKey(CategoricalResponse, verbose_name='Do you have savings?')
     edu_banking_place = models.ForeignKey(BankingPlace, verbose_name='Where do you keep your savings?', blank=True, null=True)
     edu_banking_place_other = models.CharField(max_length=20, verbose_name='Other place for savings')
+    edu_education_support = models.ManyToManyField(EducationSupporter)
 
 
 class ClientHIVTesting(models.Model):
@@ -679,6 +680,7 @@ class ClientHIVTesting(models.Model):
     hiv_why_not_in_hiv_care = models.ForeignKey(ReasonNotInHIVCare, blank=True, null=True)
     hiv_why_not_in_hiv_care_other = models.CharField(max_length=50, blank=True, null=True)
     hiv_test_places_awareness = models.ForeignKey(CategoricalResponse)
+    hiv_reason_not_tested_for_hiv = models.ManyToManyField(ReasonNotTestedForHIV)
 
 
 class ClientSexualActivity(models.Model):
@@ -716,31 +718,34 @@ class ClientReproductiveHealth(models.Model):
     rh_modern_fp_method_used = models.ForeignKey(FamilyPlanningMethod, blank=True, null=True)
     rh_modern_fp_method_used_other = models.CharField(max_length=50, verbose_name='Other Modern FP method used',
                                                        blank=True, null=True)
+    rh_known_fp_methods = models.ManyToManyField(FamilyPlanningMethod)
 
 
-class ClientGBV(models.Model):
+class GenderBasedViolence(models.Model):
     """Holds Gender Based Violence information about a client"""
     client = models.ForeignKey(Client)
     gbv_humiliated_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
     gbv_humiliated_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
-    gbv_threat_to_hurt_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
-    gbv_threat_to_hurt_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
+    gbv_threats_to_hurt_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    gbv_threats_to_hurt_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
     gbv_insulted_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
     gbv_insulted_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
     gbv_economic_threat_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
     gbv_economic_threat_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
     gbv_physical_violence_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
     gbv_physical_violence_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
-    gbv_raped_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
-    gbv_raped_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
-    gbv_forced_other_sex_acts_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
-    gbv_forced_other_sex_acts_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
-    gbv_threatened_for_sex_acts_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
-    gbv_threatened_for_sex_acts_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
-    gbv_sought_help = models.ForeignKey(CategoricalResponse, blank=True, null=False)
-    gbv_source_of_help_other = models.CharField(max_length=50, verbose_name='Other source of GBV help')
-    gbv_source_of_help_awareness = models.ForeignKey(CategoricalResponse, blank=True, null=True)
-    gbv_preferred_help_provider_other = models.CharField(max_length=50, blank=True, null=True)
+    gbv_physically_forced_sex_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    gbv_physically_forced_sex_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
+    gbv_physically_forced_other_sex_acts_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    gbv_physically_forced_other_sex_acts_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
+    gbv_threatened_for_sexual_acts_ever = models.ForeignKey(CategoricalResponse, blank=False, null=False)
+    gbv_threatened_for_sexual_acts_last_3months = models.ForeignKey(FrequencyResponse, blank=False, null=False)
+    gbv_sought_help_after_gbv = models.ForeignKey(CategoricalResponse, blank=True, null=False)
+    gbv_source_of_help_after_gbv_other = models.CharField(max_length=50, verbose_name='Other source of GBV help')
+    gbv_source_of_gbv_help_awareness = models.ForeignKey(CategoricalResponse, blank=True, null=True)
+    gbv_preferred_gbv_help_provider_other = models.CharField(max_length=50, blank=True, null=True)
+    gbv_source_of_help_after_gbv = models.ManyToManyField(GBVHelpProvider)
+    gbv_preferred_gbv_help_provider = models.ManyToManyField(GBVHelpProvider)
 
 
 class ClientDrugUseModule(models.Model):
@@ -748,44 +753,15 @@ class ClientDrugUseModule(models.Model):
     client = models.ForeignKey(Client)
     drugs_used_alcohol_last_12months = models.ForeignKey(CategoricalResponse)
     drugs_frequency_of_alcohol_last_12months = models.ForeignKey(FrequencyResponse)
-    drugs_used_drugs_12months = models.ForeignKey(CategoricalResponse)
-    drugs_drug_used_other = models.CharField(max_length=50, blank=True, null=True)
+    drugs_used_drugs_last_12months = models.ForeignKey(CategoricalResponse)
+    drugs_drugs_used_last_12_months_other = models.CharField(max_length=50, blank=True, null=True)
+    drugs_drugs_used_last_12months = models.ManyToManyField(Drug)
     drugs_alcohol_production_12months = models.ForeignKey(CategoricalResponse)
 
 
 class ClientParticipationInHIVProgramme(models.Model):
     """ Holds information of client's participation in HIV programmes"""
     client = models.ForeignKey(Client)
-    dreams_enrolled_in_program_other = models.CharField(max_length=50, blank=True, null=True)
-
-
-class ClientDrugUsed(models.Model):
-    """ A join table for client and used drugs"""
-    client = models.ForeignKey(Client)
-    drug = models.ForeignKey(Drug)
-
-
-class ClientGBVHelpProvider(models.Model):
-    """ A join table for client and GBV help provider"""
-    client = models.ForeignKey(Client)
-    provider = models.ForeignKey(GBVHelpProvider)
-
-
-class ClientKnownFamilyPlanningMethod(models.Model):
-    """ A join table for client and known family planning method"""
-    client = models.ForeignKey(Client)
-    fp_method = models.ForeignKey(FamilyPlanningMethod)
-
-
-class ClientReasonForNotTestedForHIV(models.Model):
-    """ A join table for client and reason for not tested for HIV"""
-    client = models.ForeignKey(Client)
-    reason = models.ForeignKey(ReasonNotTestedForHIV)
-
-
-class ClientEducationSupportProvider(models.Model):
-    """ A join table for client and current education supporter"""
-    client = models.ForeignKey(Client)
-    supporter = models.ForeignKey(EducationSupporter)
-
+    participation_programs_enrolled_in_other = models.CharField(max_length=50, blank=True, null=True)
+    participation_programs_enrolled_in = models.ManyToManyField(DreamsProgramme)
 
