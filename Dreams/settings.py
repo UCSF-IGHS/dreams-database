@@ -136,6 +136,7 @@ FIXTURE_DIRS = ()
 # mail server settings
 DEFAULT_FROM_EMAIL = 'dreams.globalhealthapp@gmail.com'
 SERVER_EMAIL = 'dreams.globalhealthapp@gmail.com'
+EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
