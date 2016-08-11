@@ -1207,6 +1207,8 @@ $(document).ready(function () {
         /* Form is valid. You can proceed to submit and register user. We are using an ajax call */
         var csrftoken = getCookie('csrftoken');
 
+        // Show loading modal
+        $("#processing-user-form").removeClass('hidden');
         $.ajax({
             url : '/admin/users/save',
             type : "POST",
@@ -1224,13 +1226,18 @@ $(document).ready(function () {
                         .trigger('madeVisible')
                     $("#user-modal").modal('hide');
                 }
+                // Hide loading modal
+                $("#processing-user-form").addClass('hidden');
             },
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
+                //Hide loading modal
                 $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
                         .text('Error: ' + errmsg)
                         .trigger('madeVisible')
-                $("#user-modal").modal('hide');
+                $("#loading-modal").modal('hide');
+                $("#processing-user-form").addClass('hidden');
+
             }
         });
     })
