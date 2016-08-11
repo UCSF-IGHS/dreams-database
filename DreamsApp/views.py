@@ -889,9 +889,9 @@ def save_user(request):
                             'ip_users': serializers.serialize('json', [ip_user, ])
                         }
                         return JsonResponse(response_data)
-                    except:
+                    except Exception as e:
                         raise Exception('User registered but could not send login detais to provided email address. '
-                                        'Contact System Admin for help')
+                                        'Contact System Admin for help ' + e.message)
             else:  # raise exception
                 raise Exception('User with id ' + ip_user_id + ' exists already')
         except ImplementingPartner.DoesNotExist:
