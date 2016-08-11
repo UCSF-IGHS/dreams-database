@@ -1,3 +1,4 @@
+# coding=utf-8
 from __future__ import unicode_literals
 
 from django.db import models
@@ -12,7 +13,7 @@ class MaritalStatus(models.Model):
     def __str__(self):
         return '{}'.format(self.name)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Marital Status'
         verbose_name_plural = 'Marital Status'
 
@@ -24,7 +25,7 @@ class County(models.Model):
     def __str__(self):
         return '{}'.format(self.name)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'County'
         verbose_name_plural = 'Counties'
 
@@ -37,7 +38,7 @@ class SubCounty(models.Model):
     def __str__(self):
         return '{}'.format(self.name)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Sub County'
         verbose_name_plural = 'Sub Counties'
 
@@ -50,7 +51,7 @@ class Ward(models.Model):
     def __str__(self):
         return '{}'.format(self.name)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Ward'
         verbose_name_plural = 'Wards'
 
@@ -62,7 +63,7 @@ class VerificationDocument(models.Model):
     def __str__(self):
         return '{}'.format(self.name)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Verification Document'
         verbose_name_plural = 'Verification Documents'
 
@@ -74,7 +75,7 @@ class ImplementingPartner(models.Model):
     def __str__(self):
         return '{}'.format(self.name)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Implementing Partner'
         verbose_name_plural = 'Implementing Partners'
 
@@ -86,7 +87,7 @@ class ImplementingPartnerUser(models.Model):
     def __str__(self):
         return '{} {}'.format(self.user.first_name, self.user.last_name)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Implementing Partner User'
         verbose_name_plural = 'Implementing Partner Users'
 
@@ -116,8 +117,10 @@ class Client(models.Model):
     dreams_id = models.CharField(verbose_name='DREAMS ID', max_length=50, null=True)
     guardian_name = models.CharField(verbose_name='Primary care give / Guardian\' name', max_length=250, null=True)
     relationship_with_guardian = models.CharField(verbose_name='Relationship with Guardian', max_length=50, null=True)
-    guardian_phone_number = models.CharField(verbose_name='Phone Number(Care giver / Guardian)', max_length=13, null=True)
-    guardian_national_id = models.CharField(verbose_name='National ID (Care giver / Guardian)', max_length=10, null=True)
+    guardian_phone_number = models.CharField(verbose_name='Phone Number(Care giver / Guardian)', max_length=13,
+                                             null=True)
+    guardian_national_id = models.CharField(verbose_name='National ID (Care giver / Guardian)', max_length=10,
+                                            null=True)
 
     enrolled_by = models.ForeignKey(User, null=True)
 
@@ -148,8 +151,8 @@ class Client(models.Model):
     def get_age_at_enrollment(self):
         try:
             return self.date_of_enrollment.year - self.date_of_birth.year - (
-            (self.date_of_enrollment.month, self.date_of_enrollment.day) < (
-                self.date_of_birth.month, self.date_of_birth.day))
+                (self.date_of_enrollment.month, self.date_of_enrollment.day) < (
+                    self.date_of_birth.month, self.date_of_birth.day))
         except:
             return 10
 
@@ -161,7 +164,7 @@ class Client(models.Model):
         except:
             return 10
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Client'
         verbose_name_plural = 'Clients'
 
@@ -173,7 +176,7 @@ class InterventionCategory(models.Model):
     def __str__(self):
         return '{}'.format(self.name)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Intervention Category'
         verbose_name_plural = 'Intervention Categories'
 
@@ -195,7 +198,7 @@ class InterventionType(models.Model):
     def __str__(self):
         return '{}'.format(self.name)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Intervention Type'
         verbose_name_plural = 'Intervention Types'
 
@@ -207,7 +210,7 @@ class HTSResult(models.Model):
     def __str__(self):
         return '{}'.format(self.name)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'HTS Result'
         verbose_name_plural = 'HTS Results'
 
@@ -219,7 +222,7 @@ class PregnancyTestResult(models.Model):
     def __str__(self):
         return '{}'.format(self.name)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Pregnancy Result'
         verbose_name_plural = 'Pregnancy Results'
 
@@ -245,7 +248,7 @@ class Intervention(models.Model):
     def get_name_specified(self):
         return self.name_specified if self.name_specified else ''
 
-    def save(self,user_id=None, action=None, *args, **kwargs): # pass audit to args as the first object
+    def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Intervention, self).save(*args, **kwargs)
         audit = Audit()
         audit.user_id = user_id
@@ -258,7 +261,7 @@ class Intervention(models.Model):
     def __str__(self):
         return '{} {}'.format(self.intervention_type, self.created_by)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Intervention'
         verbose_name_plural = 'Interventions'
 
@@ -274,7 +277,7 @@ class Audit(models.Model):
     def __str__(self):
         return '{} by user id {} at {}'.format(self.action, self.user_id, self.timestamp)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Audit'
         verbose_name_plural = 'Audit log'
 
@@ -282,5 +285,3 @@ class Audit(models.Model):
 class InitApp(models.Model):
     timestamp = models.DateTimeField(auto_now=True, blank=False, null=False)
     inited = models.BooleanField(default=False, blank=False, null=False)
-
-

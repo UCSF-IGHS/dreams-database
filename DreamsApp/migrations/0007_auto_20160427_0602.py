@@ -7,7 +7,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('DreamsApp', '0006_auto_20160427_0520'),
     ]
@@ -65,7 +64,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='client',
             name='verification_doc_no',
-            field=models.CharField(blank=True, default='', max_length=50, null=True, verbose_name='Verification Doc. No.'),
+            field=models.CharField(blank=True, default='', max_length=50, null=True,
+                                   verbose_name='Verification Doc. No.'),
         ),
         migrations.AlterField(
             model_name='client',
@@ -85,11 +85,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='client',
             name='county_of_residence',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.County', verbose_name='County of residence'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='DreamsApp.County', verbose_name='County of residence'),
         ),
         migrations.AddField(
             model_name='client',
             name='marital_status',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.MaritalStatus', verbose_name='Marital Status'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='DreamsApp.MaritalStatus', verbose_name='Marital Status'),
         ),
     ]

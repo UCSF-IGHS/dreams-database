@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 Django settings for Dreams project.
 
@@ -49,7 +50,6 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'middleware.initialization.InitializationMiddleware',
 
 ]
 

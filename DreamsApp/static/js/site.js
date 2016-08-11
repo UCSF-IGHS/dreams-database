@@ -72,7 +72,7 @@ $(document).ready(function () {
 
     /* End Login form submission */
 
-    function insertClientTableRow(clients_tbody, pk, dreams_id, first_name, last_name, middle_name, date_of_enrollment, append, is_superuser) {
+    function insertClientTableRow(clients_tbody, pk, dreams_id, first_name, last_name, middle_name, date_of_enrollment, append, can_manage_client, can_change_client, can_delete_client) {
         var is_superuser = $('#is_superuser').val();
         var row_string = "<tr id='clients_row_" + pk +"' style='cursor: pointer;'>"
                         + "<td>" + dreams_id + "</td>"
@@ -86,10 +86,12 @@ $(document).ready(function () {
                                 + "<span class='sr-only'>Toggle Dropdown</span>"
                               + "</button>"
                               + "<ul class='dropdown-menu'>"
-                                + "<li><a href='#' class='edit_intervention_click edit_client' data-view_mode='view' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk + "' style='cursor: pointer;word-spacing: 0px !important;'> View Enrollment </a></li>"
-                                if(is_superuser){
-                                row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk +"' style='cursor: pointer;word-spacing: 0px !important;'> Edit Enrollment </a></li>"
-                                + "<li><a href='#' class='delete_intervention_click ' data-client_id='" + pk +"' id='delete_client_a_" + pk +"' data-confirm-client-delete='Are you sure you want to delete?'> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>"
+                                if(can_manage_client){
+                                    row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-view_mode='view' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk + "' style='cursor: pointer;word-spacing: 0px !important;'> View Enrollment </a></li>";
+                                    if(can_change_client)
+                                        row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk +"' style='cursor: pointer;word-spacing: 0px !important;'> Edit Enrollment </a></li>"
+                                    if(can_delete_client)
+                                        row_string +=  "<li><a href='#' class='delete_intervention_click ' data-client_id='" + pk +"' id='delete_client_a_" + pk +"' data-confirm-client-delete='Are you sure you want to delete?'> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>"
                                 }
                               row_string += "</ul>"
                             + "</div>"
@@ -125,7 +127,10 @@ $(document).ready(function () {
             dataType: 'json',
             data:$('#clients_search_form').serialize(),
             success : function(data) {
-                var clients = $.parseJSON(data)
+                var clients = $.parseJSON(data.search_result)
+                var can_manage_client = data.can_manage_client
+                var can_change_client = data.can_change_client
+                var can_delete_client = data.can_delete_client
                 var clients_tbody = $('#dp-patient-list-body')
 
                 clients_tbody.empty();
@@ -134,7 +139,7 @@ $(document).ready(function () {
                         f_name = client.fields.first_name == null ? ' ' : client.fields.first_name
                         m_name = client.fields.middle_name == null ? ' ' : client.fields.middle_name
                         l_name = client.fields.last_name == null ? ' ' : client.fields.last_name
-                        insertClientTableRow(clients_tbody, client.pk,client.fields.dreams_id, f_name, l_name, m_name, client.fields.date_of_enrollment, true, client.fields.is_superuser);
+                        insertClientTableRow(clients_tbody, client.pk,client.fields.dreams_id, f_name, l_name, m_name, client.fields.date_of_enrollment, true, can_manage_client, can_change_client, can_delete_client);
                     })
                 }
                 else
@@ -906,18 +911,19 @@ $(document).ready(function () {
             data:$('#enrollment-form').serialize(),
             success : function(data) {
                 var result = $.parseJSON(data)
+
                 if(result.status == "success"){
                     var clients_tbody = $('#dp-patient-list-body')
                     var date_of_enrollment = new Date($('#enrollment-form #date_of_enrollment').val());
                     date_of_enrollment = $.datepicker.formatDate('MM d, yy', date_of_enrollment)
                     if(enrollment_form_submit_mode == 'new'){
                         // Prepend new line into the clients' table
-                        insertClientTableRow(clients_tbody, result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, true)
+                        insertClientTableRow(clients_tbody, result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, result.can_manage_client, result.can_change_client, result.can_delete_client)
                     }
                     else{
                         $('#clients_row_' + result.client_id).remove(); // remove row
                         // Insert updated value
-                        insertClientTableRow($('#dp-patient-list-body'), result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, $('#is_superuser').val());
+                        insertClientTableRow($('#dp-patient-list-body'), result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, false, result.can_manage_client, result.can_change_client, result.can_delete_client);
                     }
                     $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
                         .text(result.message)
