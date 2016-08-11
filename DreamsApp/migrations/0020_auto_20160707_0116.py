@@ -7,7 +7,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('DreamsApp', '0019_intervention_implementing_partner'),
     ]
@@ -28,6 +27,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='implementingpartneruser',
             name='role',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.UserRole'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='DreamsApp.UserRole'),
         ),
     ]

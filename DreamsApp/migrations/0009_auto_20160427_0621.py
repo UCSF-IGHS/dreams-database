@@ -8,7 +8,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('DreamsApp', '0008_auto_20160427_0609'),
@@ -32,37 +31,44 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='client',
             name='enrolled_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='client',
             name='guardian_name',
-            field=models.CharField(blank=True, default='', max_length=250, null=True, verbose_name="Primary care give / Guardian' name"),
+            field=models.CharField(blank=True, default='', max_length=250, null=True,
+                                   verbose_name="Primary care give / Guardian' name"),
         ),
         migrations.AddField(
             model_name='client',
             name='guardian_national_id',
-            field=models.CharField(blank=True, default='', max_length=10, null=True, verbose_name='National ID (Care giver / Guardian)'),
+            field=models.CharField(blank=True, default='', max_length=10, null=True,
+                                   verbose_name='National ID (Care giver / Guardian)'),
         ),
         migrations.AddField(
             model_name='client',
             name='guardian_phone_number',
-            field=models.CharField(blank=True, max_length=13, null=True, verbose_name='Phone Number(Care giver / Guardian)'),
+            field=models.CharField(blank=True, max_length=13, null=True,
+                                   verbose_name='Phone Number(Care giver / Guardian)'),
         ),
         migrations.AddField(
             model_name='client',
             name='informal_settlement',
-            field=models.CharField(blank=True, default='', max_length=250, null=True, verbose_name='Informal Settlement'),
+            field=models.CharField(blank=True, default='', max_length=250, null=True,
+                                   verbose_name='Informal Settlement'),
         ),
         migrations.AddField(
             model_name='client',
             name='landmark',
-            field=models.CharField(blank=True, default='', max_length=250, null=True, verbose_name='Land mark near residence'),
+            field=models.CharField(blank=True, default='', max_length=250, null=True,
+                                   verbose_name='Land mark near residence'),
         ),
         migrations.AddField(
             model_name='client',
             name='relationship_with_guardian',
-            field=models.CharField(blank=True, default='', max_length=50, null=True, verbose_name='Relationship with Guardian'),
+            field=models.CharField(blank=True, default='', max_length=50, null=True,
+                                   verbose_name='Relationship with Guardian'),
         ),
         migrations.AddField(
             model_name='client',

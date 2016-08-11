@@ -1,8 +1,15 @@
+# coding=utf-8
 from django.contrib import admin
+from django.contrib.auth.models import Permission
 
 from models import *
 # Register your models here.
 
+class PermissionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'codename', 'content_type')
+    search_fields = ('name', 'codename', 'content_type')
+
+admin.site.register(Permission, PermissionAdmin)
 
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'middle_name', 'last_name', 'date_of_birth')
@@ -33,6 +40,19 @@ admin.site.register(SubCounty)
 admin.site.register(Ward)
 admin.site.register(VerificationDocument)
 admin.site.register(ImplementingPartner)
+
+class AuditAdmin(admin.ModelAdmin):
+    model = Audit
+    list_display = ('user_id', 'table', 'row_id', 'action', 'search_text', 'timestamp')
+    search_fields = ('user_id', 'table', 'action')
+
+admin.site.register(Audit, AuditAdmin)
+
+
+class InitAppAdmin(admin.ModelAdmin):
+    model = InitApp
+
+admin.site.register(InitApp, InitAppAdmin)
 
 
 class ImplementingPartnerUserAdmin(admin.ModelAdmin):

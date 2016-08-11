@@ -8,7 +8,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -61,7 +60,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('code', models.IntegerField(default=0, verbose_name='Intervention Type Code')),
                 ('name', models.CharField(max_length=30)),
-                ('intervention_category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.InterventionCategory')),
+                ('intervention_category',
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.InterventionCategory')),
             ],
             options={
                 'verbose_name': 'Intervention Type',
@@ -101,17 +101,20 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='intervention',
             name='hts_result',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.HTSResult'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='DreamsApp.HTSResult'),
         ),
         migrations.AddField(
             model_name='intervention',
             name='intervention_type',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.InterventionType'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='DreamsApp.InterventionType'),
         ),
         migrations.AddField(
             model_name='intervention',
             name='pregnancy_test_result',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.PregnancyTestResult'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='DreamsApp.PregnancyTestResult'),
         ),
         migrations.AddField(
             model_name='intervention',

@@ -9,7 +9,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('DreamsApp', '0010_auto_20160427_1149'),
     ]
@@ -23,7 +22,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='client',
             name='county_of_residence',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.County', verbose_name='County of residence'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.County',
+                                    verbose_name='County of residence'),
         ),
         migrations.AlterField(
             model_name='client',
@@ -48,7 +48,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='client',
             name='enrolled_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='client',
@@ -93,7 +94,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='client',
             name='marital_status',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.MaritalStatus', verbose_name='Marital Status'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='DreamsApp.MaritalStatus', verbose_name='Marital Status'),
         ),
         migrations.AlterField(
             model_name='client',
@@ -113,7 +115,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='client',
             name='sub_county',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.SubCounty', verbose_name='Sub County'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.SubCounty',
+                                    verbose_name='Sub County'),
         ),
         migrations.AlterField(
             model_name='client',
@@ -128,6 +131,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='client',
             name='ward',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.Ward', verbose_name='Ward'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.Ward',
+                                    verbose_name='Ward'),
         ),
     ]
