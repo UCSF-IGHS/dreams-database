@@ -873,21 +873,25 @@ def save_user(request):
                         user=user,
                         implementing_partner=new_user_ip
                     )
-                    # send email with user credentials
-                    msg = EmailMessage('DREAMS Credentials',
-                                       'Dear ' + user.first_name + ',\n\n Welcome to DREAMS. You can login to your account at http://dreams-dev.globalhealthapp.net.'
-                                                                   '\n\n\t Username: ' + username +
-                                       '\n\t Password:  PTZ%hz^+&mny+9Av'
-                                       '\n\nThank you,'
-                                       '\nDREAMS Administrator',
-                                       to=[email])
-                    msg.send()
-                    response_data = {
-                        'status': 'success',
-                        'message': 'User successfully saved. Your temporary password has been sent to ' + email,
-                        'ip_users': serializers.serialize('json', [ip_user, ])
-                    }
-                    return JsonResponse(response_data)
+                    try:
+                        # send email with user credentials
+                        msg = EmailMessage('DREAMS Credentials',
+                                           'Dear ' + user.first_name + ',\n\n Welcome to DREAMS. You can login to your account at http://dreams-dev.globalhealthapp.net.'
+                                                                       '\n\n\t Username: ' + username +
+                                           '\n\t Password:  PTZ%hz^+&mny+9Av'
+                                           '\n\nThank you,'
+                                           '\nDREAMS Administrator',
+                                           to=[email])
+                        msg.send()
+                        response_data = {
+                            'status': 'success',
+                            'message': 'User successfully saved. Your temporary password has been sent to ' + email,
+                            'ip_users': serializers.serialize('json', [ip_user, ])
+                        }
+                        return JsonResponse(response_data)
+                    except:
+                        raise Exception('User registered but could not send login detais to provided email address. '
+                                        'Contact System Admin for help')
             else:  # raise exception
                 raise Exception('User with id ' + ip_user_id + ' exists already')
         except ImplementingPartner.DoesNotExist:
