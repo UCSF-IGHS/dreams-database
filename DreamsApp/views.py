@@ -817,7 +817,11 @@ def users(request):
         return render(request, 'users.html', {'page': 'users', 'ip_users': final_ip_user_list,
                                               'filter_text': filter_text,
                                               'items_in_page': 0 if final_ip_user_list.end_index() == 0 else
-                                              (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1)})
+                                              (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1),
+                                              'implementing_partners': ImplementingPartner.objects.all(),
+                                              'current_user_ip': request.user.implementingpartneruser.implementing_partner,
+                                              'roles': Group.objects.all()
+                                              })
     else:
         raise PermissionDenied  # this should be a redirection to the permissions denied page
 
@@ -826,55 +830,70 @@ def save_user(request):
     if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
             'auth.can_manage_user'):
         try:
-            # check if registering user belongs to an IP
-            if request.user.implementingpartneruser.implementing_partner is not None:
-                # Registering user belongs to an IP. Proceed
-                # Check to see if IP user exists already or not
-                ip_user_id = request.POST.get('ip_user_id', 0)
-                if ip_user_id == 0 or ip_user_id is None or ip_user_id == u'':
-                    # This is a new user
-                    username = request.POST.get('username', '')
-                    email = request.POST.get('emailaddress', '')
-                    role = request.POST.get('role', '')
-                    # Check if provided username is in db
-                    try:
-                        user = User.objects.get(username__exact=username)
-                        raise Exception("Error: The username '" + username +
-                                        "' is already take. Please enter a different username and continue")
-                    except User.DoesNotExist:
-                        # user with this username does not exist
-                        user_group = Group.objects.filter(name__exact=role).first()  # get group
-                        user = User.objects.create_user(
-                            username=username, email=email, password='PTZ%hz^+&mny+9Av'
-                        )
-                        user.first_name = request.POST.get('firstname', '')
-                        user.last_name = request.POST.get('lastname', '')
-                        user.groups.add(user_group)
-                        user.save()  # save user changes first
-                        ip_user = ImplementingPartnerUser.objects.create(
-                            user=user,
-                            implementing_partner=request.user.implementingpartneruser.implementing_partner
-                        )
-                        # send email with user credentials
-                        msg = EmailMessage('DREAMS Credentials',
-                                           'Dear ' + user.first_name + ',\n\n Welcome to DREAMS. You can login to your account at http://dreams-dev.globalhealthapp.net.'
-                                                                       '\n\n\t Username: ' + username +
-                                           '\n\t Password:  PTZ%hz^+&mny+9Av'
-                                           '\n\nThank you,'
-                                           '\nDREAMS Administrator',
-                                           to=[email])
-                        msg.send()
-                        response_data = {
-                            'status': 'success',
-                            'message': 'User successfully saved. Your temporary password has been sent to ' + email,
-                            'ip_users': serializers.serialize('json', [ip_user, ])
-                        }
-                        return JsonResponse(response_data)
-                else:  # raise exception
-                    raise Exception('User with id ' + ip_user_id + ' exists already')
-            else:  # Registering user does not belong to an IP. Raise exception
-                raise Exception("Error: You do not belong to an Implementing Partner. "
-                                "Please contact your system admin to add you to the relevant Implementing Partner.")
+            new_user_ip = ImplementingPartner.objects.get(name=
+                request.POST.get('implementing_partner', ''))  # Valid IP for new user
+            # check if user can change cross IP data
+            if not request.user.has_perm('auth.can_change_cross_ip_data'):
+                # User must register new user under their IP. Theck if user has a valid IP
+                # check if registering user belongs to an IP
+                if request.user.implementingpartneruser.implementing_partner is None: # Registering user does not belong to an IP. Raise exception
+                    raise Exception("Error: You do not belong to an Implementing Partner. "
+                                    "Please contact your system admin to add you to the relevant Implementing Partner.")
+
+                elif new_user_ip != request.user.implementingpartneruser.implementing_partner:
+                    # Registering user and user do not belong to same IP. Raise exception
+                    raise Exception("Error: You do not have permission to register a user under a different Implementing"
+                                    " partner other than " + request.user.implementingpartneruser.
+                                    implementing_partner.name)
+
+            # Everything is fine. Proceed to register user
+            # Check to see if IP user exists already or not
+            ip_user_id = request.POST.get('ip_user_id', 0)
+            if ip_user_id == 0 or ip_user_id is None or ip_user_id == u'':
+                # This is a new user
+                username = request.POST.get('username', '')
+                email = request.POST.get('emailaddress', '')
+                role = request.POST.get('role', '')
+                # Check if provided username is in db
+                try:
+                    user = User.objects.get(username__exact=username)
+                    raise Exception("Error: The username '" + username +
+                                    "' is already take. Please enter a different username and continue")
+                except User.DoesNotExist:
+                    # user with this username does not exist
+                    user_group = Group.objects.filter(name__exact=role).first()  # get group
+                    user = User.objects.create_user(
+                        username=username, email=email, password='PTZ%hz^+&mny+9Av'
+                    )
+                    user.first_name = request.POST.get('firstname', '')
+                    user.last_name = request.POST.get('lastname', '')
+                    user.groups.add(user_group)
+                    user.save()  # save user changes first
+                    ip_user = ImplementingPartnerUser.objects.create(
+                        user=user,
+                        implementing_partner=new_user_ip
+                    )
+                    # send email with user credentials
+                    msg = EmailMessage('DREAMS Credentials',
+                                       'Dear ' + user.first_name + ',\n\n Welcome to DREAMS. You can login to your account at http://dreams-dev.globalhealthapp.net.'
+                                                                   '\n\n\t Username: ' + username +
+                                       '\n\t Password:  PTZ%hz^+&mny+9Av'
+                                       '\n\nThank you,'
+                                       '\nDREAMS Administrator',
+                                       to=[email])
+                    msg.send()
+                    response_data = {
+                        'status': 'success',
+                        'message': 'User successfully saved. Your temporary password has been sent to ' + email,
+                        'ip_users': serializers.serialize('json', [ip_user, ])
+                    }
+                    return JsonResponse(response_data)
+            else:  # raise exception
+                raise Exception('User with id ' + ip_user_id + ' exists already')
+        except ImplementingPartner.DoesNotExist:
+            # User being registered under invalid IP. Raise an error
+            raise Exception("Error: User must be registered under an Implementing Partner")
+
         except Exception as e:
             response_data = {
                 'status': 'fail',

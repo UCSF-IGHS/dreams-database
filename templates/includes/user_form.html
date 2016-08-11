@@ -16,17 +16,30 @@
                     <!-- Hidden fields -->
                     <input type="number" class="form-control hidden" id="reg_ip_user_id" name="ip_user_id"/>
                     <!-- End Hidden fields -->
+
+                    <div class="form-group">
+                      <label for="role-select">Implementing Partner</label>
+                      {% if perms.auth.can_change_cross_ip_data %}
+                      <select id="role" name="implementing_partner" class="form-control validate-intervention-form-field" required>
+                          <option value="">Select Option</option>
+                          {% for ip in implementing_partners %}
+                            <option value="{{ ip.name }}">{{ ip.name }}</option>
+                          {% endfor %}
+                       </select>
+                      {% else %}
+                      <select id="role" name="implementing_partner" class="form-control validate-intervention-form-field" required>
+                          <option value="{{ current_user_ip.name }}">{{ current_user_ip.name }}</option>
+                      </select>
+                      {% endif %}
+                    </div>
+
                     <div class="form-group">
                       <label for="role-select">Role</label>
                       <select id="role" name="role" class="form-control validate-intervention-form-field" required>
                           <option value="">Select Option</option>
-                          {% if perms.auth.can_manage_user %}
-                              <option value="UCSF">UCSF</option>
-                              <option value="USG">USG</option>
-                              <option value="IT Support">IT Support</option>
-                              <option value="Data Manager">Data Manager</option>
-                              <option value="Data Clerk">Data Clerk</option>
-                          {% endif %}
+                          {% for role in roles %}
+                            <option value="{{ role.name }}">{{ role.name }}</option>
+                          {% endfor %}
                       </select>
                     </div>
 
