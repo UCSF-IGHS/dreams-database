@@ -118,8 +118,8 @@ class Client(models.Model):
     relationship_with_guardian = models.CharField(verbose_name='Relationship with Guardian', max_length=50, null=True)
     guardian_phone_number = models.CharField(verbose_name='Phone Number(Care giver / Guardian)', max_length=13, null=True)
     guardian_national_id = models.CharField(verbose_name='National ID (Care giver / Guardian)', max_length=10, null=True)
-
     enrolled_by = models.ForeignKey(User, null=True)
+    odk_enrollment_uuid = models.CharField(max_length=50, null=True, blank=True)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
@@ -636,8 +636,8 @@ class ClientIndividualAndHouseholdData(models.Model):
     no_of_people_in_household = models.IntegerField(verbose_name='No of people living in your house')
     no_of_females = models.IntegerField(verbose_name='No of females')
     no_of_males = models.IntegerField(verbose_name='No of Males')
-    no_adults = models.IntegerField(verbose_name='No of adults')
-    no_children = models.IntegerField(verbose_name='No of children')
+    no_of_adults = models.IntegerField(verbose_name='No of adults')
+    no_of_children = models.IntegerField(verbose_name='No of children')
     ever_enrolled_in_ct_program = models.ForeignKey(CategoricalResponse, verbose_name='Ever enrolled in Cash Transfer?', related_name='+')
     currently_in_ct_program = models.ForeignKey(CategoricalResponse, verbose_name="Currently enrolled in Cash Transfer?", related_name='+')
     current_ct_program = models.CharField(verbose_name='Cash Transfer Programme currently enrolled in', max_length=50)
