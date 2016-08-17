@@ -32,3 +32,20 @@ CREATE PROCEDURE enrollment_cursor()
   END
   $$
 DELIMITER ;
+
+
+/*SELECT c.column_name
+  FROM INFORMATION_SCHEMA.COLUMNS c
+ WHERE c.table_name = 'tbl_name'
+-- AND c.table_schema = 'db_name'
+ORDER BY c.column_name*/
+
+SELECT c.column_name
+  FROM INFORMATION_SCHEMA.COLUMNS c
+ WHERE c.table_name = 'DREAMS_ENROLMENT_FORM_CORE'
+ORDER BY c.column_name;
+
+SELECT c.column_name
+  FROM INFORMATION_SCHEMA.COLUMNS c
+ WHERE c.table_name = 'DREAMS_ENROLMENT_FORM_CORE2'
+ORDER BY c.column_name

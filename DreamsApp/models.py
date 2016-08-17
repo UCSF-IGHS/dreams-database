@@ -680,6 +680,7 @@ class ClientHIVTestingData(models.Model):
     reason_not_in_hiv_care_other = models.CharField(max_length=50, blank=True, null=True)
     knowledge_of_hiv_test_centres = models.ForeignKey(CategoricalResponse, related_name='+')
     reason_never_tested_for_hiv = models.ManyToManyField(ReasonNotTestedForHIV, blank=True)
+    reason_never_tested_for_hiv_other = models.CharField(max_length=50)
 
 
 class ClientSexualActivityData(models.Model):
@@ -705,7 +706,7 @@ class ClientSexualActivityData(models.Model):
 
 
 class ClientReproductiveHealthData(models.Model):
-    """ Holds information about client's reproductivity """
+    """ Holds information about client's reproductive health """
     client = models.ForeignKey(Client)
     has_biological_children = models.ForeignKey(CategoricalResponse, blank=False, null=False, related_name='+')
     no_of_biological_children = models.IntegerField(blank=True, null=True)
@@ -719,6 +720,8 @@ class ClientReproductiveHealthData(models.Model):
     current_fp_method = models.ForeignKey(FamilyPlanningMethod, blank=True, null=True, related_name='+')
     current_fp_method_other = models.CharField(max_length=50, verbose_name='Other Modern FP method used',
                                                        blank=True, null=True)
+    reason_not_using_fp = models.ForeignKey(ReasonNotUsingFamilyPlanning, null=True, blank=True, related_name='+')
+    reason_not_using_fp_other = models.CharField(max_length=50, blank=True, null=True)
 
 
 class ClientGenderBasedViolenceData(models.Model):
