@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
+from django.utils import timezone
 
 
 class MaritalStatus(models.Model):
@@ -122,7 +123,7 @@ class Client(models.Model):
 
     enrolled_by = models.ForeignKey(User, null=True)
     odk_enrollment_uuid = models.CharField(max_length=50, null=True, blank=True)
-    date_created = models.DateTimeField(auto_now=True)
+    date_created = models.DateTimeField(blank=False, null=False, default=timezone.now)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
@@ -636,11 +637,11 @@ class ClientIndividualAndHouseholdData(models.Model):
     has_disability = models.ForeignKey(CategoricalResponse, verbose_name='Disabled?', blank=True, null=True, related_name='+')
     disability_type = models.ForeignKey(DisabilityType, null=True, blank=True, verbose_name='Disability Type', related_name='+')
     disability_type_other = models.CharField(verbose_name='Other disability type', blank=True, null=True, max_length=50)
-    no_of_people_in_household = models.IntegerField(verbose_name='No of people living in your house')
-    no_of_females = models.IntegerField(verbose_name='No of females')
-    no_of_males = models.IntegerField(verbose_name='No of Males')
-    no_of_adults = models.IntegerField(verbose_name='No of adults')
-    no_of_children = models.IntegerField(verbose_name='No of children')
+    no_of_people_in_household = models.IntegerField(verbose_name='No of people living in your house', null=True, blank=True)
+    no_of_females = models.IntegerField(verbose_name='No of females', null=True)
+    no_of_males = models.IntegerField(verbose_name='No of Males', null=True)
+    no_of_adults = models.IntegerField(verbose_name='No of adults', null=True)
+    no_of_children = models.IntegerField(verbose_name='No of children', null=True)
     ever_enrolled_in_ct_program = models.ForeignKey(CategoricalResponse, verbose_name='Ever enrolled in Cash Transfer?', related_name='+')
     currently_in_ct_program = models.ForeignKey(CategoricalResponse, verbose_name="Currently enrolled in Cash Transfer?", related_name='+')
     current_ct_program = models.CharField(verbose_name='Cash Transfer Programme currently enrolled in', max_length=50)
@@ -660,8 +661,8 @@ class ClientEducationAndEmploymentData(models.Model):
     reason_not_in_school = models.ForeignKey(ReasonNotInSchool, verbose_name='Reason for not going to school', related_name='+')
     reason_not_in_school_other = models.CharField(verbose_name='Reason for not going to school: other', max_length=50)
     last_time_in_school = models.ForeignKey(PeriodResponse, verbose_name='Last time in school', related_name='+')
-    dropout_school_level = models.ForeignKey(SchoolLevel, 'In which class/form did you stop schooling?', related_name='+')
-    dropout_class = models.CharField(max_length=15, verbose_name='Drop out class')
+    dropout_school_level = models.ForeignKey(SchoolLevel, related_name='+', null=True)
+    dropout_class = models.CharField(max_length=15, verbose_name='Drop out class', null=True)
     life_wish = models.ForeignKey(LifeWish, verbose_name='Wish in life', blank=True, null=True, related_name='+')
     life_wish_other = models.CharField(verbose_name='Wish in life: other', max_length=50, blank=True, null=True)
     current_income_source = models.ForeignKey(SourceOfIncome, verbose_name='Current source of income', related_name='+')
@@ -683,7 +684,7 @@ class ClientHIVTestingData(models.Model):
     reason_not_in_hiv_care_other = models.CharField(max_length=50, blank=True, null=True)
     knowledge_of_hiv_test_centres = models.ForeignKey(CategoricalResponse, related_name='+')
     reason_never_tested_for_hiv = models.ManyToManyField(ReasonNotTestedForHIV, blank=True)
-    reason_never_tested_for_hiv_other = models.CharField(max_length=50)
+    reason_never_tested_for_hiv_other = models.CharField(max_length=50, blank=True, null=True)
 
 
 class ClientSexualActivityData(models.Model):
