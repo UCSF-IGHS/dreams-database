@@ -120,6 +120,7 @@ class Client(models.Model):
     guardian_national_id = models.CharField(verbose_name='National ID (Care giver / Guardian)', max_length=10, null=True)
     enrolled_by = models.ForeignKey(User, null=True)
     odk_enrollment_uuid = models.CharField(max_length=50, null=True, blank=True)
+    date_created = models.DateTimeField(auto_now=True)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
