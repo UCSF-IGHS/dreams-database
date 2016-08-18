@@ -122,7 +122,7 @@ class Client(models.Model):
 
     enrolled_by = models.ForeignKey(User, null=True)
     odk_enrollment_uuid = models.CharField(max_length=50, null=True, blank=True)
-    date_created = models.DateTimeField(auto_now=True, default=datetime.datetime.now)
+    date_created = models.DateTimeField(auto_now=True, blank=False, null=False)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
