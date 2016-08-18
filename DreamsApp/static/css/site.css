@@ -395,3 +395,12 @@ html, body{
     background-color: lightyellow;
 }
 /* end of users section */
+
+.some-class{
+    color: red;
+    border-color: green;
+}
+
+.date-field{
+
+}

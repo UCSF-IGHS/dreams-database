@@ -7,11 +7,14 @@ from django.core.exceptions import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import Group
+from django.views.generic import ListView, CreateView
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import json
 import traceback
 from datetime import date, timedelta
 from django.db.models import Q
 from DreamsApp.models import *
+from DreamsApp.forms import *
 
 
 def get_enrollment_form_config_data():
@@ -703,7 +706,7 @@ def user_help(request):
 def logs(request):
     if request.user.is_authenticated() and request.user.is_active:
         if not request.user.has_perm('auth.can_manage_audit'):
-            return PermissionDenied('Operation not allowed. [Missing Permission]')
+            raise PermissionDenied('Operation not allowed. [Missing Permission]')
         # user is allowed to view logs
         if request.method == 'GET':
             try:
@@ -1034,3 +1037,169 @@ def server_error(request):
                    'A server error occurred while processing your request. Please try again or contact your '
                    'administrator if the error persists.<br>. '}
     return render(request, 'error_page.html', context)
+
+
+def grievances_list(request):
+    try:
+        if not request.user.is_authenticated():
+            raise PermissionDenied
+        page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
+        filter_text = request.GET.get('filter-user-text', '') if request.method == 'GET' else request.POST.get('filter-user-text', '')
+        """ IP level permission check """
+        grievance_list = Grievance.objects.all() if request.user.has_perm('auth.can_view_cross_ip') else \
+            Grievance.objects.filter(implementing_partner=request.user.implementingpartneruser.implementing_partner)
+        # do pagination
+        try:
+            paginator = Paginator(grievance_list, 20)
+            final_grievance_list = paginator.page(page)
+        except PageNotAnInteger:
+            final_grievance_list = paginator.page(1)  # Deliver the first page is page is not an integer
+        except EmptyPage:
+            final_grievance_list = paginator.page(0)  # Deliver the last page if page is out of scope
+        response_data = {
+            'page': 'cash_transfer',
+            'filter_text': filter_text,
+            'items_in_page': 0 if final_grievance_list.end_index() == 0 else
+            (final_grievance_list.end_index() - final_grievance_list.start_index() + 1),
+            'current_user_ip': request.user.implementingpartneruser.implementing_partner,
+            'form': GrievanceModelForm(current_user=request.user),
+            'grievance_list': final_grievance_list,
+            'status': 'success'
+        }
+        return render(request, 'grievances.html', response_data)
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
+
+
+@csrf_exempt
+def grievances_create(request):
+    try:
+        if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+            grievance = GrievanceModelForm(request.POST, current_user=request.user)
+            if grievance.is_valid():
+                saved_grievance = grievance.save(commit=True)
+                response_data = {
+                    'status': 'success',
+                    'message': 'Grievance saved successfully',
+                    'grievance': grievance.data,
+                    'grievance_id': saved_grievance.id,
+                    'reporter_categories': serializers.serialize('json', GrievanceReporterCategory.objects.all()),
+                    'grievance_nature': serializers.serialize('json', GrievanceNature.objects.all()),
+                    'status_list': serializers.serialize('json', GrievanceStatus.objects.all()),
+                }
+                return JsonResponse(response_data)
+            else:
+                raise Exception(grievance.errors)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
+
+
+@csrf_exempt
+def grievances_edit(request):
+    """ """
+    try:
+        if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+            try:
+                id = int(request.POST.get('id', 0))
+                instance = Grievance.objects.get(id=id)
+                form = GrievanceModelForm(request.POST, instance=instance, current_user=request.user)
+                if not form.is_valid():
+                    response_data = {
+                        'status': 'fail',
+                        'message': form.errors
+                    }
+                else:
+                    form.save(commit=True)
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Grievance edited successfully',
+                        'grievance': form.data,
+                        'reporter_categories': serializers.serialize('json', GrievanceReporterCategory.objects.all()),
+                        'grievance_nature': serializers.serialize('json', GrievanceNature.objects.all()),
+                        'status_list': serializers.serialize('json', GrievanceStatus.objects.all()),
+                    }
+                    return JsonResponse(response_data)
+            except Grievance.DoesNotExist:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Grievance not found'
+                }
+                return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
+
+
+@csrf_exempt
+def grievances_delete(request):
+    """ """
+    try:
+        if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+            try:
+                id = int(request.POST.get('id', 0))
+                instance = Grievance.objects.get(id=id).delete()
+                response_data = {
+                    'status': 'success',
+                    'message': 'Grievance deleted successfully',
+                    'grievanceId': id
+                }
+                return JsonResponse(response_data)
+            except Grievance.DoesNotExist:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Grievance not found'
+                }
+                return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
+
+
+def grievances_get(request):
+    """ """
+    try:
+        if not request.user.is_authenticated():
+            raise PermissionDenied
+        grievance_id = request.GET.get('grievance_id', 0) if request.method == 'GET' else request.POST.get('grievance_id', 0)
+        try:
+            grievance = Grievance.objects.get(id__exact=grievance_id)
+            response_data = {
+                'status': 'success',
+                'message': 'Grievance saved successfully',
+                'grievance': serializers.serialize('json', [grievance]),
+            }
+        except Grievance.DoesNotExist:
+            response_data = {
+                'status': 'fail',
+                'message': 'Grievance not found in Database'
+            }
+        return JsonResponse(response_data)
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
+
+
+

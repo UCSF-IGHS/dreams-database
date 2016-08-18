@@ -49,12 +49,6 @@ class AuditAdmin(admin.ModelAdmin):
 admin.site.register(Audit, AuditAdmin)
 
 
-class InitAppAdmin(admin.ModelAdmin):
-    model = InitApp
-
-admin.site.register(InitApp, InitAppAdmin)
-
-
 class ImplementingPartnerUserAdmin(admin.ModelAdmin):
     model = ImplementingPartnerUser
     list_display = ('get_username', 'implementing_partner')
@@ -67,3 +61,48 @@ class ImplementingPartnerUserAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ImplementingPartnerUser, ImplementingPartnerUserAdmin)
+
+
+class GrievanceReporterCategoryAdmin(admin.ModelAdmin):
+    model = GrievanceReporterCategory
+    list_display = ('code', 'name', 'requires_dreams_id', 'requires_relationship', 'is_other_specified')
+    list_per_page = 25
+
+admin.site.register(GrievanceReporterCategory, GrievanceReporterCategoryAdmin)
+
+
+class GrievanceNatureAdmin(admin.ModelAdmin):
+    model = GrievanceNature
+    list_display = ('code', 'name', 'is_other_specify')
+    list_per_page = 25
+
+admin.site.register(GrievanceNature, GrievanceNatureAdmin)
+
+
+class GrievanceStatusAdmin(admin.ModelAdmin):
+    model = GrievanceStatus
+    list_display = ('code', 'name')
+    list_per_page = 25
+
+admin.site.register(GrievanceStatus, GrievanceStatusAdmin)
+
+
+class GrievanceAdmin(admin.ModelAdmin):
+    model = Grievance
+    list_display = ('date', 'implementing_partner', 'county', 'ward', 'reporter_name', 'reporter_category', 'grievance_nature', 'other_grievance_specify', 'is_first_time_complaint', 'person_responsible', 'resolution', 'resolution_date', 'complainant_feedback_date', 'status')
+    search_fields = (
+    'date', 'implementing_partner', 'county', 'ward', 'reporter_name', 'reporter_category', 'grievance_nature',
+    'other_grievance_specify', 'is_first_time_complaint', 'person_responsible', 'resolution', 'resolution_date',
+    'complainant_feedback_date', 'status')
+    list_per_page = 30
+
+admin.site.register(Grievance, GrievanceAdmin)
+
+
+class ClientCashTransferDetailsAdmin(admin.ModelAdmin):
+    model = ClientCashTransferDetails
+    list_display = ('client', 'recipient_name', 'recipient_relationship_with_client', 'payment_mode',
+                    'mobile_service_provider_name', 'recipient_phone_number', 'bank_name', 'bank_account_number')
+    list_per_page = 30
+
+admin.site.register(ClientCashTransferDetails, ClientCashTransferDetailsAdmin)
