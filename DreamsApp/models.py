@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
+from django.utils import timezone
 
 
 class MaritalStatus(models.Model):
@@ -122,7 +123,7 @@ class Client(models.Model):
 
     enrolled_by = models.ForeignKey(User, null=True)
     odk_enrollment_uuid = models.CharField(max_length=50, null=True, blank=True)
-    date_created = models.DateTimeField(auto_now=True, blank=False, null=False)
+    date_created = models.DateTimeField(blank=False, null=False, default=timezone.now)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
@@ -660,7 +661,7 @@ class ClientEducationAndEmploymentData(models.Model):
     reason_not_in_school = models.ForeignKey(ReasonNotInSchool, verbose_name='Reason for not going to school', related_name='+')
     reason_not_in_school_other = models.CharField(verbose_name='Reason for not going to school: other', max_length=50)
     last_time_in_school = models.ForeignKey(PeriodResponse, verbose_name='Last time in school', related_name='+')
-    dropout_school_level = models.ForeignKey(SchoolLevel, 'In which class/form did you stop schooling?', related_name='+', null=True)
+    dropout_school_level = models.ForeignKey(SchoolLevel, related_name='+', null=True)
     dropout_class = models.CharField(max_length=15, verbose_name='Drop out class', null=True)
     life_wish = models.ForeignKey(LifeWish, verbose_name='Wish in life', blank=True, null=True, related_name='+')
     life_wish_other = models.CharField(verbose_name='Wish in life: other', max_length=50, blank=True, null=True)
