@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 Django settings for Dreams project.
 
@@ -49,7 +50,6 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'middleware.initialization.InitializationMiddleware',
 
 ]
 
@@ -136,9 +136,20 @@ FIXTURE_DIRS = ()
 # mail server settings
 DEFAULT_FROM_EMAIL = 'dreams.globalhealthapp@gmail.com'
 SERVER_EMAIL = 'dreams.globalhealthapp@gmail.com'
-EMAIL_USE_TLS = True
+EMAIL_BACKEND='django_smtp_ssl.SSLEmailBackend'  # 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_SSL = True
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_PORT = 465 # 587
 EMAIL_HOST_USER = 'dreams.globalhealthapp@gmail.com'
 EMAIL_HOST_PASSWORD = 'dreamsdev123#'
 
+
+# Just in case
+# DEFAULT_FROM_EMAIL = 'dreams.globalhealthapp@gmail.com'
+# SERVER_EMAIL = 'dreams.globalhealthapp@gmail.com'
+# EMAIL_BACKEND='django_smtp_ssl.SSLEmailBackend'  # 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_USE_SSL = True
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 465 # 587
+# EMAIL_HOST_USER = 'dreams.globalhealthapp@gmail.com'
+# EMAIL_HOST_PASSWORD = 'dreamsdev123#'

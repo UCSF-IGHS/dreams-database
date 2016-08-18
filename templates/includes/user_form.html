@@ -16,38 +16,58 @@
                     <!-- Hidden fields -->
                     <input type="number" class="form-control hidden" id="reg_ip_user_id" name="ip_user_id"/>
                     <!-- End Hidden fields -->
+
                     <div class="form-group">
-                      <label for="role-select">Role</label>
+                      <label for="implementing_partner">Implementing Partner</label>
+                      {% if perms.auth.can_change_cross_ip_data %}
+                      <select id="implementing_partner" name="implementing_partner" class="form-control validate-intervention-form-field" required>
+                          <option value="">Select Option</option>
+                          {% for ip in implementing_partners %}
+                            <option value="{{ ip.name }}">{{ ip.name }}</option>
+                          {% endfor %}
+                       </select>
+                      {% else %}
+                      <select id="implementing_partner" name="implementing_partner" class="form-control validate-intervention-form-field" required>
+                          <option value="{{ current_user_ip.name }}">{{ current_user_ip.name }}</option>
+                      </select>
+                      {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                      <label for="role">Role</label>
                       <select id="role" name="role" class="form-control validate-intervention-form-field" required>
                           <option value="">Select Option</option>
-                          {% if perms.auth.can_manage_program_officers %}
-                            <option value="Program officer">Program Officer</option>
-                          {% endif %}
-                          {% if perms.auth.can_manage_data_entrants %}
-                            <option value="Data entrant">Data entrant</option>
-                          {% endif %}
+                          {% for role in roles %}
+                            <option value="{{ role.name }}">{{ role.name }}</option>
+                          {% endfor %}
                       </select>
                     </div>
 
 
                     <div class="form-group">
                         <label for="firstname" class="control-label">First Name</label>
-                        <input type="text" class="form-control" id="reg_firstname" name="firstname" required minlength="2"></input>
+                        <input type="text" class="form-control" id="reg_firstname" name="firstname" required minlength="2">
                     </div>
 
                     <div class="form-group" >
                         <label for="lastname" class="control-label">Last Name</label>
-                        <input type="text" class="form-control" id="reg_lastname" name="lastname" required minlength="2"> </input>
+                        <input type="text" class="form-control" id="reg_lastname" name="lastname" required minlength="2">
                     </div>
 
                     <div class="form-group" >
                         <label for="emailaddress" class="control-label">Email Address</label>
-                        <input type="email" required class="form-control" id="reg_emailaddress" name="emailaddress"></input>
+                        <input type="email" required class="form-control" id="reg_emailaddress" name="emailaddress">
                     </div>
 
                     <div class="form-group" >
                         <label for="username" class="control-label">Username</label>
-                        <input type="text" class="form-control" id="reg_username" name="username"></input>
+                        <input type="text" class="form-control" id="reg_username" name="username">
+                    </div>
+                    <div class="form-group">
+                        <div id="processing-user-form" class="processing-indicator hidden" style="text-align: center; opacity: 0.4;">
+                            <i class='fa fa-spinner fa-spin fa-3x'></i>
+                            <p style="font-size: large">Processing...</p>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button id="btn_cancel_user" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>

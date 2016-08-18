@@ -7,7 +7,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('DreamsApp', '0007_auto_20160427_0602'),
     ]
@@ -19,7 +18,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('code', models.CharField(default='', max_length=10, verbose_name='Sub County Code')),
                 ('name', models.CharField(default='', max_length=100, verbose_name='Sub County')),
-                ('county', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.County')),
+                ('county', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                             to='DreamsApp.County')),
             ],
             options={
                 'verbose_name': 'Sub County',
@@ -32,7 +32,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('code', models.CharField(default='', max_length=10, verbose_name='Ward Code')),
                 ('name', models.CharField(default='', max_length=100, verbose_name='Ward')),
-                ('county', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.SubCounty')),
+                ('county', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                             to='DreamsApp.SubCounty')),
             ],
             options={
                 'verbose_name': 'Ward',
@@ -42,11 +43,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='client',
             name='sub_county',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.SubCounty', verbose_name='Sub County'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='DreamsApp.SubCounty', verbose_name='Sub County'),
         ),
         migrations.AddField(
             model_name='client',
             name='ward',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='DreamsApp.Ward', verbose_name='Ward'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='DreamsApp.Ward', verbose_name='Ward'),
         ),
     ]
