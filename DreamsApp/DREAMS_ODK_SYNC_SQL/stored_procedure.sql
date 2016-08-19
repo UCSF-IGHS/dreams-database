@@ -42,24 +42,28 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS syn_odk_dreams_enrollment$$
 CREATE PROCEDURE syn_odk_dreams_enrollment(IN recordUUID VARCHAR(100))
 	BEGIN
+    DECLARE exec_status INT(11) DEFAULT 1;
+    DECLARE client_id INT(11);
     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
       BEGIN
-        UPDATE odk_dreams_sync SET synced=-1 WHERE uuid=recordUUID;
+        SET exec_status = -1;
       END;
     -- perform all procedure calls in a transaction
     START TRANSACTION;
 
 		CALL sp_demographic_data(recordUUID);
-    CALL sp_individual_and_household_data(recordUUID);
+    SET client_id = LAST_INSERT_ID();
+
+    CALL sp_individual_and_household_data(recordUUID, client_id);
     CALL sp_sexuality_data(recordUUID, client_id);
-    CALL sp_reproductive_health_data(recordUUID);
-    CALL sp_drug_use_data(recordUUID);
-    CALL sp_program_participation_data(recordUUID);
-    CALL sp_gbv_data(recordUUID);
-    CALL sp_education_and_employment(recordUUID);
-    CALL sp_hiv_testing(recordUUID);
+    CALL sp_reproductive_health_data(recordUUID, client_id);
+    CALL sp_drug_use_data(recordUUID, client_id);
+    CALL sp_program_participation_data(recordUUID, client_id);
+    CALL sp_gbv_data(recordUUID, client_id);
+    CALL sp_education_and_employment(recordUUID, client_id);
+    CALL sp_hiv_testing(recordUUID, client_id);
     -- commit all inserts if all procedure calls are successful
-     UPDATE odk_dreams_sync SET synced=1 WHERE uuid=recordUUID;
+     UPDATE odk_dreams_sync SET synced=exec_status WHERE uuid=recordUUID;
     COMMIT;
 
 	END;
@@ -93,7 +97,7 @@ CREATE PROCEDURE sp_demographic_data(IN recordUUID VARCHAR(100))
       verification_document_id,
       verification_doc_no,
       implementing_partner_id,
-      ward,
+      ward_id,
       odk_enrollment_uuid
     )
     select
@@ -118,7 +122,7 @@ CREATE PROCEDURE sp_demographic_data(IN recordUUID VARCHAR(100))
       d.DEMOGRAPHIC_WARD,
       d._URI as uuid
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE d
-    where d.ENROLNOTENROLED = 1;
+    where d.ENROLNOTENROLED = 1 and _URI=recordUUID ;
   END
 		$$
 DELIMITER ;
@@ -126,7 +130,7 @@ DELIMITER ;
 -- Getting individual and household data
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_individual_and_household_data$$
-CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100))
+CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
     INSERT INTO dreams_dev.DreamsApp_client
@@ -161,6 +165,7 @@ CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100))
       current_ct_program
     )
     select
+      clientID,
       d.MODULE_Q101 as head_of_household,
       d.MODULE_Q101SPECIFY as head_of_household_other,
       d.MODULE_Q102 as age_of_household_head,
@@ -198,7 +203,7 @@ DELIMITER ;
 -- Getting sexuality data
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_sexuality_data$$
-CREATE PROCEDURE sp_sexuality_data(IN recordUUID VARCHAR(100))
+CREATE PROCEDURE sp_sexuality_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
     INSERT INTO dreams_dev.DreamsApp_client
@@ -223,6 +228,7 @@ CREATE PROCEDURE sp_sexuality_data(IN recordUUID VARCHAR(100))
       received_money_gift_for_sex
     )
     select
+      clientID,
       d.MODULE_4_Q401 as ever_had_sex,
       d.MODULE_4_Q402 as age_at_first_sexual_encounter,
       d.MODULE_4_Q403 as has_sexual_partner,
@@ -250,7 +256,7 @@ DELIMITER ;
 -- Getting reproductive health data
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_reproductive_health_data$$
-CREATE PROCEDURE sp_reproductive_health_data(IN recordUUID VARCHAR(100))
+CREATE PROCEDURE sp_reproductive_health_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
     INSERT INTO dreams_dev.DreamsApp_client
@@ -270,6 +276,7 @@ CREATE PROCEDURE sp_reproductive_health_data(IN recordUUID VARCHAR(100))
       reason_not_using_fp_other
     )
     select
+      clientID,
       d.Q501 as has_biological_children,
       d.Q502 as no_of_biological_children,
       d.Q503 as currently_pregnant,
@@ -293,7 +300,7 @@ DELIMITER ;
 -- Getting Drug Use data
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_drug_use_data$$
-CREATE PROCEDURE sp_drug_use_data(IN recordUUID VARCHAR(100))
+CREATE PROCEDURE sp_drug_use_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
     INSERT INTO dreams_dev.DreamsApp_client
@@ -306,6 +313,7 @@ CREATE PROCEDURE sp_drug_use_data(IN recordUUID VARCHAR(100))
       produced_alcohol_last_12months
     )
     select
+      clientID,
       d.MODULE_7_Q701 as used_alcohol_last_12months,
       d.MODULE_7_Q702 as frequency_of_alcohol_last_12months,
       d.MODULE_7_Q703 as drug_abuse_last_12months,
@@ -321,7 +329,7 @@ DELIMITER ;
 -- Getting Dreams Programme participation
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_program_participation_data$$
-CREATE PROCEDURE sp_program_participation_data(IN recordUUID VARCHAR(100))
+CREATE PROCEDURE sp_program_participation_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
     INSERT INTO dreams_dev.DreamsApp_client
@@ -330,6 +338,7 @@ CREATE PROCEDURE sp_program_participation_data(IN recordUUID VARCHAR(100))
       dreams_program_other
     )
     select
+      clientID,
       d.MODULE_8_Q801SPECIFY as dreams_program_other
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE d
     where d._URI = recordUUID;
@@ -341,7 +350,7 @@ DELIMITER ;
 -- Getting GBV data
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_gbv_data$$
-CREATE PROCEDURE sp_gbv_data(IN recordUUID VARCHAR(100))
+CREATE PROCEDURE sp_gbv_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
     INSERT INTO dreams_dev.DreamsApp_client
@@ -369,6 +378,7 @@ CREATE PROCEDURE sp_gbv_data(IN recordUUID VARCHAR(100))
       preferred_gbv_help_provider_other
     )
     select
+      clientID,
       d.MODULE_6_Q_601_GROUP_Q_601_EVER as humiliated_ever,
       d.MODULE_6_Q_601_GROUP_Q_601_LAST_3_MONTHS as humiliated_last_3months,
       d.MODULE_6_Q_602_GROUP_Q_602_EVER as threats_to_hurt_ever,
@@ -400,7 +410,7 @@ DELIMITER ;
 -- Getting Education and employment data
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_education_and_employment$$
-CREATE PROCEDURE sp_education_and_employment(IN recordUUID VARCHAR(100))
+CREATE PROCEDURE sp_education_and_employment(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
     INSERT INTO dreams_dev.DreamsApp_client
@@ -427,6 +437,7 @@ CREATE PROCEDURE sp_education_and_employment(IN recordUUID VARCHAR(100))
       banking_place_other
     )
     select
+      clientID,
       d.MODULE_2_Q201 as currently_in_school,
       d.MODULE_2_Q202 as current_school_name,
       d.MODULE_2_FORMALINFORMAL as current_school_type,
@@ -457,7 +468,7 @@ DELIMITER ;
 -- Getting HIV testing
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_hiv_testing$$
-CREATE PROCEDURE sp_hiv_testing(IN recordUUID VARCHAR(100))
+CREATE PROCEDURE sp_hiv_testing(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
     INSERT INTO dreams_dev.DreamsApp_client
@@ -474,6 +485,7 @@ CREATE PROCEDURE sp_hiv_testing(IN recordUUID VARCHAR(100))
       knowledge_of_hiv_test_centres
     )
     select
+      clientID,
       d.MODULE_3_Q301 as ever_tested_for_hiv,
       d.MODULE_3_Q302 as period_last_tested,
       d.MODULE_3_Q303 as last_test_result,

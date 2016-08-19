@@ -534,7 +534,7 @@ class AgeOfSexualPartner(models.Model):
 
 
 class FrequencyResponse(models.Model):
-    """Captures frequency of an event i.e always, sometimes, never etc """
+    """Captures frequency of an event i.e often(more than 10 days, sometimes(3-10 days), Rarely etc """
     name = models.CharField(verbose_name='Frequency', max_length=50, blank=False, null=False)
     code = models.IntegerField(blank=False, verbose_name='Code')
 
@@ -594,7 +594,7 @@ class Drug(models.Model):
         return '{} {}'.format(self.name, self.code)
 
     class Meta:
-        verbose_name_plural = 'Drug Abuse'
+        verbose_name_plural = 'Drugs'
 
 
 class DreamsProgramme(models.Model):
