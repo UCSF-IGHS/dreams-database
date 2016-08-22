@@ -1,13 +1,3 @@
--- event definition
-DELIMITER $$
-DROP EVENT IF EXISTS odk_dreams_enrollment_sync$$
-CREATE EVENT odk_dreams_enrollment_sync
-	ON SCHEDULE EVERY 2 MINUTE STARTS CURRENT_TIMESTAMP
-	DO
-		call syn_odk_dreams_enrollment();
-	$$
-DELIMITER ;
-
 
 -- defining table to be populated by odk enrollment trigger
 CREATE TABLE `odk_dreams_sync` (
@@ -38,32 +28,88 @@ END;
 $$
 DELIMITER ;
 
+
+
+-- -----------------------------------------       event definition  ------------------------------------------------------
 DELIMITER $$
-DROP PROCEDURE IF EXISTS syn_odk_dreams_enrollment$$
-CREATE PROCEDURE syn_odk_dreams_enrollment(IN recordUUID VARCHAR(100))
+DROP EVENT IF EXISTS odk_dreams_enrollment_sync$$
+CREATE EVENT odk_dreams_enrollment_sync
+	ON SCHEDULE EVERY 2 MINUTE STARTS CURRENT_TIMESTAMP
+	DO
+		call sp_sync_odk_dreams_data();
+	$$
+DELIMITER ;
+
+
+-- ------------------------------------------ stored procedures -------------------------------------------------------
+
+-- point of entry for sync stored procedures
+-- gets called by event and calls other procedures
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_sync_odk_dreams_data$$
+CREATE PROCEDURE sp_sync_odk_dreams_data()
+  BEGIN
+
+    DECLARE no_more_rows BOOLEAN;
+    DECLARE record_uuid VARCHAR(100);
+    DECLARE v_row_count INT(11);
+
+    DECLARE odk_enrollment_records CURSOR FOR
+      SELECT uuid FROM odk_dreams_sync WHERE synced=0 LIMIT 50;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND
+      SET no_more_rows = TRUE;
+
+    OPEN odk_enrollment_records;
+    SET v_row_count = FOUND_ROWS();
+
+    IF v_row_count > 0 THEN
+      get_enrollment_record: LOOP
+      FETCH odk_enrollment_records INTO record_uuid;
+
+      IF no_more_rows THEN
+        CLOSE odk_enrollment_records;
+        LEAVE get_enrollment_record;
+      END IF;
+
+      CALL sp_sync_client_data(record_uuid);
+
+    END LOOP get_enrollment_record;
+    ELSE
+      SELECT "NO ROWS WERE FOUND";
+    END IF;
+
+  END
+  $$
+DELIMITER ;
+
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_sync_client_data$$
+CREATE PROCEDURE sp_sync_client_data(IN recordUUID VARCHAR(100))
 	BEGIN
     DECLARE exec_status INT(11) DEFAULT 1;
     DECLARE client_id INT(11);
     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
       BEGIN
         SET exec_status = -1;
+        ROLLBACK;
       END;
     -- perform all procedure calls in a transaction
     START TRANSACTION;
 
 		CALL sp_demographic_data(recordUUID);
     SET client_id = LAST_INSERT_ID();
-
-    CALL sp_individual_and_household_data(recordUUID, client_id);
+    -- CALL sp_individual_and_household_data(recordUUID, client_id);
     CALL sp_sexuality_data(recordUUID, client_id);
-    CALL sp_reproductive_health_data(recordUUID, client_id);
-    CALL sp_drug_use_data(recordUUID, client_id);
-    CALL sp_program_participation_data(recordUUID, client_id);
-    CALL sp_gbv_data(recordUUID, client_id);
-    CALL sp_education_and_employment(recordUUID, client_id);
-    CALL sp_hiv_testing(recordUUID, client_id);
+    -- CALL sp_reproductive_health_data(recordUUID, client_id);
+    -- CALL sp_drug_use_data(recordUUID, client_id);
+    -- CALL sp_program_participation_data(recordUUID, client_id);
+    -- CALL sp_gbv_data(recordUUID, client_id);
+    --  CALL sp_education_and_employment(recordUUID, client_id);
+    -- CALL sp_hiv_testing(recordUUID, client_id);
     -- commit all inserts if all procedure calls are successful
-     UPDATE odk_dreams_sync SET synced=exec_status WHERE uuid=recordUUID;
+    UPDATE odk_dreams_sync SET synced=exec_status WHERE uuid=recordUUID;
     COMMIT;
 
 	END;
@@ -133,35 +179,35 @@ DROP PROCEDURE IF EXISTS sp_individual_and_household_data$$
 CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
-    INSERT INTO dreams_dev.DreamsApp_client
+    INSERT INTO dreams_dev.DreamsApp_clientindividualandhouseholddata
     (
-      client,
-      head_of_household, -- q101
+      client_id,
+      head_of_household_id, -- q101
       head_of_household_other, --
       age_of_household_head,
       is_father_alive,
       is_mother_alive,
       is_parent_chronically_ill,
-      main_floor_material,
+      main_floor_material_id,
       main_floor_material_other,
-      main_roof_material,
+      main_roof_material_id,
       main_roof_material_other,
-      main_wall_material,
+      main_wall_material_id,
       main_wall_material_other,
-      source_of_drinking_water,
+      source_of_drinking_water_id,
       source_of_drinking_water_other,
-      ever_missed_full_day_food_in_4wks,
-      no_of_days_missed_food_in_4wks,
-      has_disability,
-      disability_type,
+      ever_missed_full_day_food_in_4wks_id,
+      no_of_days_missed_food_in_4wks_id,
+      has_disability_id,
+      disability_type_id,
       disability_type_other,
       no_of_people_in_household,
       no_of_females,
       no_of_males,
       no_of_adults,
       no_of_children,
-      ever_enrolled_in_ct_program,
-      currently_in_ct_program,
+      ever_enrolled_in_ct_program_id,
+      currently_in_ct_program_id,
       current_ct_program
     )
     select
@@ -205,27 +251,27 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_sexuality_data$$
 CREATE PROCEDURE sp_sexuality_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
-
-    INSERT INTO dreams_dev.DreamsApp_client
+    SELECT concat('UUID: ',recordUUID, ', clientID: ', clientID);
+    INSERT INTO dreams_dev.DreamsApp_clientsexualactivitydata
     (
-      client,
-      ever_had_sex,
+      client_id,
+      ever_had_sex_id,
       age_at_first_sexual_encounter,
-      has_sexual_partner,
+      has_sexual_partner_id,
       sex_partners_in_last_12months,
-      age_of_last_partner,
-      age_of_second_last_partner,
-      age_of_third_last_partner,
-      last_partner_circumcised,
-      second_last_partner_circumcised,
-      third_last_partner_circumcised,
-      know_last_partner_hiv_status,
-      know_second_last_partner_hiv_status,
-      know_third_last_partner_hiv_status,
-      used_condom_with_last_partner,
-      used_condom_with_second_last_partner,
-      used_condom_with_third_last_partner,
-      received_money_gift_for_sex
+      age_of_last_partner_id,
+      age_of_second_last_partner_id,
+      age_of_third_last_partner_id,
+      last_partner_circumcised_id,
+      second_last_partner_circumcised_id,
+      third_last_partner_circumcised_id,
+      know_last_partner_hiv_status_id,
+      know_second_last_partner_hiv_status_id,
+      know_third_last_partner_hiv_status_id,
+      used_condom_with_last_partner_id,
+      used_condom_with_second_last_partner_id,
+      used_condom_with_third_last_partner_id,
+      received_money_gift_for_sex_id
     )
     select
       clientID,
@@ -259,20 +305,20 @@ DROP PROCEDURE IF EXISTS sp_reproductive_health_data$$
 CREATE PROCEDURE sp_reproductive_health_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
-    INSERT INTO dreams_dev.DreamsApp_client
+    INSERT INTO dreams_dev.DreamsApp_clientreproductivehealthdata
     (
-      client,
-      has_biological_children,
+      client_id,
+      has_biological_children_id,
       no_of_biological_children,
-      currently_pregnant,
-      current_anc_enrollment,
+      currently_pregnant_id,
+      current_anc_enrollment_id,
       anc_facility_name,
-      fp_methods_awareness,
+      fp_methods_awareness_id,
       known_fp_method_other,
-      currently_use_modern_fp,
-      current_fp_method,
+      currently_use_modern_fp_id,
+      current_fp_method_id,
       current_fp_method_other,
-      reason_not_using_fp,
+      reason_not_using_fp_id,
       reason_not_using_fp_other
     )
     select
@@ -303,14 +349,14 @@ DROP PROCEDURE IF EXISTS sp_drug_use_data$$
 CREATE PROCEDURE sp_drug_use_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
-    INSERT INTO dreams_dev.DreamsApp_client
+    INSERT INTO dreams_dev.DreamsApp_clientdrugusedata
     (
-      client,
-      used_alcohol_last_12months,
-      frequency_of_alcohol_last_12months,
-      drug_abuse_last_12months,
+      client_id,
+      used_alcohol_last_12months_id,
+      frequency_of_alcohol_last_12months_id,
+      drug_abuse_last_12months_id,
       drug_used_last_12months_other,
-      produced_alcohol_last_12months
+      produced_alcohol_last_12months_id
     )
     select
       clientID,
@@ -332,9 +378,9 @@ DROP PROCEDURE IF EXISTS sp_program_participation_data$$
 CREATE PROCEDURE sp_program_participation_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
-    INSERT INTO dreams_dev.DreamsApp_client
+    INSERT INTO dreams_dev.DreamsApp_clientparticipationindreams
     (
-      client,
+      client_id,
       dreams_program_other
     )
     select
@@ -353,28 +399,28 @@ DROP PROCEDURE IF EXISTS sp_gbv_data$$
 CREATE PROCEDURE sp_gbv_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
-    INSERT INTO dreams_dev.DreamsApp_client
+    INSERT INTO dreams_dev.DreamsApp_clientgenderbasedviolencedata
     (
-      client,
-      humiliated_ever,
-      humiliated_last_3months,
-      threats_to_hurt_ever,
-      threats_to_hurt_last_3months,
-      insulted_ever,
-      insulted_last_3months,
-      economic_threat_ever,
-      economic_threat_last_3months,
-      physical_violence_ever,
-      physical_violence_last_3months,
-      physically_forced_sex_ever,
-      physically_forced_sex_last_3months,
-      physically_forced_other_sex_acts_ever,
-      physically_forced_other_sex_acts_last_3months,
-      threatened_for_sexual_acts_ever,
-      threatened_for_sexual_acts_last_3months,
-      seek_help_after_gbv,
+      client_id,
+      humiliated_ever_id,
+      humiliated_last_3months_id,
+      threats_to_hurt_ever_id,
+      threats_to_hurt_last_3months_id,
+      insulted_ever_id,
+      insulted_last_3months_id,
+      economic_threat_ever_id,
+      economic_threat_last_3months_id,
+      physical_violence_ever_id,
+      physical_violence_last_3months_id,
+      physically_forced_sex_ever_id,
+      physically_forced_sex_last_3months_id,
+      physically_forced_other_sex_acts_ever_id,
+      physically_forced_other_sex_acts_last_3months_id,
+      threatened_for_sexual_acts_ever_id,
+      threatened_for_sexual_acts_last_3months_id,
+      seek_help_after_gbv_id,
       gbv_help_provider_other,
-      knowledge_of_gbv_help_centres,
+      knowledge_of_gbv_help_centres_id,
       preferred_gbv_help_provider_other
     )
     select
@@ -413,27 +459,27 @@ DROP PROCEDURE IF EXISTS sp_education_and_employment$$
 CREATE PROCEDURE sp_education_and_employment(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
-    INSERT INTO dreams_dev.DreamsApp_client
+    INSERT INTO dreams_dev.DreamsApp_clienteducationandemploymentdata
     (
-      client,
-      currently_in_school,
+      client_id,
+      currently_in_school_id,
       current_school_name,
-      current_school_type,
-      current_school_level,
+      current_school_type_id,
+      current_school_level_id,
       current_school_level_other,
       current_class,
       current_education_supporter_other,
-      reason_not_in_school,
+      reason_not_in_school_id,
       reason_not_in_school_other,
-      last_time_in_school,
-      dropout_school_level,
+      last_time_in_school_id,
+      dropout_school_level_id,
       dropout_class,
-      life_wish,
+      life_wish_id,
       life_wish_other,
-      current_income_source,
+      current_income_source_id,
       current_income_source_other,
-      has_savings,
-      banking_place,
+      has_savings_id,
+      banking_place_id,
       banking_place_other
     )
     select
@@ -471,18 +517,18 @@ DROP PROCEDURE IF EXISTS sp_hiv_testing$$
 CREATE PROCEDURE sp_hiv_testing(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
 
-    INSERT INTO dreams_dev.DreamsApp_client
+    INSERT INTO dreams_dev.DreamsApp_clienthivtestingdata
     (
-      client,
-      ever_tested_for_hiv,
-      period_last_tested,
-      last_test_result,
-      enrolled_in_hiv_care,
+      client_id,
+      ever_tested_for_hiv_id,
+      period_last_tested_id,
+      last_test_result_id,
+      enrolled_in_hiv_care_id,
       care_facility_enrolled,
-      reason_not_in_hiv_care,
+      reason_not_in_hiv_care_id,
       reason_not_in_hiv_care_other,
       reason_never_tested_for_hiv_other,
-      knowledge_of_hiv_test_centres
+      knowledge_of_hiv_test_centres_id
     )
     select
       clientID,
