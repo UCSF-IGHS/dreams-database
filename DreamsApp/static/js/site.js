@@ -1334,12 +1334,417 @@ $(document).ready(function () {
         });
 
     })
-    /* end of users section */
 
-    /* Custom error pages */
+    function getOptionName(list, id) {
+        var optionName = "";
+        $.each(list, function (index, item) {
+            if(item.pk == id)
+                optionName = item.fields.name;
+        })
+        return optionName;
+    }
 
-    /* End Custom error pages */
+    $("#grievances-form-submit").click(function (e) {
+        var viewMode = $('#grievance-modal').data('view_mode');
+        if(viewMode == 'view')
+            return
+        var urlT = viewMode == 'add' ? '/grievances/create' : '/grievances/edit';
+        if (!$('#grievances-form').valid())
+            return
 
+        $.ajax({
+            url : urlT,
+            type : "POST",
+            dataType: 'json',
+            data:$('#grievances-form').serialize(),
+            success : function(data) {
+                var grievance = data.grievance;
+                var grievance_id = data.grievance_id;
+                var options = {
+                    'reporter_category' : $.parseJSON(data.reporter_categories),
+                    'grievance_nature' : $.parseJSON(data.grievance_nature),
+                    'status' : $.parseJSON(data.status_list)
+                }
+                if(data.status == 'fail'){
+                    $('#grievances_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+                else{
+                    // Success.. Add grievance
+                    if(viewMode == 'add'){
+                        // Add grievance
+                        var row = "<tr style='cursor: pointer; background-color: transparent;' id='grievance_" +  grievance_id + "'>"
+                            + "<td class='date' style='width: 120px;'>" +  $.datepicker.formatDate('MM dd, yy', new Date(grievance.date)) + "</td>"
+                            + "<td class='grievance_nature'>" + getOptionName(options.grievance_nature, grievance.grievance_nature)  + "</td>"
+                            + "<td class='reporter_category'>" + getOptionName(options.reporter_category, grievance.reporter_category)  + "</td>"
+                            + "<td class='reporter_name'>" + grievance.reporter_name + "</td>"
+                            + "<td class='reporter_phone'>" + grievance.reporter_phone + "</td>"
+                            + "<td class='status'>" + getOptionName(options.status, grievance.status)  + "</td>"
+                            + "<td class='resolution'>" + grievance.resolution + "</td>"
+                            + "<td>"
+                                + "<div class='btn-group'>"
+                                  + "<button type='button' class='btn btn-sm btn-default grievance-action' data-view_mode='edit' data-grievance_id='" +  grievance_id + "' style='cursor: pointer;' ><span class='glyphicon glyphicon-pencil'></span> Edit Grievance</button>"
+                                  + "<button type='button' class='btn btn-sm btn-default dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>"
+                                     + "<span class='caret'></span>"
+                                    + "<span class='sr-only'>Toggle Dropdown</span>"
+                                  + "</button>"
+                                  + "<ul class='dropdown-menu'>"
+                                        + "<li><a href='#' class='edit_intervention_click edit_client grievance-action' data-view_mode='view' data-toggle='modal' data-target='#enrollment-modal' data-grievance_id='"+ grievance_id + "' style='cursor: pointer;word-spacing: 0px !important;'><span class='glyphicon glyphicon-eye-open'></span> View Grievance </a></li>"
+                                        + " <li><a href='#' class='delete_intervention_click grievance-action' data-view_mode='delete' data-grievance_id='" + grievance_id + "'><span class='glyphicon glyphicon-trash'></span> Delete Grievance &nbsp;&nbsp;&nbsp;</a></li>"
+                                  + "</ul>"
+                                + "</div>"
+                            + "</td>"
+                        + "</tr>"
+                        $('#dreams-grievance-table').find('tbody').prepend(row)
+                        $('#dreams-grievance-table #grievance_' + grievance_id + ' .grievance-action').click(function (e) {
+                            var action = ''
+                            var viewMode = $(this).data('view_mode')
+                            var grievanceId = $(this).data('grievance_id')
+                            switch (viewMode){
+                                case 'view':
+                                    viewGrievance(grievanceId, true)
+                                    break;
+                                case 'edit':
+                                    viewGrievance(grievanceId, false)
+                                    break;
+                                case 'delete':
+                                    $('#confirmationModal #frm_title').html('Confirm Grievance Delete Action');
+                                    $('#confirmationModal #frm_body > h4').html('Are you sure you want to Delete Grievance? This action cannot be undone.');
+                                    $('#confirmationModal').modal({show:true});
+                                    // Add delete event listener on confirmation
+                                    $('#confirmationModal #dataConfirmOK').click(function (event) {
+                                        deleteGrievance(grievanceId)
+                                        $(event.target).off('click'); // Works like a charm
+                                    })
+                                    break;
+                                default:
+                                    return;
+                            }
+                        })
+                    }
+                    else {
+                        // Edit
+                        var rowId = grievance.id;
+                        var row = $('#grievance_' + rowId)
+                        $.each(Object.keys(grievance), function (index, key) {
+                            if(row.find('.' + key) != null){
+                                if($.inArray(key, ['grievance_nature', 'reporter_category', 'status']) > -1){
+                                    row.find('.' + key).html(getOptionName(options[key], grievance[key]));
+                                }
+                                else if(key == 'date')  // handle date formatting
+                                    row.find('.date').html($.datepicker.formatDate('MM dd, yy', new Date(grievance.date)))
+                                else
+                                    row.find('.' + key).html(grievance[key]);
+                            }
+                        })
+                    }
+                    $('#grievances_alert').removeClass('hidden').addClass('alert-success')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                    $("#grievance-modal").modal('hide');
+                }
+            },
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                alert("Failed!!" + errmsg + err)
+            }
+        });
+    })
+
+    $('#grievance-modal').on('show.bs.modal', function (event) {
+         var viewMode = $('#grievance-modal').data('view_mode');
+        switch (viewMode){
+            case 'add':
+                $('#grievance-modal .input-sm').val("");    // reset all fields
+                $( "#grievances-form" ).validate().resetForm(); // reset validation errors
+                $("#grievance-modal #grievances-form-submit").removeClass('hidden')
+                $("#grievance-modal #btn_cancel_action").html('Cancel')
+                break;
+            case 'edit':
+                $("#grievance-modal #grievances-form-submit").removeClass('hidden')
+                $("#grievance-modal #btn_cancel_action").html('Cancel')
+                break;
+            case 'view':
+                $("#grievance-modal #grievances-form-submit").addClass('hidden')
+                $("#grievance-modal #btn_cancel_action").html('Close')
+                break;
+        }
+    })
+
+    jQuery.validator.addMethod("phoneKE", function (phone_number, element) {
+        phone_number = phone_number.replace(/\s+/g, "");
+        return this.optional(element) || (phone_number.length >= 10 && phone_number.match(/^((\+[1-9]{1,4}[ \-]*)|(\([0-9]{2,3}\)[ \-]*)|([0-9]{2,4})[ \-]*)*?[0-9]{3,4}?[ \-]*[0-9]{3,4}?$/));
+    }, "Please specify a valid phone number e.g. +2547XXXXXXXX or 07XXXXXXXX");
+
+    $('#grievances-form').validate({
+        rules: {
+            date: {
+                required: true
+            },
+            implementing_partner: {
+                required: true
+            },
+            county: {
+                required: true
+            },
+            ward: {
+                required: true
+            },
+            reporter_name: {
+                required: true
+            },
+            reporter_category: {
+                required: true
+            },
+            reporter_phone: {
+                required: true,
+                phoneKE: true
+            },
+            received_by: {
+                required: true
+            },
+            receiver_designation: {
+                required: true
+            },
+            grievance_nature: {
+                required: true
+            },
+            person_responsible: {
+                required: true
+            }
+        },
+        messages: {
+            date: {
+                required: "* Please enter your Date"
+            },
+            implementing_partner: {
+               required:  "* Please select Implementing Partner"
+            },
+            id_county: {
+                required: "* Please select County"
+            },
+            id_ward: {
+                required: "* Please select Ward"
+            },
+            reporter_name: {
+                required: "* Please enter name of Reporter"
+            },
+            reporter_category: {
+                required: "* Please select Reporter Category"
+            },
+            reporter_phone: {
+                required: "* Please enter Complainant's Telephone Number",
+                phoneKE: "* Please enter a valid Phone Number e.g. +2547XXXXXXXX or 07XXXXXXXX"
+            },
+            received_by: {
+                required: "* Please enter Receiver's Name"
+            },
+            receiver_designation: {
+                required: "* Please Receiver's Designation"
+            },
+            grievance_nature: {
+                required: "* Please select Nature of Grievance"
+            },
+            person_responsible: {
+                required: "* Please enter the Person Responsible"
+            }
+        },
+        highlight: function (element) {
+            $('#grievances-form').find('.error').addClass('text-danger')
+            //$(element).parent().find('.error').addClass('text-danger')
+        },
+        unhighlight: function (element) {
+            $(element).parent().find('.error').removeClass('text-danger')
+        }
+    })
+
+    function viewGrievance(grievanceId, readonly) {
+        // get grievance by id
+        $.ajax({
+            url : '/grievances/get',
+            type : "GET",
+            dataType: 'json',
+            data:{'grievance_id': grievanceId},
+            success : function(data) {
+                var grievance = $.parseJSON(data.grievance)[0];
+                if(data.status == 'fail'){
+                    $('#grievances_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+                else{
+                    // Populate grievance modal
+                    $("#grievances-form #id").val(grievanceId)
+                    $.each(Object.keys(grievance.fields), function (index, key) {
+                        $("#grievances-form #id_" + key).val(grievance.fields[key])
+                        if(readonly){
+                            $("#grievance-modal").data('view_mode', 'view')
+                            $("#grievances-form #id_" + key).attr('disabled', 'disabled')
+                        }
+                        else{
+                            $("#grievance-modal").data('view_mode', 'edit')
+                            $("#grievances-form #id_" + key).attr('disabled', false)
+                        }
+                    })
+
+                    $("#grievance-modal").modal('show');
+                }
+            },
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                alert("Failed!!" + errmsg + err)
+            }
+        });
+    }
+
+    function deleteGrievance(grievanceId) {
+        $.ajax({
+            url : '/grievances/delete',
+            type : "POST",
+            dataType: 'json',
+            data:{'id':grievanceId},
+            success : function(data) {
+                if(data.status == 'fail'){
+
+                    $('#grievances_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+                else{
+                    // Success..
+                    $('#dreams-grievance-table #grievance_' + grievanceId).remove();
+                    $('#grievances_alert').removeClass('hidden').addClass('alert-success')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+                $('#confirmationModal').modal('hide');
+            },
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                alert("Failed!!" + errmsg + err)
+            }
+        });
+    }
+
+    $('.grievance-action').click(function (e) {
+        var action = ''
+        var viewMode = $(this).data('view_mode')
+        var grievanceId = $(this).data('grievance_id')
+        switch (viewMode){
+            case 'add':
+                $('#grievance-modal').data('view_mode', 'add');
+                $('#grievance-modal').modal({show:true});
+                break;
+            case 'view':
+                viewGrievance(grievanceId, true)
+                break;
+            case 'edit':
+                viewGrievance(grievanceId, false)
+                break;
+            case 'delete':
+                $('#confirmationModal #frm_title').html('Confirm Grievance Delete Action');
+                $('#confirmationModal #frm_body > h4').html('Are you sure you want to Delete Grievance? This action cannot be undone.');
+                $('#confirmationModal').modal({show:true});
+                // Add delete event listener on confirmation
+                $('#confirmationModal #dataConfirmOK').click(function (event) {
+                    deleteGrievance(grievanceId)
+                    $(event.target).off('click'); // Works like a charm
+                })
+                break;
+            default:
+                return;
+        }
+
+    })
+
+    $('#cash-transfer-details-modal').on('show.bs.modal', function (e) {
+        var id = $('#cash-transfer-details-form #id').val();
+        if(id == '' || id == null){
+            $('#cash-transfer-details-form input').val("")
+            $('#cash-transfer-details-form select').val(0).change();
+        }
+        else {
+            // CT details exist. Need to show necessary options
+            if($('#cash-transfer-details-form #id_is_client_recepient').prop('checked')){
+                $('#cash-transfer-details-form #fg-ct_form-recipient').addClass('hidden')
+                $('#cash-transfer-details-form #fg-recipient_relationship_with_client').addClass('hidden')
+                // set the default value for client
+                $('#cash-transfer-details-form #id_client').val($("#id_client option:nth-child(2)").val());
+                $('#cash-transfer-details-form.fg-client').removeClass('hidden')
+            }
+            else {
+                $('#cash-transfer-details-form #fg-ct_form-recipient').removeClass('hidden')
+                $('#cash-transfer-details-form #fg-recipient_relationship_with_client').removeClass('hidden')
+                $('#cash-transfer-details-form .fg-client').addClass('hidden')
+            }
+
+            var selectedText = $('#cash-transfer-details-form #id_payment_mode option:selected').text();
+            var selectedIndex = $('#cash-transfer-details-form #id_payment_mode').val();
+            $('#cash-transfer-details-form .fg-mode').addClass('hidden')
+            if(id == '' || id == null)
+                $('#cash-transfer-details-form .fg-mode input').val("")
+            if ($.inArray('Mobile', selectedText.split(' ')) > -1)
+                $('#cash-transfer-details-form .fg-mode-mobile-money').removeClass('hidden')
+            else if ($.inArray('Bank', selectedText.split(' ')) > -1)
+                $('#cash-transfer-details-form .fg-mode-bank').removeClass('hidden')
+        }
+    })
+
+    $('#cash-transfer-details-form').validate({
+        rules: {
+            recipient_phone_number: {
+                phoneKE: true
+            }
+        },
+        messages: {
+            recipient_phone_number: {
+                phoneKE: "* Please enter a valid Phone Number e.g. +2547XXXXXXXX or 07XXXXXXXX"
+            }
+        },
+        highlight: function (element) {
+            $('#cash-transfer-details-form').find('.error').addClass('text-danger')
+            //$(element).parent().find('.error').addClass('text-danger')
+        },
+        unhighlight: function (element) {
+            $(element).parent().find('.error').removeClass('text-danger')
+        }
+    })
+
+    $('#cash-transfer-details-form-submit').click(function (e) {
+        // Check if form is valid
+        if (!$('#cash-transfer-details-form').valid())
+            return
+        // valid form.. Proceed to ajax call
+        $.ajax({
+            url : '/cashTransfer/save',
+            type : "POST",
+            dataType: 'json',
+            data:$('#cash-transfer-details-form').serialize(),
+            success : function(data) {
+                var ct_detail_id = data.ct_detail_id;
+                if(data.status == 'fail'){
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+                else{
+                    // success... Show alert and update id i
+                    if($('#cash-transfer-details-form #id').val().trim() == "")
+                        $('#cash-transfer-details-form #id').val(ct_detail_id)
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                    $('#cash-transfer-details-modal').modal('hide');
+                }
+            },
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                alert("Failed!!" + errmsg + err)
+            }
+        });
+
+    })
 });
 
 
