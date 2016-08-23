@@ -690,9 +690,9 @@ class ClientHIVTestingData(models.Model):
 class ClientSexualActivityData(models.Model):
     """ Holds Sexual activity information about a client"""
     client = models.ForeignKey(Client)
-    ever_had_sex = models.ForeignKey(CategoricalResponse, blank=False, null=False, related_name='+')
+    ever_had_sex = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
     age_at_first_sexual_encounter = models.IntegerField(verbose_name='Age at first sexual encounter')
-    has_sexual_partner = models.ForeignKey(CategoricalResponse, blank=False, null=False, related_name='+')
+    has_sexual_partner = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
     sex_partners_in_last_12months = models.IntegerField(verbose_name='Sexual partners in the last 12 months', null=False)
     age_of_last_partner = models.ForeignKey(AgeOfSexualPartner, null=True, blank=True, related_name='+')
     age_of_second_last_partner = models.ForeignKey(AgeOfSexualPartner, null=True, blank=True, related_name='+')
