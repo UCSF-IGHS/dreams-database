@@ -1658,7 +1658,93 @@ $(document).ready(function () {
 
     })
 
+    $('#cash-transfer-details-modal').on('show.bs.modal', function (e) {
+        var id = $('#cash-transfer-details-form #id').val();
+        if(id == '' || id == null){
+            $('#cash-transfer-details-form input').val("")
+            $('#cash-transfer-details-form select').val(0).change();
+        }
+        else {
+            // CT details exist. Need to show necessary options
+            if($('#cash-transfer-details-form #id_is_client_recepient').prop('checked')){
+                $('#cash-transfer-details-form #fg-ct_form-recipient').addClass('hidden')
+                $('#cash-transfer-details-form #fg-recipient_relationship_with_client').addClass('hidden')
+                // set the default value for client
+                $('#cash-transfer-details-form #id_client').val($("#id_client option:nth-child(2)").val());
+                $('#cash-transfer-details-form.fg-client').removeClass('hidden')
+            }
+            else {
+                $('#cash-transfer-details-form #fg-ct_form-recipient').removeClass('hidden')
+                $('#cash-transfer-details-form #fg-recipient_relationship_with_client').removeClass('hidden')
+                $('#cash-transfer-details-form .fg-client').addClass('hidden')
+            }
 
+            var selectedText = $('#cash-transfer-details-form #id_payment_mode option:selected').text();
+            var selectedIndex = $('#cash-transfer-details-form #id_payment_mode').val();
+            $('#cash-transfer-details-form .fg-mode').addClass('hidden')
+            if(id == '' || id == null)
+                $('#cash-transfer-details-form .fg-mode input').val("")
+            if ($.inArray('Mobile', selectedText.split(' ')) > -1)
+                $('#cash-transfer-details-form .fg-mode-mobile-money').removeClass('hidden')
+            else if ($.inArray('Bank', selectedText.split(' ')) > -1)
+                $('#cash-transfer-details-form .fg-mode-bank').removeClass('hidden')
+        }
+    })
+
+    $('#cash-transfer-details-form').validate({
+        rules: {
+            recipient_phone_number: {
+                phoneKE: true
+            }
+        },
+        messages: {
+            recipient_phone_number: {
+                phoneKE: "* Please enter a valid Phone Number e.g. +2547XXXXXXXX or 07XXXXXXXX"
+            }
+        },
+        highlight: function (element) {
+            $('#cash-transfer-details-form').find('.error').addClass('text-danger')
+            //$(element).parent().find('.error').addClass('text-danger')
+        },
+        unhighlight: function (element) {
+            $(element).parent().find('.error').removeClass('text-danger')
+        }
+    })
+
+    $('#cash-transfer-details-form-submit').click(function (e) {
+        // Check if form is valid
+        if (!$('#cash-transfer-details-form').valid())
+            return
+        // valid form.. Proceed to ajax call
+        $.ajax({
+            url : '/cashTransfer/save',
+            type : "POST",
+            dataType: 'json',
+            data:$('#cash-transfer-details-form').serialize(),
+            success : function(data) {
+                var ct_detail_id = data.ct_detail_id;
+                if(data.status == 'fail'){
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+                else{
+                    // success... Show alert and update id i
+                    if($('#cash-transfer-details-form #id').val().trim() == "")
+                        $('#cash-transfer-details-form #id').val(ct_detail_id)
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                    $('#cash-transfer-details-modal').modal('hide');
+                }
+            },
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                alert("Failed!!" + errmsg + err)
+            }
+        });
+
+    })
 });
 
 

@@ -106,3 +106,11 @@ class ClientCashTransferDetailsAdmin(admin.ModelAdmin):
     list_per_page = 30
 
 admin.site.register(ClientCashTransferDetails, ClientCashTransferDetailsAdmin)
+
+
+class PaymentModeAdmin(admin.ModelAdmin):
+    model = PaymentMode
+    list_display = ('code', 'name')
+    list_per_page = 25
+
+admin.site.register(PaymentMode, PaymentModeAdmin)

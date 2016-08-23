@@ -9,13 +9,13 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import Group
 from django.views.generic import ListView, CreateView
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.forms.models import model_to_dict
 import json
 import traceback
 from datetime import date, timedelta
 from django.db.models import Q
 from DreamsApp.models import *
 from DreamsApp.forms import *
-
 
 def get_enrollment_form_config_data():
     try:
@@ -155,9 +155,29 @@ def client_profile(request):
             try:
                 client_found = Client.objects.get(id=client_id)
                 if client_found is not None:
-                    return render(request, 'client_profile.html',
-                                  {'page': 'clients', 'client': client_found, 'user': request.user})
-            except:
+                    # get cash transfer details
+                    cash_transfer_details = ClientCashTransferDetails.objects.get(client=client_found)
+                    # create cash transfer details form
+                    cash_transfer_details_form = ClientCashTransferDetailsForm(instance=cash_transfer_details,
+                                                                               current_AGYW=client_found)
+                    cash_transfer_details_form.save(commit=False)
+                return render(request, 'client_profile.html', {'page': 'clients',
+                                                               'client': client_found,
+                                                               'ct_form': cash_transfer_details_form,
+                                                               'ct_id': cash_transfer_details.id,
+                                                               'user': request.user
+                                                               })
+            except ClientCashTransferDetails.DoesNotExist:
+                cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
+                return render(request, 'client_profile.html',
+                              {'page': 'clients',
+                               'client': client_found,
+                               'ct_form': cash_transfer_details_form,
+                               'user': request.user
+                               })
+            except Client.DoesNotExist:
+                return render(request, 'login.html')
+            except Exception as e:
                 return render(request, 'login.html')
     else:
         raise PermissionDenied
@@ -1044,10 +1064,23 @@ def grievances_list(request):
         if not request.user.is_authenticated():
             raise PermissionDenied
         page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
+        filter_date = request.GET.get('filter_date', None) if request.method == 'GET' else request.POST.get('filter_date', None)
         filter_text = request.GET.get('filter-user-text', '') if request.method == 'GET' else request.POST.get('filter-user-text', '')
         """ IP level permission check """
         grievance_list = Grievance.objects.all() if request.user.has_perm('auth.can_view_cross_ip') else \
             Grievance.objects.filter(implementing_partner=request.user.implementingpartneruser.implementing_partner)
+        """Date filter """
+        if filter_date is not None and filter_date is not u'':
+            yr, mnth, dt = filter_date.split('-')
+            constructed_date = date(int(yr), int(mnth), int(dt))
+            grievance_list = Grievance.objects.filter(Q(date__year=constructed_date.year,
+                                                        date__month=constructed_date.month,
+                                                        date__day=constructed_date.day))
+        """ Text filter """
+        #if filter_text is not u'' and filter_text is not '':
+            #grievance_list = Grievance.objects.filter(Q(reporter_name__contains=filter_text) |
+             #                                         Q(relationship__containts=filter_text) |
+              #                                        Q(reporter_phone__contains=filter_text))
         # do pagination
         try:
             paginator = Paginator(grievance_list, 20)
@@ -1059,6 +1092,7 @@ def grievances_list(request):
         response_data = {
             'page': 'cash_transfer',
             'filter_text': filter_text,
+            'filter_date': filter_date,
             'items_in_page': 0 if final_grievance_list.end_index() == 0 else
             (final_grievance_list.end_index() - final_grievance_list.start_index() + 1),
             'current_user_ip': request.user.implementingpartneruser.implementing_partner,
@@ -1081,7 +1115,9 @@ def grievances_create(request):
         if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
             grievance = GrievanceModelForm(request.POST, current_user=request.user)
             if grievance.is_valid():
-                saved_grievance = grievance.save(commit=True)
+                saved_grievance = grievance.save(commit=False)
+                saved_grievance.created_by = request.user
+                saved_grievance.save()
                 response_data = {
                     'status': 'success',
                     'message': 'Grievance saved successfully',
@@ -1119,7 +1155,9 @@ def grievances_edit(request):
                         'message': form.errors
                     }
                 else:
-                    form.save(commit=True)
+                    saved_grievance = form.save(commit=False)
+                    saved_grievance.changed_by = request.user
+                    saved_grievance.save()
                     response_data = {
                         'status': 'success',
                         'message': 'Grievance edited successfully',
@@ -1202,4 +1240,42 @@ def grievances_get(request):
         return JsonResponse(response_data)
 
 
+@csrf_exempt
+def cash_transfer_details_save(request):
+    try:
+        if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+            # check if details has id
+            id = request.POST.get('id', 0)
+            if id not in [u'', "0", 0, ""]:
+                id = int(id)
+                ct_detail = ClientCashTransferDetails.objects.get(id=id)
+                ct_form = ClientCashTransferDetailsForm(request.POST, instance=ct_detail)
+            else:
+                # get current AGYW
+                ct_form = ClientCashTransferDetailsForm(request.POST)
+            if ct_form.is_valid():
+                saved_detail = ct_form.save(commit=False)
+                if saved_detail.id is not None and saved_detail.id > 0:
+                    saved_detail.changed_by = request.user
+                else:
+                    saved_detail.created_by = request.user
+                saved_detail.save()
+                response_data = {
+                    'status': 'success',
+                    'message': 'Cash Transfer details updated successfully',
+                    'ct_detail_id': saved_detail.id,
+                }
+                return JsonResponse(response_data)
+            else:
+                raise Exception(ct_form.errors)
+        else:
+            raise PermissionDenied
+    except ClientCashTransferDetails.DoesNotExist:
+        raise Exception("Cash transfer details does not exist for editing!")
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
 

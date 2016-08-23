@@ -15,16 +15,34 @@
                     {% csrf_token %}
                       <div class="form-group has-feedback" >
                            <input id="search-term-default" type="text" name="filter-user-text" class="form-control filter-enrollment" value="{{ filter_text }}" placeholder="Enter search text" style="width: 400px;">
-                           <button type="submit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-search"></span> Search </button>
+                      </div>
+                      <div class="form-group has-feedback" style="margin-top: 10px;">
+                             <input type="text" class="form-control required_field clear_value" id="filter_date" name="filter_date" value="{% if filter_date != None %}{{ filter_date }}{% endif %}" placeholder="Select date" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                             <script>
+                                $(function() {
+                                  $( "#filter_date" ).datepicker({
+                                      dateFormat: 'yy-mm-dd',
+                                      minDate: '-24y',
+                                      maxDate: '-10y',
+                                      changeMonth: true,
+                                      changeYear: true
+                                  });
+                                });
+                            </script>
+                      </div>
+                      <div class="form-group has-feedback" >
+                           <button type="submit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-filter"></span> Filter </button>
+                           <button type="button" class="btn btn-danger btn-sm" onclick="window.location.href = '/grievances';"><span class="glyphicon glyphicon-remove"></span> Cleaf Filter </button>
                       </div>
                 </form>
-                <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for grievances by typing text in the input above.</span>
+                <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for grievances by typing text or selecting an option in the input fields above.</span>
             </div>
         </div>
     </div>
     <div class=" alert hidden dp-action-alert fade in" id="grievances_alert" role="alert" style="margin-bottom: 10px;"></div>
 
-    <div id="user-list" style="max-height: calc(100vh - 510px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
+    <div id="user-list" style="max-height: calc(100vh - 540px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
         <table class="table table-striped dp-user-table table-bordered" id="dreams-grievance-table" style="margin: 0px;">
             <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                 <th>Date</th>
@@ -75,7 +93,7 @@
             </tbody>
         </table>
     </div>
-    <div class="pagination fit-item" >
+    <div class="pagination fit-item" style="margin-bottom: 5px;">
         <span class="step-links">
             {% if grievance_list.has_previous %}
                 <a href="?page={{ grievance_list.previous_page_number }}&filter-user-text={{ filter_text }}">previous</a>

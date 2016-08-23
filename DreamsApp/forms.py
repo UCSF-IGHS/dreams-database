@@ -2,7 +2,7 @@
 from django.forms import ModelForm
 
 # DreamsApp imports
-from DreamsApp.models import Grievance, ImplementingPartner, ClientCashTransferDetails
+from DreamsApp.models import Grievance, ImplementingPartner, ClientCashTransferDetails, Client
 
 
 class GrievanceModelForm(ModelForm):
@@ -10,8 +10,6 @@ class GrievanceModelForm(ModelForm):
     def __init__(self, *args, **kwargs):
         current_user = kwargs.pop('current_user', None)
         super(GrievanceModelForm, self).__init__(*args, **kwargs)
-        if current_user is not None and not current_user.has_perm('auth.can_view_cross_ip'):
-            self.fields['implementing_partner'].queryset = ImplementingPartner.objects.filter(id=current_user.implementingpartneruser.implementing_partner.id)
 
     class Meta(object):
             model = Grievance
@@ -20,6 +18,14 @@ class GrievanceModelForm(ModelForm):
 
 
 class ClientCashTransferDetailsForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        current_AGYW = kwargs.pop('current_AGYW', None)
+        super(ClientCashTransferDetailsForm, self).__init__(*args, **kwargs)
+        self.fields['client'].queryset = \
+            Client.objects.filter(id=current_AGYW.id) \
+                if current_AGYW is not None \
+                else Client.objects.all()
 
     class Meta(object):
         model = ClientCashTransferDetails

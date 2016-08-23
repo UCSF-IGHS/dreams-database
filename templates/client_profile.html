@@ -148,14 +148,14 @@
             <p><strong>DREAMS Id: </strong> {{ client.dreams_id }}</p>
             <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }}</p>
         </div><!--/col-->
-        <div class="col-xs-12 col-sm-3">
+        <div class="col-xs-12 col-sm-4">
              <p><strong>Phone Number: </strong>
                 <span>{{ client.phone_number }} {% if client.phone_number == None and client.guardian_phone_number != None and client.guardian_phone_number != '' %}(Guardian){{ client.guardian_phone_number }}{% endif %}</span>
             </p>
             <p><strong>Age: </strong> {{ client.get_age_at_enrollment }}</p>
             <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
         </div><!--/col-->
-        <div class="col-xs-12 col-sm-2">
+        <div class="col-xs-12 col-sm-3">
             <p><strong>Actions: </strong> <br>
                 <p class="underline_hover" data-view_mode="view"  data-toggle="modal" data-target="#enrollment-modal" data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="tooltip" title="View Enrollment"><span class="glyphicon glyphicon-eye-open"></span> View Enrollment</p>
                 {% if user.is_superuser %}
@@ -163,7 +163,7 @@
                 {% endif %}
             </p>
         </div><!--/col-->
-        <div class="col-xs-12 col-sm-2">
+        <div class="col-xs-12 col-sm-2 hidden">
             <p><strong> </strong> <br>
                 {% if perms.change_clientcashtransferdetails %}
                 <p class="underline_hover" data-toggle="modal" data-target="#cash-transfer-details-modal" data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="tooltip" title="Edit cash transfer details"><span class="glyphicon glyphicon-pencil"></span> Cash Transfer Details</p>
@@ -172,6 +172,7 @@
         </div><!--/col-->
     </div>
 
+    <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert"></div>
     <!-- End of Client profile section -->
     <div class="dreams-profile-tab-control" id="dreams-profile-tab-control">
         <ul class="nav nav-tabs">

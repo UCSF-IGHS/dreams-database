@@ -53,5 +53,6 @@ urlpatterns = [
     url(r'^grievances/edit', views.grievances_edit, name='grievances_edit'),
     url(r'^grievances/delete', views.grievances_delete, name='grievances_delete'),
     url(r'^grievances/get', views.grievances_get, name='grievances_get'),
+    url(r'^cashTransfer/save', views.cash_transfer_details_save, name='cash_transfer_details_save'),
     #url(r'^$', views.user_login, name='login'),
 ]

@@ -34,14 +34,7 @@
                     {% endif %}
                 {% endif %}
                 {% if perms.auth.add_grievance %}
-                    <li class="dropdown ">
-                      <a href="#" class="dropdown-toggle {% if page == 'cash_transfer' %}active{% endif %}" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Cash Transfer <span class="caret"></span></a>
-                      <ul class="dropdown-menu">
-                          <li><a href="/grievances" >Grievances </a> </li>
-                          <li><a href="" class="text-danger">Home visit verification Form</a></li>
-                      </ul>
-                    </li>
-
+                    <li class="{% if page == 'cash_transfer' %}active{% endif %}"><a href="/grievances" >Grievances </a> </li>
                 {% endif %}
                 <li class="{% if page == 'help' %}active{% endif %} hidden" ><a href="/help" onclick="return false;">Help</a></li>
                 {% if user.is_authenticated %}

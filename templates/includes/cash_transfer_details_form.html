@@ -8,206 +8,131 @@
             <div class="modal-content">
               <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="exampleModalLabel">Grievance From</h4>
+                    <h4 class="modal-title" id="exampleModalLabel">Cash Transfer Details From</h4>
+                    <h6>Client: <strong>{{ client.get_full_name }}</strong></h6>
               </div>
               <div class="modal-body">
                 <form id="cash-transfer-details-form" class="form-horizontal" method="post" action="" >
-                    <input class="hidden" name="id" id="id" value="">
+                    <input class="hidden" name="id" id="id" value="{{ ct_id }}">
                     <div style="margin: auto 15px;">
-                        <div class="form-group has-feedback">
-                            <label class="control-label">{{ form.date.label_tag }}</label>
-                            {{ form.date|add_class:"input-sm form-control" }}
-                            <i class="glyphicon glyphicon-calendar form-control-feedback" style="margin-top:5px;"></i>
+                        <div class="form-group">
+                            <label class="control-label">{{ ct_form.is_client_recepient.label_tag }} : <strong>{{ client.get_full_name }}</strong></label>
+                            {{ ct_form.is_client_recepient|add_class:"input-sm form-control" }}
+                            {{ ct_form.is_client_recepient.errors }}
                             <script>
-                                $(function() {
-                                  $( "#id_date" ).datepicker({
-                                      dateFormat: 'yy-mm-dd',
-                                      minDate: '-24y',
-                                      maxDate: '-10y',
-                                      changeMonth: true,
-                                      changeYear: true,
-                                      defaultDate: ''
-                                  });
-                                });
+                                $('#id_is_client_recepient').change(function (e) {
+                                    // Reset form
+                                    var id = $('#cash-transfer-details-form #id').val();
+                                    $('#id_client').val($("#id_client option:nth-child(2)").val());
+                                    if(id == '' || id == null){
+                                        $('.fg-is_related input').val("")
+                                    }
+                                    if($(this).prop('checked')){
+                                        $('#fg-ct_form-recipient').addClass('hidden')
+                                        $('#fg-recipient_relationship_with_client').addClass('hidden')
+                                        // set the default value for client
+                                        $('#id_client').val($("#id_client option:nth-child(2)").val());
+                                        $('.fg-client').removeClass('hidden')
+                                    }
+                                    else {
+                                        // check if id is set
+                                        var id = $('#cash-transfer-details-form #id').val();
+                                        $('#fg-ct_form-recipient').removeClass('hidden')
+                                        $('#fg-recipient_relationship_with_client').removeClass('hidden')
+                                        $('.fg-client').addClass('hidden')
+                                    }
+                                })
                             </script>
-                            {{ form.date.errors }}
+                        </div>
+                        <div class="form-group fg-client hidden">
+                            <label class="control-label">{{ ct_form.client.label_tag }}</label>
+                            {{ ct_form.client|add_class:"input-sm form-control" }}
+                            {{ ct_form.client.errors }}
+                        </div>
+                        <div class="form-group fg-is_related" id="fg-ct_form-recipient">
+                            <label class="control-label">{{ ct_form.recipient_name.label_tag }}</label>
+                            {{ ct_form.recipient_name|add_class:"input-sm form-control" }}
+                            {{ ct_form.recipient_name.errors }}
+                        </div>
+                        <div class="form-group fg-is_related" id="fg-recipient_relationship_with_client">
+
+                            <label class="control-label">{{ ct_form.recipient_relationship_with_client.label_tag }}</label>
+                            {{ ct_form.recipient_relationship_with_client|add_class:"input-sm form-control" }}
+                            {{ ct_form.recipient_relationship_with_client.errors }}
                         </div>
                         <div class="form-group">
-                            <label class="control-label">{{ form.implementing_partner.label_tag }}</label>
-                            {{ form.implementing_partner|add_class:"input-sm form-control" }}
-                            {{ form.implementing_partner.errors }}
+                            <label class="control-label">{{ ct_form.payment_mode.label_tag }}</label>
+                            {{ ct_form.payment_mode|add_class:"input-sm form-control" }}
+                            {{ ct_form.payment_mode.errors }}
                         </div>
-                        <div class="form-group">
-                            <label class="control-label">{{ form.county.label_tag }}</label>
-                            {{ form.county|add_class:"input-sm form-control" }}
-                            {{ form.county.errors }}
+                        <div class="form-group hidden fg-mode fg-mode-mobile-money">
+                            <label class="control-label">{{ ct_form.mobile_service_provider_name.label_tag }}</label>
+                            {{ ct_form.mobile_service_provider_name|add_class:"input-sm form-control" }}
+                            {{ ct_form.mobile_service_provider_name.errors }}
                         </div>
-                        <div class="form-group">
-                            <label class="control-label">{{ form.ward.label_tag }}</label>
-                            {{ form.ward|add_class:"input-sm form-control" }}
-                            {{ form.ward.errors }}
+                        <div class="form-group hidden fg-mode fg-mode-mobile-money">
+                            <label class="control-label">{{ ct_form.recipient_phone_number.label_tag }}</label>
+                            {{ ct_form.recipient_phone_number|add_class:"input-sm form-control" }}
+                            {{ ct_form.recipient_phone_number.errors }}
                         </div>
-                        <div class="form-group">
-                            <label class="control-label">{{ form.reporter_name.label_tag }}</label>
-                            {{ form.reporter_name|add_class:"input-sm form-control" }}
-                            {{ form.reporter_name.errors }}
+                        <div class="form-group hidden fg-mode fg-mode-mobile-money">
+                            <label class="control-label">{{ ct_form.name_phone_number_registered_to.label_tag }}</label>
+                            {{ ct_form.name_phone_number_registered_to|add_class:"input-sm form-control" }}
+                            {{ ct_form.name_phone_number_registered_to.errors }}
                         </div>
-                        <div class="form-group">
-                            <label class="control-label">{{ form.reporter_category.label_tag }}</label>
-                            {{ form.reporter_category|add_class:"input-sm form-control" }}
-                            {{ form.reporter_category.errors }}
+
+                        <div class="form-group hidden fg-mode fg-mode-bank">
+                            <label class="control-label">{{ ct_form.bank_name.label_tag }}</label>
+                            {{ ct_form.bank_name|add_class:"input-sm form-control" }}
+                            {{ ct_form.bank_name.errors }}
                         </div>
-                        <div class="form-group hidden fg-reporter-specify-option" id="fg-dreams">
-                            <label class="control-label">{{ form.dreams_id.label_tag }}</label>
-                            {{ form.dreams_id|add_class:"input-sm form-control" }}
-                            {{ form.dreams_id.errors }}
+                        <div class="form-group hidden fg-mode fg-mode-bank">
+
+                            <label class="control-label">{{ ct_form.bank_branch_name.label_tag }}</label>
+                            {{ ct_form.bank_branch_name|add_class:"input-sm form-control" }}
+                            {{ ct_form.bank_branch_name.errors }}
                         </div>
-                        <div class="form-group hidden fg-reporter-specify-option" id="fg-relationship">
-                            <label class="control-label">{{ form.relationship.label_tag }}</label>
-                            {{ form.relationship|add_class:"input-sm form-control" }}
-                            {{ form.relationship.errors }}
+                        <div class="form-group hidden fg-mode fg-mode-bank">
+
+                            <label class="control-label">{{ ct_form.bank_account_name.label_tag }}</label>
+                            {{ ct_form.bank_account_name|add_class:"input-sm form-control" }}
+                            {{ ct_form.bank_account_name.errors }}
                         </div>
+                        <div class="form-group hidden fg-mode fg-mode-bank">
+                            <label class="control-label">{{ ct_form.bank_account_number.label_tag }}</label>
+                            {{ ct_form.bank_account_number|add_class:"input-sm form-control" }}
+                            {{ ct_form.bank_account_number.errors }}
+                        </div>
+
+                        <script>
+                            $('#id_payment_mode').change(function (e) {
+                                 var selectedText = $('#id_payment_mode option:selected').text();
+                                 var selectedIndex = $(this).val();
+                                 // hide everything
+                                 $('.fg-mode').addClass('hidden') // Hide everything
+                                 var id = $('#cash-transfer-details-form #id').val();
+                                 if(id == '' || id == null)
+                                         $('.fg-mode input').val("")
+
+                                // Clear everything -- pending
+                                 // Show the relevant options
+                                 if ($.inArray('Mobile', selectedText.split(' ')) > -1) {
+                                     // Show mobile options
+                                     $('.fg-mode-mobile-money').removeClass('hidden')
+                                 }
+                                 else if ($.inArray('Bank', selectedText.split(' ')) > -1) {
+                                     // Show mobile options
+                                     $('.fg-mode-bank').removeClass('hidden')
+                                 }
+                            })
+                        </script>
+
                         <div class="form-group hidden fg-reporter-specify-option" id="fg-other_specify">
+
                             <label class="control-label">{{ form.other_specify.label_tag }}</label>
-                            {{ form.other_specify|add_class:"input-sm form-control" }}
+                            {{ ct_form.other_specify|add_class:"input-sm form-control" }}
                             {{ form.other_specify.errors }}
                         </div>
-                        <script>
-                            $('#id_reporter_category').change(function (e) {
-                                // Reset form
-                                $('.fg-reporter-specify-option').addClass('hidden'); // Hide all
-                                $('.fg-reporter-specify-option input').val("") // Reset all values
-                                switch ($(this).val()){
-                                    case '2':
-                                        $('#fg-dreams').removeClass('hidden')
-                                        break;
-                                    case '3':
-                                        $('#fg-relationship').removeClass('hidden')
-                                        break;
-                                    case '4':
-                                        $('#fg-other_specify').removeClass('hidden')
-                                    default:
-                                        break
-                                }
-                            })
-                        </script>
-                        <div class="form-group">
-                            <label class="control-label">{{ form.reporter_phone.label_tag }}</label>
-                            {{ form.reporter_phone|add_class:"input-sm form-control" }}
-                            {{ form.reporter_phone.errors }}
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label">{{ form.received_by.label_tag }}</label>
-                            {{ form.received_by|add_class:"input-sm form-control" }}
-                            {{ form.received_by.errors }}
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label">{{ form.receiver_designation.label_tag }}</label>
-                            {{ form.receiver_designation|add_class:"input-sm form-control" }}
-                            {{ form.receiver_designation.errors }}
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label">{{ form.grievance_nature.label_tag }}</label>
-                            {{ form.grievance_nature|add_class:"input-sm form-control" }}
-                            {{ form.grievance_nature.errors }}
-                        </div>
-                        <div class="form-group hidden" id="fg-other_grievance_specify">
-                            <label class="control-label">{{ form.other_grievance_specify.label_tag }}</label>
-                            {{ form.other_grievance_specify|add_class:"input-sm form-control" }}
-                            {{ form.other_grievance_specify.errors }}
-                        </div>
-                        <script>
-                            $('#id_grievance_nature').change(function (e) {
-                                $('#id_other_grievance_specify').val("");
-                                if($(this).val() == '8' || $(this).val() == 8)
-                                    $('#fg-other_grievance_specify').removeClass('hidden');
-                                else
-                                    $('#fg-other_grievance_specify').addClass('hidden');
-                            })
-                        </script>
-                        <div class="form-group">
-                            <label class="control-label">{{ form.person_responsible.label_tag }}</label>
-                            {{ form.person_responsible|add_class:"input-sm form-control" }}
-                            {{ form.person_responsible.errors }}
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label">{{ form.resolution.label_tag }}</label>
-                            {{ form.resolution|add_class:"input-sm form-control"|attr:"rows:3" }}
-                            {{ form.resolution.errors }}
-                        </div>
-                        <div class="form-group has-feedback">
-                            <label class="control-label">{{ form.resolution_date.label_tag }}</label>
-                            {{ form.resolution_date|add_class:"input-sm form-control" }}
-                            <i class="glyphicon glyphicon-calendar form-control-feedback" style="margin-top:5px;"></i>
-                            <script>
-                                $(function() {
-                                  $( "#id_resolution_date" ).datepicker({
-                                      dateFormat: 'yy-mm-dd',
-                                      minDate: '-24y',
-                                      maxDate: '-10y',
-                                      changeMonth: true,
-                                      changeYear: true,
-                                      defaultDate: ''
-                                  });
-                                });
-                            </script>
-                            {{ form.resolution_date.errors }}
-                        </div>
-                        <div class="form-group has-feedback">
-                            <label class="control-label">{{ form.complainant_feedback_date.label_tag }}</label>
-                            {{ form.complainant_feedback_date|add_class:"input-sm form-control" }}
-                            <i class="glyphicon glyphicon-calendar form-control-feedback" style="margin-top:5px;"></i>
-                            <script>
-                                $(function() {
-                                  $( "#id_complainant_feedback_date" ).datepicker({
-                                      dateFormat: 'yy-mm-dd',
-                                      minDate: '-24y',
-                                      maxDate: '-10y',
-                                      changeMonth: true,
-                                      changeYear: true,
-                                      defaultDate: ''
-                                  });
-                                });
-                            </script>
-                            {{ form.complainant_feedback_date.errors }}
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label">{{ form.status.label_tag }}</label>
-                            {{ form.status|add_class:"input-sm form-control" }}
-                            {{ form.status.errors }}
-                        </div>
-                        <div class="form-group hidden fg-closure">
-                            <label class="control-label">{{ form.closed_by.label_tag }}</label>
-                            {{ form.closed_by|add_class:"input-sm form-control" }}
-                            {{ form.closed_by.errors }}
-                        </div>
-                        <div class="form-group has-feedback hidden fg-closure">
-                            <label class="control-label">{{ form.closure_date.label_tag }}</label>
-                            {{ form.closure_date|add_class:"input-sm form-control" }}
-                            <i class="glyphicon glyphicon-calendar form-control-feedback" style="margin-top:5px;"></i>
-                            <script>
-                                $(function() {
-                                  $( "#id_closure_date" ).datepicker({
-                                      dateFormat: 'yy-mm-dd',
-                                      minDate: '-24y',
-                                      maxDate: '-10y',
-                                      changeMonth: true,
-                                      changeYear: true
-                                  });
-                                });
-                            </script>
-                            {{ form.closure_date.errors }}
-                        </div>
-                        <script>
-                            $('#id_status').change(function (e) {
-                                $('#id_closed_by').val("");
-                                $('#id_closure_date').val("");
-                                if($(this).val() == '3' || $(this).val() == 3)
-                                    $('.fg-closure').removeClass('hidden')
-                                else
-                                   $('.fg-closure').addClass('hidden')
-                            })
-                        </script>
                     </div>
                 </form>
               </div>

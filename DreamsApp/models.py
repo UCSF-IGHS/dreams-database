@@ -354,10 +354,10 @@ class Grievance(models.Model):
     closed_by = models.CharField(verbose_name='Closed by', max_length=250,
                                  null=True, blank=True)
     closure_date = models.DateField(null=True, blank=True, default=datetime.now, verbose_name='Date Closed')
-    created_by = models.ForeignKey(User, null=True, blank=True, verbose_name='Created By')
-    created_at = models.DateTimeField(null=False, blank=True, default=datetime.now, verbose_name='Created at')
-    modified_by = models.ForeignKey(User, null=True, blank=True, related_name='modified_by', verbose_name='Modified By')
-    modified_at = models.DateTimeField(null=True, blank=True, default=datetime.now, verbose_name='Modified at')
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    changed_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    changed_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
 
     def __str__(self):
         return '{}'.format(self.grievance_nature)
@@ -383,19 +383,25 @@ class PaymentMode(models.Model):
 
 class ClientCashTransferDetails(models.Model):
     """ Client Cash Transfer Details """
-    client = models.OneToOneField(Client, null=False, blank=False, verbose_name='Dreams Beneficiary\(AGYW\)')
-    is_client_recepient = models.BooleanField(default=False, verbose_name='Is AGYW the Recepient?')
-    recipient_name = models.CharField(verbose_name='Reporter Name', max_length=250, null=True, blank=True)
-    recipient_relationship_with_client = models.CharField(verbose_name='Relationship with AGYW', max_length=150,
+    client = models.ForeignKey(Client, null=False, blank=False, verbose_name='Dreams Beneficiary\(AGYW\)')
+    is_client_recepient = models.BooleanField(default=False, verbose_name='Is the Recipient an AGYW?')
+    recipient_name = models.CharField(verbose_name='Name of Recipient', max_length=250, null=True, blank=True)
+    recipient_relationship_with_client = models.CharField(verbose_name='Recipient Relationship with AGYW', max_length=150,
                                                           null=True, blank=True)
     payment_mode = models.ForeignKey(PaymentMode, null=False, blank=False, verbose_name='Prefered Mode of '
                                                                                         'receiving Cash')
     mobile_service_provider_name = models.CharField(verbose_name='Name of Mobile Service Provider', max_length=250, null=True, blank=True)
     recipient_phone_number = models.CharField(verbose_name='Phone No', max_length=13, null=True, blank=True)
+    name_phone_number_registered_to = models.CharField(verbose_name='Name to whom the Phone No. is registered', max_length=250,
+                                                    null=True, blank=True)
     bank_name = models.CharField(verbose_name='Bank', max_length=250, null=True, blank=True)
     bank_branch_name = models.CharField(verbose_name='Branch', max_length=250, null=True, blank=True)
     bank_account_name = models.CharField(verbose_name='Account name', max_length=250, null=True, blank=True)
     bank_account_number = models.CharField(verbose_name='Account number', max_length=250, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    changed_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    changed_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
 
     def __str__(self):
         return '{} {}'.format(self.recipient_name, self.recipient_phone_number)

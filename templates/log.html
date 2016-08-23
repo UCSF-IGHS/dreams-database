@@ -12,10 +12,10 @@
                 <form id="filter-log-form" class="form-inline" method="post" action="/logs">
                     {% csrf_token %}
                     <div class="form-group" id="text-div">
-                        <input type="text" class="form-control" name="filter-log-text" id="filter-log-text" placeholder="Filter text" value="{{ filter_text }}" style="width: 300px;">
+                        <input type="text" class="form-control input-sm" name="filter-log-text" id="filter-log-text" placeholder="Filter text" value="{{ filter_text }}" style="width: 300px;">
                     </div>
                     <div class="form-group  has-feedback" style="margin-top: 10px;">
-                         <input type="text" class="form-control " id="filter-log-date" name="filter-log-date" value="{{ filter_date }}" placeholder="Select filter date" style="cursor: pointer;">
+                         <input type="text" class="form-control input-sm" id="filter-log-date" name="filter-log-date" value="{{ filter_date }}" placeholder="Select filter date" style="cursor: pointer;">
                             <span class="add-on"><i class="icon-th"></i></span></p>
                          <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                          <script>
@@ -29,10 +29,11 @@
                         </script>
                     </div>
                     <div class="form-group " role="group" aria-label="...">
-                        <button type="submit" class="btn btn-primary" style="height: 32px;"><span class="glyphicon glyphicon-filter"></span> Filter logs</button>
+                        <button type="submit" class="btn btn-sm btn-primary" style="height: 32px;"><span class="glyphicon glyphicon-filter"></span> Filter logs</button>
                     </div>
-                    <div class="form-group hidden" role="group"  aria-label="...">
-                        <button class="btn btn-default" title="Clear filters" id="audit-log-clear-filtes" style="height: 32px;"><span class="glyphicon glyphicon-remove"></span> Clear filters</button>
+                    <div class="form-group" role="group"  aria-label="...">
+                        <button class="btn btn-sm btn-danger" title="Clear filters" id="audit-log-clear-filtes" style="height: 32px;"><span class="glyphicon glyphicon-remove"></span> Clear filters</button>
+
                     </div>
                 </form>
                 <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Filter DREAMS logs by typing text and/or selecting date in the input above.</span>
