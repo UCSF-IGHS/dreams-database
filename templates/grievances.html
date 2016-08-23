@@ -33,7 +33,7 @@
                       </div>
                       <div class="form-group has-feedback" >
                            <button type="submit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-filter"></span> Filter </button>
-                           <button type="button" class="btn btn-danger btn-sm" onclick="window.location.href = '/grievances';"><span class="glyphicon glyphicon-remove"></span> Cleaf Filter </button>
+                           <button type="button" class="btn btn-danger btn-sm" onclick="window.location.href = '/grievances';"><span class="glyphicon glyphicon-remove"></span> Clear Filter </button>
                       </div>
                 </form>
                 <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for grievances by typing text or selecting an option in the input fields above.</span>
@@ -42,7 +42,7 @@
     </div>
     <div class=" alert hidden dp-action-alert fade in" id="grievances_alert" role="alert" style="margin-bottom: 10px;"></div>
 
-    <div id="user-list" style="max-height: calc(100vh - 540px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
+    <div id="user-list" style="max-height: calc(100vh - 510px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
         <table class="table table-striped dp-user-table table-bordered" id="dreams-grievance-table" style="margin: 0px;">
             <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                 <th>Date</th>
@@ -93,7 +93,7 @@
             </tbody>
         </table>
     </div>
-    <div class="pagination fit-item" style="margin-bottom: 5px;">
+    <div class="pagination fit-item" >
         <span class="step-links">
             {% if grievance_list.has_previous %}
                 <a href="?page={{ grievance_list.previous_page_number }}&filter-user-text={{ filter_text }}">previous</a>
@@ -113,9 +113,5 @@
         </span>
 
     </div>
-
-
-
-
 
 {% endblock %}

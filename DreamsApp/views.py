@@ -826,13 +826,23 @@ def users(request):
                                                                           Q(user__last_name__contains=filter_text) |
                                                                           Q(user__username__contains=filter_text)
                                                                           ).order_by('-user__date_joined')
-            # filter ip specific users if user is not allowed to see other ip data
+            #  current user ip
+            try:
+                current_user_ip = request.user.implementingpartneruser.implementing_partner
+            except ImplementingPartnerUser.DoesNotExist:
+                current_user_ip = None
+            except ImplementingPartner.DoesNotExist:
+                current_user_ip = None
             if not request.user.has_perm('auth.can_view_cross_ip_data'):
-                ip_user_list = ip_user_list.filter(
-                    implementing_partner=request.user.implementingpartneruser.implementing_partner)
+                if current_user_ip is not None:
+                    ip_user_list = ip_user_list.filter(implementing_partner=current_user_ip)
+                else:
+                    ip_user_list = ImplementingPartnerUser.objects.none()
             # do pagination
             paginator = Paginator(ip_user_list, items_per_page)
             final_ip_user_list = paginator.page(page)
+        except ImplementingPartnerUser.DoesNotExist:
+            current_user_ip = None
         except PageNotAnInteger:
             final_ip_user_list = paginator.page(1)  # Deliver the first page is page is not an integer
         except EmptyPage:
@@ -842,7 +852,7 @@ def users(request):
                                               'items_in_page': 0 if final_ip_user_list.end_index() == 0 else
                                               (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1),
                                               'implementing_partners': ImplementingPartner.objects.all(),
-                                              'current_user_ip': request.user.implementingpartneruser.implementing_partner,
+                                              'current_user_ip': current_user_ip,
                                               'roles': Group.objects.all()
                                               })
     else:
