@@ -1,0 +1,146 @@
+{% load staticfiles %}
+{% load widget_tweaks %}
+<!-- Beginning modal-->
+        <!-- Modal -->
+    <div class="modal fade" id="cash-transfer-details-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html" data-view_mode="add">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel">Cash Transfer Details From</h4>
+                    <h6>Client: <strong>{{ client.get_full_name }}</strong></h6>
+              </div>
+              <div class="modal-body">
+                <form id="cash-transfer-details-form" class="form-horizontal" method="post" action="" >
+                    <input class="hidden" name="id" id="id" value="{{ ct_id }}">
+                    <div style="margin: auto 15px;">
+                        <div class="form-group">
+                            <label class="control-label">{{ ct_form.is_client_recepient.label_tag }} : <strong>{{ client.get_full_name }}</strong></label>
+                            {{ ct_form.is_client_recepient|add_class:"input-sm form-control" }}
+                            {{ ct_form.is_client_recepient.errors }}
+                            <script>
+                                $('#id_is_client_recepient').change(function (e) {
+                                    // Reset form
+                                    var id = $('#cash-transfer-details-form #id').val();
+                                    $('#id_client').val($("#id_client option:nth-child(2)").val());
+                                    if(id == '' || id == null){
+                                        $('.fg-is_related input').val("")
+                                    }
+                                    if($(this).prop('checked')){
+                                        $('#fg-ct_form-recipient').addClass('hidden')
+                                        $('#fg-recipient_relationship_with_client').addClass('hidden')
+                                        // set the default value for client
+                                        $('#id_client').val($("#id_client option:nth-child(2)").val());
+                                        $('.fg-client').removeClass('hidden')
+                                    }
+                                    else {
+                                        // check if id is set
+                                        var id = $('#cash-transfer-details-form #id').val();
+                                        $('#fg-ct_form-recipient').removeClass('hidden')
+                                        $('#fg-recipient_relationship_with_client').removeClass('hidden')
+                                        $('.fg-client').addClass('hidden')
+                                    }
+                                })
+                            </script>
+                        </div>
+                        <div class="form-group fg-client hidden">
+                            <label class="control-label">{{ ct_form.client.label_tag }}</label>
+                            {{ ct_form.client|add_class:"input-sm form-control" }}
+                            {{ ct_form.client.errors }}
+                        </div>
+                        <div class="form-group fg-is_related" id="fg-ct_form-recipient">
+                            <label class="control-label">{{ ct_form.recipient_name.label_tag }}</label>
+                            {{ ct_form.recipient_name|add_class:"input-sm form-control" }}
+                            {{ ct_form.recipient_name.errors }}
+                        </div>
+                        <div class="form-group fg-is_related" id="fg-recipient_relationship_with_client">
+
+                            <label class="control-label">{{ ct_form.recipient_relationship_with_client.label_tag }}</label>
+                            {{ ct_form.recipient_relationship_with_client|add_class:"input-sm form-control" }}
+                            {{ ct_form.recipient_relationship_with_client.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">{{ ct_form.payment_mode.label_tag }}</label>
+                            {{ ct_form.payment_mode|add_class:"input-sm form-control" }}
+                            {{ ct_form.payment_mode.errors }}
+                        </div>
+                        <div class="form-group hidden fg-mode fg-mode-mobile-money">
+                            <label class="control-label">{{ ct_form.mobile_service_provider_name.label_tag }}</label>
+                            {{ ct_form.mobile_service_provider_name|add_class:"input-sm form-control" }}
+                            {{ ct_form.mobile_service_provider_name.errors }}
+                        </div>
+                        <div class="form-group hidden fg-mode fg-mode-mobile-money">
+                            <label class="control-label">{{ ct_form.recipient_phone_number.label_tag }}</label>
+                            {{ ct_form.recipient_phone_number|add_class:"input-sm form-control" }}
+                            {{ ct_form.recipient_phone_number.errors }}
+                        </div>
+                        <div class="form-group hidden fg-mode fg-mode-mobile-money">
+                            <label class="control-label">{{ ct_form.name_phone_number_registered_to.label_tag }}</label>
+                            {{ ct_form.name_phone_number_registered_to|add_class:"input-sm form-control" }}
+                            {{ ct_form.name_phone_number_registered_to.errors }}
+                        </div>
+
+                        <div class="form-group hidden fg-mode fg-mode-bank">
+                            <label class="control-label">{{ ct_form.bank_name.label_tag }}</label>
+                            {{ ct_form.bank_name|add_class:"input-sm form-control" }}
+                            {{ ct_form.bank_name.errors }}
+                        </div>
+                        <div class="form-group hidden fg-mode fg-mode-bank">
+
+                            <label class="control-label">{{ ct_form.bank_branch_name.label_tag }}</label>
+                            {{ ct_form.bank_branch_name|add_class:"input-sm form-control" }}
+                            {{ ct_form.bank_branch_name.errors }}
+                        </div>
+                        <div class="form-group hidden fg-mode fg-mode-bank">
+
+                            <label class="control-label">{{ ct_form.bank_account_name.label_tag }}</label>
+                            {{ ct_form.bank_account_name|add_class:"input-sm form-control" }}
+                            {{ ct_form.bank_account_name.errors }}
+                        </div>
+                        <div class="form-group hidden fg-mode fg-mode-bank">
+                            <label class="control-label">{{ ct_form.bank_account_number.label_tag }}</label>
+                            {{ ct_form.bank_account_number|add_class:"input-sm form-control" }}
+                            {{ ct_form.bank_account_number.errors }}
+                        </div>
+
+                        <script>
+                            $('#id_payment_mode').change(function (e) {
+                                 var selectedText = $('#id_payment_mode option:selected').text();
+                                 var selectedIndex = $(this).val();
+                                 // hide everything
+                                 $('.fg-mode').addClass('hidden') // Hide everything
+                                 var id = $('#cash-transfer-details-form #id').val();
+                                 if(id == '' || id == null)
+                                         $('.fg-mode input').val("")
+
+                                // Clear everything -- pending
+                                 // Show the relevant options
+                                 if ($.inArray('Mobile', selectedText.split(' ')) > -1) {
+                                     // Show mobile options
+                                     $('.fg-mode-mobile-money').removeClass('hidden')
+                                 }
+                                 else if ($.inArray('Bank', selectedText.split(' ')) > -1) {
+                                     // Show mobile options
+                                     $('.fg-mode-bank').removeClass('hidden')
+                                 }
+                            })
+                        </script>
+
+                        <div class="form-group hidden fg-reporter-specify-option" id="fg-other_specify">
+
+                            <label class="control-label">{{ form.other_specify.label_tag }}</label>
+                            {{ ct_form.other_specify|add_class:"input-sm form-control" }}
+                            {{ form.other_specify.errors }}
+                        </div>
+                    </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                    <button id="btn_cancel_action" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
+                    <button id="cash-transfer-details-form-submit" type="submit" class="btn btn-sm btn-primary" > Save </button>
+              </div>
+            </div>
+          </div>
+    </div>
+    <!-- End modal-->

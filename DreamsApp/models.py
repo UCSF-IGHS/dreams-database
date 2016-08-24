@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from datetime import datetime
 from django.utils import timezone
 
-
 class MaritalStatus(models.Model):
     code = models.CharField(verbose_name='Marital Status Code', max_length=10, null=False, blank=False)
     name = models.CharField(max_length=100, null=False)
@@ -283,9 +282,138 @@ class Audit(models.Model):
         verbose_name_plural = 'Audit log'
 
 
-class InitApp(models.Model):
-    timestamp = models.DateTimeField(auto_now=True, blank=False, null=False)
-    inited = models.BooleanField(default=False, blank=False, null=False)
+class GrievanceReporterCategory(models.Model):
+    """ Model containing the Category of Grievance Reporter """
+    code = models.IntegerField(name='code', verbose_name='Code')
+    name = models.CharField(max_length=50, verbose_name='Name')
+    requires_dreams_id = models.BooleanField(default=False, verbose_name='Requires DREAMS ID')
+    requires_relationship = models.BooleanField(default=False, verbose_name='Requires Relationship Specification')
+    is_other_specified = models.BooleanField(default=False, verbose_name='Other Specify')
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta(object):
+        verbose_name = 'Grievance Reporter Category'
+        verbose_name_plural = 'Grievance Reporter Categories'
+
+
+class GrievanceNature(models.Model):
+    """ Model containing the nature of the Grievance reported """
+    code = models.IntegerField(name='code', verbose_name='Code')
+    name = models.CharField(max_length=50, verbose_name='Name')
+    is_other_specify = models.BooleanField(default=False, verbose_name='Other Specify')
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta(object):
+        verbose_name = 'Nature of Grievance'
+        verbose_name_plural = 'Grievance Nature List'
+
+
+class GrievanceStatus(models.Model):
+    """ Model containing Grievance Status"""
+    code = models.IntegerField(name='code', verbose_name='Code')
+    name = models.CharField(max_length=50, verbose_name='Name')
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta(object):
+        verbose_name = 'Grievance Status'
+        verbose_name_plural = 'Grievance Status List'
+
+
+class Grievance(models.Model):
+    """ Model for Grievance Reporting """
+    date = models.DateField(null=True, blank=True, default=datetime.now, verbose_name='Date Reported')
+    implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False,
+                                             verbose_name='Implementing Partner')
+    county = models.ForeignKey(County, null=False, blank=False, related_name='county', verbose_name='County')
+    ward = models.ForeignKey(Ward, null=False, blank=False, related_name='ward', verbose_name='Ward')
+    reporter_name = models.CharField(verbose_name='Reporter Name', max_length=250, null=False, blank=False)
+    reporter_category = models.ForeignKey(GrievanceReporterCategory, null=False, blank=False, related_name='reporter_category',
+                                          verbose_name='Reporter Category')
+    dreams_id = models.CharField(verbose_name='DREAMS ID', max_length=150, null=True, blank=True)
+    relationship = models.CharField(verbose_name='Relationship', max_length=50, null=True, blank=True)
+    other_specify = models.CharField(verbose_name='Specify', max_length=150, null=True, blank=True)
+    reporter_phone = models.CharField(verbose_name='Complainant’s Telephone No', max_length=13, null=True, blank=True)
+    received_by = models.CharField(verbose_name='Name of DREAMS staff receiving the grievance', max_length=250,
+                                   null=False, blank=False)
+    receiver_designation = models.CharField(verbose_name='Designation', max_length=50, null=True, blank=True)
+    grievance_nature = models.ForeignKey(GrievanceNature, null=False, blank=False, verbose_name='Nature of Grievance',
+                                         related_name='grievance_nature')
+    other_grievance_specify = models.CharField(verbose_name='Specify Grievance', max_length=250, null=True, blank=True)
+    is_first_time_complaint = models.BooleanField(default=False, verbose_name='Is a 1st Time Complaint')
+    person_responsible = models.CharField(verbose_name='Person Responsible', max_length=250,
+                                   null=True, blank=True)
+    resolution = models.TextField(verbose_name='Resolution', null=True, blank=True)
+    resolution_date = models.DateField(null=True, blank=True, default=datetime.now, verbose_name='Date of resolution')
+    complainant_feedback_date = models.DateField(null=True, blank=True, verbose_name='Date of Feedback to Complainant')
+    status = models.ForeignKey(GrievanceStatus, null=True, blank=True, default=1, verbose_name='Status')
+    closed_by = models.CharField(verbose_name='Closed by', max_length=250,
+                                 null=True, blank=True)
+    closure_date = models.DateField(null=True, blank=True, default=datetime.now, verbose_name='Date Closed')
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    changed_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    changed_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+
+    def __str__(self):
+        return '{}'.format(self.grievance_nature)
+
+    class Meta(object):
+        verbose_name = 'Grievance'
+        verbose_name_plural = 'Grievances'
+        ordering = ['-date']
+
+
+class PaymentMode(models.Model):
+    """ Model containing Payment Modes """
+    code = models.IntegerField(name='code', verbose_name='Code')
+    name = models.CharField(max_length=50, verbose_name='Name')
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta(object):
+        verbose_name = 'Payment Mode'
+        verbose_name_plural = 'Payment Modes'
+
+
+class ClientCashTransferDetails(models.Model):
+    """ Client Cash Transfer Details """
+    client = models.ForeignKey(Client, null=False, blank=False, verbose_name='Dreams Beneficiary\(AGYW\)')
+    is_client_recepient = models.BooleanField(default=False, verbose_name='Is the Recipient an AGYW?')
+    recipient_name = models.CharField(verbose_name='Name of Recipient', max_length=250, null=True, blank=True)
+    recipient_relationship_with_client = models.CharField(verbose_name='Recipient Relationship with AGYW', max_length=150,
+                                                          null=True, blank=True)
+    payment_mode = models.ForeignKey(PaymentMode, null=False, blank=False, verbose_name='Prefered Mode of '
+                                                                                        'receiving Cash')
+    mobile_service_provider_name = models.CharField(verbose_name='Name of Mobile Service Provider', max_length=250, null=True, blank=True)
+    recipient_phone_number = models.CharField(verbose_name='Phone No', max_length=13, null=True, blank=True)
+    name_phone_number_registered_to = models.CharField(verbose_name='Name to whom the Phone No. is registered', max_length=250,
+                                                    null=True, blank=True)
+    bank_name = models.CharField(verbose_name='Bank', max_length=250, null=True, blank=True)
+    bank_branch_name = models.CharField(verbose_name='Branch', max_length=250, null=True, blank=True)
+    bank_account_name = models.CharField(verbose_name='Account name', max_length=250, null=True, blank=True)
+    bank_account_number = models.CharField(verbose_name='Account number', max_length=250, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    changed_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    changed_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+
+    def __str__(self):
+        return '{} {}'.format(self.recipient_name, self.recipient_phone_number)
+
+    class Meta(object):
+        verbose_name = 'Cash Transfer Detail'
+        verbose_name_plural = 'Cash Transfer Details'
+
+
+
+
 
 
 """ Models for Responses to questions on enrollment form"""
