@@ -803,11 +803,11 @@ class ClientEducationAndEmploymentData(models.Model):
 class ClientHIVTestingData(models.Model):
     """ Holds HIV testing information about a client"""
     client = models.ForeignKey(Client)
-    ever_tested_for_hiv = models.ForeignKey(CategoricalResponse, blank=False, null=False, related_name='+')
-    period_last_tested = models.ForeignKey(PeriodResponse, blank=False , null=False, related_name='+')
-    last_test_result = models.ForeignKey(HivTestResultResponse, blank=False, null=False, related_name='+')
+    ever_tested_for_hiv = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
+    period_last_tested = models.ForeignKey(PeriodResponse, blank=False, null=True, related_name='+')
+    last_test_result = models.ForeignKey(HivTestResultResponse, blank=False, null=True, related_name='+')
     enrolled_in_hiv_care = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
-    care_facility_enrolled = models.CharField(max_length=50, blank=True, null=False)
+    care_facility_enrolled = models.CharField(max_length=50, blank=True, null=True)
     reason_not_in_hiv_care = models.ForeignKey(ReasonNotInHIVCare, blank=True, null=True, related_name='+')
     reason_not_in_hiv_care_other = models.CharField(max_length=50, blank=True, null=True)
     knowledge_of_hiv_test_centres = models.ForeignKey(CategoricalResponse, null=True, related_name='+')
@@ -821,7 +821,7 @@ class ClientSexualActivityData(models.Model):
     ever_had_sex = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
     age_at_first_sexual_encounter = models.IntegerField(verbose_name='Age at first sexual encounter', null=True)
     has_sexual_partner = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
-    sex_partners_in_last_12months = models.IntegerField(verbose_name='Sexual partners in the last 12 months', null=False)
+    sex_partners_in_last_12months = models.IntegerField(verbose_name='Sexual partners in the last 12 months', null=True)
     age_of_last_partner = models.ForeignKey(AgeOfSexualPartner, null=True, blank=True, related_name='+')
     age_of_second_last_partner = models.ForeignKey(AgeOfSexualPartner, null=True, blank=True, related_name='+')
     age_of_third_last_partner = models.ForeignKey(AgeOfSexualPartner, null=True, blank=True, related_name='+')
@@ -840,7 +840,7 @@ class ClientSexualActivityData(models.Model):
 class ClientReproductiveHealthData(models.Model):
     """ Holds information about client's reproductive health """
     client = models.ForeignKey(Client)
-    has_biological_children = models.ForeignKey(CategoricalResponse, blank=False, null=False, related_name='+')
+    has_biological_children = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
     no_of_biological_children = models.IntegerField(blank=True, null=True)
     currently_pregnant = models.ForeignKey(CategoricalResponse, null=True, related_name='+')
     current_anc_enrollment = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
