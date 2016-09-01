@@ -16,7 +16,7 @@ AFTER INSERT
 ON odk_aggregate.DREAMS_ENROLMENT_FORM_CORE2
 FOR EACH ROW
 BEGIN
-INSERT INTO dreams.odk_dreams_sync
+INSERT INTO dreams_dev.odk_dreams_sync
 (
 uuid
 )
@@ -32,8 +32,8 @@ DELIMITER ;
 
 -- -----------------------------------------       event definition  ------------------------------------------------------
 DELIMITER $$
-DROP EVENT IF EXISTS odk_dreams_enrollment_sync$$
-CREATE EVENT odk_dreams_enrollment_sync
+DROP EVENT IF EXISTS event_odk_dreams_enrollment_sync$$
+CREATE EVENT event_odk_dreams_enrollment_sync
 	ON SCHEDULE EVERY 2 MINUTE STARTS CURRENT_TIMESTAMP
 	DO
 		call sp_sync_odk_dreams_data();
@@ -95,19 +95,19 @@ CREATE PROCEDURE sp_sync_client_data(IN recordUUID VARCHAR(100))
         SET exec_status = -1;
         ROLLBACK;
       END;
-    -- perform all procedure calls in a transaction
+    -- perform all procedure calls within a transaction
     START TRANSACTION;
 
 		CALL sp_demographic_data(recordUUID);
     SET client_id = LAST_INSERT_ID();
-    -- CALL sp_individual_and_household_data(recordUUID, client_id);
+    CALL sp_individual_and_household_data(recordUUID, client_id);
     CALL sp_sexuality_data(recordUUID, client_id);
-    -- CALL sp_reproductive_health_data(recordUUID, client_id);
-    -- CALL sp_drug_use_data(recordUUID, client_id);
-    -- CALL sp_program_participation_data(recordUUID, client_id);
-    -- CALL sp_gbv_data(recordUUID, client_id);
-    --  CALL sp_education_and_employment(recordUUID, client_id);
-    -- CALL sp_hiv_testing(recordUUID, client_id);
+    CALL sp_reproductive_health_data(recordUUID, client_id);
+    CALL sp_drug_use_data(recordUUID, client_id);
+    CALL sp_program_participation_data(recordUUID, client_id);
+    CALL sp_gbv_data(recordUUID, client_id);
+    CALL sp_education_and_employment(recordUUID, client_id);
+    CALL sp_hiv_testing(recordUUID, client_id);
     -- commit all inserts if all procedure calls are successful
     UPDATE odk_dreams_sync SET synced=exec_status WHERE uuid=recordUUID;
     COMMIT;
@@ -178,6 +178,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_individual_and_household_data$$
 CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
+    DECLARE individualRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clientindividualandhouseholddata
     (
@@ -199,7 +200,6 @@ CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100), IN
       ever_missed_full_day_food_in_4wks_id,
       no_of_days_missed_food_in_4wks_id,
       has_disability_id,
-      disability_type_id,
       disability_type_other,
       no_of_people_in_household,
       no_of_females,
@@ -229,7 +229,6 @@ CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100), IN
       d.MODULE_Q110 as ever_missed_full_day_food_in_4wks,
       d.MODULE_Q_111 as no_of_days_missed_food_in_4wks,
       d.MODULE_Q112 as has_disability,
-      d.MODULE_Q113 as disability_type,
       d.MODULE_Q113SPECIFY as disability_type_other,
       d.MODULE_Q114 as no_of_people_in_household,
       d.MODULE_Q114A as no_of_females,
@@ -241,17 +240,34 @@ CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100), IN
       d.MODULE_Q117 as current_ct_program
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE2 d
     where d._PARENT_AURI = recordUUID;
+
+     -- Get id of the inserted reproductive health data row
+    SET individualRecordID = LAST_INSERT_ID();
+    CALL sp_client_disability_type(individualRecordID, recordUUID);
+
   END
 		$$
 DELIMITER ;
 
+-- django many to many relationship: Individual and household data - disability types
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_client_disability_type$$
+CREATE PROCEDURE sp_client_disability_type(IN recordID INT(11), IN parentUUID VARCHAR(100))
+  BEGIN
+    INSERT INTO dreams_dev.DreamsApp_clientreproductivehealthdata_known_fp_method (clientreproductivehealthdata_id, familyplanningmethod_id)
+    SELECT recordID, c.VALUE
+    FROM odk_aggregate.DREAMS_ENROLMENT_FORM_Q507 c
+    WHERE c._PARENT_AURI=parentUUID;
+
+  END $$
+DELIMITER ;
 
 -- Getting sexuality data
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_sexuality_data$$
 CREATE PROCEDURE sp_sexuality_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
-    SELECT concat('UUID: ',recordUUID, ', clientID: ', clientID);
+    -- SELECT concat('UUID: ',recordUUID, ', clientID: ', clientID);
     INSERT INTO dreams_dev.DreamsApp_clientsexualactivitydata
     (
       client_id,
@@ -304,6 +320,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_reproductive_health_data$$
 CREATE PROCEDURE sp_reproductive_health_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
+    DECLARE repHealthRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clientreproductivehealthdata
     (
@@ -337,10 +354,27 @@ CREATE PROCEDURE sp_reproductive_health_data(IN recordUUID VARCHAR(100), IN clie
       d.Q510SPECIFY as reason_not_using_fp_other
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE d
     where d._URI = recordUUID;
+
+    -- Get id of the inserted reproductive health data row
+    SET repHealthRecordID = LAST_INSERT_ID();
+    CALL sp_client_rep_health_known_fp_method(repHealthRecordID, recordUUID);
+
   END
 		$$
 DELIMITER ;
 
+-- django many to many relationship: reproductive health - known family planning methods
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_client_rep_health_known_fp_method$$
+CREATE PROCEDURE sp_client_rep_health_known_fp_method(IN recordID INT(11), IN parentUUID VARCHAR(100))
+  BEGIN
+    INSERT INTO dreams_dev.DreamsApp_clientreproductivehealthdata_known_fp_method (clientreproductivehealthdata_id, familyplanningmethod_id)
+    SELECT recordID, c.VALUE
+    FROM odk_aggregate.DREAMS_ENROLMENT_FORM_Q507 c
+    WHERE c._PARENT_AURI=parentUUID;
+
+  END $$
+DELIMITER ;
 
 
 -- Getting Drug Use data
@@ -348,6 +382,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_drug_use_data$$
 CREATE PROCEDURE sp_drug_use_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
+    DECLARE drugUseRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clientdrugusedata
     (
@@ -367,8 +402,26 @@ CREATE PROCEDURE sp_drug_use_data(IN recordUUID VARCHAR(100), IN clientID INT(11
       d.MODULE_7_Q705 AS produced_alcohol_last_12months
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE d
     where d._URI = recordUUID;
+
+    -- Get id of the inserted Drug Use data row
+    SET drugUseRecordID = LAST_INSERT_ID();
+    CALL sp_client_drug_used_in_last_12_months(drugUseRecordID, recordUUID);
+
   END
 		$$
+DELIMITER ;
+
+-- django many to many relationship: Drugs used in the last 12 months
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_client_drug_used_in_last_12_months$$
+CREATE PROCEDURE sp_client_drug_used_in_last_12_months(IN recordID INT(11), IN parentUUID VARCHAR(100))
+  BEGIN
+    INSERT INTO dreams_dev.DreamsApp_clientdrugusedata_drug_used_last_12months (clientdrugusedata_id, drug_id)
+    SELECT recordID, c.VALUE
+    FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_7_Q704 c
+    WHERE c._PARENT_AURI=parentUUID;
+
+  END $$
 DELIMITER ;
 
 
@@ -377,6 +430,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_program_participation_data$$
 CREATE PROCEDURE sp_program_participation_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
+    DECLARE programParticipationRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clientparticipationindreams
     (
@@ -388,9 +442,27 @@ CREATE PROCEDURE sp_program_participation_data(IN recordUUID VARCHAR(100), IN cl
       d.MODULE_8_Q801SPECIFY as dreams_program_other
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE d
     where d._URI = recordUUID;
+
+    -- Get id of the inserted Program participation data row
+    SET programParticipationRecordID = LAST_INSERT_ID();
+    CALL sp_client_programs_enrolled(programParticipationRecordID, recordUUID);
   END
 		$$
 DELIMITER ;
+
+-- django many to many relationship: Dreams programs enrolled in
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_client_programs_enrolled$$
+CREATE PROCEDURE sp_client_programs_enrolled(IN recordID INT(11), IN parentUUID VARCHAR(100))
+  BEGIN
+    INSERT INTO dreams_dev.DreamsApp_clientparticipationindreams_dreams_program (clientparticipationindreams_id, dreamsprogramme_id)
+    SELECT recordID, c.VALUE
+    FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_8_Q801 c
+    WHERE c._PARENT_AURI=parentUUID;
+
+  END $$
+DELIMITER ;
+
 
 
 -- Getting GBV data
@@ -398,6 +470,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_gbv_data$$
 CREATE PROCEDURE sp_gbv_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
+    DECLARE gbvRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clientgenderbasedviolencedata
     (
@@ -448,8 +521,40 @@ CREATE PROCEDURE sp_gbv_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE2 d
     inner join odk_aggregate.DREAMS_ENROLMENT_FORM_CORE o on o._URI = d._PARENT_AURI
     where d._PARENT_AURI = recordUUID;
+
+    -- Get id of the inserted GBV data row
+    SET gbvRecordID = LAST_INSERT_ID();
+    CALL sp_client_gbv_help_provider(gbvRecordID, recordUUID);
+    CALL sp_client_gbv_preferred_provider(gbvRecordID, recordUUID);
+
   END
 		$$
+DELIMITER ;
+
+-- django many to many relationship: provider where client sought help after GBV
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_client_gbv_help_provider$$
+CREATE PROCEDURE sp_client_gbv_help_provider(IN recordID INT(11), IN parentUUID VARCHAR(100))
+  BEGIN
+    INSERT INTO dreams_dev.DreamsApp_clientgenderbasedviolencedata_gbv_help_provider (clientgenderbasedviolencedata_id, gbvhelpprovider_id)
+    SELECT recordID, c.VALUE
+    FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_6_Q610 c
+    WHERE c._PARENT_AURI=parentUUID;
+
+  END $$
+DELIMITER ;
+
+-- django many to many relationship: preferred GBV provider
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_client_gbv_preferred_provider$$
+CREATE PROCEDURE sp_client_gbv_preferred_provider(IN recordID INT(11), IN parentUUID VARCHAR(100))
+  BEGIN
+    INSERT INTO dreams_dev.DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce (clientgenderbasedviolencedata_id, gbvhelpprovider_id)
+    SELECT recordID, c.VALUE
+    FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_6_Q612 c
+    WHERE c._PARENT_AURI=parentUUID;
+
+  END $$
 DELIMITER ;
 
 
@@ -458,6 +563,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_education_and_employment$$
 CREATE PROCEDURE sp_education_and_employment(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
+    DECLARE eduRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clienteducationandemploymentdata
     (
@@ -506,8 +612,26 @@ CREATE PROCEDURE sp_education_and_employment(IN recordUUID VARCHAR(100), IN clie
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE2 d
     inner join odk_aggregate.DREAMS_ENROLMENT_FORM_CORE o on o._URI = d._PARENT_AURI
     where d._PARENT_AURI = recordUUID;
+
+    -- Get id of the inserted education data row
+    SET eduRecordID = LAST_INSERT_ID();
+    -- SELECT CONCAT('Education supporter: ', eduRecordID);
+    CALL sp_client_current_education_supporter(eduRecordID, recordUUID);
+
   END
 		$$
+DELIMITER ;
+-- education and employment many to many relationship: current education supporter
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_client_current_education_supporter$$
+CREATE PROCEDURE sp_client_current_education_supporter(IN recordID INT(11), IN parentUUID VARCHAR(100))
+  BEGIN
+    INSERT INTO dreams_dev.DreamsApp_clienteducationandemploymentdata_current_educationebf4 (clienteducationandemploymentdata_id, educationsupporter_id)
+    SELECT recordID, c.VALUE
+    FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_2_Q204 c
+    WHERE c._PARENT_AURI=parentUUID;
+
+  END $$
 DELIMITER ;
 
 
@@ -516,6 +640,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_hiv_testing$$
 CREATE PROCEDURE sp_hiv_testing(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
+    DECLARE hivtestingRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clienthivtestingdata
     (
@@ -543,6 +668,194 @@ CREATE PROCEDURE sp_hiv_testing(IN recordUUID VARCHAR(100), IN clientID INT(11))
       d.MODULE_3_Q308 AS knowledge_of_hiv_test_centres
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE d
     where d._URI = recordUUID;
+
+    -- Get id of the inserted education data row
+    SET hivtestingRecordID = LAST_INSERT_ID();
+    CALL sp_client_hiv_reason_never_tested(hivtestingRecordID, recordUUID);
+
   END
 		$$
 DELIMITER ;
+
+-- get reason one has never tested for hiv: django many to many relationship
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_client_hiv_reason_never_tested$$
+CREATE PROCEDURE sp_client_hiv_reason_never_tested(IN recordID INT(11), IN parentUUID VARCHAR(100))
+  BEGIN
+    INSERT INTO dreams_dev.DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv (clienthivtestingdata_id, reasonnottestedforhiv_id)
+    SELECT recordID, c.VALUE
+    FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_3_Q3072 c
+    WHERE c._PARENT_AURI=parentUUID;
+
+  END $$
+DELIMITER ;
+
+
+-- ---------------------------------------- fix collation and character set --------------------------------------------
+-- ------------------------------- This is important when databases are created before harmonizing database settings
+
+ALTER DATABASE odk_aggregate CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+ALTER TABLE DREAMS_ENROLMENT_FORM_CORE CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE DREAMS_ENROLMENT_FORM_CORE2 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE DREAMS_ENROLMENT_FORM_MODULE_Q113 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE DREAMS_ENROLMENT_FORM_MODULE_2_Q204 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE DREAMS_ENROLMENT_FORM_MODULE_3_Q307 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE DREAMS_ENROLMENT_FORM_MODULE_3_Q3072 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE DREAMS_ENROLMENT_FORM_Q507 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE DREAMS_ENROLMENT_FORM_MODULE_6_Q610 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE DREAMS_ENROLMENT_FORM_MODULE_6_Q612 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE DREAMS_ENROLMENT_FORM_MODULE_7_Q704 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE DREAMS_ENROLMENT_FORM_MODULE_8_Q801 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+
+-- ---------------------------------------- Clearing DB for fresh tests ------------------------------------------------
+
+DELETE from DreamsApp_clientindividualandhouseholddata;
+ALTER TABLE DreamsApp_clientindividualandhouseholddata AUTO_INCREMENT=1;
+
+DELETE from DreamsApp_clientsexualactivitydata;
+ALTER TABLE DreamsApp_clientsexualactivitydata AUTO_INCREMENT=1;
+
+DELETE from DreamsApp_clientreproductivehealthdata_known_fp_method;
+ALTER TABLE DreamsApp_clientreproductivehealthdata_known_fp_method AUTO_INCREMENT=1;
+
+DELETE from DreamsApp_clientreproductivehealthdata;
+ALTER TABLE DreamsApp_clientreproductivehealthdata AUTO_INCREMENT=1;
+
+DELETE FROM DreamsApp_clientdrugusedata_drug_used_last_12months;
+ALTER TABLE DreamsApp_clientdrugusedata_drug_used_last_12months AUTO_INCREMENT=1;
+
+DELETE FROM DreamsApp_clientdrugusedata;
+ALTER TABLE DreamsApp_clientdrugusedata AUTO_INCREMENT=1;
+
+DELETE FROM DreamsApp_clientparticipationindreams_dreams_program;
+ALTER TABLE DreamsApp_clientparticipationindreams_dreams_program AUTO_INCREMENT=1;
+
+DELETE FROM DreamsApp_clientparticipationindreams;
+ALTER TABLE DreamsApp_clientparticipationindreams AUTO_INCREMENT=1;
+
+DELETE FROM DreamsApp_clientgenderbasedviolencedata_gbv_help_provider;
+ALTER TABLE DreamsApp_clientgenderbasedviolencedata_gbv_help_provider AUTO_INCREMENT=1;
+
+DELETE FROM DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce;
+ALTER TABLE DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce AUTO_INCREMENT=1;
+
+DELETE FROM DreamsApp_clientgenderbasedviolencedata;
+ALTER TABLE DreamsApp_clientgenderbasedviolencedata AUTO_INCREMENT=1;
+
+DELETE FROM DreamsApp_clienteducationandemploymentdata_current_educationebf4;
+ALTER TABLE DreamsApp_clienteducationandemploymentdata_current_educationebf4 AUTO_INCREMENT=1;
+
+DELETE from DreamsApp_clienteducationandemploymentdata;
+ALTER TABLE DreamsApp_clienteducationandemploymentdata AUTO_INCREMENT=1;
+
+DELETE from DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv;
+ALTER TABLE DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv AUTO_INCREMENT=1;
+
+DELETE from DreamsApp_clienthivtestingdata;
+ALTER TABLE DreamsApp_clienthivtestingdata AUTO_INCREMENT=1;
+
+
+DELETE from DreamsApp_client;
+ALTER TABLE DreamsApp_client AUTO_INCREMENT=1;
+
+update odk_dreams_sync set synced=0;
+
+-- ---------------------------------- ---- Getting Enrollment data from Dreams Database -------------------------------
+-- --------------------------------- this is for comparison with ODK data ---------------------------------------------
+
+SELECT
+  d.*,
+  i.*,
+  s.*,
+  r.*,
+  dr.*,
+  p.*,
+  gbv.*,
+  edu.*,
+  hiv.*
+FROM
+  DreamsApp_client AS d
+  INNER JOIN DreamsApp_clientindividualandhouseholddata i ON i.client_id = d.id
+  INNER JOIN DreamsApp_clientsexualactivitydata s ON s.client_id = d.id
+  LEFT OUTER JOIN (
+                    SELECT *
+                    FROM DreamsApp_clientreproductivehealthdata rh
+                      LEFT OUTER JOIN
+                      (
+                        SELECT
+                          fp.clientreproductivehealthdata_id    AS rh_id,
+                          group_concat(familyplanningmethod_id) AS known_fp_methods
+                        FROM DreamsApp_clientreproductivehealthdata_known_fp_method fp
+                          LEFT OUTER JOIN DreamsApp_clientreproductivehealthdata rh
+                            ON fp.clientreproductivehealthdata_id = rh.id
+                        GROUP BY fp.clientreproductivehealthdata_id
+                      ) fpm ON fpm.rh_id = rh.id) r ON r.client_id = d.id
+  LEFT OUTER JOIN (
+                    SELECT *
+                    FROM DreamsApp_clientdrugusedata dd
+                      LEFT OUTER JOIN
+                      (
+                        SELECT
+                          d.clientdrugusedata_id  AS dd_id,
+                          group_concat(d.drug_id) AS drugs_used_in_last_12_months
+                        FROM DreamsApp_clientdrugusedata_drug_used_last_12months d
+                          LEFT OUTER JOIN DreamsApp_clientdrugusedata inner_dd ON d.clientdrugusedata_id = inner_dd.id
+                        GROUP BY dd_id
+                      ) d ON d.dd_id = dd.id) dr ON dr.client_id = d.id
+  INNER JOIN (SELECT *
+              FROM DreamsApp_clientparticipationindreams pp
+                LEFT OUTER JOIN
+                (
+                  SELECT
+                    dp.clientparticipationindreams_id   AS pr_id,
+                    group_concat(dp.dreamsprogramme_id) AS programmes_enrolled
+                  FROM DreamsApp_clientparticipationindreams_dreams_program dp
+                    LEFT OUTER JOIN DreamsApp_clientparticipationindreams inner_pp
+                      ON dp.clientparticipationindreams_id = inner_pp.id
+                  GROUP BY pr_id
+                ) pr ON pr.pr_id = pp.id) p ON p.client_id = d.id
+  INNER JOIN (SELECT
+                gbv.*,
+                providers.provider_list   AS providers_sought,
+                p_providers.provider_list AS preferred_providers
+              FROM DreamsApp_clientgenderbasedviolencedata gbv
+                LEFT OUTER JOIN (
+                                  SELECT
+                                    provider.clientgenderbasedviolencedata_id AS rec_id,
+                                    group_concat(provider.gbvhelpprovider_id) AS provider_list
+                                  FROM DreamsApp_clientgenderbasedviolencedata_gbv_help_provider provider
+                                  GROUP BY rec_id
+                                ) providers ON providers.rec_id = gbv.id
+                LEFT OUTER JOIN (
+                                  SELECT
+                                    provider.clientgenderbasedviolencedata_id AS rec_id,
+                                    group_concat(provider.gbvhelpprovider_id) AS provider_list
+                                  FROM DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce provider
+                                  GROUP BY rec_id
+                                ) p_providers ON p_providers.rec_id = gbv.id
+              GROUP BY gbv.id) gbv ON gbv.client_id = d.id
+  INNER JOIN (SELECT
+                ed.*,
+                edu_sup.current_edu_supporter_list
+              FROM DreamsApp_clienteducationandemploymentdata ed
+                LEFT OUTER JOIN (
+                                  SELECT
+                                    s.clienteducationandemploymentdata_id AS rec_id,
+                                    group_concat(educationsupporter_id)   AS current_edu_supporter_list
+                                  FROM DreamsApp_clienteducationandemploymentdata_current_educationebf4 s
+                                  GROUP BY rec_id
+                                ) edu_sup ON edu_sup.rec_id = ed.id
+              GROUP BY ed.id) edu ON edu.client_id = d.id
+  INNER JOIN (SELECT
+                hiv_d.*,
+                rn_not_tested.reason_not_tested_for_hiv
+              FROM DreamsApp_clienthivtestingdata hiv_d
+                LEFT OUTER JOIN (
+                                  SELECT
+                                    rn.clienthivtestingdata_id                AS rec_id,
+                                    group_concat(rn.reasonnottestedforhiv_id) AS reason_not_tested_for_hiv
+                                  FROM DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv rn
+                                  GROUP BY rec_id
+                                ) rn_not_tested ON rn_not_tested.rec_id = hiv_d.id
+              GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id;

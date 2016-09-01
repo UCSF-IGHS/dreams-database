@@ -763,7 +763,7 @@ class ClientIndividualAndHouseholdData(models.Model):
     ever_missed_full_day_food_in_4wks = models.ForeignKey(CategoricalResponse, null=True, related_name='+')
     no_of_days_missed_food_in_4wks = models.ForeignKey(FrequencyResponse, blank=True, null=True, related_name='+')
     has_disability = models.ForeignKey(CategoricalResponse, verbose_name='Disabled?', blank=True, null=True, related_name='+')
-    disability_type = models.ForeignKey(DisabilityType, null=True, blank=True, verbose_name='Disability Type', related_name='+')
+    disability_type = models.ManyToManyField(DisabilityType, blank=True)
     disability_type_other = models.CharField(verbose_name='Other disability type', blank=True, null=True, max_length=50)
     no_of_people_in_household = models.IntegerField(verbose_name='No of people living in your house', null=True, blank=True)
     no_of_females = models.IntegerField(verbose_name='No of females', null=True)
