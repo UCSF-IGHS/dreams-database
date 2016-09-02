@@ -1,5 +1,6 @@
 
 -- defining table to be populated by odk enrollment trigger
+DROP TABLE IF EXISTS `odk_dreams_sync`;
 CREATE TABLE `odk_dreams_sync` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `uuid` varchar(100) NOT NULL DEFAULT '',
@@ -244,7 +245,6 @@ CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100), IN
      -- Get id of the inserted reproductive health data row
     SET individualRecordID = LAST_INSERT_ID();
     CALL sp_client_disability_type(individualRecordID, recordUUID);
-
   END
 		$$
 DELIMITER ;
@@ -254,11 +254,10 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_client_disability_type$$
 CREATE PROCEDURE sp_client_disability_type(IN recordID INT(11), IN parentUUID VARCHAR(100))
   BEGIN
-    INSERT INTO dreams_dev.DreamsApp_clientreproductivehealthdata_known_fp_method (clientreproductivehealthdata_id, familyplanningmethod_id)
+    INSERT INTO dreams_dev.DreamsApp_clientindividualandhouseholddata_disability_type (clientindividualandhouseholddata_id, disabilitytype_id)
     SELECT recordID, c.VALUE
-    FROM odk_aggregate.DREAMS_ENROLMENT_FORM_Q507 c
+    FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_Q113 c
     WHERE c._PARENT_AURI=parentUUID;
-
   END $$
 DELIMITER ;
 
@@ -709,6 +708,9 @@ ALTER TABLE DREAMS_ENROLMENT_FORM_MODULE_7_Q704 CONVERT TO CHARACTER SET utf8 CO
 ALTER TABLE DREAMS_ENROLMENT_FORM_MODULE_8_Q801 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
 
 -- ---------------------------------------- Clearing DB for fresh tests ------------------------------------------------
+
+DELETE from DreamsApp_clientindividualandhouseholddata_disability_type;
+ALTER TABLE DreamsApp_clientindividualandhouseholddata_disability_type AUTO_INCREMENT=1;
 
 DELETE from DreamsApp_clientindividualandhouseholddata;
 ALTER TABLE DreamsApp_clientindividualandhouseholddata AUTO_INCREMENT=1;

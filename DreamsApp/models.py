@@ -901,3 +901,47 @@ class ClientParticipationInDreams(models.Model):
     dreams_program_other = models.CharField(max_length=50, blank=True, null=True)
     dreams_program = models.ManyToManyField(DreamsProgramme, blank=True)
 
+
+class AgeBracket(models.Model):
+    """ Defines age bracket"""
+    name = models.CharField(max_length=50, verbose_name='Label')
+    code = models.IntegerField(verbose_name='Code', blank=False, null=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = 'Age Brackets'
+        verbose_name = 'Age Bracket'
+
+
+class HomeVisitVerification(models.Model):
+    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True)
+    client_name = models.CharField(max_length=50, blank=True, null=True)
+    dreams_id = models.CharField(verbose_name='DREAMS ID', max_length=50, null=True)
+    ward = models.ForeignKey(Ward, verbose_name='Ward', null=True)
+    village = models.CharField(verbose_name='Village', max_length=50, null=True)
+    physical_address = models.CharField(max_length=50, blank=True, null=True)
+    visit_date = models.DateField(verbose_name='Date of visit', null=True)
+    staff_name = models.CharField(max_length=50, null=True)
+    age_of_household_head = models.ForeignKey(AgeBracket, null=True)
+    caretaker_illness = models.ForeignKey(CategoricalResponse, null=True, blank=True)
+    source_of_livelihood = models.ManyToManyField(SourceOfIncome)
+    source_of_livelihood_other = models.CharField(max_length=50, blank=True, null=True)
+    main_floor_material = models.ForeignKey(FloorMaterial, verbose_name='Main floor material', null=True, related_name='+')
+    main_floor_material_other = models.CharField(max_length=50, verbose_name='Main floor material: other', blank=True, null=True)
+    main_roof_material = models.ForeignKey(RoofingMaterial, verbose_name='Main roof material', null=True, related_name='+')
+    main_roof_material_other = models.CharField(max_length=50, verbose_name='Main roof material: other', blank=True, null=True)
+    main_wall_material_household = models.ForeignKey(RoofingMaterial, verbose_name='Main wall material of the household', null=True, related_name='+')
+    main_wall_material_household_other = models.CharField(max_length=50, verbose_name='Main wall material of the household: other', blank=True, null=True)
+    main_wall_material_house = models.ForeignKey(RoofingMaterial, verbose_name='Main wall material of your housse', null=True, related_name='+')
+    main_wall_material_house_other = models.CharField(max_length=50, verbose_name='Main wall material of your house: other', blank=True, null=True)
+    source_of_drinking_water = models.ForeignKey(DrinkingWater, verbose_name='Main source of drinking water', null=True, related_name='+')
+    source_of_drinking_water_other = models.CharField(max_length=50, verbose_name='Main source of drinking water: other', blank=True, null=True)
+    no_of_days_missed_food_in_4wks = models.ForeignKey(FrequencyResponse, blank=True, null=True, related_name='+')
+    preferred_beneficiary_name = models.CharField(max_length=50, null=True, blank=True)
+    preferred_beneficiary_relationship = models.CharField(max_length=50, null=True, blank=True)
+    preferred_beneficiary_id_no = models.CharField(max_length=20, blank=True, null=True)
+    household_description = models.CharField(max_length=250, blank=True, null=True)
+
+
