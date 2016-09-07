@@ -65,6 +65,7 @@ admin.site.register(RoofingMaterial)
 admin.site.register(HouseholdHead)
 admin.site.register(PeriodResponse)
 admin.site.register(CategoricalResponse)
+admin.site.register(AgeBracket)
 
 
 class AuditAdmin(admin.ModelAdmin):
