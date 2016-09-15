@@ -1076,9 +1076,13 @@ def grievances_list(request):
         page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
         filter_date = request.GET.get('filter_date', None) if request.method == 'GET' else request.POST.get('filter_date', None)
         filter_text = request.GET.get('filter-user-text', '') if request.method == 'GET' else request.POST.get('filter-user-text', '')
+        try:
+            user_ip = request.user.implementingpartneruser.implementing_partner
+        except:
+            user_ip = None
         """ IP level permission check """
         grievance_list = Grievance.objects.all() if request.user.has_perm('auth.can_view_cross_ip') else \
-            Grievance.objects.filter(implementing_partner=request.user.implementingpartneruser.implementing_partner)
+            Grievance.objects.filter(implementing_partner=user_ip)
         """Date filter """
         if filter_date is not None and filter_date is not u'':
             yr, mnth, dt = filter_date.split('-')
@@ -1105,7 +1109,7 @@ def grievances_list(request):
             'filter_date': filter_date,
             'items_in_page': 0 if final_grievance_list.end_index() == 0 else
             (final_grievance_list.end_index() - final_grievance_list.start_index() + 1),
-            'current_user_ip': request.user.implementingpartneruser.implementing_partner,
+            'current_user_ip': user_ip,
             'form': GrievanceModelForm(current_user=request.user),
             'grievance_list': final_grievance_list,
             'status': 'success'
