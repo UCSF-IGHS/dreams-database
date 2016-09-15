@@ -97,7 +97,7 @@ class Client(models.Model):
     middle_name = models.CharField(verbose_name='Middle Name', max_length=100, null=True)
     last_name = models.CharField(verbose_name='Last Name', max_length=100, null=True)
     date_of_birth = models.DateField(verbose_name='Date Of Birth', null=True)
-    is_date_of_birth_estimated = models.BooleanField(verbose_name='Date of Birth Estimated')
+    is_date_of_birth_estimated = models.NullBooleanField(verbose_name='Date of Birth Estimated', default=False, null=True)
     verification_document = models.ForeignKey(VerificationDocument, null=True, blank=True)  # New
     verification_doc_no = models.CharField(verbose_name='Verification Doc. No.', max_length=50, null=True)
     date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True)
@@ -122,7 +122,7 @@ class Client(models.Model):
 
     enrolled_by = models.ForeignKey(User, null=True)
     odk_enrollment_uuid = models.CharField(max_length=50, null=True, blank=True)
-    date_created = models.DateTimeField(blank=False, null=False, default=timezone.now)
+    date_created = models.DateTimeField(blank=True, null=True, default=timezone.now)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
