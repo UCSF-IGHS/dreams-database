@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 Django settings for Dreams project.
 
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'widget_tweaks',
     'DreamsApp',
 ]
 
@@ -49,7 +51,6 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'middleware.initialization.InitializationMiddleware',
 
 ]
 
@@ -132,3 +133,13 @@ TEMPLATE_DIRS = (
 # Use manage.py loaddata fixture-name
 # e.g manage.py loaddata initial_data.json
 FIXTURE_DIRS = ()
+
+# Just in case
+# DEFAULT_FROM_EMAIL = 'dreams.globalhealthapp@gmail.com'
+# SERVER_EMAIL = 'dreams.globalhealthapp@gmail.com'
+# EMAIL_BACKEND='django_smtp_ssl.SSLEmailBackend'  # 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_USE_SSL = True
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 465 # 587
+# EMAIL_HOST_USER = 'dreams.globalhealthapp@gmail.com'
+# EMAIL_HOST_PASSWORD = 'dreamsdev123#'

@@ -16,6 +16,7 @@
                       <div class="form-group has-feedback" >
                            <input id="search-term-default" type="text" name="filter-user-text" class="form-control filter-enrollment" value="{{ filter_text }}" placeholder="Enter Username" style="width: 400px;">
                            <button type="submit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-search"></span> Search </button>
+                           <button type="button" class="btn btn-danger btn-sm" onclick="window.location.href = '/admin/users';"><span class="glyphicon glyphicon-remove"></span> Clear Search </button>
                       </div>
                 </form>
                 <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for users by typing username in the input above.</span>
@@ -25,7 +26,7 @@
     <div class=" alert hidden dp-action-alert fade in" id="user_actions_alert" role="alert" style="margin-bottom: 10px;"></div>
 
     <div id="user-list" style="max-height: calc(100vh - 510px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
-        <table class="table table-striped dp-user-table table-bordered" id="dreams-user-table" style="margin: 0px;">
+        <table class="table table-striped dp-user-table table-bordered" id="dreams-user-table" style="margin: 0px;margin-bottom: 35px;">
             <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                 <th>username</th>
                 <th>Full name</th>
@@ -51,21 +52,20 @@
                             <td>{{ ip_user.user.date_joined|date:"M d, Y"  }}</td>
                             <td>
                                 <div class="btn-group fit-item" role="group" aria-label="...">
+                                    {% if perms.auth.change_implementingpartneruser %}
+                                        <button style="width:100px" type="button" class="btn btn-sm btn-danger user_action {% if not ip_user.user.is_active %} hidden {% endif %}" data-user_action="deactivate_user" data-ip_user_id="{{ ip_user.id }}" > Deactivate</button>
+                                        <button style="width:100px" type="button" class="btn btn-sm btn-success user_action {% if ip_user.user.is_active %} hidden {% endif %}" data-user_action="activate_user" data-ip_user_id="{{ ip_user.id }}"> Activate</button>
 
-                                    <button style="width:100px" type="button" class="btn btn-sm btn-danger user_action {% if not ip_user.user.is_active %} hidden {% endif %}" data-user_action="deactivate_user" data-ip_user_id="{{ ip_user.id }}" > Deactivate</button>
-                                    <button style="width:100px" type="button" class="btn btn-sm btn-success user_action {% if ip_user.user.is_active %} hidden {% endif %}" data-user_action="activate_user" data-ip_user_id="{{ ip_user.id }}"> Activate</button>
-
-                                    <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                         <span class="caret"></span>
-                                        <span class="sr-only">Toggle Dropdown</span>
-                                    </button>
-                                      <ul class="dropdown-menu">
-                                        <!--
-                                        <li><a href="#" class="user_action " data-user_action="delete_user" data-ip_user_id="{{ ip_user.id }}" data-confirm-client-delete="Are you sure you want to delete?"> Delete &nbsp;&nbsp;&nbsp;</a></li>
-                                        -->
-                                          <li><a href="#"> No more actions </a></li>
-                                      </ul>
-
+                                        <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                             <span class="caret"></span>
+                                            <span class="sr-only">Toggle Dropdown</span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                             {% if perms.auth.delete_add_implementingpartneruser %}
+                                                 <li><a href="#" class="user_action " data-user_action="delete_user" data-ip_user_id="{{ ip_user.id }}" data-confirm-client-delete="Are you sure you want to delete?"> Delete &nbsp;&nbsp;&nbsp;</a></li>
+                                             {% endif %}
+                                        </ul>
+                                    {% endif %}
                                 </div>
 
                             </td>
@@ -97,9 +97,11 @@
             </span>
         </span>
         <br>
+        {% if perms.auth.add_implementingpartneruser %}
         <span style="margin-top: 10px;">
             <button id="btn_show_user_modal" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#user-modal" data-toggle="tooltip" title="New User" ><i class="glyphicon glyphicon-plus text-default"></i> Add user</button>
         </span>
+        {% endif %}
 
     </div>
 

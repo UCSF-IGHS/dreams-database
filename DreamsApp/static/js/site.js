@@ -43,7 +43,6 @@ $(document).ready(function () {
         event.preventDefault();
         // Do ajax for login
         var csrftoken = getCookie('csrftoken');
-        console.log(csrftoken);
         $.ajax({
             url : '/', // the endpoint
             type : "POST", // http method
@@ -73,7 +72,7 @@ $(document).ready(function () {
 
     /* End Login form submission */
 
-    function insertClientTableRow(clients_tbody, pk, dreams_id, first_name, last_name, middle_name, date_of_enrollment, append, is_superuser) {
+    function insertClientTableRow(clients_tbody, pk, dreams_id, first_name, last_name, middle_name, date_of_enrollment, append, can_manage_client, can_change_client, can_delete_client) {
         var is_superuser = $('#is_superuser').val();
         var row_string = "<tr id='clients_row_" + pk +"' style='cursor: pointer;'>"
                         + "<td>" + dreams_id + "</td>"
@@ -87,10 +86,12 @@ $(document).ready(function () {
                                 + "<span class='sr-only'>Toggle Dropdown</span>"
                               + "</button>"
                               + "<ul class='dropdown-menu'>"
-                                + "<li><a href='#' class='edit_intervention_click edit_client' data-view_mode='view' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk + "' style='cursor: pointer;word-spacing: 0px !important;'> View Enrollment </a></li>"
-                                if(is_superuser){
-                                row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk +"' style='cursor: pointer;word-spacing: 0px !important;'> Edit Enrollment </a></li>"
-                                + "<li><a href='#' class='delete_intervention_click ' data-client_id='" + pk +"' id='delete_client_a_" + pk +"' data-confirm-client-delete='Are you sure you want to delete?'> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>"
+                                if(can_manage_client){
+                                    row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-view_mode='view' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk + "' style='cursor: pointer;word-spacing: 0px !important;'> View Enrollment </a></li>";
+                                    if(can_change_client)
+                                        row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk +"' style='cursor: pointer;word-spacing: 0px !important;'> Edit Enrollment </a></li>"
+                                    if(can_delete_client)
+                                        row_string +=  "<li><a href='#' class='delete_intervention_click ' data-client_id='" + pk +"' id='delete_client_a_" + pk +"' data-confirm-client-delete='Are you sure you want to delete?'> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>"
                                 }
                               row_string += "</ul>"
                             + "</div>"
@@ -108,7 +109,6 @@ $(document).ready(function () {
         $('#confirmationModal').modal({show:true});
         // Add delete event listener on confirmation
         $('#confirmationModal #dataConfirmOK').click(function (event) {
-            console.log(clientId);
             deleteClient(clientId);
         })
     })
@@ -127,13 +127,19 @@ $(document).ready(function () {
             dataType: 'json',
             data:$('#clients_search_form').serialize(),
             success : function(data) {
-                var clients = $.parseJSON(data)
+                var clients = $.parseJSON(data.search_result)
+                var can_manage_client = data.can_manage_client
+                var can_change_client = data.can_change_client
+                var can_delete_client = data.can_delete_client
                 var clients_tbody = $('#dp-patient-list-body')
 
                 clients_tbody.empty();
                 if(clients.length > 0){
                     $.each(clients, function (index, client) {
-                        insertClientTableRow(clients_tbody, client.pk,client.fields.dreams_id, client.fields.first_name, client.fields.last_name, client.fields.middle_name, client.fields.date_of_enrollment, true, client.fields.is_superuser);
+                        f_name = client.fields.first_name == null ? ' ' : client.fields.first_name
+                        m_name = client.fields.middle_name == null ? ' ' : client.fields.middle_name
+                        l_name = client.fields.last_name == null ? ' ' : client.fields.last_name
+                        insertClientTableRow(clients_tbody, client.pk,client.fields.dreams_id, f_name, l_name, m_name, client.fields.date_of_enrollment, true, can_manage_client, can_change_client, can_delete_client);
                     })
                 }
                 else
@@ -197,9 +203,22 @@ $(document).ready(function () {
 
     $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
 
+    function getResultName(results_list, has_resultType, resultId) {
+        var resultName = "";
+        if(!has_resultType)
+            return resultName;
+        else{
+            $.each(results_list, function (index, resultObject) {
+                if(resultObject.pk == resultId)
+                    resultName =  resultObject.fields.name;
+            })
+        }
+        return resultName;
+    }
+
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         //Load tabs
-        var target = $(e.target)    // this is the tab anchor.. Get the table
+        var target = $(e.target)
         var panel_id = target.attr('href')
         var intervention_category_code = target.data("intervention_category_code");
         var table_id = $(this).data("tab_intervention_table_id")
@@ -226,13 +245,13 @@ $(document).ready(function () {
                 client_id : $('#current_client_id').val()
             },
             success : function(data) {
-                var ivs = $.parseJSON(data.interventions)
-                var ivTypes = $.parseJSON(data.iv_types)
+                var ivs = $.parseJSON(data.interventions);
+                var ivTypes = $.parseJSON(data.iv_types);
+                var hts_results = $.parseJSON(data.hts_results);
+                var pregnancy_results = $.parseJSON(data.pregnancy_results)
                 // Clear table
                 $(table_id + '  tbody').empty();
-                // populate table
                 $.each(ivs, function(index, iv){
-                    // Get corresponding iv_type
                     var iv_type = {}
                     $.each(ivTypes, function (index, obj) {
 
@@ -241,8 +260,11 @@ $(document).ready(function () {
                             return false
                         }
                     })
-                    insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, false)
-
+                    var hts_result = iv_type.fields.has_hts_result? getResultName(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result) : "";
+                    var pregnancy_result = iv_type.fields.has_pregnancy_result ? getResultName(pregnancy_results, iv_type.fields.has_pregnancy_result, iv.fields.pregnancy_test_result) : "";
+                    iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
+                    iv.fields.no_of_sessions_attended = iv.fields.no_of_sessions_attended == null ? "" : iv.fields.no_of_sessions_attended;
+                    insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, false)
                 });
 
                 // hide spinner
@@ -253,7 +275,7 @@ $(document).ready(function () {
                 // check if no records and insert empty table message
                 if(new_row_count < 1){
                     var cols = $(table_id).data('cols');
-                    $(table_id + '  tbody').append("<tr><td  colspan='"+ cols +"' class='table-message'> No interventions found</td></tr>")
+                    $(table_id + '  tbody').append("<tr class='zero_message_row'><td  colspan='"+ cols +"' class='table-message'> No interventions found</td></tr>")
                 }
 
 
@@ -282,6 +304,7 @@ $(document).ready(function () {
     function fetchRelatedInterventions(interventionCategoryCode, currentClientId) {
         currentInterventionCategoryCode_Global = interventionCategoryCode
         var csrftoken = getCookie('csrftoken');
+        $('#intervention-entry-form .processing-indicator').removeClass('hidden')
         $.ajax({
             url : "/ivgetTypes", // the endpoint
             type : "POST", // http method
@@ -294,13 +317,13 @@ $(document).ready(function () {
             success : function(data) {
                 interventionTypes = $.parseJSON(data.itypes); // Gloabal variable
                 setInterventionTypesSelect(interventionTypes)
+                $('#intervention-entry-form .processing-indicator').addClass('hidden')
             },
-
-            // handle a non-successful response
             error : function(xhr,errmsg,err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
                     " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                $('#intervention-entry-form .processing-indicator').addClass('hidden')
             }
         });
     }
@@ -418,41 +441,45 @@ $(document).ready(function () {
         return []
     }
 
-    function insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, top) { // top is a boolean for either position to insert the record
+    function returnValorEmpty(doCheck, val) {
+        return val != null && doCheck ? val : '';
+    }
+
+    function insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, top) { // top is a boolean for either position to insert the record
         var tabpanel_id = '#behavioural-interventions'
         switch (intervention_category_code){
             case 1001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 break;
             case 2001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='hts_result'> "+  iv.fields.hts_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='test_result'> "+  hts_result + pregnancy_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='hts_result'> "+  iv.fields.hts_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number+ "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='test_result'> "+  hts_result + pregnancy_result+  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number+ "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 tabpanel_id = '#biomedical-interventions';
                 break;
             case 3001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 tabpanel_id = '#post-gbv-care';
                 break;
             case 4001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'>"+ iv.fields.comment + "</td><td><span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 tabpanel_id = '#social-protection';
                 break;
             case 5001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.get_name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 tabpanel_id = '#other-interventions';
                 break;
 
@@ -491,6 +518,9 @@ $(document).ready(function () {
         // search global variable
         $.each(interventionTypes, function (index, type) {
             if(currentInterventionTypeCode == type.fields.code){
+                // Check if there's need to show specify field
+                showSection(type.fields.is_specified, '#other_specify_section')
+                // Date
                 showSection(true, '#intervention_date_section')
                 showSection(type.fields.has_hts_result, '#hts_result_section')
                 // ccc number
@@ -513,7 +543,8 @@ $(document).ready(function () {
         // Populate values
 
         setDateField(iv.fields.intervention_date) // done
-
+        if(iv_type.fields.is_specified)
+            $('#other_specify').val(iv.fields.name_specified)
         // check for the rest of the fields
         if(iv_type.fields.has_hts_result)
             $('#hts-result-select').val(iv.fields.hts_result)
@@ -564,33 +595,38 @@ $(document).ready(function () {
                     $('#intervention-modal').modal('hide');
                 }
                 else{
-                    var iv = $.parseJSON(data.intervention)[0]
-                    var iv_type = $.parseJSON(data.i_type)[0]
-                    if(modalMode != "edit"){
-                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, true)
-                        // Remove last table row
-                        console.log($(table_id + ' tr').last())
-                        $(table_id + ' tr').last().remove();
+                    var iv = $.parseJSON(data.intervention)[0];
+                    var iv_type = $.parseJSON(data.i_type)[0];
+                    var hts_results = $.parseJSON(data.hts_results);
+                    var pregnancy_results = $.parseJSON(data.pregnancy_results);
+                    var hts_result = iv_type.fields.has_hts_result ? getResultName(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result) : "";
+                    var pregnancy_result = iv_type.fields.has_pregnancy_result ? getResultName(pregnancy_results, iv_type.fields.has_pregnancy_result, iv.fields.pregnancy_test_result) : "";
+
+                    iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
+                    iv.fields.no_of_sessions_attended = iv.fields.no_of_sessions_attended == null ? "" : iv.fields.no_of_sessions_attended;
+                    if(modalMode == "new"){
+                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, true)
+                        $(table_id + ' tr.zero_message_row').remove(); // Remove the Zero message tr
                         $(alert_id).removeClass('hidden').addClass('alert-success')
                             .text('Intervention has been Saved successfully!')
                             .trigger('madeVisible')
-
                     }
-                    else{
-                        // Add existing record on the view
-                        // get table name and row id
+                    else if(modalMode == "edit"){
                         var row_id = 'intervention_' + iv.pk
                         $('#' + row_id + ' .intervention_date').text(iv.fields.intervention_date)
-
                         // check for the rest of the fields
+                        // Specified name
+                        if(iv_type.fields.is_specified)
+                            $('#' + row_id + ' .name').text(iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified))
+
                         if(iv_type.fields.has_hts_result)
-                            $('#' + row_id + ' .hts_result').text(iv.fields.hts_result)
+                            $('#' + row_id + ' .test_result').text(hts_result)
                         // ccc number
                         if(iv_type.fields.has_ccc_number)
                             $('#' + row_id + ' .client_ccc_number').text(iv.fields.client_ccc_number)
                         // pregnancy
                         if(iv_type.fields.has_pregnancy_result)
-                            $('#' + row_id + ' .pregnancy_test_result').text(iv.fields.pregnancy_test_result)
+                            $('#' + row_id + ' .test_result').text(pregnancy_result)
                         // number of sessions
                         if(iv_type.fields.has_no_of_sessions)
                             $('#' + row_id + ' .no_of_sessions_attended').text(iv.fields.no_of_sessions_attended)
@@ -663,7 +699,7 @@ $(document).ready(function () {
                     var tbody_id = '#interventions_' + currentInterventionCategoryCode_Global + '_tbody'
                     if($(tbody_id + ' tr').length < 1){
                         var col_span = $('#interventions_' + currentInterventionCategoryCode_Global + '_table' + ' thead tr')[0].cells.length
-                        $(tbody_id).append("<tr><td colspan='" + col_span + "' style='text-align: center'>0 Interventions</td></tr>")
+                        $(tbody_id).append("<tr class='zero_message_row'><td colspan='" + col_span + "' style='text-align: center'>0 Interventions</td></tr>")
                     }
                 }
                 else
@@ -683,7 +719,6 @@ $(document).ready(function () {
             }
         });
 
-        //console.log(intervention)
     })
 
     function validateClientForm(clientForm) {
@@ -876,20 +911,19 @@ $(document).ready(function () {
             data:$('#enrollment-form').serialize(),
             success : function(data) {
                 var result = $.parseJSON(data)
+
                 if(result.status == "success"){
                     var clients_tbody = $('#dp-patient-list-body')
                     var date_of_enrollment = new Date($('#enrollment-form #date_of_enrollment').val());
                     date_of_enrollment = $.datepicker.formatDate('MM d, yy', date_of_enrollment)
                     if(enrollment_form_submit_mode == 'new'){
                         // Prepend new line into the clients' table
-                        insertClientTableRow(clients_tbody, result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, true)
+                        insertClientTableRow(clients_tbody, result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, result.can_manage_client, result.can_change_client, result.can_delete_client)
                     }
                     else{
-                        // Update relevant table line without reloading the page
-                        console.log(result)
                         $('#clients_row_' + result.client_id).remove(); // remove row
                         // Insert updated value
-                        insertClientTableRow($('#dp-patient-list-body'), result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, $('#is_superuser').val());
+                        insertClientTableRow($('#dp-patient-list-body'), result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, false, result.can_manage_client, result.can_change_client, result.can_delete_client);
                     }
                     $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
                         .text(result.message)
@@ -1102,7 +1136,6 @@ $(document).ready(function () {
                     tblRow.trigger('rowChangeMade')
                 }
                 else{
-                    // We wil also know what to do here
                     $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
                         .text(data.message)
                         .trigger('madeVisible')
@@ -1112,7 +1145,7 @@ $(document).ready(function () {
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
                 $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
-                        .text('An error occurred while processing client details. Contact system administratior if this persists')
+                        .text(errmsg)
                         .trigger('madeVisible')
             }
         });
@@ -1155,8 +1188,6 @@ $(document).ready(function () {
             reg_email: "* Please enter a valid email address"
         },
         highlight: function (element) {
-            //$(element).parent().addClass('text-danger')
-            //console.log();
             $(element).parent().find('label.error').addClass('text-danger')
         },
         unhighlight: function (element) {
@@ -1176,13 +1207,14 @@ $(document).ready(function () {
         /* Form is valid. You can proceed to submit and register user. We are using an ajax call */
         var csrftoken = getCookie('csrftoken');
 
+        // Show loading modal
+        $("#processing-user-form").removeClass('hidden');
         $.ajax({
             url : '/admin/users/save',
             type : "POST",
             dataType: 'json',
             data:$('#user-entry-form').serialize(),
             success : function(data) {
-                console.log(data.status + " " + data.message);
                 if(data.status == "success"){
                     // Prepend added users! This needs to be done!
                     $("#user-modal").modal('hide');
@@ -1194,13 +1226,18 @@ $(document).ready(function () {
                         .trigger('madeVisible')
                     $("#user-modal").modal('hide');
                 }
+                // Hide loading modal
+                $("#processing-user-form").addClass('hidden');
             },
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
+                //Hide loading modal
                 $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
                         .text('Error: ' + errmsg)
                         .trigger('madeVisible')
-                $("#user-modal").modal('hide');
+                $("#loading-modal").modal('hide');
+                $("#processing-user-form").addClass('hidden');
+
             }
         });
     })
@@ -1262,14 +1299,15 @@ $(document).ready(function () {
 
         // Form is valid, do an ajax call
         var csrftoken = getCookie('csrftoken');
-
+        // start spinner
+        $('#user_change_password_form .processing-indicator').removeClass('hidden')
+        $('#user_change_password_form .btn-toggle-enabled').addClass('disabled')
         $.ajax({
             url : '/admin/users/change_cred',
             type : "POST",
             dataType: 'json',
             data:$('#user_change_password_form').serialize(),
             success : function(data) {
-                console.log(data.status + " " + data.message);
                 if(data.status == "success"){
                     $('#user_credentials_alert').removeClass('hidden').addClass('alert-success')
                         .text(data.message)
@@ -1281,6 +1319,8 @@ $(document).ready(function () {
                         .trigger('madeVisible_logout')
                     $("#user-modal").modal('hide');
                 }
+                $('#user_change_password_form .processing-indicator').addClass('hidden')
+                $('#user_change_password_form .btn-toggle-enabled').removeClass('disabled')
             },
 
             // handle a non-successful response
@@ -1288,15 +1328,423 @@ $(document).ready(function () {
                 $('#user_credentials_alert').removeClass('hidden').addClass('alert-danger')
                         .text('An error occurred while processing client details. Contact system administratior if this persists')
                         .trigger('madeVisible')
+                $('#user_change_password_form .processing-indicator').addClass('hidden')
+                $('#user_change_password_form .btn-toggle-enabled').removeClass('disabled')
+            }
+        });
+
+    })
+
+    function getOptionName(list, id) {
+        var optionName = "";
+        $.each(list, function (index, item) {
+            if(item.pk == id)
+                optionName = item.fields.name;
+        })
+        return optionName;
+    }
+
+    $("#grievances-form-submit").click(function (e) {
+        var viewMode = $('#grievance-modal').data('view_mode');
+        if(viewMode == 'view')
+            return
+        var urlT = viewMode == 'add' ? '/grievances/create' : '/grievances/edit';
+        if (!$('#grievances-form').valid())
+            return
+
+        $.ajax({
+            url : urlT,
+            type : "POST",
+            dataType: 'json',
+            data:$('#grievances-form').serialize(),
+            success : function(data) {
+                var grievance = data.grievance;
+                var grievance_id = data.grievance_id;
+                var options = {
+                    'reporter_category' : $.parseJSON(data.reporter_categories),
+                    'grievance_nature' : $.parseJSON(data.grievance_nature),
+                    'status' : $.parseJSON(data.status_list)
+                }
+                if(data.status == 'fail'){
+                    $('#grievances_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+                else{
+                    // Success.. Add grievance
+                    if(viewMode == 'add'){
+                        // Add grievance
+                        var row = "<tr style='cursor: pointer; background-color: transparent;' id='grievance_" +  grievance_id + "'>"
+                            + "<td class='date' style='width: 120px;'>" +  $.datepicker.formatDate('MM dd, yy', new Date(grievance.date)) + "</td>"
+                            + "<td class='grievance_nature'>" + getOptionName(options.grievance_nature, grievance.grievance_nature)  + "</td>"
+                            + "<td class='reporter_category'>" + getOptionName(options.reporter_category, grievance.reporter_category)  + "</td>"
+                            + "<td class='reporter_name'>" + grievance.reporter_name + "</td>"
+                            + "<td class='reporter_phone'>" + grievance.reporter_phone + "</td>"
+                            + "<td class='status'>" + getOptionName(options.status, grievance.status)  + "</td>"
+                            + "<td class='resolution'>" + grievance.resolution + "</td>"
+                            + "<td>"
+                                + "<div class='btn-group'>"
+                                  + "<button type='button' class='btn btn-sm btn-default grievance-action' data-view_mode='edit' data-grievance_id='" +  grievance_id + "' style='cursor: pointer;' ><span class='glyphicon glyphicon-pencil'></span> Edit Grievance</button>"
+                                  + "<button type='button' class='btn btn-sm btn-default dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>"
+                                     + "<span class='caret'></span>"
+                                    + "<span class='sr-only'>Toggle Dropdown</span>"
+                                  + "</button>"
+                                  + "<ul class='dropdown-menu'>"
+                                        + "<li><a href='#' class='edit_intervention_click edit_client grievance-action' data-view_mode='view' data-toggle='modal' data-target='#enrollment-modal' data-grievance_id='"+ grievance_id + "' style='cursor: pointer;word-spacing: 0px !important;'><span class='glyphicon glyphicon-eye-open'></span> View Grievance </a></li>"
+                                        + " <li><a href='#' class='delete_intervention_click grievance-action' data-view_mode='delete' data-grievance_id='" + grievance_id + "'><span class='glyphicon glyphicon-trash'></span> Delete Grievance &nbsp;&nbsp;&nbsp;</a></li>"
+                                  + "</ul>"
+                                + "</div>"
+                            + "</td>"
+                        + "</tr>"
+                        $('#dreams-grievance-table').find('tbody').prepend(row)
+                        $('#dreams-grievance-table #grievance_' + grievance_id + ' .grievance-action').click(function (e) {
+                            var action = ''
+                            var viewMode = $(this).data('view_mode')
+                            var grievanceId = $(this).data('grievance_id')
+                            switch (viewMode){
+                                case 'view':
+                                    viewGrievance(grievanceId, true)
+                                    break;
+                                case 'edit':
+                                    viewGrievance(grievanceId, false)
+                                    break;
+                                case 'delete':
+                                    $('#confirmationModal #frm_title').html('Confirm Grievance Delete Action');
+                                    $('#confirmationModal #frm_body > h4').html('Are you sure you want to Delete Grievance? This action cannot be undone.');
+                                    $('#confirmationModal').modal({show:true});
+                                    // Add delete event listener on confirmation
+                                    $('#confirmationModal #dataConfirmOK').click(function (event) {
+                                        deleteGrievance(grievanceId)
+                                        $(event.target).off('click'); // Works like a charm
+                                    })
+                                    break;
+                                default:
+                                    return;
+                            }
+                        })
+                    }
+                    else {
+                        // Edit
+                        var rowId = grievance.id;
+                        var row = $('#grievance_' + rowId)
+                        $.each(Object.keys(grievance), function (index, key) {
+                            if(row.find('.' + key) != null){
+                                if($.inArray(key, ['grievance_nature', 'reporter_category', 'status']) > -1){
+                                    row.find('.' + key).html(getOptionName(options[key], grievance[key]));
+                                }
+                                else if(key == 'date')  // handle date formatting
+                                    row.find('.date').html($.datepicker.formatDate('MM dd, yy', new Date(grievance.date)))
+                                else
+                                    row.find('.' + key).html(grievance[key]);
+                            }
+                        })
+                    }
+                    $('#grievances_alert').removeClass('hidden').addClass('alert-success')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                    $("#grievance-modal").modal('hide');
+                }
+            },
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                alert("Failed!!" + errmsg + err)
             }
         });
     })
-    /* end of users section */
 
-    /* Custom error pages */
+    $('#grievance-modal').on('show.bs.modal', function (event) {
+         var viewMode = $('#grievance-modal').data('view_mode');
+        switch (viewMode){
+            case 'add':
+                $('#grievance-modal .input-sm').val("");    // reset all fields
+                $( "#grievances-form" ).validate().resetForm(); // reset validation errors
+                $("#grievance-modal #grievances-form-submit").removeClass('hidden')
+                $("#grievance-modal #btn_cancel_action").html('Cancel')
+                break;
+            case 'edit':
+                $("#grievance-modal #grievances-form-submit").removeClass('hidden')
+                $("#grievance-modal #btn_cancel_action").html('Cancel')
+                break;
+            case 'view':
+                $("#grievance-modal #grievances-form-submit").addClass('hidden')
+                $("#grievance-modal #btn_cancel_action").html('Close')
+                break;
+        }
+    })
 
-    /* End Custom error pages */
+    jQuery.validator.addMethod("phoneKE", function (phone_number, element) {
+        phone_number = phone_number.replace(/\s+/g, "");
+        return this.optional(element) || (phone_number.length >= 10 && phone_number.match(/^((\+[1-9]{1,4}[ \-]*)|(\([0-9]{2,3}\)[ \-]*)|([0-9]{2,4})[ \-]*)*?[0-9]{3,4}?[ \-]*[0-9]{3,4}?$/));
+    }, "Please specify a valid phone number e.g. +2547XXXXXXXX or 07XXXXXXXX");
 
+    $('#grievances-form').validate({
+        rules: {
+            date: {
+                required: true
+            },
+            implementing_partner: {
+                required: true
+            },
+            county: {
+                required: true
+            },
+            ward: {
+                required: true
+            },
+            reporter_name: {
+                required: true
+            },
+            reporter_category: {
+                required: true
+            },
+            reporter_phone: {
+                required: true,
+                phoneKE: true
+            },
+            received_by: {
+                required: true
+            },
+            receiver_designation: {
+                required: true
+            },
+            grievance_nature: {
+                required: true
+            },
+            person_responsible: {
+                required: true
+            }
+        },
+        messages: {
+            date: {
+                required: "* Please enter your Date"
+            },
+            implementing_partner: {
+               required:  "* Please select Implementing Partner"
+            },
+            id_county: {
+                required: "* Please select County"
+            },
+            id_ward: {
+                required: "* Please select Ward"
+            },
+            reporter_name: {
+                required: "* Please enter name of Reporter"
+            },
+            reporter_category: {
+                required: "* Please select Reporter Category"
+            },
+            reporter_phone: {
+                required: "* Please enter Complainant's Telephone Number",
+                phoneKE: "* Please enter a valid Phone Number e.g. +2547XXXXXXXX or 07XXXXXXXX"
+            },
+            received_by: {
+                required: "* Please enter Receiver's Name"
+            },
+            receiver_designation: {
+                required: "* Please Receiver's Designation"
+            },
+            grievance_nature: {
+                required: "* Please select Nature of Grievance"
+            },
+            person_responsible: {
+                required: "* Please enter the Person Responsible"
+            }
+        },
+        highlight: function (element) {
+            $('#grievances-form').find('.error').addClass('text-danger')
+            //$(element).parent().find('.error').addClass('text-danger')
+        },
+        unhighlight: function (element) {
+            $(element).parent().find('.error').removeClass('text-danger')
+        }
+    })
+
+    function viewGrievance(grievanceId, readonly) {
+        // get grievance by id
+        $.ajax({
+            url : '/grievances/get',
+            type : "GET",
+            dataType: 'json',
+            data:{'grievance_id': grievanceId},
+            success : function(data) {
+                var grievance = $.parseJSON(data.grievance)[0];
+                if(data.status == 'fail'){
+                    $('#grievances_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+                else{
+                    // Populate grievance modal
+                    $("#grievances-form #id").val(grievanceId)
+                    $.each(Object.keys(grievance.fields), function (index, key) {
+                        $("#grievances-form #id_" + key).val(grievance.fields[key])
+                        if(readonly){
+                            $("#grievance-modal").data('view_mode', 'view')
+                            $("#grievances-form #id_" + key).attr('disabled', 'disabled')
+                        }
+                        else{
+                            $("#grievance-modal").data('view_mode', 'edit')
+                            $("#grievances-form #id_" + key).attr('disabled', false)
+                        }
+                    })
+
+                    $("#grievance-modal").modal('show');
+                }
+            },
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                alert("Failed!!" + errmsg + err)
+            }
+        });
+    }
+
+    function deleteGrievance(grievanceId) {
+        $.ajax({
+            url : '/grievances/delete',
+            type : "POST",
+            dataType: 'json',
+            data:{'id':grievanceId},
+            success : function(data) {
+                if(data.status == 'fail'){
+
+                    $('#grievances_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+                else{
+                    // Success..
+                    $('#dreams-grievance-table #grievance_' + grievanceId).remove();
+                    $('#grievances_alert').removeClass('hidden').addClass('alert-success')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+                $('#confirmationModal').modal('hide');
+            },
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                alert("Failed!!" + errmsg + err)
+            }
+        });
+    }
+
+    $('.grievance-action').click(function (e) {
+        var action = ''
+        var viewMode = $(this).data('view_mode')
+        var grievanceId = $(this).data('grievance_id')
+        switch (viewMode){
+            case 'add':
+                $('#grievance-modal').data('view_mode', 'add');
+                $('#grievance-modal').modal({show:true});
+                break;
+            case 'view':
+                viewGrievance(grievanceId, true)
+                break;
+            case 'edit':
+                viewGrievance(grievanceId, false)
+                break;
+            case 'delete':
+                $('#confirmationModal #frm_title').html('Confirm Grievance Delete Action');
+                $('#confirmationModal #frm_body > h4').html('Are you sure you want to Delete Grievance? This action cannot be undone.');
+                $('#confirmationModal').modal({show:true});
+                // Add delete event listener on confirmation
+                $('#confirmationModal #dataConfirmOK').click(function (event) {
+                    deleteGrievance(grievanceId)
+                    $(event.target).off('click'); // Works like a charm
+                })
+                break;
+            default:
+                return;
+        }
+
+    })
+
+    $('#cash-transfer-details-modal').on('show.bs.modal', function (e) {
+        var id = $('#cash-transfer-details-form #id').val();
+        if(id == '' || id == null){
+            $('#cash-transfer-details-form input').val("")
+            $('#cash-transfer-details-form select').val(0).change();
+        }
+        else {
+            // CT details exist. Need to show necessary options
+            if($('#cash-transfer-details-form #id_is_client_recepient').prop('checked')){
+                $('#cash-transfer-details-form #fg-ct_form-recipient').addClass('hidden')
+                $('#cash-transfer-details-form #fg-recipient_relationship_with_client').addClass('hidden')
+                // set the default value for client
+                $('#cash-transfer-details-form #id_client').val($("#id_client option:nth-child(2)").val());
+                $('#cash-transfer-details-form.fg-client').removeClass('hidden')
+            }
+            else {
+                $('#cash-transfer-details-form #fg-ct_form-recipient').removeClass('hidden')
+                $('#cash-transfer-details-form #fg-recipient_relationship_with_client').removeClass('hidden')
+                $('#cash-transfer-details-form .fg-client').addClass('hidden')
+            }
+
+            var selectedText = $('#cash-transfer-details-form #id_payment_mode option:selected').text();
+            var selectedIndex = $('#cash-transfer-details-form #id_payment_mode').val();
+            $('#cash-transfer-details-form .fg-mode').addClass('hidden')
+            if(id == '' || id == null)
+                $('#cash-transfer-details-form .fg-mode input').val("")
+            if ($.inArray('Mobile', selectedText.split(' ')) > -1)
+                $('#cash-transfer-details-form .fg-mode-mobile-money').removeClass('hidden')
+            else if ($.inArray('Bank', selectedText.split(' ')) > -1)
+                $('#cash-transfer-details-form .fg-mode-bank').removeClass('hidden')
+        }
+    })
+
+    $('#cash-transfer-details-form').validate({
+        rules: {
+            recipient_phone_number: {
+                phoneKE: true
+            }
+        },
+        messages: {
+            recipient_phone_number: {
+                phoneKE: "* Please enter a valid Phone Number e.g. +2547XXXXXXXX or 07XXXXXXXX"
+            }
+        },
+        highlight: function (element) {
+            $('#cash-transfer-details-form').find('.error').addClass('text-danger')
+            //$(element).parent().find('.error').addClass('text-danger')
+        },
+        unhighlight: function (element) {
+            $(element).parent().find('.error').removeClass('text-danger')
+        }
+    })
+
+    $('#cash-transfer-details-form-submit').click(function (e) {
+        // Check if form is valid
+        if (!$('#cash-transfer-details-form').valid())
+            return
+        // valid form.. Proceed to ajax call
+        $.ajax({
+            url : '/cashTransfer/save',
+            type : "POST",
+            dataType: 'json',
+            data:$('#cash-transfer-details-form').serialize(),
+            success : function(data) {
+                var ct_detail_id = data.ct_detail_id;
+                if(data.status == 'fail'){
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                }
+                else{
+                    // success... Show alert and update id i
+                    if($('#cash-transfer-details-form #id').val().trim() == "")
+                        $('#cash-transfer-details-form #id').val(ct_detail_id)
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                        .text(data.message)
+                        .trigger('madeVisible')
+                    $('#cash-transfer-details-modal').modal('hide');
+                }
+            },
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                alert("Failed!!" + errmsg + err)
+            }
+        });
+
+    })
 });
 
 

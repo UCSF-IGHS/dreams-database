@@ -17,7 +17,7 @@
                            <button type="submit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-search"></span> Search </button>
                       </div>
                 </form>
-                <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for DREAMS clients by typing name or DREAMS id in the input above.</span>
+                <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for DREAMS clients by typing {% if perms.auth.can_search_client_by_name %}name or {% endif %}DREAMS id in the input above.</span>
             </div>
         </div>
     </div>
@@ -38,7 +38,7 @@
                     {% for client in clients %}
                         <tr id="clients_row_{{ client.id }}" style="cursor: pointer; background-color: transparent;">
                             <td>{{ client.dreams_id}}</td>
-                            <td>{{ client.first_name }} {{ client.last_name }} {{ client.middle_name }}</td>
+                            <td>{{ client.get_full_name }}</td>
                             <td>{{ client.date_of_enrollment }}</td>
                             <td id="client_" + {{ client.id }}>
                                 <!-- Split button -->
@@ -49,10 +49,14 @@
                                     <span class="sr-only">Toggle Dropdown</span>
                                   </button>
                                   <ul class="dropdown-menu">
-                                    <li><a href="#" class="edit_intervention_click edit_client" data-view_mode="view" data-toggle="modal" data-target="#enrollment-modal" data-client_id='{{ client.id }}' style="cursor: pointer;word-spacing: 0px !important;"> View Enrollment </a></li>
-                                    {% if user.is_superuser %}
-                                    <li><a href="#" class="edit_intervention_click edit_client" data-toggle="modal" data-target="#enrollment-modal" data-client_id='{{ client.id }}' data-client="JSON.stringify({{ client }});" style="cursor: pointer;word-spacing: 0px !important;"> Edit Enrollment </a></li>
-                                    <li><a href="#" class="delete_intervention_click " data-client_id='{{ client.id }}' data-confirm-client-delete="Are you sure you want to delete?"> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>
+                                    {% if perms.auth.can_manage_client %}
+                                        <li><a href="#" class="edit_intervention_click edit_client" data-view_mode="view" data-toggle="modal" data-target="#enrollment-modal" data-client_id='{{ client.id }}' style="cursor: pointer;word-spacing: 0px !important;"> View Enrollment </a></li>
+                                        {% if perms.auth.can_change_client %}
+                                            <li><a href="#" class="edit_intervention_click edit_client" data-toggle="modal" data-target="#enrollment-modal" data-client_id='{{ client.id }}' data-client="JSON.stringify({{ client }});" style="cursor: pointer;word-spacing: 0px !important;"> Edit Enrollment </a></li>
+                                        {% endif %}
+                                        {% if perms.auth.can_delete_client %}
+                                            <li><a href="#" class="delete_intervention_click " data-client_id='{{ client.id }}' data-confirm-client-delete="Are you sure you want to delete?"> Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>
+                                        {% endif %}
                                     {% endif %}
                                   </ul>
                                 </div>
@@ -70,7 +74,7 @@
     </div>
 
 
-    <div class="">
+    <div class="hidden">
         <button id="btn_show_enrollment_modal" class="" data-toggle="modal" data-target="#enrollment-modal" data-toggle="tooltip" title="New Enrollment" ><i class="glyphicon glyphicon-plus text-default"></i> New Enrollment</button>
     </div>
 

@@ -1,19 +1,21 @@
+# coding=utf-8
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse, HttpResponseServerError
-from django.core.exceptions import PermissionDenied
+from django.http import JsonResponse, HttpResponseServerError
 from django.core import serializers
+from django.core.mail import EmailMessage
 from django.core.exceptions import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
+from django.views.generic import ListView, CreateView
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.forms.models import model_to_dict
 import json
 import traceback
 from datetime import date, timedelta
 from django.db.models import Q
-from DreamsApp.forms import *
 from DreamsApp.models import *
-from DreamsApp.Dreams_Utils import *
-
+from DreamsApp.forms import *
 
 def get_enrollment_form_config_data():
     try:
@@ -109,7 +111,7 @@ def clients(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
-                client_list = Client.objects.filter(id__exact=0)   # Clients list should be empty on start
+                client_list = Client.objects.filter(id__exact=0)  # Clients list should be empty on start
                 implementing_partner_user = ImplementingPartnerUser.objects.filter(user=request.user).first()
                 context = {'page': 'clients', 'user': request.user, 'clients': client_list,
                            'implementing_partner_user': implementing_partner_user,
@@ -119,15 +121,21 @@ def clients(request):
                 search_value = request.POST.get('searchValue', '')
 
                 if request.user.has_perm('auth.can_search_client_by_name'):
-                    search_result = Client.objects.filter(Q(dreams_id__exact=search_value) |
-                                                          Q(first_name__exact=search_value) |
-                                                          Q(last_name__exact=search_value) |
-                                                          Q(middle_name__exact=search_value))
+                    search_result = Client.objects.filter(Q(dreams_id__in=search_value.split(" ")) |
+                                                          Q(first_name__in=search_value.split(" ")) |
+                                                          Q(last_name__in=search_value.split(" ")) |
+                                                          Q(middle_name__in=search_value.split(" "))).first()
                 else:
-                    search_result = Client.objects.filter(dreams_id__exact=search_value)
+                    search_result = Client.objects.filter(dreams_id__exact=search_value).first()
                 # check if user can see clients enrolled more than a week ago
                 log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
-                return JsonResponse(serializers.serialize('json', search_result), safe=False)
+                json_response = {
+                    'search_result': serializers.serialize('json', [search_result]),
+                    'can_manage_client': request.user.has_perm('auth.can_manage_client'),
+                    'can_change_client': request.user.has_perm('auth.can_change_client'),
+                    'can_delete_client': request.user.has_perm('auth.can_delete_client')
+                }
+                return JsonResponse(json_response, safe=False)
         else:
             return redirect('login')
     except Exception as e:
@@ -136,6 +144,7 @@ def clients(request):
 
 
 def client_profile(request):
+    """ Returns client profile """
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         if request.method == 'GET':
             client_id = int(request.GET['client_id'])
@@ -146,8 +155,29 @@ def client_profile(request):
             try:
                 client_found = Client.objects.get(id=client_id)
                 if client_found is not None:
-                    return render(request, 'client_profile.html', {'page': 'clients', 'client': client_found, 'user': request.user})
-            except:
+                    # get cash transfer details
+                    cash_transfer_details = ClientCashTransferDetails.objects.get(client=client_found)
+                    # create cash transfer details form
+                    cash_transfer_details_form = ClientCashTransferDetailsForm(instance=cash_transfer_details,
+                                                                               current_AGYW=client_found)
+                    cash_transfer_details_form.save(commit=False)
+                return render(request, 'client_profile.html', {'page': 'clients',
+                                                               'client': client_found,
+                                                               'ct_form': cash_transfer_details_form,
+                                                               'ct_id': cash_transfer_details.id,
+                                                               'user': request.user
+                                                               })
+            except ClientCashTransferDetails.DoesNotExist:
+                cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
+                return render(request, 'client_profile.html',
+                              {'page': 'clients',
+                               'client': client_found,
+                               'ct_form': cash_transfer_details_form,
+                               'user': request.user
+                               })
+            except Client.DoesNotExist:
+                return render(request, 'login.html')
+            except Exception as e:
                 return render(request, 'login.html')
     else:
         raise PermissionDenied
@@ -173,10 +203,12 @@ def save_client(request):
                     verification_doc_no=request.POST.get('verification_doc_no', ''),
                     date_of_enrollment=request.POST.get('date_of_enrollment', ''),
                     age_at_enrollment=int(request.POST.get('age_at_enrollment', 10)),
-                    marital_status=MaritalStatus.objects.filter(code__exact=str(request.POST.get('marital_status', ''))).first(),
+                    marital_status=MaritalStatus.objects.filter(
+                        code__exact=str(request.POST.get('marital_status', ''))).first(),
                     phone_number=request.POST.get('phone_number', ''),
                     dss_id_number=request.POST.get('dss_id_number', ''),
-                    county_of_residence=County.objects.filter(code__exact=request.POST.get('county_of_residence', '')).first(),
+                    county_of_residence=County.objects.filter(
+                        code__exact=request.POST.get('county_of_residence', '')).first(),
                     sub_county=SubCounty.objects.filter(code__exact=request.POST.get('sub_county', '')).first(),
                     ward=Ward.objects.filter(code__exact=request.POST.get('ward', '')).first(),
                     informal_settlement=request.POST.get('informal_settlement', ''),
@@ -194,7 +226,10 @@ def save_client(request):
                     response_data = {
                         'status': 'success',
                         'message': 'Enrollment to DREAMS successful.',
-                        'client_id': client.id
+                        'client_id': client.id,
+                        'can_manage_client': request.user.has_perm('auth.can_manage_client'),
+                        'can_change_client': request.user.has_perm('auth.can_change_client'),
+                        'can_delete_client': request.user.has_perm('auth.can_delete_client')
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
                 else:
@@ -240,10 +275,12 @@ def edit_client(request):
                     client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
                     client.date_of_enrollment = str(request.POST.get('date_of_enrollment', datetime.now))
                     client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
-                    client.marital_status = MaritalStatus.objects.filter(code__exact=str(request.POST.get('marital_status', ''))).first()
+                    client.marital_status = MaritalStatus.objects.filter(
+                        code__exact=str(request.POST.get('marital_status', ''))).first()
                     client.phone_number = str(request.POST.get('phone_number', ''))
                     client.dss_id_number = str(request.POST.get('dss_id_number', ''))
-                    client.county_of_residence = County.objects.filter(code__exact=request.POST.get('county_of_residence', '')).first()
+                    client.county_of_residence = County.objects.filter(
+                        code__exact=request.POST.get('county_of_residence', '')).first()
                     client.sub_county = SubCounty.objects.filter(code__exact=request.POST.get('sub_county', '')).first()
                     client.ward = Ward.objects.filter(code__exact=request.POST.get('ward', 0)).first()
                     client.informal_settlement = str(request.POST.get('informal_settlement', ''))
@@ -259,7 +296,10 @@ def edit_client(request):
                         response_data = {
                             'status': 'success',
                             'message': 'Client Details Updated successfuly.',
-                            'client_id': client.id
+                            'client_id': client.id,
+                            'can_manage_client': request.user.has_perm('auth.can_manage_client'),
+                            'can_change_client': request.user.has_perm('auth.can_change_client'),
+                            'can_delete_client': request.user.has_perm('auth.can_delete_client')
                         }
                         return JsonResponse(json.dumps(response_data), safe=False)
                     else:
@@ -304,14 +344,12 @@ def delete_client(request):
                             'status': 'success',
                             'message': 'Client Details Deleted successfuly.'
                         }
-
                 else:
                     response_data = {
                         'status': 'failed',
                         'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
                         'client_id': client.id
                     }
-                    # client and user IPs do not match
                 return JsonResponse(json.dumps(response_data), safe=False)
             elif request.method == 'POST':
                 raise PermissionDenied
@@ -324,6 +362,7 @@ def delete_client(request):
 
 def testajax(request):
     return render(request, 'testAjax.html')
+
 
 # Use /ivgetTypes/ in the post url to access the method
 # Handles post request for intervention types.
@@ -342,14 +381,16 @@ def get_intervention_types(request):
                 raise Exception
             # Get category by code and gets all related types
             # Returns an object with itypes property
-            given_intervention_type_ids = Intervention.objects.values_list('intervention_type', flat=True).\
-                filter(client=current_client).\
+            given_intervention_type_ids = Intervention.objects.values_list('intervention_type', flat=True). \
+                filter(client=current_client). \
                 distinct()  # select distinct intervention type ids given to a user
             i_category = InterventionCategory.objects.get(code__exact=category_code)
-            i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id,)\
-                .exclude(is_age_restricted=True, min_age__gt=current_client.age_at_enrollment)\
-                .exclude(is_age_restricted=True, max_age__lt=current_client.age_at_enrollment)\
-                .exclude(is_given_once=True, id__in=given_intervention_type_ids)
+            # compute age at enrollment
+            current_age = current_client.get_current_age()
+            i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id, ) \
+                .exclude(is_age_restricted=True, min_age__gt=current_age) \
+                .exclude(is_age_restricted=True, max_age__lt=current_age) \
+                .exclude(is_given_once=True, id__in=given_intervention_type_ids).order_by('code')
             # get id's of interventions that can only be given once and are already given
             i_types = serializers.serialize('json', i_types)
             response_data["itypes"] = i_types
@@ -359,6 +400,7 @@ def get_intervention_types(request):
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
+
 
 # use /ivSave/ to post to the method
 # Gets intervention_type_id,  from request
@@ -376,6 +418,7 @@ def save_intervention(request):
                     intervention = Intervention()
                     intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
                     intervention.intervention_type = i_type
+                    intervention.name_specified = request.POST.get('other_specify', '') if i_type.is_specified else ''
                     intervention.intervention_date = request.POST.get('intervention_date')
                     created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
                     intervention.created_by = created_by
@@ -386,7 +429,8 @@ def save_intervention(request):
                         intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
 
                     if i_type.has_pregnancy_result:
-                        intervention.pregnancy_test_result = PregnancyTestResult.objects.get(code__exact=int(request.POST.get('pregnancy_test_result')))
+                        intervention.pregnancy_test_result = PregnancyTestResult.objects.get(
+                            code__exact=int(request.POST.get('pregnancy_test_result')))
 
                     if i_type.has_ccc_number:
                         intervention.client_ccc_number = request.POST.get('client_ccc_number')
@@ -395,20 +439,22 @@ def save_intervention(request):
                         intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
                     # Update implementing Partner
-                    intervention.implementing_partner = ImplementingPartner.objects.\
+                    intervention.implementing_partner = ImplementingPartner.objects. \
                         get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
                     intervention.save(user_id=request.user.id, action="INSERT")
                     # using defer() miraculously solved serialization problem of datetime properties.
-                    intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').\
+                    intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created'). \
                         get(id__exact=intervention.id)
                     response_data = {
                         'status': 'success',
                         'message': 'Intervention successfully saved',
                         'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
-                        'i_type': serializers.serialize('json', [i_type])
+                        'i_type': serializers.serialize('json', [i_type]),
+                        'hts_results': serializers.serialize('json', HTSResult.objects.all()),
+                        'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
                     }
                     return JsonResponse(response_data)
-                else:   # Invalid Intervention Type
+                else:  # Invalid Intervention Type
                     raise Exception("Error: Invalid Intervention Type. "
                                     "Please select a valid Intervention Type to Proceed")
             else:  # User has no valid IP.
@@ -446,18 +492,22 @@ def get_intervention_list(request):
 
             list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date',
                                                                'date_created').filter(client__exact=client_id,
-                                                                                      intervention_type__in=iv_type_ids)
-            if not request.user.has_perm('auth.can_view_other_ip_data'):
-                list_of_interventions = list_of_interventions.filter(implementing_partner_id=request.user.implementingpartneruser.implementing_partner.id)
+                                                                                      intervention_type__in=iv_type_ids).order_by(
+                '-intervention_date', '-date_created', '-date_changed')
+            if not request.user.has_perm('auth.can_view_cross_ip_data'):
+                list_of_interventions = list_of_interventions.filter(
+                    implementing_partner_id=request.user.implementingpartneruser.implementing_partner.id)
 
-            if not request.user.has_perm('auth.can_view_records_older_than_a_week'):
+            if not request.user.has_perm('auth.can_view_older_records'):
                 list_of_interventions = list_of_interventions.filter(date_created__range=
-                                                                     [datetime.now() - timedelta(days=7),
+                                                                     [datetime.now() - timedelta(days=31),
                                                                       datetime.now()]
                                                                      )
             response_data = {
                 'iv_types': serializers.serialize('json', list_of_related_iv_types),
-                'interventions': serializers.serialize('json', list_of_interventions)
+                'interventions': serializers.serialize('json', list_of_interventions),
+                'hts_results': serializers.serialize('json', HTSResult.objects.all()),
+                'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
             }
             return JsonResponse(response_data)
         else:
@@ -465,6 +515,7 @@ def get_intervention_list(request):
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
+
 
 # Gets an intervention. Takes intervention_id and returns Intervention object
 # use /ivGet/ to access this method
@@ -476,7 +527,8 @@ def get_intervention(request):
             intervention_id = request.POST.get('intervention_id')
             if 'intervention_id' not in request.POST:
                 return ValueError('No intervention id found in your request!')
-            intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention_id)
+            intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(
+                id__exact=intervention_id)
             if intervention is not None:
                 response_data = {'intervention': serializers.serialize('json', [intervention, ])}
                 return JsonResponse(response_data)
@@ -505,6 +557,8 @@ def update_intervention(request):
                     # check if intervention belongs to the ip
                     if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
                         intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                        intervention.name_specified = request.POST.get('other_specify',
+                                                                       '') if intervention.intervention_type.is_specified else ''
                         intervention.intervention_date = request.POST.get('intervention_date')
                         intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
                         intervention.date_changed = datetime.now()
@@ -513,10 +567,12 @@ def update_intervention(request):
                         i_type = InterventionType.objects.get(id__exact=intervention.intervention_type.id)
 
                         if i_type.has_hts_result:
-                            intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
+                            intervention.hts_result = HTSResult.objects.get(
+                                code__exact=int(request.POST.get('hts_result')))
 
                         if i_type.has_pregnancy_result:
-                            intervention.pregnancy_test_result = PregnancyTestResult.objects.get(code__exact=int(request.POST.get('pregnancy_test_result')))
+                            intervention.pregnancy_test_result = PregnancyTestResult.objects.get(
+                                code__exact=int(request.POST.get('pregnancy_test_result')))
 
                         if i_type.has_ccc_number:
                             intervention.client_ccc_number = request.POST.get('client_ccc_number')
@@ -526,21 +582,24 @@ def update_intervention(request):
 
                         intervention.save(user_id=request.user.id, action="UPDATE")
                         # using defer() miraculously solved serialization problem of datetime properties.
-                        intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created').get(id__exact=intervention.id)
+                        intervention = Intervention.objects.defer('date_changed', 'intervention_date',
+                                                                  'date_created').get(id__exact=intervention.id)
                         # construct response
 
                         response_data = {
                             'status': 'success',
                             'message': 'Intervention successfully updated',
                             'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
-                            'i_type': serializers.serialize('json', [i_type])
+                            'i_type': serializers.serialize('json', [i_type]),
+                            'hts_results': serializers.serialize('json', HTSResult.objects.all()),
+                            'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
                         }
                     else:
                         # Intervention does not belong to Implementing partner. Send back error message
                         raise Exception(
                             'You do not have the rights to update this intervention because it was created by a '
                             'different Implementing Partner'
-                            )
+                        )
                     return JsonResponse(response_data)
                 else:
                     raise Exception("Error: No intervention selected for update")
@@ -618,7 +677,6 @@ def get_wards(request):
     if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
         response_data = {}
         sub_county_code = request.GET['sub_county_code']
-
         sub_county = SubCounty.objects.get(code__exact=sub_county_code)
         wards = Ward.objects.filter(sub_county__exact=sub_county.id)
         wards = serializers.serialize('json', wards)
@@ -667,8 +725,8 @@ def user_help(request):
 
 def logs(request):
     if request.user.is_authenticated() and request.user.is_active:
-        if not request.user.has_perm('auth.can_view_logs'):
-            return PermissionDenied('Operation not allowed. [Missing Permission]')
+        if not request.user.has_perm('auth.can_manage_audit'):
+            raise PermissionDenied('Operation not allowed. [Missing Permission]')
         # user is allowed to view logs
         if request.method == 'GET':
             try:
@@ -677,16 +735,16 @@ def logs(request):
                 filter_date = request.GET.get('filter-log-date', '')
                 # getting logs
                 if filter_date == '':
-                    logs = Audit.objects.filter(Q(table__contains=filter_text) |
-                                                Q(action__contains=filter_text) |
-                                                Q(search_text__contains=filter_text)
+                    logs = Audit.objects.filter(Q(table__in=filter_text.split(" ")) |
+                                                Q(action__in=filter_text.split(" ")) |
+                                                Q(search_text__in=filter_text.split(" "))
                                                 ).order_by('-timestamp')
                 else:
                     yr, mnth, dt = filter_date.split('-')
                     constructed_date = date(int(yr), int(mnth), int(dt))
-                    logs = Audit.objects.filter((Q(table__contains=filter_text) |
-                                                 Q(action__contains=filter_text) |
-                                                 Q(search_text__contains=filter_text)) &
+                    logs = Audit.objects.filter((Q(table__in=filter_text.split(" ")) |
+                                                 Q(action__in=filter_text.split(" ")) |
+                                                 Q(search_text__in=filter_text.split(" "))) &
                                                 Q(timestamp__year=constructed_date.year,
                                                   timestamp__month=constructed_date.month,
                                                   timestamp__day=constructed_date.day)
@@ -701,7 +759,7 @@ def logs(request):
                 return render(request, 'log.html', {'page': 'logs', 'logs': logs_list, 'filter_text': filter_text,
                                                     'filter_date': filter_date,
                                                     'items_in_page': 0 if logs_list.end_index() == 0 else
-                                                    (logs_list.end_index() -logs_list.start_index() + 1)
+                                                    (logs_list.end_index() - logs_list.start_index() + 1)
                                                     }
                               )
             except Exception as e:
@@ -720,9 +778,11 @@ def logs(request):
                 yr, mnth, dt = filter_date.split('-')
                 constructed_date = date(int(yr), int(mnth), int(dt))
                 logs = Audit.objects.filter((Q(table__contains=filter_text) |
-                                            Q(action__contains=filter_text) |
-                                            Q(search_text__contains=filter_text)) &
-                                            Q(timestamp__year=constructed_date.year, timestamp__month=constructed_date.month, timestamp__day=constructed_date.day)
+                                             Q(action__contains=filter_text) |
+                                             Q(search_text__contains=filter_text)) &
+                                            Q(timestamp__year=constructed_date.year,
+                                              timestamp__month=constructed_date.month,
+                                              timestamp__day=constructed_date.day)
                                             )
             paginator = Paginator(logs, 25)
             try:
@@ -741,26 +801,48 @@ def logs(request):
 
 # user management
 def users(request):
-    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm('auth.can_manage_users'):
+    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm('auth.can_manage_user'):
         try:
+            items_per_page = 15
             if request.method == 'GET':
                 page = request.GET.get('page', 1)
                 filter_text = request.GET.get('filter-user-text', '')
+                ip_user_list = ImplementingPartnerUser.objects.filter(Q(user__first_name__contains=filter_text) |
+                                                                      Q(user__last_name__contains=filter_text) |
+                                                                      Q(user__username__contains=filter_text)
+                                                                      ).order_by('-user__date_joined')
             elif request.method == 'POST':
                 page = request.POST.get('page', 1)
                 filter_text = request.POST.get('filter-user-text', '')
-            # get list of users with the filter incorporated
-            items_per_page = 15
-            ip_user_list = ImplementingPartnerUser.objects.filter(Q(user__first_name__contains=filter_text) |
-                                                                  Q(user__last_name__contains=filter_text)|
-                                                                  Q(user__username__contains=filter_text)
-                                                                  ).order_by('-user__date_joined')
-            # filter ip specific users if user is not allowed to see other ip data
-            if not request.user.has_perm('auth.can_view_other_ip_data'):
-                ip_user_list = ip_user_list.filter(implementing_partner=request.user.implementingpartneruser.implementing_partner)
+                # get list of users with the filter incorporated
+                if filter_text is not u'' and filter_text is not " ":
+                    ip_user_list = ImplementingPartnerUser.objects.filter(
+                        Q(user__first_name__in=filter_text.split(" ")) |
+                        Q(user__last_name__in=filter_text.split(" ")) |
+                        Q(user__username__in=filter_text.split(" "))
+                    ).order_by('-user__date_joined')
+                else:
+                    ip_user_list = ImplementingPartnerUser.objects.filter(Q(user__first_name__contains=filter_text) |
+                                                                          Q(user__last_name__contains=filter_text) |
+                                                                          Q(user__username__contains=filter_text)
+                                                                          ).order_by('-user__date_joined')
+            #  current user ip
+            try:
+                current_user_ip = request.user.implementingpartneruser.implementing_partner
+            except ImplementingPartnerUser.DoesNotExist:
+                current_user_ip = None
+            except ImplementingPartner.DoesNotExist:
+                current_user_ip = None
+            if not request.user.has_perm('auth.can_view_cross_ip_data'):
+                if current_user_ip is not None:
+                    ip_user_list = ip_user_list.filter(implementing_partner=current_user_ip)
+                else:
+                    ip_user_list = ImplementingPartnerUser.objects.none()
             # do pagination
             paginator = Paginator(ip_user_list, items_per_page)
             final_ip_user_list = paginator.page(page)
+        except ImplementingPartnerUser.DoesNotExist:
+            current_user_ip = None
         except PageNotAnInteger:
             final_ip_user_list = paginator.page(1)  # Deliver the first page is page is not an integer
         except EmptyPage:
@@ -768,53 +850,92 @@ def users(request):
         return render(request, 'users.html', {'page': 'users', 'ip_users': final_ip_user_list,
                                               'filter_text': filter_text,
                                               'items_in_page': 0 if final_ip_user_list.end_index() == 0 else
-                                              (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1)})
+                                              (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1),
+                                              'implementing_partners': ImplementingPartner.objects.all(),
+                                              'current_user_ip': current_user_ip,
+                                              'roles': Group.objects.all()
+                                              })
     else:
         raise PermissionDenied  # this should be a redirection to the permissions denied page
 
 
 def save_user(request):
-    if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm('auth.can_manage_users'):
+    if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+            'auth.can_manage_user'):
         try:
-            # check if registering user belongs to an IP
-            if request.user.implementingpartneruser.implementing_partner is not None:
-                # Registering user belongs to an IP. Proceed
-                # Check to see if IP user exists already or not
-                ip_user_id = request.POST.get('ip_user_id', 0)
-                if ip_user_id == 0 or ip_user_id is None or ip_user_id == u'':
-                    # This is a new user
-                    username = request.POST.get('username', '')
-                    email = request.POST.get('emailaddress', '')
-                    role = request.POST.get('role', '')
-                    # Check if provided username is in db
-                    if User.objects.filter(username__exact=username).first() is None:
-                        # user with this username does not exist
-                        user_group = Group.objects.filter(name__exact=role).first()  # get group
-                        user = User.objects.create_user(
-                            username=username, email=email, password='PTZ%hz^+&mny+9Av'
-                        )
-                        user.first_name = request.POST.get('firstname', '')
-                        user.last_name = request.POST.get('lastname', '')
-                        user.groups.add(user_group)
-                        user.save()  # save user changes first
-                        ip_user = ImplementingPartnerUser.objects.create(
-                            user=user,
-                            implementing_partner=request.user.implementingpartneruser.implementing_partner
-                        )
+            new_user_ip = ImplementingPartner.objects.get(name=
+                request.POST.get('implementing_partner', ''))  # Valid IP for new user
+            # check if user can change cross IP data
+            if not request.user.has_perm('auth.can_change_cross_ip_data'):
+                # User must register new user under their IP. Theck if user has a valid IP
+                # check if registering user belongs to an IP
+                if request.user.implementingpartneruser.implementing_partner is None: # Registering user does not belong to an IP. Raise exception
+                    raise Exception("Error: You do not belong to an Implementing Partner. "
+                                    "Please contact your system admin to add you to the relevant Implementing Partner.")
+
+                elif new_user_ip != request.user.implementingpartneruser.implementing_partner:
+                    # Registering user and user do not belong to same IP. Raise exception
+                    raise Exception("Error: You do not have permission to register a user under a different Implementing"
+                                    " partner other than " + request.user.implementingpartneruser.
+                                    implementing_partner.name)
+
+            # Everything is fine. Proceed to register user
+            # Check to see if IP user exists already or not
+            ip_user_id = request.POST.get('ip_user_id', 0)
+            if ip_user_id == 0 or ip_user_id is None or ip_user_id == u'':
+                # This is a new user
+                username = request.POST.get('username', '')
+                email = request.POST.get('emailaddress', '')
+                role = request.POST.get('role', '')
+                # Check if provided username is in db
+                try:
+                    user = User.objects.get(username__exact=username)
+                    raise Exception("Error: The username '" + username +
+                                    "' is already take. Please enter a different username and continue")
+                except User.DoesNotExist:
+                    # user with this username does not exist
+                    user_group = Group.objects.filter(name__exact=role).first()  # get group
+                    user = User.objects.create_user(
+                        username=username, email=email, password='PTZ%hz^+&mny+9Av'
+                    )
+                    user.first_name = request.POST.get('firstname', '')
+                    user.last_name = request.POST.get('lastname', '')
+                    user.groups.add(user_group)
+                    user.save()  # save user changes first
+                    ip_user = ImplementingPartnerUser.objects.create(
+                        user=user,
+                        implementing_partner=new_user_ip
+                    )
+                    try:
+                        # send email with user credentials
+                        msg = EmailMessage('DREAMS Credentials',
+                                           'Dear ' + user.first_name + ',\n\n Welcome to DREAMS. You can login to your account at http://dreams-dev.globalhealthapp.net.'
+                                                                       '\n\n\t Username: ' + username +
+                                           '\n\t Password:  PTZ%hz^+&mny+9Av'
+                                           '\n\nThank you,'
+                                           '\nDREAMS Administrator',
+                                           to=[email])
+                        msg.send()
                         response_data = {
                             'status': 'success',
-                            'message': 'User successfully saved',
+                            'message': 'User successfully saved. Your temporary password has been sent to ' + email,
                             'ip_users': serializers.serialize('json', [ip_user, ])
                         }
                         return JsonResponse(response_data)
-                    else:   # raise an exception for existing username
-                        raise Exception("Error: The username '" + username +
-                                        "' is already take. Please enter a different username and continue")
-                else:   # raise exception
-                    raise Exception('User with id ' + ip_user_id + ' exists already')
-            else:   # Registering user does not belong to an IP. Raise exception
-                raise Exception("Error: You do not belong to an Implementing Partner. "
-                                "Please contact your system admin to add you to the relevant Implementing Partner.")
+                    except Exception as e:
+                        response_data = {
+                            'status': 'success',
+                            'message': 'User registered but could not send login detais to provided email address. '
+                                        'Contact System Admin for help ' + e.message,
+                            'ip_users': serializers.serialize('json', [ip_user, ])
+                        }
+                        return JsonResponse(response_data)
+            else:  # raise exception
+                raise Exception('User with id ' + ip_user_id + ' exists already')
+        except ImplementingPartner.DoesNotExist:
+            # User being registered under invalid IP. Raise an error
+            raise Exception("Error: User must be registered under an Implementing Partner")
+
         except Exception as e:
             response_data = {
                 'status': 'fail',
@@ -827,9 +948,9 @@ def save_user(request):
 
 
 def toggle_status(request):
-    if request.method == 'GET' and request.user is not None and request.user.is_authenticated() \
-            and request.user.is_active and request.user.has_perm('auth.can_manage_users'):
-        try:
+    try:
+        if request.method == 'GET' and request.user is not None and request.user.is_authenticated() \
+                and request.user.is_active and request.user.has_perm('auth.can_change_user_status'):
             if request.method == 'GET':
                 ip_user_id = request.GET.get('ip_user_id', 0)
                 toggle = str(request.GET.get('toggle', False))
@@ -839,25 +960,34 @@ def toggle_status(request):
                     # Get user object
                     user = User.objects.filter(id__exact=ip_user.user.id).first()
                     if user is not None:
-                        user.is_active = toggle in ["True", "true", 1, "Yes", "yes", "Y", "y", "T", "t"]
-                        user.save()
-                        # return success message
-                        response_data = {
-                            'status': 'success',
-                            'message': 'User status changed successfully'
-                        }
-                        return JsonResponse(response_data)
-            # Toggle not successful. Return error message
-            response_data = {
-                'status': 'fail',
-                'message': 'An error occurred while changing User status.'
-            }
-            return JsonResponse(response_data)
-        except Exception as e:
-            tb = traceback.format_exc()
-            return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
-    else:
-        raise PermissionDenied
+                        # check if user is same as requesting user
+                        if user.id == request.user.id:
+                            raise Exception('Error: you cannot deactivate your own account. '
+                                            'Please contact system admin for assistance')
+                        else:
+                            user.is_active = toggle in ["True", "true", 1, "Yes", "yes", "Y", "y", "T", "t"]
+                            user.save()
+                            # return success message
+                            response_data = {
+                                'status': 'success',
+                                'message': 'User status changed successfully'
+                            }
+                            return JsonResponse(response_data)
+                    else:
+                        raise Exception('Error: you did not select a valid user. Please try again')
+                else:
+                    raise Exception('Error: you did not select a valid user. Please try again')
+            else:
+                raise Exception("Invalid user request!")
+        else:
+            raise Exception('Error: You do not have permission to perform this operation. Please contact your server '
+                            'administrator for assistance')
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
 
 
 def change_cred(request):
@@ -865,7 +995,7 @@ def change_cred(request):
     if request.user.is_authenticated() and request.user.is_active:  # user is authenticated
         if request.method == 'GET':
             # return password change view
-            context = {'page': 'users', 'user': request.user, }
+            context = {'page': 'users', 'user': request.user,}
             return render(request, 'change_cred.html', context)
         elif request.method == 'POST':
             # do post functionality here!!
@@ -885,7 +1015,8 @@ def change_cred(request):
             else:
                 # all details exist. Check if credentials match
                 # check username
-                if request.user.get_username() == ch_username and request.user.check_password(ch_current_password) and ch_new_password == ch_confirm_new_password:
+                if request.user.get_username() == ch_username and request.user.check_password(
+                        ch_current_password) and ch_new_password == ch_confirm_new_password:
                     # all details match. Change user password
                     request.user.set_password(ch_new_password)
                     request.user.save()
@@ -904,7 +1035,7 @@ def change_cred(request):
                     }
                     return JsonResponse(response_data)
 
-    else:   # User is not logged in. Redirect user to login page
+    else:  # User is not logged in. Redirect user to login page
         # return PermissionDenied('Operation not allowed. [Missing Permission]')
         raise PermissionDenied
 
@@ -937,24 +1068,228 @@ def server_error(request):
                    'administrator if the error persists.<br>. '}
     return render(request, 'error_page.html', context)
 
-def upload_dreams_excel_database(request):
 
-    if request.method == 'POST':
-        form = EnrollmentDocumentUpload(request.POST, request.FILES)
-        if form.is_valid():
-            dreams_doc = request.FILES['docfile']
+def grievances_list(request):
+    try:
+        if not request.user.is_authenticated():
+            raise PermissionDenied
+        page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
+        filter_date = request.GET.get('filter_date', None) if request.method == 'GET' else request.POST.get('filter_date', None)
+        filter_text = request.GET.get('filter-user-text', '') if request.method == 'GET' else request.POST.get('filter-user-text', '')
+        try:
+            user_ip = request.user.implementingpartneruser.implementing_partner
+        except:
+            user_ip = None
+        """ IP level permission check """
+        grievance_list = Grievance.objects.all() if request.user.has_perm('auth.can_view_cross_ip') else \
+            Grievance.objects.filter(implementing_partner=user_ip)
+        """Date filter """
+        if filter_date is not None and filter_date is not u'':
+            yr, mnth, dt = filter_date.split('-')
+            constructed_date = date(int(yr), int(mnth), int(dt))
+            grievance_list = Grievance.objects.filter(Q(date__year=constructed_date.year,
+                                                        date__month=constructed_date.month,
+                                                        date__day=constructed_date.day))
+        """ Text filter """
+        #if filter_text is not u'' and filter_text is not '':
+            #grievance_list = Grievance.objects.filter(Q(reporter_name__contains=filter_text) |
+             #                                         Q(relationship__containts=filter_text) |
+              #                                        Q(reporter_phone__contains=filter_text))
+        # do pagination
+        try:
+            paginator = Paginator(grievance_list, 20)
+            final_grievance_list = paginator.page(page)
+        except PageNotAnInteger:
+            final_grievance_list = paginator.page(1)  # Deliver the first page is page is not an integer
+        except EmptyPage:
+            final_grievance_list = paginator.page(0)  # Deliver the last page if page is out of scope
+        response_data = {
+            'page': 'cash_transfer',
+            'filter_text': filter_text,
+            'filter_date': filter_date,
+            'items_in_page': 0 if final_grievance_list.end_index() == 0 else
+            (final_grievance_list.end_index() - final_grievance_list.start_index() + 1),
+            'current_user_ip': user_ip,
+            'form': GrievanceModelForm(current_user=request.user),
+            'grievance_list': final_grievance_list,
+            'status': 'success'
+        }
+        return render(request, 'grievances.html', response_data)
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
 
-            excel_db = DreamsEnrollmentExcelDatabase()
-            excel_db.create_tmp_file(dreams_doc)
-            tmp_file_path = excel_db.document_path
-            if tmp_file_path is not None:
 
-                excel_db.excel_enrollment_data()
+@csrf_exempt
+def grievances_create(request):
+    try:
+        if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+            grievance = GrievanceModelForm(request.POST, current_user=request.user)
+            if grievance.is_valid():
+                saved_grievance = grievance.save(commit=False)
+                saved_grievance.created_by = request.user
+                saved_grievance.save()
+                response_data = {
+                    'status': 'success',
+                    'message': 'Grievance saved successfully',
+                    'grievance': grievance.data,
+                    'grievance_id': saved_grievance.id,
+                    'reporter_categories': serializers.serialize('json', GrievanceReporterCategory.objects.all()),
+                    'grievance_nature': serializers.serialize('json', GrievanceNature.objects.all()),
+                    'status_list': serializers.serialize('json', GrievanceStatus.objects.all()),
+                }
+                return JsonResponse(response_data)
             else:
-                print 'Temp file not created'
+                raise Exception(grievance.errors)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
 
-            return render(request, 'excel_upload_progress.html')
-    else:
-        form = EnrollmentDocumentUpload()
-        return render(request, 'excel_db_upload.html', {'form': form})
+
+@csrf_exempt
+def grievances_edit(request):
+    """ """
+    try:
+        if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+            try:
+                id = int(request.POST.get('id', 0))
+                instance = Grievance.objects.get(id=id)
+                form = GrievanceModelForm(request.POST, instance=instance, current_user=request.user)
+                if not form.is_valid():
+                    response_data = {
+                        'status': 'fail',
+                        'message': form.errors
+                    }
+                else:
+                    saved_grievance = form.save(commit=False)
+                    saved_grievance.changed_by = request.user
+                    saved_grievance.save()
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Grievance edited successfully',
+                        'grievance': form.data,
+                        'reporter_categories': serializers.serialize('json', GrievanceReporterCategory.objects.all()),
+                        'grievance_nature': serializers.serialize('json', GrievanceNature.objects.all()),
+                        'status_list': serializers.serialize('json', GrievanceStatus.objects.all()),
+                    }
+                    return JsonResponse(response_data)
+            except Grievance.DoesNotExist:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Grievance not found'
+                }
+                return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
+
+
+@csrf_exempt
+def grievances_delete(request):
+    """ """
+    try:
+        if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+            try:
+                id = int(request.POST.get('id', 0))
+                instance = Grievance.objects.get(id=id).delete()
+                response_data = {
+                    'status': 'success',
+                    'message': 'Grievance deleted successfully',
+                    'grievanceId': id
+                }
+                return JsonResponse(response_data)
+            except Grievance.DoesNotExist:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Grievance not found'
+                }
+                return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
+
+
+def grievances_get(request):
+    """ """
+    try:
+        if not request.user.is_authenticated():
+            raise PermissionDenied
+        grievance_id = request.GET.get('grievance_id', 0) if request.method == 'GET' else request.POST.get('grievance_id', 0)
+        try:
+            grievance = Grievance.objects.get(id__exact=grievance_id)
+            response_data = {
+                'status': 'success',
+                'message': 'Grievance saved successfully',
+                'grievance': serializers.serialize('json', [grievance]),
+            }
+        except Grievance.DoesNotExist:
+            response_data = {
+                'status': 'fail',
+                'message': 'Grievance not found in Database'
+            }
+        return JsonResponse(response_data)
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
+
+
+@csrf_exempt
+def cash_transfer_details_save(request):
+    try:
+        if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+            # check if details has id
+            id = request.POST.get('id', 0)
+            if id not in [u'', "0", 0, ""]:
+                id = int(id)
+                ct_detail = ClientCashTransferDetails.objects.get(id=id)
+                ct_form = ClientCashTransferDetailsForm(request.POST, instance=ct_detail)
+            else:
+                # get current AGYW
+                ct_form = ClientCashTransferDetailsForm(request.POST)
+            if ct_form.is_valid():
+                saved_detail = ct_form.save(commit=False)
+                if saved_detail.id is not None and saved_detail.id > 0:
+                    saved_detail.changed_by = request.user
+                else:
+                    saved_detail.created_by = request.user
+                saved_detail.save()
+                response_data = {
+                    'status': 'success',
+                    'message': 'Cash Transfer details updated successfully',
+                    'ct_detail_id': saved_detail.id,
+                }
+                return JsonResponse(response_data)
+            else:
+                raise Exception(ct_form.errors)
+        else:
+            raise PermissionDenied
+    except ClientCashTransferDetails.DoesNotExist:
+        raise Exception("Cash transfer details does not exist for editing!")
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message
+        }
+        return JsonResponse(response_data)
 

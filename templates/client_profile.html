@@ -14,7 +14,7 @@
                   <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" id="exampleModalLabel">NEW INTERVENTION</h4>
-                        <h5>For: {{ client.first_name }} {{ client.last_name }}</h5>
+                        <h5>For: {{ client.get_full_name }}</h5>
                   </div>
                   <div class="modal-body">
 
@@ -33,16 +33,28 @@
                           <select id="intervention-type-select" name="intervention_type_code" class="form-control validate-intervention-form-field" >
                           </select>
                         </div>
+                        <div class="processing-indicator hidden" style="text-align: center; opacity: 0.4;">
+                            <i class='fa fa-spinner fa-spin fa-1x'></i>
+                            <p style="font-size: medium">Loading...</p>
+                        </div>
 
+                        <div class="form-group hidden" id="other_specify_section">
+                            <label for="other_specify" class="control-label">Specify Intervention</label>
+                            <input type="text" class="form-control validate-intervention-form-field" id="other_specify" name="other_specify"></input>
+                        </div>
 
                          <div class="form-group has-feedback hidden" id="intervention_date_section">
-                            <label for="date-of-completion" class="control-label">Date of Completion:</label>
-                            <input type="text" class="form-control validate-intervention-form-field" id="date-of-completion"  placeholder="Select date of completion" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                            <label for="date-of-completion" class="control-label">Date: </label>
+                            <input type="text" class="form-control validate-intervention-form-field" id="date-of-completion"  placeholder="Select date " style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                             <input type="text" class="form-control validate-intervention-form-field hidden" id="date-of-completion-formatted" name="intervention_date"/>
                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                           <script>
                               $(function() {
-                                $( "#date-of-completion" ).datepicker();
+                                $( "#date-of-completion" ).datepicker({
+                                      maxDate: '0y 0m 0d',
+                                      changeMonth: true,
+                                      changeYear: true
+                                });
                               });
                           </script>
                         </div>
@@ -55,7 +67,6 @@
                               <option value="201">Negative</option>
                               <option value="202">Positive</option>
                               <option value="203">Known Positive</option>
-                              <option value="204">Linked to HTS</option>
                           </select>
                         </div>
 
@@ -69,15 +80,14 @@
                           <label for="intervention-type-select">Pregnancy Test Result</label>
                           <select id="pregnancy-result-select" name="pregnancy_test_result" class="form-control validate-intervention-form-field">
                               <option value="">Select Option</option>
-                              <option value="102">Not Pregnant</option>
+                              <option value="101">Not Pregnant</option>
                               <option value="102">Pregnant</option>
-                              <option value="103">Linked to HTS</option>
                           </select>
                         </div>
 
                          <div class="form-group hidden" id="no_of_sessions_section">
                             <label for="number-of-ss-sessions-attended" class="control-label">Number of SS Sessions Attended</label>
-                            <input type="number" class="form-control validate-intervention-form-field" id="number-of-ss-sessions-attended" name="no_of_sessions_attended"></input>
+                            <input type="number" class="form-control validate-intervention-form-field" id="number-of-ss-sessions-attended" min="1" name="no_of_sessions_attended"></input>
                         </div>
 
                          <div class="form-group hidden" id="notes_section">
@@ -103,6 +113,7 @@
     <!-- End modal-->
 
     {% include 'includes/enrollment_form.html' %}
+    {% include 'includes/cash_transfer_details_form.html' %}
 
     <!-- Beginning Confirm Delete Modal -->
 
@@ -133,7 +144,7 @@
     <!-- Start of Client profile section -->
     <div class="row statusBox">
         <div class="col-xs-12 col-sm-5">
-            <p><strong>Client: </strong> {{ client }} </p>
+            <p><strong>Client: </strong> {{ client.get_full_name }} </p>
             <p><strong>DREAMS Id: </strong> {{ client.dreams_id }}</p>
             <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }}</p>
         </div><!--/col-->
@@ -141,7 +152,7 @@
              <p><strong>Phone Number: </strong>
                 <span>{{ client.phone_number }} {% if client.phone_number == None and client.guardian_phone_number != None and client.guardian_phone_number != '' %}(Guardian){{ client.guardian_phone_number }}{% endif %}</span>
             </p>
-            <p><strong>Age: </strong> {{ client.age_at_enrollment }}</p>
+            <p><strong>Age: </strong> {{ client.get_age_at_enrollment }}</p>
             <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
         </div><!--/col-->
         <div class="col-xs-12 col-sm-3">
@@ -152,8 +163,16 @@
                 {% endif %}
             </p>
         </div><!--/col-->
+        <div class="col-xs-12 col-sm-2 hidden">
+            <p><strong> </strong> <br>
+                {% if perms.change_clientcashtransferdetails %}
+                <p class="underline_hover" data-toggle="modal" data-target="#cash-transfer-details-modal" data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="tooltip" title="Edit cash transfer details"><span class="glyphicon glyphicon-pencil"></span> Cash Transfer Details</p>
+                {% endif %}
+            </p>
+        </div><!--/col-->
     </div>
 
+    <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert"></div>
     <!-- End of Client profile section -->
     <div class="dreams-profile-tab-control" id="dreams-profile-tab-control">
         <ul class="nav nav-tabs">
