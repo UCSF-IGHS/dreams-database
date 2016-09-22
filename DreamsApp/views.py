@@ -124,13 +124,13 @@ def clients(request):
                     search_result = Client.objects.filter(Q(dreams_id__in=search_value.split(" ")) |
                                                           Q(first_name__in=search_value.split(" ")) |
                                                           Q(last_name__in=search_value.split(" ")) |
-                                                          Q(middle_name__in=search_value.split(" "))).first()
+                                                          Q(middle_name__in=search_value.split(" ")))
                 else:
-                    search_result = Client.objects.filter(dreams_id__exact=search_value).first()
+                    search_result = Client.objects.filter(dreams_id__exact=search_value)
                 # check if user can see clients enrolled more than a week ago
                 log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
                 json_response = {
-                    'search_result': serializers.serialize('json', [search_result]),
+                    'search_result': serializers.serialize('json', search_result[:1]),
                     'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                     'can_change_client': request.user.has_perm('auth.can_change_client'),
                     'can_delete_client': request.user.has_perm('auth.can_delete_client')
