@@ -995,7 +995,7 @@ def change_cred(request):
     if request.user.is_authenticated() and request.user.is_active:  # user is authenticated
         if request.method == 'GET':
             # return password change view
-            context = {'page': 'users', 'user': request.user,}
+            context = {'page': 'account', 'user': request.user,}
             return render(request, 'change_cred.html', context)
         elif request.method == 'POST':
             # do post functionality here!!

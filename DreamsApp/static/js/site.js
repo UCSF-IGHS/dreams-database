@@ -1745,6 +1745,10 @@ $(document).ready(function () {
         });
 
     })
+
+    $('#forgot_password').click(function (e) {
+        $(this).html("Please contact System Administrator for a new password!").css('color','#F00');
+    })
 });
 
 
