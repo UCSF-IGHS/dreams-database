@@ -1293,3 +1293,8 @@ def cash_transfer_details_save(request):
         }
         return JsonResponse(response_data)
 
+
+def error_404(request):
+    context = {'user': request.user, 'error_code': 404, 'error_title': 'Page Not Found (Error 404)',
+               'error_message': 'The page you are looking for does not exist. Go back to previous page or Home page'}
+    return render(request, 'error_page.html', context)
