@@ -963,7 +963,7 @@ def toggle_status(request):
                         # check if user is same as requesting user
                         if user.id == request.user.id:
                             raise Exception('Error: you cannot deactivate your own account. '
-                                            'Please contact system admin for assistance')
+                                            'Please contact System Administrator for assistance')
                         else:
                             user.is_active = toggle in ["True", "true", 1, "Yes", "yes", "Y", "y", "T", "t"]
                             user.save()
