@@ -46,6 +46,9 @@
                       </ul>
                     </li>
                 {% endif %}
+                {% if user.is_authenticated %}
+                    <li><a href="/export-page">Excel Output </a> </li>
+                {% endif %}
             {% endif %}
             </ul>
         </div>
