@@ -20,7 +20,7 @@ from DreamsApp import views
 
 # handler400 = 'DreamsApp.views.bad_request'
 handler403 = 'DreamsApp.views.permission_denied'
-# handler404 = 'DreamsApp.views.page_not_found'
+handler404 = 'DreamsApp.views.page_not_found'
 # handler500 = 'DreamsApp.views.server_error'
 
 urlpatterns = [
@@ -30,7 +30,7 @@ urlpatterns = [
     url(r'^clientEdit$', views.edit_client, name='edit_client'),
     url(r'^clientDelete$', views.delete_client, name='delete_client'),
     url(r'^client$', views.client_profile),
-    url(r'^admin', admin.site.urls, name='admin'),
+    url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^ivgetTypes$', views.get_intervention_types),
     url(r'^ivSave$', views.save_intervention),
     url(r'^ivList$', views.get_intervention_list),
@@ -58,4 +58,5 @@ urlpatterns = [
     url(r'^download-excel/$', views.downloadEXCEL),
     url(r'^export-page', views.export_page),
     #url(r'^$', views.user_login, name='login'),
+    url(r'^', views.error_404, name='error_404'),
 ]

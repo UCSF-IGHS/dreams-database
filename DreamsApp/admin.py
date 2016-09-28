@@ -67,6 +67,15 @@ admin.site.register(PeriodResponse)
 admin.site.register(CategoricalResponse)
 admin.site.register(AgeBracket)
 
+admin.site.register(ClientIndividualAndHouseholdData) # verified
+admin.site.register(ClientEducationAndEmploymentData)
+admin.site.register(ClientHIVTestingData)
+admin.site.register(ClientSexualActivityData)
+admin.site.register(ClientReproductiveHealthData)
+admin.site.register(ClientGenderBasedViolenceData)
+admin.site.register(ClientDrugUseData)
+admin.site.register(ClientParticipationInDreams)
+
 
 class AuditAdmin(admin.ModelAdmin):
     model = Audit

@@ -754,7 +754,7 @@ class ClientIndividualAndHouseholdData(models.Model):
     main_floor_material_other = models.CharField(max_length=50, verbose_name='Main floor material: other', blank=True, null=True)
     main_roof_material = models.ForeignKey(RoofingMaterial, verbose_name='Main roof material', null=True, related_name='+')
     main_roof_material_other = models.CharField(max_length=50, verbose_name='Main roof material: other', blank=True, null=True)
-    main_wall_material = models.ForeignKey(RoofingMaterial, verbose_name='Main wall material', null=True, related_name='+')
+    main_wall_material = models.ForeignKey(WallMaterial, verbose_name='Main wall material', null=True, related_name='+')
     main_wall_material_other = models.CharField(max_length=50, verbose_name='Main wall material: other', blank=True,
                                                    null=True)
     source_of_drinking_water = models.ForeignKey(DrinkingWater, verbose_name='Main source of drinking water', null=True, related_name='+')
@@ -790,7 +790,7 @@ class ClientEducationAndEmploymentData(models.Model):
     reason_not_in_school_other = models.CharField(verbose_name='Reason for not going to school: other', max_length=50, null=True)
     last_time_in_school = models.ForeignKey(PeriodResponse, null=True, verbose_name='Last time in school', related_name='+')
     dropout_school_level = models.ForeignKey(SchoolLevel, related_name='+', null=True)
-    dropout_class = models.CharField(max_length=15, verbose_name='Drop out class', null=True)
+    dropout_class = models.CharField(max_length=50, verbose_name='Drop out class', null=True)
     life_wish = models.ForeignKey(LifeWish, verbose_name='Wish in life', blank=True, null=True, related_name='+')
     life_wish_other = models.CharField(verbose_name='Wish in life: other', max_length=50, blank=True, null=True)
     current_income_source = models.ForeignKey(SourceOfIncome, null=True, verbose_name='Current source of income', related_name='+')

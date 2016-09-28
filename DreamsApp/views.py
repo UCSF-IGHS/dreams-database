@@ -125,13 +125,13 @@ def clients(request):
                     search_result = Client.objects.filter(Q(dreams_id__in=search_value.split(" ")) |
                                                           Q(first_name__in=search_value.split(" ")) |
                                                           Q(last_name__in=search_value.split(" ")) |
-                                                          Q(middle_name__in=search_value.split(" "))).first()
+                                                          Q(middle_name__in=search_value.split(" ")))
                 else:
-                    search_result = Client.objects.filter(dreams_id__exact=search_value).first()
+                    search_result = Client.objects.filter(dreams_id__exact=search_value)
                 # check if user can see clients enrolled more than a week ago
                 log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
                 json_response = {
-                    'search_result': serializers.serialize('json', [search_result]),
+                    'search_result': serializers.serialize('json', search_result[:1]),
                     'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                     'can_change_client': request.user.has_perm('auth.can_change_client'),
                     'can_delete_client': request.user.has_perm('auth.can_delete_client')
@@ -964,7 +964,7 @@ def toggle_status(request):
                         # check if user is same as requesting user
                         if user.id == request.user.id:
                             raise Exception('Error: you cannot deactivate your own account. '
-                                            'Please contact system admin for assistance')
+                                            'Please contact System Administrator for assistance')
                         else:
                             user.is_active = toggle in ["True", "true", 1, "Yes", "yes", "Y", "y", "T", "t"]
                             user.save()
@@ -996,7 +996,7 @@ def change_cred(request):
     if request.user.is_authenticated() and request.user.is_active:  # user is authenticated
         if request.method == 'GET':
             # return password change view
-            context = {'page': 'users', 'user': request.user,}
+            context = {'page': 'account', 'user': request.user,}
             return render(request, 'change_cred.html', context)
         elif request.method == 'POST':
             # do post functionality here!!
@@ -1317,4 +1317,8 @@ def downloadEXCEL(request):
     return response
 
 
+def error_404(request):
+    context = {'user': request.user, 'error_code': 404, 'error_title': 'Page Not Found (Error 404)',
+               'error_message': 'The page you are looking for does not exist. Go back to previous page or Home page'}
+    return render(request, 'error_page.html', context)
 
