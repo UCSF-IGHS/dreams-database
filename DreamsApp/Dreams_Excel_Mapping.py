@@ -476,3 +476,36 @@ class ExcelDreamsMapping:
             'National ID': 2,
             'National ID waiting card': 3,
         }
+    @staticmethod
+    def excel_demographics():
+        return {
+            'd.implementing_partner_id': 2,
+            # 'IP_Code': 3,
+            'd.first_name': 4,
+            'd.middle_name': 5,
+            'd.last_name': 6,
+            'd.date_of_birth': 7,
+            'd.verification_document_id': 8,
+            # 'verification_doc_other': 9,
+            'd.verification_doc_no': 10,
+            'd.date_of_enrollment': 11,
+            'd.marital_status_id': 14,
+            'd.phone_number': 15,
+            'd.county_of_residence_id': 16,
+            'd.sub_county_id': 17,
+            'd.ward_id': 18,
+            #'ward_code': 19,
+            'd.informal_settlement': 20,
+            'd.village': 21,
+            'd.land_mark': 22,
+            'd.dreams_id': 23,
+            'd.dss_id_number': 24,
+            #'caregiver_first_name': 25,
+            #'caregiver_middle_name': 26,
+            #'caregiver_last_name': 27,
+            'd.relationship_with_guardian': 28,
+            #'caregiver_relationship_other': 29,
+            'd.guardian_phone_number': 30,
+            'd.guardian_national_id': 31,
+        }
+

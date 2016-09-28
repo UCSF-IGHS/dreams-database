@@ -21,7 +21,6 @@
             {% if user.is_anonymous %}
                 <!--<li><a>Please log below</a></li>-->
                 <li><a href="/help" onclick="return false;">Help</a></li>
-                <li><a href="/excel_database" >Import Excel</a></li>
             {% else %}
                 {% if user.is_authenticated %}
                     {% if perms.auth.can_manage_client %}
@@ -46,6 +45,9 @@
                           <li><a href="/logout" class="text-danger">Logout: {{ user.username }}</a></li>
                       </ul>
                     </li>
+                {% endif %}
+                {% if user.is_authenticated %}
+                    <li><a href="/export-page">Excel Output </a> </li>
                 {% endif %}
             {% endif %}
             </ul>

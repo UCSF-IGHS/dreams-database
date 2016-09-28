@@ -10,6 +10,15 @@
                 getInterventionUsingId();
             });
 
+            $('#btn-download-csv').click(function(){
+                download_csv();
+            });
+
+            $('#btn_download_excel').click(function(){
+                download_excel();
+                // alert('Here');
+            });
+
         });
  function getCookie(name) {
            var cookieValue = null;
@@ -82,6 +91,16 @@ function fetchListOfInterventionsFromCategory() {
             }
         });
     }
+
+    function download_csv() {
+         var iframe = document.getElementById('download-csv');
+         iframe.src = "/download-csv/";
+    }
+
+    function download_excel() {
+         var i_frame = document.getElementById('download_excel');
+         i_frame.src = "/download-excel/";
+    }
     </script>
 
 
@@ -120,6 +139,28 @@ function fetchListOfInterventionsFromCategory() {
         </form>
 
         <div id="results"></div>
+    </div>
+
+    <h4>Test get intervention (Provide ID)</h4>
+
+    <hr/>
+    <div id="download">
+        <form method="post">
+            {% csrf_token %}
+            <iframe id="download-csv" style="display: none" ></iframe>
+            <input type="button" id="btn-download-csv" value="Download CSV">
+        </form>
+
+    </div>
+
+     <hr/>
+    <div id="download-excel">
+        <form method="post">
+            {% csrf_token %}
+            <iframe id="download_excel" style="display: none" ></iframe>
+            <input type="button" id="btn_download_excel" value="Download EXCEL">
+        </form>
+
     </div>
 
 {% endblock %}

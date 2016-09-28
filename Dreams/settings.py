@@ -134,6 +134,7 @@ TEMPLATE_DIRS = (
 # e.g manage.py loaddata initial_data.json
 FIXTURE_DIRS = ()
 
+
 # Just in case
 # DEFAULT_FROM_EMAIL = 'dreams.globalhealthapp@gmail.com'
 # SERVER_EMAIL = 'dreams.globalhealthapp@gmail.com'

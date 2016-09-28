@@ -1,6 +1,6 @@
 # coding=utf-8
 from django.shortcuts import render, redirect
-from django.http import JsonResponse, HttpResponseServerError
+from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.core import serializers
 from django.core.mail import EmailMessage
 from django.core.exceptions import *
@@ -16,6 +16,7 @@ from datetime import date, timedelta
 from django.db.models import Q
 from DreamsApp.models import *
 from DreamsApp.forms import *
+from Dreams_Utils import *
 
 def get_enrollment_form_config_data():
     try:
@@ -1292,4 +1293,28 @@ def cash_transfer_details_save(request):
             'message': e.message
         }
         return JsonResponse(response_data)
+
+
+def download_excel(request):
+    enrolment = DreamsEnrollmentExcelDatabase()
+    rows = enrolment.get_export_rows()
+    for row in rows:
+        for k, v in row.items():
+            print k + " : ", v
+
+
+def export_page(request):
+    return render(request, 'testAjax.html')
+
+
+def downloadEXCEL(request):
+
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
+    export_doc = DreamsEnrollmentExcelDatabase()
+    wb = export_doc.prepare_excel_doc()
+    wb.save(response)
+    return response
+
+
 
