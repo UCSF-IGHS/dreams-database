@@ -418,15 +418,16 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
             i = 5
             for row in db_data:
                 i += 1
-                self.map_demographics(enrollment_sheet, i, row)
-                self.map_individual_and_household(enrollment_sheet, i, row)
-                self.map_sexuality(enrollment_sheet, i, row)
-                self.map_reproductive_health(enrollment_sheet, i, row)
-                self.map_drug_use(enrollment_sheet, i, row)
-                self.map_education_and_employment(enrollment_sheet, i, row)
-                self.map_gbv(enrollment_sheet, i, row)
-                self.map_program_participation(enrollment_sheet, i, row)
-                self.map_hiv_testing(enrollment_sheet, i, row)
+                enrollment_sheet.cell(row=i, column=5, value='yes')
+                # self.map_demographics(enrollment_sheet, i, row)
+                # self.map_individual_and_household(enrollment_sheet, i, row)
+                # self.map_sexuality(enrollment_sheet, i, row)
+                # self.map_reproductive_health(enrollment_sheet, i, row)
+                # self.map_drug_use(enrollment_sheet, i, row)
+                # self.map_education_and_employment(enrollment_sheet, i, row)
+                # self.map_gbv(enrollment_sheet, i, row)
+                # self.map_program_participation(enrollment_sheet, i, row)
+                # self.map_hiv_testing(enrollment_sheet, i, row)
 
             wb.save('dreams_enrollment_interventions.xlsx')
             print "Loading template successful"
