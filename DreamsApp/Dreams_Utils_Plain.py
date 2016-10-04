@@ -7,6 +7,7 @@ from string import Template
 import datetime
 from django.db import connection
 from django.conf import settings
+from openpyxl.utils.exceptions import *
 import os
 
 
@@ -398,6 +399,7 @@ FROM DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv rn
 GROUP BY rec_id
 ) rn_not_tested ON rn_not_tested.rec_id = hiv_d.id
 GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
+order by d.implementing_partner_id
 
         """
 
@@ -430,16 +432,27 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
         return
 
+    def load_workbook(self):
+        DREAMS_TEMPLATE_PLAIN = os.path.join(settings.BASE_DIR, 'templates/excel_template/dreams_export.xlsx')
+        try:
+            wb = xl.load_workbook(DREAMS_TEMPLATE_PLAIN)
+            return wb
+        except InvalidFileException as e:
+            traceback.format_exc()
+
+    def load_workbook_template(self):
+        DREAMS_TEMPLATE_PLAIN = os.path.join(settings.BASE_DIR, 'templates/excel_template/sample_template.xlsx')
+        try:
+            wb = xl.load_workbook(DREAMS_TEMPLATE_PLAIN)
+            return wb
+        except InvalidFileException as e:
+            traceback.format_exc()
+
     def prepare_excel_doc(self):
 
-        DREAMS_TEMPLATE_PLAIN = os.path.join(settings.BASE_DIR, 'templates/excel_template/dreams_export.xlsx')
-
         try:
-            print "Attempting to load dbds"
-            wb = xl.load_workbook(DREAMS_TEMPLATE_PLAIN)
 
-            enrollment_sheet = wb.get_sheet_by_name("Enrollment")
-            intervention_sheet = wb.get_sheet_by_name("Interventions")
+            wb = self.load_workbook()
             refined_sheet = wb.get_sheet_by_name('enrollment_refined')
             print "Starting DB Query! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             db_data = self.get_export_rows()
@@ -460,8 +473,12 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
             wb.save('dreams_enrollment_interventions.xlsx')
             print "Completed rendering excel ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             return wb
-        except Exception as e:
-            print 'There was an Error loading dreams template'
+        except InvalidFileException as e:
+            traceback.format_exc()
+        except ReadOnlyWorkbookException as e:
+            traceback.format_exc()
+
+        except SheetTitleException as e:
             traceback.format_exc()
         return
 
@@ -711,17 +728,17 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
             elif k == 'used_condom_with_last_partner_id':
                 val = row.get(k)
                 if val is not None:
-                    item = self.yesNoDictionary().get(val)
+                    item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
             elif k == 'used_condom_with_second_last_partner_id':
                 val = row.get(k)
                 if val is not None:
-                    item = self.yesNoDictionary().get(val)
+                    item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
             elif k == 'used_condom_with_third_last_partner_id':
                 val = row.get(k)
                 if val is not None:
-                    item = self.yesNoDictionary().get(val)
+                    item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
             else:
                 ws.cell(row=i, column=v, value=row.get(k))

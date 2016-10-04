@@ -254,7 +254,7 @@ VALUES """
         return demographics
 
     def dump_SQL(self):
-        return """SELECT
+        return """ SELECT
 d.first_name,d.middle_name,d.last_name,d.date_of_birth, d.verification_document_id,d.verification_doc_no,d.date_of_enrollment,d.phone_number,
   d.dss_id_number,d.informal_settlement,d.village,d.landmark,d.dreams_id,d.guardian_name,d.relationship_with_guardian,d.guardian_phone_number,
   d.guardian_national_id,d.date_created,d.county_of_residence_id,d.implementing_partner_id,d.marital_status_id,d.sub_county_id,d.ward_id,
@@ -262,7 +262,7 @@ i.head_of_household_id, i.head_of_household_other,i.age_of_household_head, i.is_
   i.main_floor_material_id, i.main_floor_material_other, i.main_roof_material_id, i.main_roof_material_other, i.main_wall_material_id, i.main_wall_material_other,
   i.source_of_drinking_water_id,i.source_of_drinking_water_other, i.no_of_adults, i.no_of_females, i.no_of_males, i.no_of_children,
   i.currently_in_ct_program_id, i.current_ct_program, i.ever_enrolled_in_ct_program_id, i.ever_missed_full_day_food_in_4wks_id, i.has_disability_id,
-  i.no_of_days_missed_food_in_4wks_id,
+  i.no_of_days_missed_food_in_4wks_id,i.disability_types, i.no_of_people_in_household,
 s.age_at_first_sexual_encounter,s.sex_partners_in_last_12months,s.age_of_last_partner_id,s.age_of_second_last_partner_id,
   s.age_of_third_last_partner_id,s.ever_had_sex_id,s.has_sexual_partner_id,s.know_last_partner_hiv_status_id,
   s.know_second_last_partner_hiv_status_id,s.know_third_last_partner_hiv_status_id,s.last_partner_circumcised_id,
@@ -291,7 +291,18 @@ hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_re
 hiv.reason_not_in_hiv_care_id, reason_not_tested_for_hiv
 FROM
 DreamsApp_client AS d
-LEFT OUTER JOIN DreamsApp_clientindividualandhouseholddata i ON i.client_id = d.id
+LEFT OUTER JOIN (
+SELECT *
+FROM DreamsApp_clientindividualandhouseholddata o_i_data
+LEFT OUTER JOIN
+(
+SELECT
+dt.clientindividualandhouseholddata_id    AS ind_data_id,
+group_concat(disabilitytype_id) AS disability_types
+from DreamsApp_clientindividualandhouseholddata i_data
+LEFT OUTER JOIN DreamsApp_clientindividualandhouseholddata_disability_type dt ON dt.clientindividualandhouseholddata_id = i_data.id
+GROUP BY i_data.id
+) dis_data ON o_i_data.id = dis_data.ind_data_id ) i ON i.client_id = d.id
 LEFT OUTER JOIN DreamsApp_clientsexualactivitydata s ON s.client_id = d.id
 LEFT OUTER JOIN (
 SELECT *
@@ -374,6 +385,7 @@ FROM DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv rn
 GROUP BY rec_id
 ) rn_not_tested ON rn_not_tested.rec_id = hiv_d.id
 GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
+
         """
 
     def execute_SQL_Query(self, sql):
@@ -413,24 +425,24 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
             enrollment_sheet = wb.get_sheet_by_name("Enrollment")
             intervention_sheet = wb.get_sheet_by_name("Interventions")
-
+            print "Starting DB Query! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             db_data = self.get_export_rows()
+            print "Finished DB Query. Rendering Now. ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             i = 5
             for row in db_data:
                 i += 1
-                enrollment_sheet.cell(row=i, column=5, value='yes')
-                # self.map_demographics(enrollment_sheet, i, row)
-                # self.map_individual_and_household(enrollment_sheet, i, row)
-                # self.map_sexuality(enrollment_sheet, i, row)
-                # self.map_reproductive_health(enrollment_sheet, i, row)
-                # self.map_drug_use(enrollment_sheet, i, row)
-                # self.map_education_and_employment(enrollment_sheet, i, row)
-                # self.map_gbv(enrollment_sheet, i, row)
-                # self.map_program_participation(enrollment_sheet, i, row)
-                # self.map_hiv_testing(enrollment_sheet, i, row)
+                self.map_demographics(enrollment_sheet, i, row)
+                self.map_individual_and_household(enrollment_sheet, i, row)
+                self.map_sexuality(enrollment_sheet, i, row)
+                self.map_reproductive_health(enrollment_sheet, i, row)
+                self.map_drug_use(enrollment_sheet, i, row)
+                self.map_education_and_employment(enrollment_sheet, i, row)
+                self.map_gbv(enrollment_sheet, i, row)
+                self.map_program_participation(enrollment_sheet, i, row)
+                self.map_hiv_testing(enrollment_sheet, i, row)
 
             wb.save('dreams_enrollment_interventions.xlsx')
-            print "Loading template successful"
+            print "Completed rendering excel ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             return wb
         except Exception as e:
             print 'There was an Error loading dreams template'
@@ -439,48 +451,48 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_demographics(self, ws, i, row):
         cols = {
-            'd.implementing_partner_id': 2,
+            'implementing_partner_id': 2,
             # 'IP_Code': 3,
-            'd.first_name': 4,
-            'd.middle_name': 5,
-            'd.last_name': 6,
-            'd.date_of_birth': 7,
-            'd.verification_document_id': 8,
-            # 'verification_doc_other': 9,
-            'd.verification_doc_no': 10,
-            'd.date_of_enrollment': 11,
-            'd.marital_status_id': 14,
-            'd.phone_number': 15,
-            'd.county_of_residence_id': 16,
-            'd.sub_county_id': 17,
-            'd.ward_id': 18,
+            #'first_name': 4,
+            #'middle_name': 5,
+            #'last_name': 6,
+            'date_of_birth': 7,
+            'verification_document_id': 8,
+            'verification_doc_other': 9,
+            #'verification_doc_no': 10,
+            'date_of_enrollment': 11,
+            'marital_status_id': 14,
+            'phone_number': 15,
+            'county_of_residence_id': 16,
+            'sub_county_id': 17,
+            'ward_id': 19,
             # 'ward_code': 19,
-            'd.informal_settlement': 20,
-            'd.village': 21,
-            'd.land_mark': 22,
-            'd.dreams_id': 23,
-            'd.dss_id_number': 24,
+            'informal_settlement': 20,
+            'village': 21,
+            'land_mark': 22,
+            'dreams_id': 23,
+            'dss_id_number': 24,
             # 'caregiver_first_name': 25,
             # 'caregiver_middle_name': 26,
             # 'caregiver_last_name': 27,
-            'd.relationship_with_guardian': 28,
-            # 'caregiver_relationship_other': 29,
-            'd.guardian_phone_number': 30,
-            'd.guardian_national_id': 31,
+            'relationship_with_guardian': 28,
+            'caregiver_relationship_other': 29
+            #'guardian_phone_number': 30,
+            #'guardian_national_id': 31,
         }
 
         for k, v in cols.items():
-            if k == 'd.implementing_partner_id':
+            if k == 'implementing_partner_id':
                 val = row.get(k)
                 if val is not None:
                     partner = self.map_implementing_partner().get(val)
                     ws.cell(row=i, column=v, value=partner)
-            elif k == 'd.verification_document_id':
+            elif k == 'verification_document_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.map_verification_document().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'd.marital_status_id':
+            elif k == 'marital_status_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.map_marital_status_codes().get(val)
@@ -490,89 +502,100 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_individual_and_household(self, ws, i, row):
         cols = {
-            'i.head_of_household_id': 32,
-            'i.head_of_household_other': 33,
-            'i.age_of_household_head': 34,
-            'i.is_father_alive': 35,
-            'i.is_mother_alive': 36,
-            'i.is_parent_chronically_ill': 37,
-            'i.main_floor_material_id': 38,
-            'i.main_floor_material_other': 39,
-            'i.main_roof_material_id': 40,
-            'i.main_roof_material_other': 41,
-            'i.main_wall_material_id': 42,
-            'i.main_wall_material_other': 43,
-            'i.source_of_drinking_water_id': 44,
-            'i.source_of_drinking_water_other': 45,
-            'i.no_of_adults': 58,
-            'i.no_of_females': 56,
-            'i.no_of_males': 57,
-            'i.no_of_children': 59,
-            'i.currently_in_ct_program_id': 61,
-            'i.current_ct_program': 62,
-            'i.ever_enrolled_in_ct_program_id': 60,
-            'i.ever_missed_full_day_food_in_4wks_id': 46,
-            'i.has_disability_id': 48,
-            'i.no_of_days_missed_food_in_4wks_id': 47
+            'head_of_household_id': 32,
+            'head_of_household_other': 33,
+            'age_of_household_head': 34,
+            'is_father_alive': 35,
+            'is_mother_alive': 36,
+            'is_parent_chronically_ill': 37,
+            'main_floor_material_id': 38,
+            'main_floor_material_other': 39,
+            'main_roof_material_id': 40,
+            'main_roof_material_other': 41,
+            'main_wall_material_id': 42,
+            'main_wall_material_other': 43,
+            'source_of_drinking_water_id': 44,
+            'source_of_drinking_water_other': 45,
+            'no_of_people_in_household': 55,
+            'no_of_adults': 58,
+            'no_of_females': 56,
+            'no_of_males': 57,
+            'no_of_children': 59,
+            'currently_in_ct_program_id': 61,
+            'current_ct_program': 62,
+            'ever_enrolled_in_ct_program_id': 60,
+            'ever_missed_full_day_food_in_4wks_id': 46,
+            'has_disability_id': 48,
+            'no_of_days_missed_food_in_4wks_id': 47,
+            'disability_types': 49
         }
 
         for k, v in cols.items():
-            if k == 'i.head_of_household_id':
+            if k == 'head_of_household_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.headOfHouseHoldDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'i.is_father_alive':
+            if k == 'disability_types':
+                val = row.get(k)
+                if val is not None:
+                    dts = val.split(",")
+                    for d in dts:
+                        if d == 96:
+                            continue
+                        else:
+                            ws.cell(row=i, column=self.map_disability_type().get(d), value='Yes')
+            elif k == 'is_father_alive':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'i.is_mother_alive':
+            elif k == 'is_mother_alive':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'i.is_parent_chronically_ill':
+            elif k == 'is_parent_chronically_ill':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'i.main_floor_material_id':
+            elif k == 'main_floor_material_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.floorMaterialDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'i.main_roof_material_id':
+            elif k == 'main_roof_material_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.roofMaterialDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'i.main_wall_material_id':
+            elif k == 'main_wall_material_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.wallMaterialDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'i.source_of_drinking_water_id':
+            elif k == 'source_of_drinking_water_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.drinkingWaterSourceDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'i.currently_in_ct_program_id':
+            elif k == 'currently_in_ct_program_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'i.ever_enrolled_in_ct_program_id':
+            elif k == 'ever_enrolled_in_ct_program_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'i.ever_missed_full_day_food_in_4wks_id':
+            elif k == 'ever_missed_full_day_food_in_4wks_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'i.no_of_days_missed_food_in_4wks_id':
+            elif k == 'no_of_days_missed_food_in_4wks_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.frequencyDictionary().get(val)
@@ -582,96 +605,96 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_sexuality(self, ws, i, row):
         cols = {
-            's.age_at_first_sexual_encounter': 106,
-            's.sex_partners_in_last_12months': 107,
-            's.age_of_last_partner_id': 109,
-            's.age_of_second_last_partner_id': 110,
-            's.age_of_third_last_partner_id': 111,
-            's.ever_had_sex_id': 105,
-            's.has_sexual_partner_id': 108,
-            's.know_last_partner_hiv_status_id': 115,
-            's.know_second_last_partner_hiv_status_id': 116,
-            's.know_third_last_partner_hiv_status_id': 117,
-            's.last_partner_circumcised_id': 112,
-            's.received_money_gift_for_sex_id': 121,
-            's.second_last_partner_circumcised_id': 113,
-            's.third_last_partner_circumcised_id': 114,
-            's.used_condom_with_last_partner_id': 118,
-            's.used_condom_with_second_last_partner_id': 119,
-            's.used_condom_with_third_last_partner_id': 120
+            'age_at_first_sexual_encounter': 106,
+            'sex_partners_in_last_12months': 107,
+            'age_of_last_partner_id': 109,
+            'age_of_second_last_partner_id': 110,
+            'age_of_third_last_partner_id': 111,
+            'ever_had_sex_id': 105,
+            'has_sexual_partner_id': 108,
+            'know_last_partner_hiv_status_id': 115,
+            'know_second_last_partner_hiv_status_id': 116,
+            'know_third_last_partner_hiv_status_id': 117,
+            'last_partner_circumcised_id': 112,
+            'received_money_gift_for_sex_id': 121,
+            'second_last_partner_circumcised_id': 113,
+            'third_last_partner_circumcised_id': 114,
+            'used_condom_with_last_partner_id': 118,
+            'used_condom_with_second_last_partner_id': 119,
+            'used_condom_with_third_last_partner_id': 120
         }
         for k, v in cols.items():
-            if k == 's.age_of_last_partner_id':
+            if k == 'age_of_last_partner_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.relativeAgeDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.age_of_second_last_partner_id':
+            elif k == 'age_of_second_last_partner_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.relativeAgeDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.age_of_third_last_partner_id':
+            elif k == 'age_of_third_last_partner_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.relativeAgeDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.ever_had_sex_id':
+            elif k == 'ever_had_sex_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.has_sexual_partner_id':
+            elif k == 'has_sexual_partner_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.know_last_partner_hiv_status_id':
+            elif k == 'know_last_partner_hiv_status_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.know_second_last_partner_hiv_status_id':
+            elif k == 'know_second_last_partner_hiv_status_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.know_third_last_partner_hiv_status_id':
+            elif k == 'know_third_last_partner_hiv_status_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.last_partner_circumcised_id':
+            elif k == 'last_partner_circumcised_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.second_last_partner_circumcised_id':
+            elif k == 'second_last_partner_circumcised_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.third_last_partner_circumcised_id':
+            elif k == 'third_last_partner_circumcised_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.received_money_gift_for_sex_id':
+            elif k == 'received_money_gift_for_sex_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.used_condom_with_last_partner_id':
+            elif k == 'used_condom_with_last_partner_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.used_condom_with_second_last_partner_id':
+            elif k == 'used_condom_with_second_last_partner_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 's.used_condom_with_third_last_partner_id':
+            elif k == 'used_condom_with_third_last_partner_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
@@ -681,22 +704,22 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_reproductive_health(self, ws, i, row):
         cols = {
-            'rh.no_of_biological_children': 123,
-            'rh.anc_facility_name': 126,
-            'rh.known_fp_method_other': 134,
-            'rh.current_fp_method_other': 137,
-            'rh.reason_not_using_fp_other': 139,
-            'rh.current_anc_enrollment_id': 125,
-            'rh.current_fp_method_id': 136,
-            'rh.currently_pregnant_id': 124,
-            'rh.currently_use_modern_fp_id': 135,
-            'rh.fp_methods_awareness_id': 127,
-            'rh.has_biological_children_id': 122,
-            'rh.reason_not_using_fp_id': 138,
-            'rh.known_fp_methods': 128
+            'no_of_biological_children': 123,
+            'anc_facility_name': 126,
+            'known_fp_method_other': 134,
+            'current_fp_method_other': 137,
+            'reason_not_using_fp_other': 139,
+            'current_anc_enrollment_id': 125,
+            'current_fp_method_id': 136,
+            'currently_pregnant_id': 124,
+            'currently_use_modern_fp_id': 135,
+            'fp_methods_awareness_id': 127,
+            'has_biological_children_id': 122,
+            'reason_not_using_fp_id': 138,
+            'known_fp_methods': 128
         }
         for k, v in cols.items():
-            if k == 'rh.known_fp_methods':
+            if k == 'known_fp_methods':
                 val = row.get(k)
                 if val is not None:
                     fpm = val.split(",")
@@ -705,37 +728,37 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
                             continue
                         else:
                             ws.cell(row=i, column=self.map_fp_method().get(m), value='Yes')
-            elif k == 'rh.current_anc_enrollment_id':
+            elif k == 'current_anc_enrollment_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'rh.current_fp_method_id':
+            elif k == 'current_fp_method_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.familyPlanningDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'rh.currently_pregnant_id':
+            elif k == 'currently_pregnant_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'rh.currently_use_modern_fp_id':
+            elif k == 'currently_use_modern_fp_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'rh.fp_methods_awareness_id':
+            elif k == 'fp_methods_awareness_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'rh.has_biological_children_id':
+            elif k == 'has_biological_children_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'rh.reason_not_using_fp_id':
+            elif k == 'reason_not_using_fp_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.reasonNoInFPDictionary().get(val)
@@ -746,11 +769,11 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
     def map_drug_use(self, ws, i, row):
         cols = {
             # 'dr.drug_abuse_last_12months_other': 180,
-            'dr.drug_used_last_12months_other': 191,
-            'dr.drug_abuse_last_12months_id': 182,
-            'dr.frequency_of_alcohol_last_12months_id': 181,
-            'dr.produced_alcohol_last_12months_id': 192,
-            'dr.used_alcohol_last_12months_id': 180,
+            'drug_used_last_12months_other': 191,
+            'drug_abuse_last_12months_id': 182,
+            'frequency_of_alcohol_last_12months_id': 181,
+            'produced_alcohol_last_12months_id': 192,
+            'used_alcohol_last_12months_id': 180,
             'drugs_used_in_last_12_months': 183
         }
         for k, v in cols.items():
@@ -763,22 +786,22 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
                             continue
                         else:
                             ws.cell(row=i, column=self.map_drugs().get(d), value='Yes')
-            elif k == 'dr.frequency_of_alcohol_last_12months_id':
+            elif k == 'frequency_of_alcohol_last_12months_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'dr.drug_abuse_last_12months_id':
+            elif k == 'drug_abuse_last_12months_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'dr.produced_alcohol_last_12months_id':
+            elif k == 'produced_alcohol_last_12months_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'dr.used_alcohol_last_12months_id':
+            elif k == 'used_alcohol_last_12months_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
@@ -788,7 +811,7 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_program_participation(self, ws, i, row):
         cols = {
-            'p.dreams_program_other': 201,
+            'dreams_program_other': 201,
             'programmes_enrolled': 193
         }
         for k, v in cols.items():
@@ -806,26 +829,26 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_gbv(self, ws, i, row):
         cols = {
-            'gbv.gbv_help_provider_other': 167,
-            'gbv.preferred_gbv_help_provider_other': 179,
-            'gbv.economic_threat_ever_id': 146,
-            'gbv.economic_threat_last_3months_id': 147,
-            'gbv.humiliated_ever_id': 140,
-            'gbv.humiliated_last_3months_id': 141,
-            'gbv.insulted_ever_id': 144,
-            'gbv.insulted_last_3months_id': 145,
-            'gbv.knowledge_of_gbv_help_centres_id': 168,
-            'gbv.physical_violence_ever_id': 148,
-            'gbv.physical_violence_last_3months_id': 149,
-            'gbv.physically_forced_other_sex_acts_ever_id': 152,
-            'gbv.physically_forced_other_sex_acts_last_3months_id': 153,
-            'gbv.physically_forced_sex_ever_id': 150,
-            'gbv.physically_forced_sex_last_3months_id': 151,
-            'gbv.seek_help_after_gbv_id': 156,
-            'gbv.threatened_for_sexual_acts_ever_id': 154,
-            'gbv.threatened_for_sexual_acts_last_3months_id': 155,
-            'gbv.threats_to_hurt_ever_id': 142,
-            'gbv.threats_to_hurt_last_3months_id': 143,
+            'gbv_help_provider_other': 167,
+            'preferred_gbv_help_provider_other': 179,
+            'economic_threat_ever_id': 146,
+            'economic_threat_last_3months_id': 147,
+            'humiliated_ever_id': 140,
+            'humiliated_last_3months_id': 141,
+            'insulted_ever_id': 144,
+            'insulted_last_3months_id': 145,
+            'knowledge_of_gbv_help_centres_id': 168,
+            'physical_violence_ever_id': 148,
+            'physical_violence_last_3months_id': 149,
+            'physically_forced_other_sex_acts_ever_id': 152,
+            'physically_forced_other_sex_acts_last_3months_id': 153,
+            'physically_forced_sex_ever_id': 150,
+            'physically_forced_sex_last_3months_id': 151,
+            'seek_help_after_gbv_id': 156,
+            'threatened_for_sexual_acts_ever_id': 154,
+            'threatened_for_sexual_acts_last_3months_id': 155,
+            'threats_to_hurt_ever_id': 142,
+            'threats_to_hurt_last_3months_id': 143,
             'providers_sought': 157,
             'preferred_providers': 169,
         }
@@ -848,92 +871,92 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
                             continue
                         else:
                             ws.cell(row=i, column=self.map_gbv_preferred_provider().get(p), value='Yes')
-            elif k == 'gbv.economic_threat_ever_id':
+            elif k == 'economic_threat_ever_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.economic_threat_last_3months_id':
+            elif k == 'economic_threat_last_3months_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.humiliated_ever_id':
+            elif k == 'humiliated_ever_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.humiliated_last_3months_id':
+            elif k == 'humiliated_last_3months_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.insulted_ever_id':
+            elif k == 'insulted_ever_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.insulted_last_3months_id':
+            elif k == 'insulted_last_3months_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.knowledge_of_gbv_help_centres_id':
+            elif k == 'knowledge_of_gbv_help_centres_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.physical_violence_ever_id':
+            elif k == 'physical_violence_ever_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.physical_violence_last_3months_id':
+            elif k == 'physical_violence_last_3months_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.physically_forced_other_sex_acts_ever_id':
+            elif k == 'physically_forced_other_sex_acts_ever_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.physically_forced_other_sex_acts_last_3months_id':
+            elif k == 'physically_forced_other_sex_acts_last_3months_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.physically_forced_sex_ever_id':
+            elif k == 'physically_forced_sex_ever_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.physically_forced_sex_last_3months_id':
+            elif k == 'physically_forced_sex_last_3months_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.seek_help_after_gbv_id':
+            elif k == 'seek_help_after_gbv_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.threatened_for_sexual_acts_ever_id':
+            elif k == 'threatened_for_sexual_acts_ever_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.threatened_for_sexual_acts_last_3months_id':
+            elif k == 'threatened_for_sexual_acts_last_3months_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.threats_to_hurt_ever_id':
+            elif k == 'threats_to_hurt_ever_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'gbv.threats_to_hurt_last_3months_id':
+            elif k == 'threats_to_hurt_last_3months_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.frequencyDictionary().get(val)
@@ -943,26 +966,26 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_education_and_employment(self, ws, i, row):
         cols = {
-            'edu.current_school_name': 64,
-            'edu.current_class': 68,
-            'edu.current_school_level_other': 67,
+            'current_school_name': 64,
+            'current_class': 68,
+            'current_school_level_other': 67,
             'current_edu_supporter_list': 69,
-            'edu.current_education_supporter_other': 70,
-            'edu.reason_not_in_school_other': 76,
-            'edu.dropout_class': 78,
-            'edu.life_wish_other': 81,
-            'edu.current_income_source_other': 83,
-            'edu.banking_place_other': 86,
-            'edu.banking_place_id': 85,
-            'edu.current_income_source_id': 82,
-            'edu.current_school_level_id': 66,
-            'edu.current_school_type_id': 65,
-            'edu.currently_in_school_id': 63,
-            'edu.dropout_school_level_id': 79,
-            'edu.has_savings_id': 84,
-            'edu.last_time_in_school_id': 77,
-            'edu.life_wish_id': 80,
-            'edu.reason_not_in_school_id': 75
+            'current_education_supporter_other': 70,
+            'reason_not_in_school_other': 76,
+            'dropout_class': 78,
+            'life_wish_other': 81,
+            'current_income_source_other': 83,
+            'banking_place_other': 86,
+            'banking_place_id': 85,
+            'current_income_source_id': 82,
+            'current_school_level_id': 66,
+            'current_school_type_id': 65,
+            'currently_in_school_id': 63,
+            'dropout_school_level_id': 79,
+            'has_savings_id': 84,
+            'last_time_in_school_id': 77,
+            'life_wish_id': 80,
+            'reason_not_in_school_id': 75
         }
         for k, v in cols.items():
             if k == 'current_edu_supporter_list':
@@ -974,52 +997,52 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
                             continue
                         else:
                             ws.cell(row=i, column=self.map_education_supporter().get(s), value='Yes')
-            elif k == 'edu.banking_place_id':
+            elif k == 'banking_place_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.bankingPlaceDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'edu.current_income_source_id':
+            elif k == 'current_income_source_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.incomeSourceDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'edu.current_school_level_id':
+            elif k == 'current_school_level_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.schoolLevelDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'edu.current_school_type_id':
+            elif k == 'current_school_type_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.schoolTypeDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'edu.currently_in_school_id':
+            elif k == 'currently_in_school_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'edu.dropout_school_level_id':
+            elif k == 'dropout_school_level_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.schoolLevelDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'edu.has_savings_id':
+            elif k == 'has_savings_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'edu.last_time_in_school_id':
+            elif k == 'last_time_in_school_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.lastInSchoolDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'edu.life_wish_id':
+            elif k == 'life_wish_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.lifeWishDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'edu.reason_not_in_school_id':
+            elif k == 'reason_not_in_school_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.reasonNotInSchoolDictionary().get(val)
@@ -1029,16 +1052,16 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_hiv_testing(self, ws, i, row):
         cols = {
-            'hiv.care_facility_enrolled': 91,
-            'hiv.reason_not_in_hiv_care_other': 93,
+            'care_facility_enrolled': 91,
+            'reason_not_in_hiv_care_other': 93,
             'reason_not_tested_for_hiv': 94,
-            'hiv.reason_never_tested_for_hiv_other': 103,
-            'hiv.enrolled_in_hiv_care_id': 90,
-            'hiv.ever_tested_for_hiv_id': 87,
-            'hiv.knowledge_of_hiv_test_centres_id': 104,
-            'hiv.last_test_result_id': 89,
-            'hiv.period_last_tested_id': 88,
-            'hiv.reason_not_in_hiv_care_id': 92
+            'reason_never_tested_for_hiv_other': 103,
+            'enrolled_in_hiv_care_id': 90,
+            'ever_tested_for_hiv_id': 87,
+            'knowledge_of_hiv_test_centres_id': 104,
+            'last_test_result_id': 89,
+            'period_last_tested_id': 88,
+            'reason_not_in_hiv_care_id': 92
         }
         for k, v in cols.items():
             if k == 'reason_not_tested_for_hiv':
@@ -1050,32 +1073,32 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
                             continue
                         else:
                             ws.cell(row=i, column=self.map_reason_never_tested_for_hiv().get(r), value='Yes')
-            elif k == 'hiv.enrolled_in_hiv_care_id':
+            elif k == 'enrolled_in_hiv_care_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'hiv.ever_tested_for_hiv_id':
+            elif k == 'ever_tested_for_hiv_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'hiv.knowledge_of_hiv_test_centres_id':
+            elif k == 'knowledge_of_hiv_test_centres_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.yesNoDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'hiv.last_test_result_id':
+            elif k == 'last_test_result_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.hivTestDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'hiv.period_last_tested_id':
+            elif k == 'period_last_tested_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.periodDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            elif k == 'hiv.reason_not_in_hiv_care_id':
+            elif k == 'reason_not_in_hiv_care_id':
                 val = row.get(k)
                 if val is not None:
                     item = self.reasonNotInCareDictionary().get(val)
@@ -1177,6 +1200,16 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
             '4': 72,
             '5': 73,
             '96': 74
+        }
+
+    def map_disability_type(self):
+        return {
+            '1': 49,
+            '2': 50,
+            '3': 51,
+            '4': 52,
+            '5': 53,
+            '96': 54
         }
 
     def map_implementing_partner(self):

@@ -17,6 +17,8 @@ from django.db.models import Q
 from DreamsApp.models import *
 from DreamsApp.forms import *
 from Dreams_Utils import *
+from Dreams_Utils_Plain import *
+
 
 def get_enrollment_form_config_data():
     try:
@@ -1304,14 +1306,14 @@ def download_excel(request):
 
 
 def export_page(request):
-    return render(request, 'testAjax.html')
+    return render(request, 'dataExport.html')
 
 
 def downloadEXCEL(request):
 
     response = HttpResponse(content_type='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
-    export_doc = DreamsEnrollmentExcelDatabase()
+    export_doc = DreamsEnrollmentExcelTemplateRenderer()
     wb = export_doc.prepare_excel_doc()
     wb.save(response)
     return response
