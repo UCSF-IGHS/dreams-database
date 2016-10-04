@@ -7,10 +7,11 @@ from string import Template
 import datetime
 from django.db import connection
 from django.conf import settings
+from openpyxl.utils.exceptions import *
 import os
 
 
-class DreamsEnrollmentExcelDatabase(object):
+class DreamsEnrollmentExcelTemplateRenderer(object):
 
     document_path = ''
     workbook = ''
@@ -257,7 +258,8 @@ VALUES """
         return """ SELECT
 d.first_name,d.middle_name,d.last_name,d.date_of_birth, d.verification_document_id,d.verification_doc_no,d.date_of_enrollment,d.phone_number,
   d.dss_id_number,d.informal_settlement,d.village,d.landmark,d.dreams_id,d.guardian_name,d.relationship_with_guardian,d.guardian_phone_number,
-  d.guardian_national_id,d.date_created,d.county_of_residence_id,d.implementing_partner_id,d.marital_status_id,d.sub_county_id,d.ward_id,
+  d.guardian_national_id,d.date_created,d.county_of_residence_id, d.implementing_partner_id,d.marital_status_id,d.sub_county_id,d.ward_id,l.ward_name,l.sub_county_code,
+  l.sub_county_name,l.county_code,l.county_name,
 i.head_of_household_id, i.head_of_household_other,i.age_of_household_head, i.is_father_alive, i.is_mother_alive, i.is_parent_chronically_ill,
   i.main_floor_material_id, i.main_floor_material_other, i.main_roof_material_id, i.main_roof_material_other, i.main_wall_material_id, i.main_wall_material_other,
   i.source_of_drinking_water_id,i.source_of_drinking_water_other, i.no_of_adults, i.no_of_females, i.no_of_males, i.no_of_children,
@@ -291,6 +293,18 @@ hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_re
 hiv.reason_not_in_hiv_care_id, reason_not_tested_for_hiv
 FROM
 DreamsApp_client AS d
+LEFT OUTER JOIN (
+SELECT
+w.id as ward_code,
+w.name as ward_name,
+w.sub_county_id as sub_county_code,
+s.name as sub_county_name,
+s.county_id as county_code,
+c.name as county_name
+from DreamsApp_ward w
+INNER JOIN DreamsApp_subcounty s ON s.id = w.sub_county_id
+INNER JOIN DreamsApp_county c ON s.county_id = c.id
+) l ON l.ward_code = d.ward_id
 LEFT OUTER JOIN (
 SELECT *
 FROM DreamsApp_clientindividualandhouseholddata o_i_data
@@ -385,6 +399,7 @@ FROM DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv rn
 GROUP BY rec_id
 ) rn_not_tested ON rn_not_tested.rec_id = hiv_d.id
 GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
+order by d.implementing_partner_id
 
         """
 
@@ -405,6 +420,7 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
         cursor = connection.cursor()
         try:
             cursor.execute(sql)
+            print "Query was successful"
             columns = [col[0] for col in cursor.description]
             return [
                 dict(zip(columns, row))
@@ -416,43 +432,60 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
         return
 
+    def load_workbook(self):
+        DREAMS_TEMPLATE_PLAIN = os.path.join(settings.BASE_DIR, 'templates/excel_template/dreams_export.xlsx')
+        try:
+            wb = xl.load_workbook(DREAMS_TEMPLATE_PLAIN)
+            return wb
+        except InvalidFileException as e:
+            traceback.format_exc()
+
+    def load_workbook_template(self):
+        DREAMS_TEMPLATE_PLAIN = os.path.join(settings.BASE_DIR, 'templates/excel_template/sample_template.xlsx')
+        try:
+            wb = xl.load_workbook(DREAMS_TEMPLATE_PLAIN)
+            return wb
+        except InvalidFileException as e:
+            traceback.format_exc()
+
     def prepare_excel_doc(self):
 
-        DREAMS_TEMPLATE = os.path.join(settings.BASE_DIR, 'templates/excel_template/dreams_export.xlsx')
-
         try:
-            wb = xl.load_workbook(DREAMS_TEMPLATE)
 
-            enrollment_sheet = wb.get_sheet_by_name("Enrollment")
-            intervention_sheet = wb.get_sheet_by_name("Interventions")
+            wb = self.load_workbook()
+            refined_sheet = wb.get_sheet_by_name('enrollment_refined')
             print "Starting DB Query! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             db_data = self.get_export_rows()
             print "Finished DB Query. Rendering Now. ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            i = 5
+            i = 1
             for row in db_data:
                 i += 1
-                self.map_demographics(enrollment_sheet, i, row)
-                self.map_individual_and_household(enrollment_sheet, i, row)
-                self.map_sexuality(enrollment_sheet, i, row)
-                self.map_reproductive_health(enrollment_sheet, i, row)
-                self.map_drug_use(enrollment_sheet, i, row)
-                self.map_education_and_employment(enrollment_sheet, i, row)
-                self.map_gbv(enrollment_sheet, i, row)
-                self.map_program_participation(enrollment_sheet, i, row)
-                self.map_hiv_testing(enrollment_sheet, i, row)
+                self.map_demographics(refined_sheet, i, row)
+                self.map_individual_and_household(refined_sheet, i, row)
+                self.map_sexuality(refined_sheet, i, row)
+                self.map_reproductive_health(refined_sheet, i, row)
+                self.map_drug_use(refined_sheet, i, row)
+                self.map_education_and_employment(refined_sheet, i, row)
+                self.map_gbv(refined_sheet, i, row)
+                self.map_program_participation(refined_sheet, i, row)
+                self.map_hiv_testing(refined_sheet, i, row)
 
             wb.save('dreams_enrollment_interventions.xlsx')
             print "Completed rendering excel ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             return wb
-        except Exception as e:
-            print 'There was an Error loading dreams template'
+        except InvalidFileException as e:
+            traceback.format_exc()
+        except ReadOnlyWorkbookException as e:
+            traceback.format_exc()
+
+        except SheetTitleException as e:
             traceback.format_exc()
         return
 
     def map_demographics(self, ws, i, row):
         cols = {
             'implementing_partner_id': 2,
-            # 'IP_Code': 3,
+            'IP_Code': 3,
             #'first_name': 4,
             #'middle_name': 5,
             #'last_name': 6,
@@ -461,24 +494,24 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
             'verification_doc_other': 9,
             #'verification_doc_no': 10,
             'date_of_enrollment': 11,
-            'marital_status_id': 14,
-            'phone_number': 15,
-            'county_of_residence_id': 16,
-            'sub_county_id': 17,
-            'ward_id': 19,
-            # 'ward_code': 19,
-            'informal_settlement': 20,
-            'village': 21,
-            'land_mark': 22,
-            'dreams_id': 23,
-            'dss_id_number': 24,
+            'marital_status_id': 16,
+            #'phone_number': 17,
+            'county_name': 18,
+            'sub_county_name': 19,
+            'ward_id': 21,
+            'ward_name': 20,
+            'informal_settlement': 22,
+            'village': 23,
+            'land_mark': 24,
+            'dreams_id': 25,
+            'dss_id_number': 26,
             # 'caregiver_first_name': 25,
             # 'caregiver_middle_name': 26,
             # 'caregiver_last_name': 27,
-            'relationship_with_guardian': 28,
-            'caregiver_relationship_other': 29
-            #'guardian_phone_number': 30,
-            #'guardian_national_id': 31,
+            'relationship_with_guardian': 30,
+            'caregiver_relationship_other': 31
+            #'guardian_phone_number': 32,
+            #'guardian_national_id': 33,
         }
 
         for k, v in cols.items():
@@ -487,6 +520,9 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
                 if val is not None:
                     partner = self.map_implementing_partner().get(val)
                     ws.cell(row=i, column=v, value=partner)
+            elif k == 'IP_Code':
+                val = row.get('implementing_partner_id')
+                ws.cell(row=i, column=v, value=val)
             elif k == 'verification_document_id':
                 val = row.get(k)
                 if val is not None:
@@ -502,32 +538,32 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_individual_and_household(self, ws, i, row):
         cols = {
-            'head_of_household_id': 32,
-            'head_of_household_other': 33,
-            'age_of_household_head': 34,
-            'is_father_alive': 35,
-            'is_mother_alive': 36,
-            'is_parent_chronically_ill': 37,
-            'main_floor_material_id': 38,
-            'main_floor_material_other': 39,
-            'main_roof_material_id': 40,
-            'main_roof_material_other': 41,
-            'main_wall_material_id': 42,
-            'main_wall_material_other': 43,
-            'source_of_drinking_water_id': 44,
-            'source_of_drinking_water_other': 45,
-            'no_of_people_in_household': 55,
-            'no_of_adults': 58,
-            'no_of_females': 56,
-            'no_of_males': 57,
-            'no_of_children': 59,
-            'currently_in_ct_program_id': 61,
-            'current_ct_program': 62,
-            'ever_enrolled_in_ct_program_id': 60,
-            'ever_missed_full_day_food_in_4wks_id': 46,
-            'has_disability_id': 48,
-            'no_of_days_missed_food_in_4wks_id': 47,
-            'disability_types': 49
+            'head_of_household_id': 34,
+            'head_of_household_other': 35,
+            'age_of_household_head': 36,
+            'is_father_alive': 37,
+            'is_mother_alive': 38,
+            'is_parent_chronically_ill': 39,
+            'main_floor_material_id': 40,
+            'main_floor_material_other': 41,
+            'main_roof_material_id': 42,
+            'main_roof_material_other': 43,
+            'main_wall_material_id': 44,
+            'main_wall_material_other': 45,
+            'source_of_drinking_water_id': 46,
+            'source_of_drinking_water_other': 47,
+            'no_of_people_in_household': 57,
+            'no_of_adults': 60,
+            'no_of_females': 58,
+            'no_of_males': 59,
+            'no_of_children': 61,
+            'currently_in_ct_program_id': 63,
+            'current_ct_program': 64,
+            'ever_enrolled_in_ct_program_id': 62,
+            'ever_missed_full_day_food_in_4wks_id': 48,
+            'has_disability_id': 50,
+            'no_of_days_missed_food_in_4wks_id': 49,
+            'disability_types': 51
         }
 
         for k, v in cols.items():
@@ -536,7 +572,12 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
                 if val is not None:
                     item = self.headOfHouseHoldDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
-            if k == 'disability_types':
+            elif k == 'has_disability_id':
+                val = row.get(k)
+                if val is not None:
+                    item = self.yesNoDictionary().get(val)
+                    ws.cell(row=i, column=v, value=item)
+            elif k == 'disability_types':
                 val = row.get(k)
                 if val is not None:
                     dts = val.split(",")
@@ -605,23 +646,23 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_sexuality(self, ws, i, row):
         cols = {
-            'age_at_first_sexual_encounter': 106,
-            'sex_partners_in_last_12months': 107,
-            'age_of_last_partner_id': 109,
-            'age_of_second_last_partner_id': 110,
-            'age_of_third_last_partner_id': 111,
-            'ever_had_sex_id': 105,
-            'has_sexual_partner_id': 108,
-            'know_last_partner_hiv_status_id': 115,
-            'know_second_last_partner_hiv_status_id': 116,
-            'know_third_last_partner_hiv_status_id': 117,
-            'last_partner_circumcised_id': 112,
-            'received_money_gift_for_sex_id': 121,
-            'second_last_partner_circumcised_id': 113,
-            'third_last_partner_circumcised_id': 114,
-            'used_condom_with_last_partner_id': 118,
-            'used_condom_with_second_last_partner_id': 119,
-            'used_condom_with_third_last_partner_id': 120
+            'age_at_first_sexual_encounter': 108,
+            'sex_partners_in_last_12months': 109,
+            'age_of_last_partner_id': 111,
+            'age_of_second_last_partner_id': 112,
+            'age_of_third_last_partner_id': 113,
+            'ever_had_sex_id': 107,
+            'has_sexual_partner_id': 110,
+            'know_last_partner_hiv_status_id': 117,
+            'know_second_last_partner_hiv_status_id': 118,
+            'know_third_last_partner_hiv_status_id': 119,
+            'last_partner_circumcised_id': 114,
+            'received_money_gift_for_sex_id': 123,
+            'second_last_partner_circumcised_id': 115,
+            'third_last_partner_circumcised_id': 116,
+            'used_condom_with_last_partner_id': 120,
+            'used_condom_with_second_last_partner_id': 121,
+            'used_condom_with_third_last_partner_id': 122
         }
         for k, v in cols.items():
             if k == 'age_of_last_partner_id':
@@ -687,36 +728,36 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
             elif k == 'used_condom_with_last_partner_id':
                 val = row.get(k)
                 if val is not None:
-                    item = self.yesNoDictionary().get(val)
+                    item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
             elif k == 'used_condom_with_second_last_partner_id':
                 val = row.get(k)
                 if val is not None:
-                    item = self.yesNoDictionary().get(val)
+                    item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
             elif k == 'used_condom_with_third_last_partner_id':
                 val = row.get(k)
                 if val is not None:
-                    item = self.yesNoDictionary().get(val)
+                    item = self.frequencyDictionary().get(val)
                     ws.cell(row=i, column=v, value=item)
             else:
                 ws.cell(row=i, column=v, value=row.get(k))
 
     def map_reproductive_health(self, ws, i, row):
         cols = {
-            'no_of_biological_children': 123,
-            'anc_facility_name': 126,
+            'no_of_biological_children': 125,
+            'anc_facility_name': 128,
             'known_fp_method_other': 134,
-            'current_fp_method_other': 137,
-            'reason_not_using_fp_other': 139,
-            'current_anc_enrollment_id': 125,
-            'current_fp_method_id': 136,
-            'currently_pregnant_id': 124,
-            'currently_use_modern_fp_id': 135,
-            'fp_methods_awareness_id': 127,
-            'has_biological_children_id': 122,
-            'reason_not_using_fp_id': 138,
-            'known_fp_methods': 128
+            'current_fp_method_other': 139,
+            'reason_not_using_fp_other': 141,
+            'current_anc_enrollment_id': 127,
+            'current_fp_method_id': 138,
+            'currently_pregnant_id': 126,
+            'currently_use_modern_fp_id': 137,
+            'fp_methods_awareness_id': 129,
+            'has_biological_children_id': 124,
+            'reason_not_using_fp_id': 140,
+            'known_fp_methods': 130
         }
         for k, v in cols.items():
             if k == 'known_fp_methods':
@@ -770,11 +811,11 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
         cols = {
             # 'dr.drug_abuse_last_12months_other': 180,
             'drug_used_last_12months_other': 191,
-            'drug_abuse_last_12months_id': 182,
-            'frequency_of_alcohol_last_12months_id': 181,
-            'produced_alcohol_last_12months_id': 192,
-            'used_alcohol_last_12months_id': 180,
-            'drugs_used_in_last_12_months': 183
+            'drug_abuse_last_12months_id': 184,
+            'frequency_of_alcohol_last_12months_id': 183,
+            'produced_alcohol_last_12months_id': 194,
+            'used_alcohol_last_12months_id': 182,
+            'drugs_used_in_last_12_months': 185
         }
         for k, v in cols.items():
             if k == 'drugs_used_in_last_12_months':
@@ -811,8 +852,8 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_program_participation(self, ws, i, row):
         cols = {
-            'dreams_program_other': 201,
-            'programmes_enrolled': 193
+            'dreams_program_other': 203,
+            'programmes_enrolled': 195
         }
         for k, v in cols.items():
             if k == 'programmes_enrolled':
@@ -829,28 +870,28 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_gbv(self, ws, i, row):
         cols = {
-            'gbv_help_provider_other': 167,
-            'preferred_gbv_help_provider_other': 179,
-            'economic_threat_ever_id': 146,
-            'economic_threat_last_3months_id': 147,
-            'humiliated_ever_id': 140,
-            'humiliated_last_3months_id': 141,
-            'insulted_ever_id': 144,
-            'insulted_last_3months_id': 145,
-            'knowledge_of_gbv_help_centres_id': 168,
-            'physical_violence_ever_id': 148,
-            'physical_violence_last_3months_id': 149,
-            'physically_forced_other_sex_acts_ever_id': 152,
-            'physically_forced_other_sex_acts_last_3months_id': 153,
-            'physically_forced_sex_ever_id': 150,
-            'physically_forced_sex_last_3months_id': 151,
-            'seek_help_after_gbv_id': 156,
-            'threatened_for_sexual_acts_ever_id': 154,
-            'threatened_for_sexual_acts_last_3months_id': 155,
-            'threats_to_hurt_ever_id': 142,
-            'threats_to_hurt_last_3months_id': 143,
-            'providers_sought': 157,
-            'preferred_providers': 169,
+            'gbv_help_provider_other': 169,
+            'preferred_gbv_help_provider_other': 181,
+            'economic_threat_ever_id': 148,
+            'economic_threat_last_3months_id': 149,
+            'humiliated_ever_id': 142,
+            'humiliated_last_3months_id': 143,
+            'insulted_ever_id': 146,
+            'insulted_last_3months_id': 147,
+            'knowledge_of_gbv_help_centres_id': 170,
+            'physical_violence_ever_id': 150,
+            'physical_violence_last_3months_id': 151,
+            'physically_forced_other_sex_acts_ever_id': 154,
+            'physically_forced_other_sex_acts_last_3months_id': 155,
+            'physically_forced_sex_ever_id': 152,
+            'physically_forced_sex_last_3months_id': 153,
+            'seek_help_after_gbv_id': 158,
+            'threatened_for_sexual_acts_ever_id': 156,
+            'threatened_for_sexual_acts_last_3months_id': 157,
+            'threats_to_hurt_ever_id': 144,
+            'threats_to_hurt_last_3months_id': 145,
+            'providers_sought': 159,
+            'preferred_providers': 171,
         }
         for k, v in cols.items():
             if k == 'providers_sought':
@@ -966,26 +1007,26 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_education_and_employment(self, ws, i, row):
         cols = {
-            'current_school_name': 64,
-            'current_class': 68,
-            'current_school_level_other': 67,
-            'current_edu_supporter_list': 69,
-            'current_education_supporter_other': 70,
-            'reason_not_in_school_other': 76,
-            'dropout_class': 78,
-            'life_wish_other': 81,
-            'current_income_source_other': 83,
-            'banking_place_other': 86,
-            'banking_place_id': 85,
-            'current_income_source_id': 82,
-            'current_school_level_id': 66,
-            'current_school_type_id': 65,
-            'currently_in_school_id': 63,
-            'dropout_school_level_id': 79,
-            'has_savings_id': 84,
-            'last_time_in_school_id': 77,
-            'life_wish_id': 80,
-            'reason_not_in_school_id': 75
+            'current_school_name': 66,
+            'current_class': 70,
+            'current_school_level_other': 69,
+            'current_edu_supporter_list': 71,
+            'current_education_supporter_other': 76,
+            'reason_not_in_school_other': 78,
+            'dropout_class': 80,
+            'life_wish_other': 83,
+            'current_income_source_other': 85,
+            'banking_place_other': 88,
+            'banking_place_id': 87,
+            'current_income_source_id': 84,
+            'current_school_level_id': 68,
+            'current_school_type_id': 67,
+            'currently_in_school_id': 65,
+            'dropout_school_level_id': 81,
+            'has_savings_id': 86,
+            'last_time_in_school_id': 79,
+            'life_wish_id': 82,
+            'reason_not_in_school_id': 77
         }
         for k, v in cols.items():
             if k == 'current_edu_supporter_list':
@@ -1052,16 +1093,16 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_hiv_testing(self, ws, i, row):
         cols = {
-            'care_facility_enrolled': 91,
-            'reason_not_in_hiv_care_other': 93,
-            'reason_not_tested_for_hiv': 94,
+            'care_facility_enrolled': 93,
+            'reason_not_in_hiv_care_other': 95,
+            'reason_not_tested_for_hiv': 96,
             'reason_never_tested_for_hiv_other': 103,
-            'enrolled_in_hiv_care_id': 90,
-            'ever_tested_for_hiv_id': 87,
-            'knowledge_of_hiv_test_centres_id': 104,
-            'last_test_result_id': 89,
-            'period_last_tested_id': 88,
-            'reason_not_in_hiv_care_id': 92
+            'enrolled_in_hiv_care_id': 92,
+            'ever_tested_for_hiv_id': 89,
+            'knowledge_of_hiv_test_centres_id': 106,
+            'last_test_result_id': 91,
+            'period_last_tested_id': 90,
+            'reason_not_in_hiv_care_id': 94
         }
         for k, v in cols.items():
             if k == 'reason_not_tested_for_hiv':
@@ -1108,108 +1149,108 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 
     def map_dreams_programmes(self):
         return {
-            '1': 193,
-            '2': 194,
-            '3': 195,
-            '4': 196,
-            '5': 197,
-            '6': 198,
-            '7': 199,
-            '8': 200,
-            '96': 201
+            '1': 195,
+            '2': 196,
+            '3': 197,
+            '4': 198,
+            '5': 199,
+            '6': 200,
+            '7': 201,
+            '8': 202,
+            '96': 203
         }
 
     def map_drugs(self):
         return {
-            '1': 183,
-            '2': 184,
-            '3': 185,
-            '4': 186,
-            '5': 187,
-            '6': 188,
-            '7': 189,
-            '8': 190,
-            '96': 191
+            '1': 185,
+            '2': 186,
+            '3': 187,
+            '4': 188,
+            '5': 189,
+            '6': 190,
+            '7': 191,
+            '8': 192,
+            '96': 193
 
         }
 
     def map_gbv_preferred_provider(self):
         return {
-            '1': 169,
-            '2': 170,
-            '3': 171,
-            '4': 172,
-            '5': 173,
-            '6': 174,
-            '7': 175,
-            '8': 176,
-            '9': 177,
-            '10': 178,
-            '96': 179
+            '1': 171,
+            '2': 172,
+            '3': 173,
+            '4': 174,
+            '5': 175,
+            '6': 176,
+            '7': 177,
+            '8': 178,
+            '9': 179,
+            '10': 180,
+            '96': 181
 
         }
 
     def map_gbv_sought_provider(self):
         return {
-            '1': 157,
-            '2': 158,
-            '3': 159,
-            '4': 160,
-            '5': 161,
-            '6': 162,
-            '7': 163,
-            '8': 164,
-            '9': 165,
-            '10': 166,
-            '96': 167
+            '1': 159,
+            '2': 160,
+            '3': 161,
+            '4': 162,
+            '5': 163,
+            '6': 164,
+            '7': 165,
+            '8': 166,
+            '9': 167,
+            '10': 168,
+            '96': 169
 
         }
 
     def map_fp_method(self):
         return {
-            '1': 128,
-            '2': 129,
-            '3': 130,
-            '4': 131,
-            '5': 132,
-            '6': 133,
-            '96': 134
+            '1': 130,
+            '2': 131,
+            '3': 132,
+            '4': 133,
+            '5': 134,
+            '6': 135,
+            '96': 136
 
         }
 
     def map_reason_never_tested_for_hiv(self):
         return {
-            '1': 94,
-            '2': 95,
-            '3': 96,
-            '4': 97,
-            '5': 98,
-            '6': 99,
-            '7': 100,
-            '8': 101,
-            '9': 102,
-            '96': 103
+            '1': 96,
+            '2': 97,
+            '3': 98,
+            '4': 99,
+            '5': 100,
+            '6': 101,
+            '7': 102,
+            '8': 103,
+            '9': 104,
+            '96': 105
 
         }
 
     def map_education_supporter(self):
         return {
-            '1': 69,
-            '2': 70,
-            '3': 71,
-            '4': 72,
-            '5': 73,
-            '96': 74
+            '1': 71,
+            '2': 72,
+            '3': 73,
+            '4': 74,
+            '5': 75,
+            '96': 76
         }
 
     def map_disability_type(self):
         return {
-            '1': 49,
-            '2': 50,
-            '3': 51,
-            '4': 52,
-            '5': 53,
-            '96': 54
+            '1': 51,
+            '2': 52,
+            '3': 53,
+            '4': 54,
+            '5': 55,
+            '96': 56
         }
 
     def map_implementing_partner(self):
@@ -1250,7 +1291,7 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
             1: "Self",
             2: "Father",
             3: "Mother",
-            3: "Sibling",
+            4: "Sibling",
             5: "Uncle/Aunt",
             6: "Grandparents",
             7: "Husband/Partner",
