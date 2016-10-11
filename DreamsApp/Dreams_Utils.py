@@ -257,7 +257,8 @@ VALUES """
         return """ SELECT
 d.first_name,d.middle_name,d.last_name,d.date_of_birth, d.verification_document_id,d.verification_doc_no,d.date_of_enrollment,d.phone_number,
   d.dss_id_number,d.informal_settlement,d.village,d.landmark,d.dreams_id,d.guardian_name,d.relationship_with_guardian,d.guardian_phone_number,
-  d.guardian_national_id,d.date_created,d.county_of_residence_id,d.implementing_partner_id,d.marital_status_id,d.sub_county_id,d.ward_id,
+  d.guardian_national_id,d.date_created,d.county_of_residence_id, d.implementing_partner_id,d.marital_status_id,d.sub_county_id,d.ward_id,l.ward_name,l.sub_county_code,
+  l.sub_county_name,l.county_code,l.county_name,
 i.head_of_household_id, i.head_of_household_other,i.age_of_household_head, i.is_father_alive, i.is_mother_alive, i.is_parent_chronically_ill,
   i.main_floor_material_id, i.main_floor_material_other, i.main_roof_material_id, i.main_roof_material_other, i.main_wall_material_id, i.main_wall_material_other,
   i.source_of_drinking_water_id,i.source_of_drinking_water_other, i.no_of_adults, i.no_of_females, i.no_of_males, i.no_of_children,
@@ -291,6 +292,18 @@ hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_re
 hiv.reason_not_in_hiv_care_id, reason_not_tested_for_hiv
 FROM
 DreamsApp_client AS d
+LEFT OUTER JOIN (
+SELECT
+w.id as ward_code,
+w.name as ward_name,
+w.sub_county_id as sub_county_code,
+s.name as sub_county_name,
+s.county_id as county_code,
+c.name as county_name
+from DreamsApp_ward w
+INNER JOIN DreamsApp_subcounty s ON s.id = w.sub_county_id
+INNER JOIN DreamsApp_county c ON s.county_id = c.id
+) l ON l.ward_code = d.ward_id
 LEFT OUTER JOIN (
 SELECT *
 FROM DreamsApp_clientindividualandhouseholddata o_i_data
@@ -329,7 +342,8 @@ FROM DreamsApp_clientdrugusedata_drug_used_last_12months d
 LEFT OUTER JOIN DreamsApp_clientdrugusedata inner_dd ON d.clientdrugusedata_id = inner_dd.id
 GROUP BY dd_id
 ) d ON d.dd_id = dd.id) dr ON dr.client_id = d.id
-INNER JOIN (SELECT *
+LEFT OUTER JOIN (
+SELECT *
 FROM DreamsApp_clientparticipationindreams pp
 LEFT OUTER JOIN
 (
@@ -341,7 +355,8 @@ LEFT OUTER JOIN DreamsApp_clientparticipationindreams inner_pp
 ON dp.clientparticipationindreams_id = inner_pp.id
 GROUP BY pr_id
 ) pr ON pr.pr_id = pp.id) p ON p.client_id = d.id
-INNER JOIN (SELECT
+LEFT OUTER JOIN (
+SELECT
 gbv.*,
 providers.provider_list   AS providers_sought,
 p_providers.provider_list AS preferred_providers
@@ -361,7 +376,8 @@ FROM DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce provider -
 GROUP BY rec_id
 ) p_providers ON p_providers.rec_id = gbv.id
 GROUP BY gbv.id) gbv ON gbv.client_id = d.id
-INNER JOIN (SELECT
+LEFT OUTER JOIN (
+SELECT
 ed.*,
 edu_sup.current_edu_supporter_list
 FROM DreamsApp_clienteducationandemploymentdata ed
@@ -373,7 +389,8 @@ FROM DreamsApp_clienteducationandemploymentdata_current_educationebf4 s -- Dream
 GROUP BY rec_id
 ) edu_sup ON edu_sup.rec_id = ed.id
 GROUP BY ed.id) edu ON edu.client_id = d.id
-INNER JOIN (SELECT
+LEFT OUTER JOIN (
+SELECT
 hiv_d.*,
 rn_not_tested.reason_not_tested_for_hiv
 FROM DreamsApp_clienthivtestingdata hiv_d
@@ -385,6 +402,8 @@ FROM DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv rn
 GROUP BY rec_id
 ) rn_not_tested ON rn_not_tested.rec_id = hiv_d.id
 GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
+GROUP BY d.id
+order by d.implementing_partner_id
 
         """
 

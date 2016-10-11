@@ -122,7 +122,8 @@ class Client(models.Model):
 
     enrolled_by = models.ForeignKey(User, null=True)
     odk_enrollment_uuid = models.CharField(max_length=50, null=True, blank=True)
-    date_created = models.DateTimeField(blank=True, null=True, default=timezone.now)
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
@@ -238,9 +239,9 @@ class Intervention(models.Model):
     date_linked_to_ccc = models.DateField(blank=True, null=True)
     no_of_sessions_attended = models.IntegerField(null=True, blank=True)
     comment = models.TextField(max_length=256, null=True, blank=True)
-    date_created = models.DateTimeField(default=datetime.now, blank=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     created_by = models.ForeignKey(User, null=True, related_name='created_by')
-    date_changed = models.DateTimeField(null=True, blank=True)
+    date_changed = models.DateTimeField(auto_now=True, null=True, blank=True)
     changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
     implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True,
                                              related_name='implementing_partner')
@@ -743,7 +744,7 @@ class DreamsProgramme(models.Model):
 
 class ClientIndividualAndHouseholdData(models.Model):
     """ Holds individual and household information about Dreams client"""
-    client = models.ForeignKey(Client)
+    client = models.ForeignKey(Client, db_index=True)
     head_of_household = models.ForeignKey(HouseholdHead, null=True, related_name='+')
     head_of_household_other = models.CharField(max_length=50, blank=True, null=True)
     age_of_household_head = models.IntegerField(blank=True, null=True)
@@ -773,11 +774,13 @@ class ClientIndividualAndHouseholdData(models.Model):
     ever_enrolled_in_ct_program = models.ForeignKey(CategoricalResponse, null=True, verbose_name='Ever enrolled in Cash Transfer?', related_name='+')
     currently_in_ct_program = models.ForeignKey(CategoricalResponse, null=True, verbose_name="Currently enrolled in Cash Transfer?", related_name='+')
     current_ct_program = models.CharField(verbose_name='Cash Transfer Programme currently enrolled in', max_length=50, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class ClientEducationAndEmploymentData(models.Model):
     """ Holds education and employment information about Dreams client"""
-    client = models.ForeignKey(Client)
+    client = models.ForeignKey(Client, db_index=True)
     currently_in_school = models.ForeignKey(CategoricalResponse, null=True, verbose_name='Currently schooling', related_name='+')
     current_school_name = models.CharField(verbose_name='Name of school', blank=True, null=True, max_length=50)
     current_school_type = models.ForeignKey(SchoolType, verbose_name='Type of school', blank=True, null=True, related_name='+')
@@ -798,11 +801,13 @@ class ClientEducationAndEmploymentData(models.Model):
     has_savings = models.ForeignKey(CategoricalResponse, null=True, verbose_name='Do you have savings?', related_name='+')
     banking_place = models.ForeignKey(BankingPlace, verbose_name='Where do you keep your savings?', blank=True, null=True, related_name='+')
     banking_place_other = models.CharField(max_length=20, verbose_name='Other place for savings', null=True)
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class ClientHIVTestingData(models.Model):
     """ Holds HIV testing information about a client"""
-    client = models.ForeignKey(Client)
+    client = models.ForeignKey(Client, db_index=True)
     ever_tested_for_hiv = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
     period_last_tested = models.ForeignKey(PeriodResponse, blank=False, null=True, related_name='+')
     last_test_result = models.ForeignKey(HivTestResultResponse, blank=False, null=True, related_name='+')
@@ -813,11 +818,13 @@ class ClientHIVTestingData(models.Model):
     knowledge_of_hiv_test_centres = models.ForeignKey(CategoricalResponse, null=True, related_name='+')
     reason_never_tested_for_hiv = models.ManyToManyField(ReasonNotTestedForHIV, blank=True)
     reason_never_tested_for_hiv_other = models.CharField(max_length=50, blank=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class ClientSexualActivityData(models.Model):
     """ Holds Sexual activity information about a client"""
-    client = models.ForeignKey(Client)
+    client = models.ForeignKey(Client, db_index=True)
     ever_had_sex = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
     age_at_first_sexual_encounter = models.IntegerField(verbose_name='Age at first sexual encounter', null=True)
     has_sexual_partner = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
@@ -835,11 +842,13 @@ class ClientSexualActivityData(models.Model):
     used_condom_with_second_last_partner = models.ForeignKey(FrequencyResponse, null=True, blank=True, related_name='+')
     used_condom_with_third_last_partner = models.ForeignKey(FrequencyResponse, null=True, blank=True, related_name='+')
     received_money_gift_for_sex = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class ClientReproductiveHealthData(models.Model):
     """ Holds information about client's reproductive health """
-    client = models.ForeignKey(Client)
+    client = models.ForeignKey(Client, db_index=True)
     has_biological_children = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
     no_of_biological_children = models.IntegerField(blank=True, null=True)
     currently_pregnant = models.ForeignKey(CategoricalResponse, null=True, related_name='+')
@@ -854,11 +863,13 @@ class ClientReproductiveHealthData(models.Model):
                                                        blank=True, null=True)
     reason_not_using_fp = models.ForeignKey(ReasonNotUsingFamilyPlanning, null=True, blank=True, related_name='+')
     reason_not_using_fp_other = models.CharField(max_length=50, blank=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class ClientGenderBasedViolenceData(models.Model):
     """Holds Gender Based Violence information about a client"""
-    client = models.ForeignKey(Client)
+    client = models.ForeignKey(Client, db_index=True)
     humiliated_ever = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
     humiliated_last_3months = models.ForeignKey(FrequencyResponse, blank=True, null=True, related_name='+')
     threats_to_hurt_ever = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
@@ -881,11 +892,13 @@ class ClientGenderBasedViolenceData(models.Model):
     knowledge_of_gbv_help_centres = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
     preferred_gbv_help_provider = models.ManyToManyField(GBVHelpProvider,blank=True, related_name='+')
     preferred_gbv_help_provider_other = models.CharField(max_length=50, blank=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class ClientDrugUseData(models.Model):
     """ Holds Drug use information about client"""
-    client = models.ForeignKey(Client)
+    client = models.ForeignKey(Client, db_index=True)
     used_alcohol_last_12months = models.ForeignKey(CategoricalResponse, null=True, related_name='+')
     frequency_of_alcohol_last_12months = models.ForeignKey(FrequencyResponse, null=True)
     drug_abuse_last_12months = models.ForeignKey(CategoricalResponse, related_name='+', null=True)
@@ -893,13 +906,17 @@ class ClientDrugUseData(models.Model):
     drug_used_last_12months = models.ManyToManyField(Drug)
     drug_used_last_12months_other = models.CharField(max_length=50, blank=True, null=True)
     produced_alcohol_last_12months = models.ForeignKey(CategoricalResponse, null=True, related_name='+')
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class ClientParticipationInDreams(models.Model):
     """ Holds information of client's participation in HIV programmes"""
-    client = models.ForeignKey(Client)
+    client = models.ForeignKey(Client, db_index=True)
     dreams_program_other = models.CharField(max_length=50, blank=True, null=True)
     dreams_program = models.ManyToManyField(DreamsProgramme, blank=True)
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class AgeBracket(models.Model):
@@ -943,5 +960,15 @@ class HomeVisitVerification(models.Model):
     preferred_beneficiary_relationship = models.CharField(max_length=50, null=True, blank=True)
     preferred_beneficiary_id_no = models.CharField(max_length=20, blank=True, null=True)
     household_description = models.CharField(max_length=250, blank=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+
+class FlatEnrollmentTableLog(models.Model):
+    date_started = models.DateTimeField(null=True)
+    date_completed = models.DateTimeField(null=True)
+    activity = models.CharField(max_length=50)
+    error = models.CharField(max_length=255, null=True)
+
 
 
