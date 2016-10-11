@@ -18,7 +18,7 @@ AFTER INSERT
 ON odk_aggregate.DREAMS_ENROLMENT_FORM_CORE2
 FOR EACH ROW
 BEGIN
-INSERT INTO dreams_dev.odk_dreams_sync
+INSERT INTO dreams_test.odk_dreams_sync
 (
 uuid, form
 )
@@ -40,7 +40,7 @@ AFTER INSERT
 ON odk_aggregate.CT_HOME_VISIT_VERFICATION_FORM_CORE
 FOR EACH ROW
 BEGIN
-INSERT INTO dreams_dev.odk_dreams_sync
+INSERT INTO dreams_test.odk_dreams_sync
 (
 uuid, form
 )
@@ -59,10 +59,10 @@ DELIMITER ;
 DELIMITER $$
 DROP EVENT IF EXISTS event_odk_dreams_enrollment_sync$$
 CREATE EVENT event_odk_dreams_enrollment_sync
-	ON SCHEDULE EVERY 2 MINUTE STARTS CURRENT_TIMESTAMP
-	DO
-		call sp_sync_odk_dreams_data();
-	$$
+ON SCHEDULE EVERY 2 MINUTE STARTS CURRENT_TIMESTAMP
+DO
+call sp_sync_odk_dreams_data();
+$$
 DELIMITER ;
 
 
@@ -1148,5 +1148,1068 @@ GROUP BY hiv_d.id) hiv ON hiv.client_id = d.id
 "ever_tested_for_hiv_id","knowledge_of_hiv_test_centres_id","last_test_result_id","period_last_tested_id",
 "reason_not_in_hiv_care_id" )  UNION  (select * INTO OUTFILE '/home/aaojwang/mysql-files/odk_enrollment_dump.csv' FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' from odk_enrollment_dump);
 
+-- ------------------------------------------------ create a flat table -------------------------------------------------------
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_create_flat_enrollment_table$$
+CREATE PROCEDURE sp_create_flat_enrollment_table()
+BEGIN
+
+DECLARE record_id INT(11);
+INSERT INTO DreamsApp_flatenrollmenttablelog(date_started, activity) VALUES(NOW(), 'Initial creation of flat enrollment table');
+SET record_id = LAST_INSERT_ID();
+
+DROP TABLE IF EXISTS flat_dreams_enrollment;
+
+CREATE TABLE flat_dreams_enrollment (
+client_id INT(11) PRIMARY KEY NOT NULL,
+first_name VARCHAR(100),
+middle_name VARCHAR(100),
+last_name VARCHAR(100),
+date_of_birth DATE,
+verification_document_id INT(11),
+verification_doc_no VARCHAR(50),
+date_of_enrollment DATE,
+phone_number VARCHAR(15),
+dss_id_number VARCHAR(20),
+informal_settlement VARCHAR(50),
+village VARCHAR(50),
+landmark VARCHAR(255),
+dreams_id VARCHAR(20),
+guardian_name VARCHAR(50),
+relationship_with_guardian VARCHAR(50),
+guardian_phone_number VARCHAR(15),
+guardian_national_id VARCHAR(20),
+date_created DATE,
+county_of_residence_id INT(11),
+implementing_partner_id INT(11),
+marital_status_id INT(11),
+sub_county_id INT(11),
+ward_id INT(11),
+ward_name VARCHAR(50),
+sub_county_code INT(11),
+sub_county_name VARCHAR(100),
+county_code INT(11),
+county_name VARCHAR(30),
+head_of_household_id INT(11),
+head_of_household_other VARCHAR(50),
+age_of_household_head INT(11),
+is_father_alive INT(11),
+is_mother_alive INT(11),
+is_parent_chronically_ill INT(11),
+main_floor_material_id INT(11),
+main_floor_material_other VARCHAR(50),
+main_roof_material_id INT(11),
+main_roof_material_other VARCHAR(50),
+main_wall_material_id INT(11),
+main_wall_material_other VARCHAR(50),
+source_of_drinking_water_id INT(11),
+source_of_drinking_water_other VARCHAR(50),
+no_of_adults INT(11),
+no_of_females INT(11),
+no_of_males INT(11),
+no_of_children INT(11),
+currently_in_ct_program_id INT(11),
+current_ct_program VARCHAR(50),
+ever_enrolled_in_ct_program_id INT(11),
+ever_missed_full_day_food_in_4wks_id INT(11),
+has_disability_id INT(11),
+no_of_days_missed_food_in_4wks_id INT(11),
+disability_types VARCHAR(20),
+no_of_people_in_household INT(11),
+age_at_first_sexual_encounter INT(11),
+sex_partners_in_last_12months INT(11),
+age_of_last_partner_id INT(11),
+age_of_second_last_partner_id INT(11),
+age_of_third_last_partner_id INT(11),
+ever_had_sex_id INT(11),
+has_sexual_partner_id INT(11),
+know_last_partner_hiv_status_id INT(11),
+know_second_last_partner_hiv_status_id INT(11),
+know_third_last_partner_hiv_status_id INT(11),
+last_partner_circumcised_id INT(11),
+received_money_gift_for_sex_id INT(11),
+second_last_partner_circumcised_id INT(11),
+third_last_partner_circumcised_id INT(11),
+used_condom_with_last_partner_id INT(11),
+used_condom_with_second_last_partner_id INT(11),
+used_condom_with_third_last_partner_id INT(11),
+no_of_biological_children INT(11),
+anc_facility_name VARCHAR(50),
+known_fp_method_other VARCHAR(50),
+current_fp_method_other VARCHAR(50),
+reason_not_using_fp_other VARCHAR(50),
+current_anc_enrollment_id INT(11),
+current_fp_method_id INT(11),
+currently_pregnant_id INT(11),
+currently_use_modern_fp_id INT(11),
+fp_methods_awareness_id INT(11),
+has_biological_children_id INT(11),
+reason_not_using_fp_id INT(11),
+known_fp_methods VARCHAR(20),
+drug_abuse_last_12months_other VARCHAR(50),
+drug_used_last_12months_other VARCHAR(50),
+drug_abuse_last_12months_id INT(11),
+frequency_of_alcohol_last_12months_id INT(11),
+produced_alcohol_last_12months_id INT(11),
+used_alcohol_last_12months_id INT(11),
+drugs_used_in_last_12_months VARCHAR(20),
+dreams_program_other VARCHAR(50),
+programmes_enrolled VARCHAR(20),
+gbv_help_provider_other VARCHAR(50),
+preferred_gbv_help_provider_other VARCHAR(50),
+economic_threat_ever_id INT(11),
+economic_threat_last_3months_id INT(11),
+humiliated_ever_id INT(11),
+humiliated_last_3months_id INT(11),
+insulted_ever_id INT(11),
+insulted_last_3months_id INT(11),
+knowledge_of_gbv_help_centres_id INT(11),
+physical_violence_ever_id INT(11),
+physical_violence_last_3months_id INT(11),
+physically_forced_other_sex_acts_ever_id INT(11),
+physically_forced_other_sex_acts_last_3months_id INT(11),
+physically_forced_sex_ever_id INT(11),
+physically_forced_sex_last_3months_id INT(11),
+seek_help_after_gbv_id INT(11),
+threatened_for_sexual_acts_ever_id INT(11),
+threatened_for_sexual_acts_last_3months_id INT(11),
+threats_to_hurt_ever_id INT(11),
+threats_to_hurt_last_3months_id INT(11),
+providers_sought VARCHAR(20),
+preferred_providers VARCHAR(20),
+current_school_name VARCHAR(50),
+current_class VARCHAR(15),
+current_school_level_other VARCHAR(50),
+current_education_supporter_other VARCHAR(50),
+reason_not_in_school_other VARCHAR(50),
+dropout_class VARCHAR(15),
+life_wish_other VARCHAR(50),
+current_income_source_other VARCHAR(50),
+banking_place_other VARCHAR(50),
+banking_place_id INT(11),
+current_income_source_id INT(11),
+current_school_level_id INT(11),
+current_school_type_id INT(11),
+currently_in_school_id INT(11),
+dropout_school_level_id INT(11),
+has_savings_id INT(11),
+last_time_in_school_id INT(11),
+life_wish_id INT(11),
+reason_not_in_school_id INT(11),
+current_edu_supporter_list VARCHAR(20),
+care_facility_enrolled VARCHAR(50),
+reason_not_in_hiv_care_other VARCHAR(50),
+reason_never_tested_for_hiv_other VARCHAR(50),
+enrolled_in_hiv_care_id INT(11),
+ever_tested_for_hiv_id INT(11),
+knowledge_of_hiv_test_centres_id INT(11),
+last_test_result_id INT(11),
+period_last_tested_id INT(11),
+reason_not_in_hiv_care_id INT(11),
+reason_not_tested_for_hiv VARCHAR(20)
+);
+
+UPDATE DreamsApp_flatenrollmenttablelog SET date_completed = NOW() WHERE id=record_id;
+
+END$$
+DELIMITER ;
 
 
+
+-- ------------------------------------- insert into flat table ---------
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_populate_flat_enrollment_table$$
+CREATE PROCEDURE sp_populate_flat_enrollment_table()
+BEGIN
+
+DECLARE record_id INT(11);
+INSERT INTO DreamsApp_flatenrollmenttablelog(date_started, activity) VALUES(NOW(), 'First time population of table');
+SET record_id = LAST_INSERT_ID();
+
+INSERT INTO flat_dreams_enrollment(
+client_id,
+first_name,
+middle_name,
+last_name,
+date_of_birth,
+verification_document_id,
+verification_doc_no,
+date_of_enrollment,
+phone_number,
+dss_id_number,
+informal_settlement,
+village,
+landmark,
+dreams_id,
+guardian_name,
+relationship_with_guardian,
+guardian_phone_number,
+guardian_national_id,
+county_of_residence_id,
+implementing_partner_id,
+marital_status_id,
+sub_county_id,
+ward_id,
+ward_name,
+sub_county_code,
+sub_county_name,
+county_code,
+county_name,
+head_of_household_id,
+head_of_household_other,
+age_of_household_head,
+is_father_alive,
+is_mother_alive,
+is_parent_chronically_ill,
+main_floor_material_id,
+main_floor_material_other,
+main_roof_material_id,
+main_roof_material_other,
+main_wall_material_id,
+main_wall_material_other,
+source_of_drinking_water_id,
+source_of_drinking_water_other,
+no_of_adults,
+no_of_females,
+no_of_males,
+no_of_children,
+currently_in_ct_program_id,
+current_ct_program,
+ever_enrolled_in_ct_program_id,
+ever_missed_full_day_food_in_4wks_id,
+has_disability_id,
+no_of_days_missed_food_in_4wks_id,
+no_of_people_in_household,
+age_at_first_sexual_encounter,
+sex_partners_in_last_12months,
+age_of_last_partner_id,
+age_of_second_last_partner_id,
+age_of_third_last_partner_id,
+ever_had_sex_id,
+has_sexual_partner_id,
+know_last_partner_hiv_status_id,
+know_second_last_partner_hiv_status_id,
+know_third_last_partner_hiv_status_id,
+last_partner_circumcised_id,
+received_money_gift_for_sex_id,
+second_last_partner_circumcised_id,
+third_last_partner_circumcised_id,
+used_condom_with_last_partner_id,
+used_condom_with_second_last_partner_id,
+used_condom_with_third_last_partner_id,
+no_of_biological_children,
+anc_facility_name,
+known_fp_method_other,
+current_fp_method_other,
+reason_not_using_fp_other,
+current_anc_enrollment_id,
+current_fp_method_id,
+currently_pregnant_id,
+currently_use_modern_fp_id,
+fp_methods_awareness_id,
+has_biological_children_id,
+reason_not_using_fp_id,
+drug_abuse_last_12months_other,
+drug_used_last_12months_other,
+drug_abuse_last_12months_id,
+frequency_of_alcohol_last_12months_id,
+produced_alcohol_last_12months_id,
+used_alcohol_last_12months_id,
+dreams_program_other,
+gbv_help_provider_other,
+preferred_gbv_help_provider_other,
+economic_threat_ever_id,
+economic_threat_last_3months_id,
+humiliated_ever_id,
+humiliated_last_3months_id,
+insulted_ever_id,
+insulted_last_3months_id,
+knowledge_of_gbv_help_centres_id,
+physical_violence_ever_id,
+physical_violence_last_3months_id,
+physically_forced_other_sex_acts_ever_id,
+physically_forced_other_sex_acts_last_3months_id,
+physically_forced_sex_ever_id,
+physically_forced_sex_last_3months_id,
+seek_help_after_gbv_id,
+threatened_for_sexual_acts_ever_id,
+threatened_for_sexual_acts_last_3months_id,
+threats_to_hurt_ever_id,
+threats_to_hurt_last_3months_id,
+current_school_name,
+current_class,
+current_school_level_other,
+current_education_supporter_other,
+reason_not_in_school_other,
+dropout_class,
+life_wish_other,
+current_income_source_other,
+banking_place_other,
+banking_place_id,
+current_income_source_id,
+current_school_level_id,
+current_school_type_id,
+currently_in_school_id,
+dropout_school_level_id,
+has_savings_id,
+last_time_in_school_id,
+life_wish_id,
+reason_not_in_school_id,
+care_facility_enrolled,
+reason_not_in_hiv_care_other,
+reason_never_tested_for_hiv_other,
+enrolled_in_hiv_care_id,
+ever_tested_for_hiv_id,
+knowledge_of_hiv_test_centres_id,
+last_test_result_id,
+period_last_tested_id,
+reason_not_in_hiv_care_id
+)
+select
+d.id,
+d.first_name,
+d.middle_name,
+d.last_name,
+d.date_of_birth,
+d.verification_document_id,
+d.verification_doc_no,
+d.date_of_enrollment,d.phone_number,
+  d.dss_id_number,d.informal_settlement,d.village,d.landmark,d.dreams_id,d.guardian_name,d.relationship_with_guardian,d.guardian_phone_number,
+  d.guardian_national_id,d.county_of_residence_id, d.implementing_partner_id,d.marital_status_id,d.sub_county_id,d.ward_id,l.ward_name,l.sub_county_code,
+  l.sub_county_name,l.county_code,l.county_name,
+i.head_of_household_id, i.head_of_household_other,i.age_of_household_head, i.is_father_alive, i.is_mother_alive, i.is_parent_chronically_ill,
+  i.main_floor_material_id, i.main_floor_material_other, i.main_roof_material_id, i.main_roof_material_other, i.main_wall_material_id, i.main_wall_material_other,
+  i.source_of_drinking_water_id,i.source_of_drinking_water_other, i.no_of_adults, i.no_of_females, i.no_of_males, i.no_of_children,
+  i.currently_in_ct_program_id, i.current_ct_program, i.ever_enrolled_in_ct_program_id, i.ever_missed_full_day_food_in_4wks_id, i.has_disability_id,
+  i.no_of_days_missed_food_in_4wks_id, i.no_of_people_in_household,
+s.age_at_first_sexual_encounter,s.sex_partners_in_last_12months,s.age_of_last_partner_id,s.age_of_second_last_partner_id,
+  s.age_of_third_last_partner_id,s.ever_had_sex_id,s.has_sexual_partner_id,s.know_last_partner_hiv_status_id,
+  s.know_second_last_partner_hiv_status_id,s.know_third_last_partner_hiv_status_id,s.last_partner_circumcised_id,
+  s.received_money_gift_for_sex_id,s.second_last_partner_circumcised_id,s.third_last_partner_circumcised_id,s.used_condom_with_last_partner_id,
+  s.used_condom_with_second_last_partner_id,s.used_condom_with_third_last_partner_id,
+rh.no_of_biological_children,rh.anc_facility_name,rh.known_fp_method_other,rh.current_fp_method_other,rh.reason_not_using_fp_other,
+rh.current_anc_enrollment_id,rh.current_fp_method_id,rh.currently_pregnant_id,rh.currently_use_modern_fp_id,rh.fp_methods_awareness_id,
+rh.has_biological_children_id,rh.reason_not_using_fp_id,
+dr.drug_abuse_last_12months_other,dr.drug_used_last_12months_other,dr.drug_abuse_last_12months_id,dr.frequency_of_alcohol_last_12months_id,
+  dr.produced_alcohol_last_12months_id,dr.used_alcohol_last_12months_id ,
+ p.dreams_program_other,
+gbv.gbv_help_provider_other,gbv.preferred_gbv_help_provider_other,gbv.economic_threat_ever_id,gbv.economic_threat_last_3months_id,
+gbv.humiliated_ever_id,gbv.humiliated_last_3months_id,gbv.insulted_ever_id,gbv.insulted_last_3months_id,
+gbv.knowledge_of_gbv_help_centres_id,gbv.physical_violence_ever_id,gbv.physical_violence_last_3months_id,
+gbv.physically_forced_other_sex_acts_ever_id,gbv.physically_forced_other_sex_acts_last_3months_id,
+gbv.physically_forced_sex_ever_id,gbv.physically_forced_sex_last_3months_id,gbv.seek_help_after_gbv_id,
+gbv.threatened_for_sexual_acts_ever_id,gbv.threatened_for_sexual_acts_last_3months_id,gbv.threats_to_hurt_ever_id,
+gbv.threats_to_hurt_last_3months_id,
+edu.current_school_name,edu.current_class,edu.current_school_level_other,edu.current_education_supporter_other,
+edu.reason_not_in_school_other,edu.dropout_class,edu.life_wish_other,edu.current_income_source_other,
+edu.banking_place_other,edu.banking_place_id,edu.current_income_source_id,edu.current_school_level_id,
+edu.current_school_type_id,edu.currently_in_school_id,edu.dropout_school_level_id,edu.has_savings_id,edu.last_time_in_school_id,
+edu.life_wish_id,edu.reason_not_in_school_id,
+hiv.care_facility_enrolled,hiv.reason_not_in_hiv_care_other,hiv.reason_never_tested_for_hiv_other,hiv.enrolled_in_hiv_care_id,
+hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_result_id,hiv.period_last_tested_id,
+hiv.reason_not_in_hiv_care_id
+from
+DreamsApp_client AS d
+LEFT OUTER JOIN DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
+LEFT OUTER JOIN DreamsApp_clientsexualactivitydata s ON s.client_id = d.id
+LEFT OUTER JOIN DreamsApp_clientreproductivehealthdata rh ON rh.client_id=d.id
+LEFT OUTER JOIN DreamsApp_clientdrugusedata dr on dr.client_id=d.id
+LEFT OUTER JOIN DreamsApp_clientparticipationindreams p on p.client_id=d.id
+LEFT OUTER JOIN DreamsApp_clientgenderbasedviolencedata gbv ON gbv.client_id=d.id
+LEFT OUTER JOIN DreamsApp_clienteducationandemploymentdata edu ON edu.client_id = d.id
+LEFT OUTER JOIN DreamsApp_clienthivtestingdata hiv ON hiv.client_id=d.id
+LEFT OUTER JOIN (
+SELECT
+w.id as ward_code,
+w.name as ward_name,
+w.sub_county_id as sub_county_code,
+s.name as sub_county_name,
+s.county_id as county_code,
+c.name as county_name
+from DreamsApp_ward w
+INNER JOIN DreamsApp_subcounty s ON s.id = w.sub_county_id
+INNER JOIN DreamsApp_county c ON s.county_id = c.id
+) l ON l.ward_code = d.ward_id
+group by d.id
+;
+
+-- update many to many fields
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      i_data.client_id,
+      group_concat(disabilitytype_id) AS disability_types
+      from DreamsApp_clientindividualandhouseholddata i_data
+      INNER JOIN DreamsApp_clientindividualandhouseholddata_disability_type dt ON dt.clientindividualandhouseholddata_id = i_data.id
+      GROUP BY i_data.client_id
+  ) ind_data on ind_data.client_id = e.client_id
+SET e.disability_types = ind_data.disability_types;
+
+-- reproductive data: know fp methods
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      rh.client_id,
+      group_concat(familyplanningmethod_id) AS known_fp_methods
+      FROM DreamsApp_clientreproductivehealthdata_known_fp_method fp
+      INNER JOIN DreamsApp_clientreproductivehealthdata rh
+      ON fp.clientreproductivehealthdata_id = rh.id
+      GROUP BY rh.client_id
+  ) rpr_data on rpr_data.client_id = e.client_id
+SET e.known_fp_methods = rpr_data.known_fp_methods;
+
+-- drugs used in past one year
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      dd.client_id,
+      group_concat(d.drug_id) AS drugs_used_in_last_12_months
+      FROM DreamsApp_clientdrugusedata_drug_used_last_12months d
+      INNER JOIN DreamsApp_clientdrugusedata dd ON d.clientdrugusedata_id = dd.id
+      GROUP BY dd.client_id
+  ) d_data on d_data.client_id = e.client_id
+SET e.drugs_used_in_last_12_months = d_data.drugs_used_in_last_12_months;
+
+-- dreams programs enrolled
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      cpd.client_id   AS client_id,
+      group_concat(dp.dreamsprogramme_id) AS programmes_enrolled
+      FROM DreamsApp_clientparticipationindreams_dreams_program dp
+      INNER JOIN DreamsApp_clientparticipationindreams cpd
+      ON dp.clientparticipationindreams_id = cpd.id
+      GROUP BY client_id
+  ) p on p.client_id = e.client_id
+SET e.programmes_enrolled = p.programmes_enrolled;
+
+-- gbv sought provider
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      gbv.client_id,
+      group_concat(provider.gbvhelpprovider_id) AS provider_list
+      FROM DreamsApp_clientgenderbasedviolencedata_gbv_help_provider provider
+      INNER JOIN DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
+      GROUP BY gbv.client_id
+  ) gbv on gbv.client_id = e.client_id
+SET e.providers_sought = gbv.provider_list;
+
+-- gbv preferred provider
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      gbv.client_id,
+      group_concat(provider.gbvhelpprovider_id) AS provider_list
+      FROM DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce provider -- DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_provider
+      INNER JOIN DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
+      GROUP BY gbv.client_id
+  ) gbv on gbv.client_id = e.client_id
+SET e.preferred_providers = gbv.provider_list;
+
+-- current education supporter
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      ed.client_id,
+      group_concat(educationsupporter_id)   AS current_edu_supporter_list
+      FROM DreamsApp_clienteducationandemploymentdata_current_educationebf4 s -- DreamsApp_clienteducationandemploymentdata_current_education_supporter s
+      INNER JOIN DreamsApp_clienteducationandemploymentdata ed ON ed.id = s.clienteducationandemploymentdata_id
+      GROUP BY ed.client_id
+  ) ed on ed.client_id = e.client_id
+SET e.current_edu_supporter_list = ed.current_edu_supporter_list;
+
+-- reason never tested for hiv
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      hiv_d.client_id,
+      group_concat(rn.reasonnottestedforhiv_id) AS reason_not_tested_for_hiv
+      FROM DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv rn
+      INNER JOIN DreamsApp_clienthivtestingdata hiv_d ON hiv_d.id=rn.clienthivtestingdata_id
+      GROUP BY hiv_d.client_id
+  ) hiv on hiv.client_id = e.client_id
+SET e.reason_not_tested_for_hiv = hiv.reason_not_tested_for_hiv;
+
+UPDATE DreamsApp_flatenrollmenttablelog SET date_completed = NOW() WHERE id=record_id;
+
+END$$
+DELIMITER ;
+
+
+-- ------------------------------------------- pick changes after initial setup and population      -------------------------------------
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_update_flat_enrollment_table$$
+CREATE PROCEDURE sp_update_flat_enrollment_table()
+BEGIN
+
+DECLARE record_id INT(11);
+DECLARE last_update_time DATETIME;
+SELECT max(date_completed) into last_update_time from DreamsApp_flatenrollmenttablelog;
+INSERT INTO DreamsApp_flatenrollmenttablelog(date_started, activity) VALUES(NOW(), 'Table Updates');
+SET record_id = LAST_INSERT_ID();
+
+INSERT INTO flat_dreams_enrollment(
+client_id,
+first_name,
+middle_name,
+last_name,
+date_of_birth,
+verification_document_id,
+verification_doc_no,
+date_of_enrollment,
+phone_number,
+dss_id_number,
+informal_settlement,
+village,
+landmark,
+dreams_id,
+guardian_name,
+relationship_with_guardian,
+guardian_phone_number,
+guardian_national_id,
+county_of_residence_id,
+implementing_partner_id,
+marital_status_id,
+sub_county_id,
+ward_id,
+ward_name,
+sub_county_code,
+sub_county_name,
+county_code,
+county_name,
+head_of_household_id,
+head_of_household_other,
+age_of_household_head,
+is_father_alive,
+is_mother_alive,
+is_parent_chronically_ill,
+main_floor_material_id,
+main_floor_material_other,
+main_roof_material_id,
+main_roof_material_other,
+main_wall_material_id,
+main_wall_material_other,
+source_of_drinking_water_id,
+source_of_drinking_water_other,
+no_of_adults,
+no_of_females,
+no_of_males,
+no_of_children,
+currently_in_ct_program_id,
+current_ct_program,
+ever_enrolled_in_ct_program_id,
+ever_missed_full_day_food_in_4wks_id,
+has_disability_id,
+no_of_days_missed_food_in_4wks_id,
+no_of_people_in_household,
+age_at_first_sexual_encounter,
+sex_partners_in_last_12months,
+age_of_last_partner_id,
+age_of_second_last_partner_id,
+age_of_third_last_partner_id,
+ever_had_sex_id,
+has_sexual_partner_id,
+know_last_partner_hiv_status_id,
+know_second_last_partner_hiv_status_id,
+know_third_last_partner_hiv_status_id,
+last_partner_circumcised_id,
+received_money_gift_for_sex_id,
+second_last_partner_circumcised_id,
+third_last_partner_circumcised_id,
+used_condom_with_last_partner_id,
+used_condom_with_second_last_partner_id,
+used_condom_with_third_last_partner_id,
+no_of_biological_children,
+anc_facility_name,
+known_fp_method_other,
+current_fp_method_other,
+reason_not_using_fp_other,
+current_anc_enrollment_id,
+current_fp_method_id,
+currently_pregnant_id,
+currently_use_modern_fp_id,
+fp_methods_awareness_id,
+has_biological_children_id,
+reason_not_using_fp_id,
+drug_abuse_last_12months_other,
+drug_used_last_12months_other,
+drug_abuse_last_12months_id,
+frequency_of_alcohol_last_12months_id,
+produced_alcohol_last_12months_id,
+used_alcohol_last_12months_id,
+dreams_program_other,
+gbv_help_provider_other,
+preferred_gbv_help_provider_other,
+economic_threat_ever_id,
+economic_threat_last_3months_id,
+humiliated_ever_id,
+humiliated_last_3months_id,
+insulted_ever_id,
+insulted_last_3months_id,
+knowledge_of_gbv_help_centres_id,
+physical_violence_ever_id,
+physical_violence_last_3months_id,
+physically_forced_other_sex_acts_ever_id,
+physically_forced_other_sex_acts_last_3months_id,
+physically_forced_sex_ever_id,
+physically_forced_sex_last_3months_id,
+seek_help_after_gbv_id,
+threatened_for_sexual_acts_ever_id,
+threatened_for_sexual_acts_last_3months_id,
+threats_to_hurt_ever_id,
+threats_to_hurt_last_3months_id,
+current_school_name,
+current_class,
+current_school_level_other,
+current_education_supporter_other,
+reason_not_in_school_other,
+dropout_class,
+life_wish_other,
+current_income_source_other,
+banking_place_other,
+banking_place_id,
+current_income_source_id,
+current_school_level_id,
+current_school_type_id,
+currently_in_school_id,
+dropout_school_level_id,
+has_savings_id,
+last_time_in_school_id,
+life_wish_id,
+reason_not_in_school_id,
+care_facility_enrolled,
+reason_not_in_hiv_care_other,
+reason_never_tested_for_hiv_other,
+enrolled_in_hiv_care_id,
+ever_tested_for_hiv_id,
+knowledge_of_hiv_test_centres_id,
+last_test_result_id,
+period_last_tested_id,
+reason_not_in_hiv_care_id
+)
+select
+d.id,
+d.first_name,
+d.middle_name,
+d.last_name,
+d.date_of_birth,
+d.verification_document_id,
+d.verification_doc_no,
+d.date_of_enrollment,d.phone_number,
+  d.dss_id_number,d.informal_settlement,d.village,d.landmark,d.dreams_id,d.guardian_name,d.relationship_with_guardian,d.guardian_phone_number,
+  d.guardian_national_id,d.county_of_residence_id, d.implementing_partner_id,d.marital_status_id,d.sub_county_id,d.ward_id,l.ward_name,l.sub_county_code,
+  l.sub_county_name,l.county_code,l.county_name,
+i.head_of_household_id, i.head_of_household_other,i.age_of_household_head, i.is_father_alive, i.is_mother_alive, i.is_parent_chronically_ill,
+  i.main_floor_material_id, i.main_floor_material_other, i.main_roof_material_id, i.main_roof_material_other, i.main_wall_material_id, i.main_wall_material_other,
+  i.source_of_drinking_water_id,i.source_of_drinking_water_other, i.no_of_adults, i.no_of_females, i.no_of_males, i.no_of_children,
+  i.currently_in_ct_program_id, i.current_ct_program, i.ever_enrolled_in_ct_program_id, i.ever_missed_full_day_food_in_4wks_id, i.has_disability_id,
+  i.no_of_days_missed_food_in_4wks_id, i.no_of_people_in_household,
+s.age_at_first_sexual_encounter,s.sex_partners_in_last_12months,s.age_of_last_partner_id,s.age_of_second_last_partner_id,
+  s.age_of_third_last_partner_id,s.ever_had_sex_id,s.has_sexual_partner_id,s.know_last_partner_hiv_status_id,
+  s.know_second_last_partner_hiv_status_id,s.know_third_last_partner_hiv_status_id,s.last_partner_circumcised_id,
+  s.received_money_gift_for_sex_id,s.second_last_partner_circumcised_id,s.third_last_partner_circumcised_id,s.used_condom_with_last_partner_id,
+  s.used_condom_with_second_last_partner_id,s.used_condom_with_third_last_partner_id,
+rh.no_of_biological_children,rh.anc_facility_name,rh.known_fp_method_other,rh.current_fp_method_other,rh.reason_not_using_fp_other,
+rh.current_anc_enrollment_id,rh.current_fp_method_id,rh.currently_pregnant_id,rh.currently_use_modern_fp_id,rh.fp_methods_awareness_id,
+rh.has_biological_children_id,rh.reason_not_using_fp_id,
+dr.drug_abuse_last_12months_other,dr.drug_used_last_12months_other,dr.drug_abuse_last_12months_id,dr.frequency_of_alcohol_last_12months_id,
+  dr.produced_alcohol_last_12months_id,dr.used_alcohol_last_12months_id ,
+ p.dreams_program_other,
+gbv.gbv_help_provider_other,gbv.preferred_gbv_help_provider_other,gbv.economic_threat_ever_id,gbv.economic_threat_last_3months_id,
+gbv.humiliated_ever_id,gbv.humiliated_last_3months_id,gbv.insulted_ever_id,gbv.insulted_last_3months_id,
+gbv.knowledge_of_gbv_help_centres_id,gbv.physical_violence_ever_id,gbv.physical_violence_last_3months_id,
+gbv.physically_forced_other_sex_acts_ever_id,gbv.physically_forced_other_sex_acts_last_3months_id,
+gbv.physically_forced_sex_ever_id,gbv.physically_forced_sex_last_3months_id,gbv.seek_help_after_gbv_id,
+gbv.threatened_for_sexual_acts_ever_id,gbv.threatened_for_sexual_acts_last_3months_id,gbv.threats_to_hurt_ever_id,
+gbv.threats_to_hurt_last_3months_id,
+edu.current_school_name,edu.current_class,edu.current_school_level_other,edu.current_education_supporter_other,
+edu.reason_not_in_school_other,edu.dropout_class,edu.life_wish_other,edu.current_income_source_other,
+edu.banking_place_other,edu.banking_place_id,edu.current_income_source_id,edu.current_school_level_id,
+edu.current_school_type_id,edu.currently_in_school_id,edu.dropout_school_level_id,edu.has_savings_id,edu.last_time_in_school_id,
+edu.life_wish_id,edu.reason_not_in_school_id,
+hiv.care_facility_enrolled,hiv.reason_not_in_hiv_care_other,hiv.reason_never_tested_for_hiv_other,hiv.enrolled_in_hiv_care_id,
+hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_result_id,hiv.period_last_tested_id,
+hiv.reason_not_in_hiv_care_id
+from
+DreamsApp_client AS d
+LEFT OUTER JOIN DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
+LEFT OUTER JOIN DreamsApp_clientsexualactivitydata s ON s.client_id = d.id
+LEFT OUTER JOIN DreamsApp_clientreproductivehealthdata rh ON rh.client_id=d.id
+LEFT OUTER JOIN DreamsApp_clientdrugusedata dr on dr.client_id=d.id
+LEFT OUTER JOIN DreamsApp_clientparticipationindreams p on p.client_id=d.id
+LEFT OUTER JOIN DreamsApp_clientgenderbasedviolencedata gbv ON gbv.client_id=d.id
+LEFT OUTER JOIN DreamsApp_clienteducationandemploymentdata edu ON edu.client_id = d.id
+LEFT OUTER JOIN DreamsApp_clienthivtestingdata hiv ON hiv.client_id=d.id
+LEFT OUTER JOIN (
+SELECT
+w.id as ward_code,
+w.name as ward_name,
+w.sub_county_id as sub_county_code,
+s.name as sub_county_name,
+s.county_id as county_code,
+c.name as county_name
+from DreamsApp_ward w
+INNER JOIN DreamsApp_subcounty s ON s.id = w.sub_county_id
+INNER JOIN DreamsApp_county c ON s.county_id = c.id
+) l ON l.ward_code = d.ward_id
+where (d.date_created > last_update_time or d.date_changed > last_update_time)
+  or (i.date_created > last_update_time or i.date_changed > last_update_time)
+  or (s.date_created > last_update_time or s.date_changed > last_update_time)
+  or (rh.date_created > last_update_time or rh.date_changed > last_update_time)
+  or (dr.date_created > last_update_time or dr.date_changed > last_update_time)
+  or (p.date_created > last_update_time or p.date_changed > last_update_time)
+  or (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)
+  or (edu.date_created > last_update_time or edu.date_changed > last_update_time)
+  or (hiv.date_created > last_update_time or hiv.date_changed > last_update_time)
+group by d.id
+ON DUPLICATE KEY UPDATE
+first_name=VALUES(first_name),
+middle_name=VALUES(middle_name),
+last_name=VALUES(last_name),
+date_of_birth=VALUES(date_of_birth),
+verification_document_id=VALUES(verification_document_id),
+verification_doc_no=VALUES(verification_doc_no),
+date_of_enrollment=VALUES(date_of_enrollment),
+phone_number=VALUES(phone_number),
+dss_id_number=VALUES(dss_id_number),
+informal_settlement=VALUES(informal_settlement),
+village=VALUES(village),
+landmark=VALUES(landmark),
+dreams_id=VALUES(dreams_id),
+guardian_name=VALUES(guardian_name),
+relationship_with_guardian=VALUES(relationship_with_guardian),
+guardian_phone_number=VALUES(guardian_phone_number),
+guardian_national_id=VALUES(guardian_national_id),
+county_of_residence_id=VALUES(county_of_residence_id),
+implementing_partner_id=VALUES(implementing_partner_id),
+marital_status_id=VALUES(marital_status_id),
+sub_county_id=VALUES(sub_county_id),
+ward_id=VALUES(ward_id),
+ward_name=VALUES(ward_name),
+sub_county_code=VALUES(sub_county_code),
+sub_county_name=VALUES(sub_county_name),
+county_code=VALUES(county_code),
+county_name=VALUES(county_name),
+head_of_household_id=VALUES(head_of_household_id),
+head_of_household_other=VALUES(head_of_household_other),
+age_of_household_head=VALUES(age_of_household_head),
+is_father_alive=VALUES(is_father_alive),
+is_mother_alive=VALUES(is_mother_alive),
+is_parent_chronically_ill=VALUES(is_parent_chronically_ill),
+main_floor_material_id=VALUES(main_floor_material_id),
+main_floor_material_other=VALUES(main_floor_material_other),
+main_roof_material_id=VALUES(main_roof_material_id),
+main_roof_material_other=VALUES(main_roof_material_other),
+main_wall_material_id=VALUES(main_wall_material_id),
+main_wall_material_other=VALUES(main_wall_material_other),
+source_of_drinking_water_id=VALUES(source_of_drinking_water_id),
+source_of_drinking_water_other=VALUES(source_of_drinking_water_other),
+no_of_adults=VALUES(no_of_adults),
+no_of_females=VALUES(no_of_females),
+no_of_males=VALUES(no_of_males),
+no_of_children=VALUES(no_of_children),
+currently_in_ct_program_id=VALUES(currently_in_ct_program_id),
+current_ct_program=VALUES(current_ct_program),
+ever_enrolled_in_ct_program_id=VALUES(ever_enrolled_in_ct_program_id),
+ever_missed_full_day_food_in_4wks_id=VALUES(ever_missed_full_day_food_in_4wks_id),
+has_disability_id=VALUES(has_disability_id),
+no_of_days_missed_food_in_4wks_id=VALUES(no_of_days_missed_food_in_4wks_id),
+no_of_people_in_household=VALUES(no_of_people_in_household),
+age_at_first_sexual_encounter=VALUES(age_at_first_sexual_encounter),
+sex_partners_in_last_12months=VALUES(sex_partners_in_last_12months),
+age_of_last_partner_id=VALUES(age_of_last_partner_id),
+age_of_second_last_partner_id=VALUES(age_of_second_last_partner_id),
+age_of_third_last_partner_id=VALUES(age_of_third_last_partner_id),
+ever_had_sex_id=VALUES(ever_had_sex_id),
+has_sexual_partner_id=VALUES(has_sexual_partner_id),
+know_last_partner_hiv_status_id=VALUES(know_last_partner_hiv_status_id),
+know_second_last_partner_hiv_status_id=VALUES(know_second_last_partner_hiv_status_id),
+know_third_last_partner_hiv_status_id=VALUES(know_third_last_partner_hiv_status_id),
+last_partner_circumcised_id=VALUES(last_partner_circumcised_id),
+received_money_gift_for_sex_id=VALUES(received_money_gift_for_sex_id),
+second_last_partner_circumcised_id=VALUES(second_last_partner_circumcised_id),
+third_last_partner_circumcised_id=VALUES(third_last_partner_circumcised_id),
+used_condom_with_last_partner_id=VALUES(used_condom_with_last_partner_id),
+used_condom_with_second_last_partner_id=VALUES(used_condom_with_second_last_partner_id),
+used_condom_with_third_last_partner_id=VALUES(used_condom_with_third_last_partner_id),
+no_of_biological_children=VALUES(no_of_biological_children),
+anc_facility_name=VALUES(anc_facility_name),
+known_fp_method_other=VALUES(known_fp_method_other),
+current_fp_method_other=VALUES(current_fp_method_other),
+reason_not_using_fp_other=VALUES(reason_not_using_fp_other),
+current_anc_enrollment_id=VALUES(current_anc_enrollment_id),
+current_fp_method_id=VALUES(current_fp_method_id),
+currently_pregnant_id=VALUES(currently_pregnant_id),
+currently_use_modern_fp_id=VALUES(currently_use_modern_fp_id),
+fp_methods_awareness_id=VALUES(fp_methods_awareness_id),
+has_biological_children_id=VALUES(has_biological_children_id),
+reason_not_using_fp_id=VALUES(reason_not_using_fp_id),
+drug_abuse_last_12months_other=VALUES(drug_abuse_last_12months_other),
+drug_used_last_12months_other=VALUES(drug_used_last_12months_other),
+drug_abuse_last_12months_id=VALUES(drug_abuse_last_12months_id),
+frequency_of_alcohol_last_12months_id=VALUES(frequency_of_alcohol_last_12months_id),
+produced_alcohol_last_12months_id=VALUES(produced_alcohol_last_12months_id),
+used_alcohol_last_12months_id=VALUES(used_alcohol_last_12months_id),
+dreams_program_other=VALUES(dreams_program_other),
+gbv_help_provider_other=VALUES(gbv_help_provider_other),
+preferred_gbv_help_provider_other=VALUES(preferred_gbv_help_provider_other),
+economic_threat_ever_id=VALUES(economic_threat_ever_id),
+economic_threat_last_3months_id=VALUES(economic_threat_last_3months_id),
+humiliated_ever_id=VALUES(humiliated_ever_id),
+humiliated_last_3months_id=VALUES(humiliated_last_3months_id),
+insulted_ever_id=VALUES(insulted_ever_id),
+insulted_last_3months_id=VALUES(insulted_last_3months_id),
+knowledge_of_gbv_help_centres_id=VALUES(knowledge_of_gbv_help_centres_id),
+physical_violence_ever_id=VALUES(physical_violence_ever_id),
+physical_violence_last_3months_id=VALUES(physical_violence_last_3months_id),
+physically_forced_other_sex_acts_ever_id=VALUES(physically_forced_other_sex_acts_ever_id),
+physically_forced_other_sex_acts_last_3months_id=VALUES(physically_forced_other_sex_acts_last_3months_id),
+physically_forced_sex_ever_id=VALUES(physically_forced_sex_ever_id),
+physically_forced_sex_last_3months_id=VALUES(physically_forced_sex_last_3months_id),
+seek_help_after_gbv_id=VALUES(seek_help_after_gbv_id),
+threatened_for_sexual_acts_ever_id=VALUES(threatened_for_sexual_acts_ever_id),
+threatened_for_sexual_acts_last_3months_id=VALUES(threatened_for_sexual_acts_last_3months_id),
+threats_to_hurt_ever_id=VALUES(threats_to_hurt_ever_id),
+threats_to_hurt_last_3months_id=VALUES(threats_to_hurt_last_3months_id),
+current_school_name=VALUES(current_school_name),
+current_class=VALUES(current_class),
+current_school_level_other=VALUES(current_school_level_other),
+current_education_supporter_other=VALUES(current_education_supporter_other),
+reason_not_in_school_other=VALUES(reason_not_in_school_other),
+dropout_class=VALUES(dropout_class),
+life_wish_other=VALUES(life_wish_other),
+current_income_source_other=VALUES(current_income_source_other),
+banking_place_other=VALUES(banking_place_other),
+banking_place_id=VALUES(banking_place_id),
+current_income_source_id=VALUES(current_income_source_id),
+current_school_level_id=VALUES(current_school_level_id),
+current_school_type_id=VALUES(current_school_type_id),
+currently_in_school_id=VALUES(currently_in_school_id),
+dropout_school_level_id=VALUES(dropout_school_level_id),
+has_savings_id=VALUES(has_savings_id),
+last_time_in_school_id=VALUES(last_time_in_school_id),
+life_wish_id=VALUES(life_wish_id),
+reason_not_in_school_id=VALUES(reason_not_in_school_id),
+care_facility_enrolled=VALUES(care_facility_enrolled),
+reason_not_in_hiv_care_other=VALUES(reason_not_in_hiv_care_other),
+reason_never_tested_for_hiv_other=VALUES(reason_never_tested_for_hiv_other),
+enrolled_in_hiv_care_id=VALUES(enrolled_in_hiv_care_id),
+ever_tested_for_hiv_id=VALUES(ever_tested_for_hiv_id),
+knowledge_of_hiv_test_centres_id=VALUES(knowledge_of_hiv_test_centres_id),
+last_test_result_id=VALUES(last_test_result_id),
+period_last_tested_id=VALUES(period_last_tested_id),
+reason_not_in_hiv_care_id=VALUES(reason_not_in_hiv_care_id)
+
+;
+-- update many to many fields
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      i_data.client_id,
+      group_concat(disabilitytype_id) AS disability_types
+      from DreamsApp_clientindividualandhouseholddata i_data
+      INNER JOIN DreamsApp_clientindividualandhouseholddata_disability_type dt ON dt.clientindividualandhouseholddata_id = i_data.id
+      WHERE  (i_data.date_created > last_update_time or i_data.date_changed > last_update_time)
+      GROUP BY i_data.client_id
+  ) ind_data on ind_data.client_id = e.client_id
+SET e.disability_types = ind_data.disability_types;
+
+-- reproductive data: know fp methods
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      rh.client_id,
+      group_concat(familyplanningmethod_id) AS known_fp_methods
+      FROM DreamsApp_clientreproductivehealthdata_known_fp_method fp
+      INNER JOIN DreamsApp_clientreproductivehealthdata rh
+      ON fp.clientreproductivehealthdata_id = rh.id
+      WHERE  (rh.date_created > last_update_time or rh.date_changed > last_update_time)
+      GROUP BY rh.client_id
+  ) rpr_data on rpr_data.client_id = e.client_id
+SET e.known_fp_methods = rpr_data.known_fp_methods;
+
+-- drugs used in past one year
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      dd.client_id,
+      group_concat(d.drug_id) AS drugs_used_in_last_12_months
+      FROM DreamsApp_clientdrugusedata_drug_used_last_12months d
+      INNER JOIN DreamsApp_clientdrugusedata dd ON d.clientdrugusedata_id = dd.id
+      WHERE  (dd.date_created > last_update_time or dd.date_changed > last_update_time)
+      GROUP BY dd.client_id
+  ) d_data on d_data.client_id = e.client_id
+SET e.drugs_used_in_last_12_months = d_data.drugs_used_in_last_12_months;
+
+-- dreams programs enrolled
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      cpd.client_id   AS client_id,
+      group_concat(dp.dreamsprogramme_id) AS programmes_enrolled
+      FROM DreamsApp_clientparticipationindreams_dreams_program dp
+      INNER JOIN DreamsApp_clientparticipationindreams cpd
+      ON dp.clientparticipationindreams_id = cpd.id
+      WHERE  (cpd.date_created > last_update_time or cpd.date_changed > last_update_time)
+      GROUP BY client_id
+  ) p on p.client_id = e.client_id
+SET e.programmes_enrolled = p.programmes_enrolled;
+
+-- gbv sought provider
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      gbv.client_id,
+      group_concat(provider.gbvhelpprovider_id) AS provider_list
+      FROM DreamsApp_clientgenderbasedviolencedata_gbv_help_provider provider
+      INNER JOIN DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
+      WHERE  (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)
+      GROUP BY gbv.client_id
+  ) gbv on gbv.client_id = e.client_id
+SET e.providers_sought = gbv.provider_list;
+
+-- gbv preferred provider
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      gbv.client_id,
+      group_concat(provider.gbvhelpprovider_id) AS provider_list
+      FROM DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce provider -- DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_provider
+      INNER JOIN DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
+      WHERE  (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)
+      GROUP BY gbv.client_id
+  ) gbv on gbv.client_id = e.client_id
+SET e.preferred_providers = gbv.provider_list;
+
+-- current education supporter
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      ed.client_id,
+      group_concat(educationsupporter_id)   AS current_edu_supporter_list
+      FROM DreamsApp_clienteducationandemploymentdata_current_educationebf4 s -- DreamsApp_clienteducationandemploymentdata_current_education_supporter s
+      INNER JOIN DreamsApp_clienteducationandemploymentdata ed ON ed.id = s.clienteducationandemploymentdata_id
+      WHERE  (ed.date_created > last_update_time or ed.date_changed > last_update_time)
+      GROUP BY ed.client_id
+  ) ed on ed.client_id = e.client_id
+SET e.current_edu_supporter_list = ed.current_edu_supporter_list;
+
+-- reason never tested for hiv
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      hiv_d.client_id,
+      group_concat(rn.reasonnottestedforhiv_id) AS reason_not_tested_for_hiv
+      FROM DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv rn
+      INNER JOIN DreamsApp_clienthivtestingdata hiv_d ON hiv_d.id=rn.clienthivtestingdata_id
+      WHERE  (hiv_d.date_created > last_update_time or hiv_d.date_changed > last_update_time)
+      GROUP BY hiv_d.client_id
+  ) hiv on hiv.client_id = e.client_id
+SET e.reason_not_tested_for_hiv = hiv.reason_not_tested_for_hiv;
+
+UPDATE DreamsApp_flatenrollmenttablelog SET date_completed = NOW() WHERE id=record_id;
+
+END$$
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+
+-- ------------------------------------------------- -update flat table -------------------------------------------------------
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      i_data.client_id,
+      group_concat(disabilitytype_id) AS disability_types
+      from DreamsApp_clientindividualandhouseholddata i_data
+      INNER JOIN DreamsApp_clientindividualandhouseholddata_disability_type dt ON dt.clientindividualandhouseholddata_id = i_data.id
+      GROUP BY i_data.client_id
+  ) ind_data on ind_data.client_id = e.client_id
+SET e.disability_types = ind_data.disability_types;
+
+-- reproductive data: know fp methods
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      rh.client_id,
+      group_concat(familyplanningmethod_id) AS known_fp_methods
+      FROM DreamsApp_clientreproductivehealthdata_known_fp_method fp
+      INNER JOIN DreamsApp_clientreproductivehealthdata rh
+      ON fp.clientreproductivehealthdata_id = rh.id
+      GROUP BY rh.client_id
+  ) rpr_data on rpr_data.client_id = e.client_id
+SET e.known_fp_methods = rpr_data.known_fp_methods;
+
+-- drugs used in past one year
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      dd.client_id,
+      group_concat(d.drug_id) AS drugs_used_in_last_12_months
+      FROM DreamsApp_clientdrugusedata_drug_used_last_12months d
+      INNER JOIN DreamsApp_clientdrugusedata dd ON d.clientdrugusedata_id = dd.id
+      GROUP BY dd.client_id
+  ) d_data on d_data.client_id = e.client_id
+SET e.drugs_used_in_last_12_months = d_data.drugs_used_in_last_12_months;
+
+-- dreams programs enrolled
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      cpd.client_id   AS client_id,
+      group_concat(dp.dreamsprogramme_id) AS programmes_enrolled
+      FROM DreamsApp_clientparticipationindreams_dreams_program dp
+      INNER JOIN DreamsApp_clientparticipationindreams cpd
+      ON dp.clientparticipationindreams_id = cpd.id
+      GROUP BY client_id
+  ) p on p.client_id = e.client_id
+SET e.programmes_enrolled = p.programmes_enrolled;
+
+-- gbv sought provider
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      gbv.client_id,
+      group_concat(provider.gbvhelpprovider_id) AS provider_list
+      FROM DreamsApp_clientgenderbasedviolencedata_gbv_help_provider provider
+      INNER JOIN DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
+      GROUP BY gbv.client_id
+  ) gbv on gbv.client_id = e.client_id
+SET e.providers_sought = gbv.provider_list;
+
+-- gbv preferred provider
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      gbv.client_id,
+      group_concat(provider.gbvhelpprovider_id) AS provider_list
+      FROM DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce provider -- DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_provider
+      INNER JOIN DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
+      GROUP BY gbv.client_id
+  ) gbv on gbv.client_id = e.client_id
+SET e.preferred_providers = gbv.provider_list;
+
+-- current education supporter
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      ed.client_id,
+      group_concat(educationsupporter_id)   AS current_edu_supporter_list
+      FROM DreamsApp_clienteducationandemploymentdata_current_educationebf4 s -- DreamsApp_clienteducationandemploymentdata_current_education_supporter s
+      INNER JOIN DreamsApp_clienteducationandemploymentdata ed ON ed.id = s.clienteducationandemploymentdata_id
+      GROUP BY ed.client_id
+  ) ed on ed.client_id = e.client_id
+SET e.current_edu_supporter_list = ed.current_edu_supporter_list;
+
+-- reason never tested for hiv
+
+UPDATE flat_dreams_enrollment e INNER JOIN (
+    SELECT
+      hiv_d.client_id,
+      group_concat(rn.reasonnottestedforhiv_id) AS reason_not_tested_for_hiv
+      FROM DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv rn
+      INNER JOIN DreamsApp_clienthivtestingdata hiv_d ON hiv_d.id=rn.clienthivtestingdata_id
+      GROUP BY hiv_d.client_id
+  ) hiv on hiv.client_id = e.client_id
+SET e.reason_not_tested_for_hiv = hiv.reason_not_tested_for_hiv;
