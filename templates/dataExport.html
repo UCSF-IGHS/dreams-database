@@ -2,20 +2,12 @@
 {% block pageJs %}
     <script type="text/javascript">
         $(document).ready(function(){
-            $('#i_types_1').change(function(){
-                fetchListOfInterventionsFromCategory();
-            });
-
-            $('#intervention').click(function(){
-                getInterventionUsingId();
-            });
-
-            $('#btn-download-csv').click(function(){
-                download_csv();
-            });
 
             $('#btn_download_excel').click(function(){
-                download_excel();
+                //download_excel();
+                var ips = $('#i_p').val();
+                ajax_download('/download-excel/', {'ips': ips})
+                // download_excel();
                 // alert('Here');
             });
 
@@ -34,34 +26,6 @@
          }
      }
      return cookieValue;
-    }
-function fetchListOfInterventionsFromCategory() {
-
-        var csrftoken = getCookie('csrftoken');
-        var iv_category = $('#i_types_1').val();
-        var client_id = 1;
-        $.ajax({
-            url : "/ivList/", // the endpoint
-            type : "POST", // http method
-            dataType: 'json',
-            data : {
-                csrfmiddlewaretoken : csrftoken,
-                intervention_category_code : iv_category,
-                client_id: client_id
-            },
-            success : function(data) {
-                alert(data.interventions);
-                console.log(data);
-
-            },
-
-            // handle a non-successful response
-            error : function(xhr,errmsg,err) {
-                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-            }
-        });
     }
 
     function getInterventionUsingId() {
@@ -92,14 +56,66 @@ function fetchListOfInterventionsFromCategory() {
         });
     }
 
-    function download_csv() {
-         var iframe = document.getElementById('download-csv');
-         iframe.src = "/download-csv/";
-    }
-
     function download_excel() {
          var i_frame = document.getElementById('download_excel');
-         i_frame.src = "/download-excel/";
+         var csrftoken = getCookie('csrftoken');
+         var ips = $('#i_p').val();
+        $.ajax({
+            url : "/download-excel/", // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data : {
+                csrfmiddlewaretoken : csrftoken,
+                ips : ips
+            },
+            success : function(data) {
+                alert(data);
+
+
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+         //i_frame.src = "/download-excel/";
+    }
+
+    function ajax_download(url, data) {
+        var $iframe,
+            iframe_doc,
+            iframe_html;
+        var csrftoken = getCookie('csrftoken');
+
+        if (($iframe = $('#download_iframe')).length === 0) {
+            $iframe = $("<iframe id='download_iframe'" +
+                        " style='display: none' src='about:blank'></iframe>"
+                       ).appendTo("body");
+        }
+
+        iframe_doc = $iframe[0].contentWindow || $iframe[0].contentDocument;
+        if (iframe_doc.document) {
+            iframe_doc = iframe_doc.document;
+        }
+
+        iframe_html = "<html><head></head><body><form method='POST' action='" +
+                      url +"'>"
+        iframe_html +='<input type="hidden" name="csrfmiddlewaretoken" value="' + csrftoken+ '">';
+
+
+        Object.keys(data).forEach(function(key){
+            iframe_html += "<input type='hidden' name='"+key+"' value='"+data[key]+"'>";
+
+        });
+
+            iframe_html +="</form></body></html>";
+
+        iframe_doc.open();
+        iframe_doc.write(iframe_html);
+        $(iframe_doc).find('form').submit();
     }
     </script>
 
@@ -108,59 +124,37 @@ function fetchListOfInterventionsFromCategory() {
 {% endblock %}
 
 {% block content %}
-    <h4>Test for get intervention list (Category IDs already provided in the drop down)</h4>
+    <h4>Raw Data Export</h4>
 
     <hr/>
-    <div id="types">
-        <form method="post">
-            {% csrf_token %}
-            <select id="i_types_1">
-                <option value="0">Select Intervention</option>
-                <option value="1001">Behavioral</option>
-                <option value="2001">Bio-Medical</option>
-                <option value="3001">Post GBV Care</option>
-                <option value="4001">Social Protection</option>
-                <option value="5001">Other Interventions</option>
-
-            </select>
-        </form>
-
-        <div id="results"></div>
-    </div>
-
-     <h4>Test get intervention (Provide ID)</h4>
-
+    <div id="results"></div>
     <hr/>
-    <div id="types">
-        <form method="post">
-            {% csrf_token %}
-            <input type="text" id="iv_id" placeholder="Intervention ID"/>
-            <input type="button" id="intervention" value="Post">
-        </form>
-
-        <div id="results"></div>
-    </div>
-
-    <h4>Test get intervention (Provide ID)</h4>
-
-    <hr/>
-    <div id="download">
-        <form method="post">
-            {% csrf_token %}
-            <iframe id="download-csv" style="display: none" ></iframe>
-            <input type="button" id="btn-download-csv" value="Download CSV">
-        </form>
-
-    </div>
-
-     <hr/>
     <div id="download-excel">
         <form method="post">
             {% csrf_token %}
+            Implementing Partner<hr/>
+            {% if ips.count == 1 %}
+                <select id="i_p">
+            {% else %}
+                <select id="i_p" multiple>
+            {% endif %}
+
+                {%for ip in ips%}
+
+                    <option value= "{{ ip.id }}">{{ ip }}</option>
+
+                {% endfor %}
+
+            </select>
             <iframe id="download_excel" style="display: none" ></iframe>
-            <input type="button" id="btn_download_excel" value="Download EXCEL">
+            <br/><br/>
+                <input type="button" id="btn_download_excel" value="Download EXCEL">
+
         </form>
 
+
     </div>
+
+    <hr/>
 
 {% endblock %}

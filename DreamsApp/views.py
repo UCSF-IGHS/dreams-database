@@ -1306,17 +1306,43 @@ def download_excel(request):
 
 
 def export_page(request):
-    return render(request, 'dataExport.html')
+    if request.user.is_authenticated() and request.user.is_active:
+
+        try:
+
+            if request.user.is_superuser or request.user.has_perm('auth.can_view_cross_ip'):
+                ips = ImplementingPartner.objects.all()
+            elif request.user.implementingpartneruser is not None:
+                ips = ImplementingPartner.objects.filter(id=request.user.implementingpartneruser.implementing_partner.id)
+
+            else:
+                ips = None
+
+            print "IPs", ips
+            context = {'page': 'export', 'ips': ips}
+            return render(request, 'dataExport.html', context)
+        except ImplementingPartnerUser.DoesNotExist:
+            traceback.format_exc()
+        except ImplementingPartner.DoesNotExist:
+            traceback.format_exc()
+    else:
+        raise PermissionDenied
 
 
 def downloadEXCEL(request):
 
-    response = HttpResponse(content_type='application/ms-excel')
-    response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
-    export_doc = DreamsEnrollmentExcelTemplateRenderer()
-    wb = export_doc.prepare_excel_doc()
-    wb.save(response)
-    return response
+    try:
+        ip_list_str = request.POST.get('ips')
+        print "List: ", ip_list_str
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
+        export_doc = DreamsEnrollmentExcelTemplateRenderer()
+        wb = export_doc.prepare_excel_doc(ip_list_str)
+        wb.save(response)
+        return response
+    except Exception as e:
+        traceback.format_exc()
+        return
 
 
 def error_404(request):
