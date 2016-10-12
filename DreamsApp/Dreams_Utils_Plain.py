@@ -255,6 +255,7 @@ VALUES """
         return demographics
 
     def dump_SQL(self):
+        partner_id = 8
         return """ SELECT
             client_id,
             /*first_name,
@@ -393,7 +394,7 @@ VALUES """
             last_test_result_id,
             period_last_tested_id,
             reason_not_in_hiv_care_id
-  from flat_dreams_enrollment  """
+  from flat_dreams_enrollment WHERE implementing_partner_id = %d  """ %(partner_id)
 
     def execute_SQL_Query(self, sql):
         cursor = connection.cursor()
@@ -407,11 +408,21 @@ VALUES """
 
         return
 
-    def get_export_rows(self):
+    def get_export_rows(self, ip_list_str):
         sql = self.dump_SQL()
         cursor = connection.cursor()
+        #ip_list = (1, 2)
         try:
-            cursor.execute(sql)
+
+            ip_tuple_l = ip_list_str.split(",")
+            if len(ip_tuple_l) > 1:
+                eval_listt = eval(ip_list_str)
+                ip_list = tuple(eval_listt)
+                cursor.execute("SELECT * FROM flat_dreams_enrollment WHERE implementing_partner_id IN %s ", [ip_list])
+            else:
+                ip_list = int(ip_list_str)
+                cursor.execute("SELECT * FROM flat_dreams_enrollment WHERE implementing_partner_id = %s ", [ip_list])
+
             print "Query was successful"
             columns = [col[0] for col in cursor.description]
             return [
@@ -440,14 +451,14 @@ VALUES """
         except InvalidFileException as e:
             traceback.format_exc()
 
-    def prepare_excel_doc(self):
+    def prepare_excel_doc(self, ip_list_str):
 
         try:
 
             wb = self.load_workbook()
             refined_sheet = wb.get_sheet_by_name('enrollment_refined')
             print "Starting DB Query! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            db_data = self.get_export_rows()
+            db_data = self.get_export_rows(ip_list_str)
             print "Finished DB Query. Rendering Now. ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             i = 1
             for row in db_data:

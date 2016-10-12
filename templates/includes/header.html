@@ -36,6 +36,14 @@
                 {% if perms.auth.add_grievance %}
                     <li class="{% if page == 'cash_transfer' %}active{% endif %}"><a href="/grievances" >Grievances </a> </li>
                 {% endif %}
+                {% if user.is_authenticated %}
+                    <li class="dropdown {% if page == 'export' %}active{% endif %}" >
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
+                      <ul class="dropdown-menu">
+                          <li><a href="/export-page" class="text-danger">Raw Export</a></li>
+                      </ul>
+                    </li>
+                {% endif %}
                 <li class="{% if page == 'help' %}active{% endif %} hidden" ><a href="/help" onclick="return false;">Help</a></li>
                 {% if user.is_authenticated %}
                     <li class="dropdown {% if page == 'account' %}active{% endif %}" >
@@ -45,9 +53,6 @@
                           <li><a href="/logout" class="text-danger">Logout: {{ user.username }}</a></li>
                       </ul>
                     </li>
-                {% endif %}
-                {% if user.is_authenticated %}
-                    <li><a href="/export-page">Excel Output </a> </li>
                 {% endif %}
             {% endif %}
             </ul>
