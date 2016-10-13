@@ -5,20 +5,21 @@
     {% include 'includes/user_form.html' %}
     {% include 'includes/confirn_modal.html' %}
 
-    <div class="statusBox"  style="">
-        <div class="gen-font">
-            <h4>DREAMS User: Change Password &nbsp;</h4>
-        </div>
-        <div class="floatRightLinks">
-            <div class="rightItem">
-                <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Fill current and new details then click Submit to change your password.</span>
+    <div style="min-height: 60em;">
+        <div class="statusBox"  style="">
+            <div class="gen-font">
+                <h4>DREAMS User: Change Password &nbsp;</h4>
+            </div>
+            <div class="floatRightLinks">
+                <div class="rightItem">
+                    <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Fill current and new details then click Submit to change your password.</span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class=" alert hidden dp-action-alert fade in" id="user_credentials_alert" role="alert" style="margin-bottom: 10px;"></div>
+        <div class=" alert hidden dp-action-alert fade in" id="user_credentials_alert" role="alert" style="margin-bottom: 10px;"></div>
 
-    <div class="div_center_wrapper" style="text-align: center">
+        <div class="div_center_wrapper" style="text-align: center">
         <div class="div_center_wrapper_inner" style="display: inline-block;">
 
             <form id="user_change_password_form" style="width: 360px; text-align: left;" method="post" action="/admin/users/change_cred/">
@@ -48,7 +49,7 @@
         </div>
     </div>
 
-
+    </div>
 
 
 {% endblock %}
