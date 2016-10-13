@@ -12,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.forms.models import model_to_dict
 import json
 import traceback
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime as dt
 from django.db.models import Q
 from DreamsApp.models import *
 from DreamsApp.forms import *
@@ -271,12 +271,12 @@ def edit_client(request):
                     client.first_name = str(request.POST.get('first_name', ''))
                     client.middle_name = str(request.POST.get('middle_name', ''))
                     client.last_name = str(request.POST.get('last_name', ''))
-                    client.date_of_birth = str(request.POST.get('date_of_birth', datetime.now))
+                    client.date_of_birth = str(request.POST.get('date_of_birth', dt.now))
                     client.is_date_of_birth_estimated = bool(str(request.POST.get('is_date_of_birth_estimated')))
                     client.verification_document = VerificationDocument.objects.filter(
                         code__exact=str(request.POST.get('verification_document', ''))).first()
                     client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
-                    client.date_of_enrollment = str(request.POST.get('date_of_enrollment', datetime.now))
+                    client.date_of_enrollment = str(request.POST.get('date_of_enrollment', dt.now))
                     client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
                     client.marital_status = MaritalStatus.objects.filter(
                         code__exact=str(request.POST.get('marital_status', ''))).first()
@@ -425,7 +425,7 @@ def save_intervention(request):
                     intervention.intervention_date = request.POST.get('intervention_date')
                     created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
                     intervention.created_by = created_by
-                    intervention.date_created = datetime.now()
+                    intervention.date_created = dt.now()
                     intervention.comment = request.POST.get('comment', '')
 
                     if i_type.has_hts_result:
@@ -503,8 +503,8 @@ def get_intervention_list(request):
 
             if not request.user.has_perm('auth.can_view_older_records'):
                 list_of_interventions = list_of_interventions.filter(date_created__range=
-                                                                     [datetime.now() - timedelta(days=31),
-                                                                      datetime.now()]
+                                                                     [dt.now() - timedelta(days=31),
+                                                                      dt.now()]
                                                                      )
             response_data = {
                 'iv_types': serializers.serialize('json', list_of_related_iv_types),
@@ -564,7 +564,7 @@ def update_intervention(request):
                                                                        '') if intervention.intervention_type.is_specified else ''
                         intervention.intervention_date = request.POST.get('intervention_date')
                         intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
-                        intervention.date_changed = datetime.now()
+                        intervention.date_changed = dt.now()
                         intervention.comment = request.POST.get('comment')
 
                         i_type = InterventionType.objects.get(id__exact=intervention.intervention_type.id)

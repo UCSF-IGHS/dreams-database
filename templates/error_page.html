@@ -4,17 +4,17 @@
 {% block content %}
     {% include 'includes/user_form.html' %}
     {% include 'includes/confirn_modal.html' %}
-
-    <div class="statusBox" >
-        <div class="gen-font">
-            <h4 class="text-danger">{{ error_title }}</h4>
+    <div style="min-height: 60em;">
+        <div class="statusBox" >
+            <div class="gen-font">
+                <h4 class="text-danger">{{ error_title }}</h4>
+            </div>
+            <p class="error_message">{{ error_message }}</p>
         </div>
-        <p class="error_message">{{ error_message }}</p>
+        <div style="text-align: center">
+            <a onclick="window.history.back();"><span class="glyphicon glyphicon-chevron-left"> </span>Back to previous page </a> &nbsp; | &nbsp; <a class="to_home_page" href="/"><span class="glyphicon glyphicon-home"> </span> Home page</a>
+        </div>
     </div>
-    <div style="text-align: center">
-        <a onclick="window.history.back();"><span class="glyphicon glyphicon-chevron-left"> </span>Back to previous page </a> &nbsp; | &nbsp; <a class="to_home_page" href="/"><span class="glyphicon glyphicon-home"> </span> Home page</a>
-    </div>
-
 
 
 

@@ -5,95 +5,96 @@
     {% include 'includes/grievance_form.html' %}
     {% include 'includes/confirn_modal.html' %}
 
-    <div class="statusBox" >
-        <div class="gen-font">
-            <h4>DREAMS Grievances List</h4>
-        </div>
-        <div class="floatRightLinks">
-            <div class="rightItem">
-                <form id="user_search_form" class="form-inline" method="post" action="/grievances">
-                    {% csrf_token %}
-                      <div class="form-group has-feedback" >
-                           <input id="search-term-default" type="text" name="filter-user-text" class="form-control filter-enrollment" value="{{ filter_text }}" placeholder="Enter search text" style="width: 400px;">
-                      </div>
-                      <div class="form-group has-feedback" style="margin-top: 10px;">
-                             <input type="text" class="form-control required_field clear_value" id="filter_date" name="filter_date" value="{% if filter_date != None %}{{ filter_date }}{% endif %}" placeholder="Select date" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
-                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
-                             <script>
-                                $(function() {
-                                  $( "#filter_date" ).datepicker({
-                                      dateFormat: 'yy-mm-dd',
-                                      minDate: '-24y',
-                                      maxDate: '-10y',
-                                      changeMonth: true,
-                                      changeYear: true
-                                  });
-                                });
-                            </script>
-                      </div>
-                      <div class="form-group has-feedback" >
-                           <button type="submit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-filter"></span> Filter </button>
-                           <button type="button" class="btn btn-danger btn-sm" onclick="window.location.href = '/grievances';"><span class="glyphicon glyphicon-remove"></span> Clear Filter </button>
-                      </div>
-                </form>
-                <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for grievances by typing text or selecting an option in the input fields above.</span>
+    <div style="min-height: 60em;">
+        <div class="statusBox" >
+            <div class="gen-font">
+                <h4>DREAMS Grievances List</h4>
+            </div>
+            <div class="floatRightLinks">
+                <div class="rightItem">
+                    <form id="user_search_form" class="form-inline" method="post" action="/grievances">
+                        {% csrf_token %}
+                          <div class="form-group has-feedback" >
+                               <input id="search-term-default" type="text" name="filter-user-text" class="form-control filter-enrollment" value="{{ filter_text }}" placeholder="Enter search text" style="width: 400px;">
+                          </div>
+                          <div class="form-group has-feedback" style="margin-top: 10px;">
+                                 <input type="text" class="form-control required_field clear_value" id="filter_date" name="filter_date" value="{% if filter_date != None %}{{ filter_date }}{% endif %}" placeholder="Select date" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                                 <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                                 <script>
+                                    $(function() {
+                                      $( "#filter_date" ).datepicker({
+                                          dateFormat: 'yy-mm-dd',
+                                          minDate: '-24y',
+                                          maxDate: '-10y',
+                                          changeMonth: true,
+                                          changeYear: true
+                                      });
+                                    });
+                                </script>
+                          </div>
+                          <div class="form-group has-feedback" >
+                               <button type="submit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-filter"></span> Filter </button>
+                               <button type="button" class="btn btn-danger btn-sm" onclick="window.location.href = '/grievances';"><span class="glyphicon glyphicon-remove"></span> Clear Filter </button>
+                          </div>
+                    </form>
+                    <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for grievances by typing text or selecting an option in the input fields above.</span>
+                </div>
             </div>
         </div>
-    </div>
-    <div class=" alert hidden dp-action-alert fade in" id="grievances_alert" role="alert" style="margin-bottom: 10px;"></div>
+        <div class=" alert hidden dp-action-alert fade in" id="grievances_alert" role="alert" style="margin-bottom: 10px;"></div>
 
-    <div id="user-list" style="max-height: calc(100vh - 510px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
-        <table class="table table-striped dp-user-table table-bordered" id="dreams-grievance-table" style="margin: 0px;">
-            <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
-                <th>Date</th>
-                <th>Nature of Grievance</th>
-                <th>Reporter Category</th>
-                <th>Person reporting</th>
-                <th>Complaint's Telephone Number</th>
-                <th>Status</th>
-                <th>Resolution</th>
-                <th style="width: 160px;max-width: 160px; min-width: 160px;">Actions</th>
-            </thead>
-            <tbody id="dp-grievance-list-body">
-                {% if items_in_page > 0 %}
-                    {% for grievance in grievance_list %}
-                        <tr style="cursor: pointer; background-color: transparent;" id="grievance_{{ grievance.id }}">
-                            <td class="date" style="width: 120px;">{{ grievance.date|date:"M d, Y"}}</td>
-                            <td class="grievance_nature">{{ grievance.grievance_nature }}</td>
-                            <td class="reporter_category"> {{ grievance.reporter_category }}</td>
-                            <td class="reporter_name"> {{ grievance.reporter_name }}</td>
-                            <td class="reporter_phone">{{ grievance.reporter_phone }}</td>
-                            <td class="status">{{ grievance.status }}</td>
-                            <td class="resolution">{{ grievance.resolution }}</td>
-                            <td>
-                                <!-- Split button -->
-                                <div class="btn-group">
-                                  <button type="button" class="btn btn-sm btn-default grievance-action" data-view_mode="edit" data-grievance_id='{{ grievance.id }}' style="cursor: pointer;" ><span class="glyphicon glyphicon-pencil"></span> Edit Grievance</button>
-                                  <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                     <span class="caret"></span>
-                                    <span class="sr-only">Toggle Dropdown</span>
-                                  </button>
-                                  <ul class="dropdown-menu">
-                                    {% if perms.auth.can_manage_client %}
-                                        <li><a href="#" class="edit_intervention_click edit_client grievance-action" data-view_mode="view" data-toggle="modal" data-target="#" data-grievance_id='{{ grievance.id }}' style="cursor: pointer;word-spacing: 0px !important;"><span class="glyphicon glyphicon-eye-open"></span> View Grievance </a></li>
-                                        {% if perms.auth.delete_grievance %}
-                                            <li><a href="#" class="delete_intervention_click grievance-action" data-view_mode="delete" data-grievance_id='{{ grievance.id }}'><span class="glyphicon glyphicon-trash"></span> Delete Grievance &nbsp;&nbsp;&nbsp;</a></li>
+        <div id="user-list" style="max-height: calc(100vh - 510px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
+            <table class="table table-striped dp-user-table table-bordered" id="dreams-grievance-table" style="margin: 0px;">
+                <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
+                    <th>Date</th>
+                    <th>Nature of Grievance</th>
+                    <th>Reporter Category</th>
+                    <th>Person reporting</th>
+                    <th>Complaint's Telephone Number</th>
+                    <th>Status</th>
+                    <th>Resolution</th>
+                    <th style="width: 160px;max-width: 160px; min-width: 160px;">Actions</th>
+                </thead>
+                <tbody id="dp-grievance-list-body">
+                    {% if items_in_page > 0 %}
+                        {% for grievance in grievance_list %}
+                            <tr style="cursor: pointer; background-color: transparent;" id="grievance_{{ grievance.id }}">
+                                <td class="date" style="width: 120px;">{{ grievance.date|date:"M d, Y"}}</td>
+                                <td class="grievance_nature">{{ grievance.grievance_nature }}</td>
+                                <td class="reporter_category"> {{ grievance.reporter_category }}</td>
+                                <td class="reporter_name"> {{ grievance.reporter_name }}</td>
+                                <td class="reporter_phone">{{ grievance.reporter_phone }}</td>
+                                <td class="status">{{ grievance.status }}</td>
+                                <td class="resolution">{{ grievance.resolution }}</td>
+                                <td>
+                                    <!-- Split button -->
+                                    <div class="btn-group">
+                                      <button type="button" class="btn btn-sm btn-default grievance-action" data-view_mode="edit" data-grievance_id='{{ grievance.id }}' style="cursor: pointer;" ><span class="glyphicon glyphicon-pencil"></span> Edit Grievance</button>
+                                      <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                         <span class="caret"></span>
+                                        <span class="sr-only">Toggle Dropdown</span>
+                                      </button>
+                                      <ul class="dropdown-menu">
+                                        {% if perms.auth.can_manage_client %}
+                                            <li><a href="#" class="edit_intervention_click edit_client grievance-action" data-view_mode="view" data-toggle="modal" data-target="#" data-grievance_id='{{ grievance.id }}' style="cursor: pointer;word-spacing: 0px !important;"><span class="glyphicon glyphicon-eye-open"></span> View Grievance </a></li>
+                                            {% if perms.auth.delete_grievance %}
+                                                <li><a href="#" class="delete_intervention_click grievance-action" data-view_mode="delete" data-grievance_id='{{ grievance.id }}'><span class="glyphicon glyphicon-trash"></span> Delete Grievance &nbsp;&nbsp;&nbsp;</a></li>
+                                            {% endif %}
                                         {% endif %}
-                                    {% endif %}
-                                  </ul>
-                                </div>
-                            </td>
+                                      </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="table-message">0 Records found.</td>
                         </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="8" class="table-message">0 Records found.</td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
-    </div>
-    <div class="pagination fit-item" >
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination fit-item" >
         <span class="step-links">
             {% if grievance_list.has_previous %}
                 <a href="?page={{ grievance_list.previous_page_number }}&filter-user-text={{ filter_text }}">previous</a>
@@ -113,5 +114,5 @@
         </span>
 
     </div>
-
+    </div>
 {% endblock %}
