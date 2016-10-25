@@ -78,10 +78,21 @@ WSGI_APPLICATION = 'Dreams.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'dreams_dev',
+        'USER': 'root',
+        'PASSWORD':'',
+        'HOST':'localhost',
+        'PORT':'',
     }
 }
 
@@ -133,6 +144,7 @@ TEMPLATE_DIRS = (
 # Use manage.py loaddata fixture-name
 # e.g manage.py loaddata initial_data.json
 FIXTURE_DIRS = ()
+
 
 # Just in case
 # DEFAULT_FROM_EMAIL = 'dreams.globalhealthapp@gmail.com'

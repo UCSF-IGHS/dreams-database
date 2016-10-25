@@ -43,8 +43,7 @@
         </div>
         <div class=" alert hidden dp-action-alert fade in" id="grievances_alert" role="alert" style="margin-bottom: 10px;"></div>
 
-        <!-- max-height: calc(100vh - 510px); -->
-        <div id="user-list" style="overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
+        <div id="user-list" style="max-height: calc(100vh - 510px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
             <table class="table table-striped dp-user-table table-bordered" id="dreams-grievance-table" style="margin: 0px;">
                 <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                     <th>Date</th>
@@ -96,24 +95,24 @@
             </table>
         </div>
         <div class="pagination fit-item" >
-            <span class="step-links">
-                {% if grievance_list.has_previous %}
-                    <a href="?page={{ grievance_list.previous_page_number }}&filter-user-text={{ filter_text }}">previous</a>
-                {% endif %}
+        <span class="step-links">
+            {% if grievance_list.has_previous %}
+                <a href="?page={{ grievance_list.previous_page_number }}&filter-user-text={{ filter_text }}">previous</a>
+            {% endif %}
 
-                <span class="current">
-                    Page {{ grievance_list.number }} of {{ grievance_list.paginator.num_pages }}
-                </span>
-
-                {% if grievance_list.has_next %}
-                    <a href="?page={{ grievance_list.next_page_number }}&filter-user-text={{ filter_text }}">next</a>
-                {% endif %}
-            </span>
-            <br>
-            <span style="margin-top: 15px;">
-                <button id="btn-show-grievance-form" class="btn btn-primary btn-sm grievance-action" data-view_mode='add' data-toggle="modal" data-target="#" data-toggle="tooltip" title="Add Grievance" ><i class="glyphicon glyphicon-plus text-default"></i> Add Grievance</button>
+            <span class="current">
+                Page {{ grievance_list.number }} of {{ grievance_list.paginator.num_pages }}
             </span>
 
-        </div>
+            {% if grievance_list.has_next %}
+                <a href="?page={{ grievance_list.next_page_number }}&filter-user-text={{ filter_text }}">next</a>
+            {% endif %}
+        </span>
+        <br>
+        <span style="margin-top: 15px;">
+            <button id="btn-show-grievance-form" class="btn btn-primary btn-sm grievance-action" data-view_mode='add' data-toggle="modal" data-target="#" data-toggle="tooltip" title="Add Grievance" ><i class="glyphicon glyphicon-plus text-default"></i> Add Grievance</button>
+        </span>
+
+    </div>
     </div>
 {% endblock %}

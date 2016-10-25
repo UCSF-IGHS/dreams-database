@@ -25,8 +25,8 @@
             </div>
         </div>
         <div class=" alert hidden dp-action-alert fade in" id="user_actions_alert" role="alert" style="margin-bottom: 10px;"></div>
-        <!-- max-height: calc(100vh - 510px); -->
-        <div id="user-list" style="overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
+
+        <div id="user-list" style="max-height: calc(100vh - 510px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
             <table class="table table-striped dp-user-table table-bordered" id="dreams-user-table" style="margin: 0px;margin-bottom: 35px;">
                 <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                     <th>username</th>
@@ -106,7 +106,6 @@
 
         </div>
     </div>
-
 
 
 {% endblock %}

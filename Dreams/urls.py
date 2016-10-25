@@ -54,5 +54,9 @@ urlpatterns = [
     url(r'^grievances/delete', views.grievances_delete, name='grievances_delete'),
     url(r'^grievances/get', views.grievances_get, name='grievances_get'),
     url(r'^cashTransfer/save', views.cash_transfer_details_save, name='cash_transfer_details_save'),
+    url(r'^excel-output', views.download_excel, name='excel_template'),
+    url(r'^download-excel/$', views.downloadEXCEL),
+    url(r'^export-page', views.export_page),
+    #url(r'^$', views.user_login, name='login'),
     url(r'^', views.error_404, name='error_404'),
 ]

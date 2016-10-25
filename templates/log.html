@@ -2,8 +2,7 @@
 {% load staticfiles %}
 
 {% block content %}
-
-    <div style="min-height: 80em;">
+    <div style="min-height: 60em;">
         <div class="statusBox" >
             <div class="gen-font" style="margin-bottom: 2px;">
                 <h4>DREAMS Audit Log</h4>
@@ -41,7 +40,7 @@
                 </div>
             </div>
         </div>
-        <div class="audit-log-section" style="overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
+        <div class="audit-log-section" style="max-height: calc(100vh - 490px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
             <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table" style="margin: 0px;">
                 <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                     <th>Timestamp</th>
@@ -70,23 +69,23 @@
             </table>
         </div>
         <div class="pagination">
-            <span class="step-links">
-                {% if logs.has_previous %}
-                    <a href="?page={{ logs.previous_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">previous</a>
-                {% endif %}
+        <span class="step-links">
+            {% if logs.has_previous %}
+                <a href="?page={{ logs.previous_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">previous</a>
+            {% endif %}
 
-                <span class="current">
-                    Page {{ logs.number }} of {{ logs.paginator.num_pages }}
-                </span>
-
-                {% if logs.has_next %}
-                    <a href="?page={{ logs.next_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">next</a>
-                {% endif %}
-                <span>
-                     ( {{ items_in_page }} records listed )
-                </span>
+            <span class="current">
+                Page {{ logs.number }} of {{ logs.paginator.num_pages }}
             </span>
-        </div>
+
+            {% if logs.has_next %}
+                <a href="?page={{ logs.next_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">next</a>
+            {% endif %}
+            <span>
+                 ( {{ items_in_page }} records listed )
+            </span>
+        </span>
+    </div>
     </div>
 
 {% endblock %}
