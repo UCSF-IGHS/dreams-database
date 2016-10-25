@@ -96,29 +96,29 @@ class Client(models.Model):
     first_name = models.CharField(verbose_name='First Name', max_length=100, null=True)
     middle_name = models.CharField(verbose_name='Middle Name', max_length=100, null=True)
     last_name = models.CharField(verbose_name='Last Name', max_length=100, null=True)
-    date_of_birth = models.DateField(verbose_name='Date Of Birth', null=True)
+    date_of_birth = models.DateField(verbose_name='Date of Birth', null=True)
     is_date_of_birth_estimated = models.NullBooleanField(verbose_name='Date of Birth Estimated', default=False, null=True)
-    verification_document = models.ForeignKey(VerificationDocument, null=True, blank=True)  # New
-    verification_doc_no = models.CharField(verbose_name='Verification Doc. No.', max_length=50, null=True)
+    verification_document = models.ForeignKey(VerificationDocument, null=True, blank=True, verbose_name='Verification Document')  # New
+    verification_doc_no = models.CharField(verbose_name='Verification Doc No', max_length=50, null=True)
     date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True)
     age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=10, null=True)
     marital_status = models.ForeignKey(MaritalStatus, verbose_name='Marital Status', null=True)
 
-    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True)  # New
+    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True, verbose_name='Implementing Partner')  # New
 
-    phone_number = models.CharField(verbose_name='Phone Number(Client)', max_length=13, null=True)
+    phone_number = models.CharField(verbose_name='Phone Number', max_length=13, null=True)
     dss_id_number = models.CharField(verbose_name='DSS ID Number', max_length=50, null=True)
-    county_of_residence = models.ForeignKey(County, verbose_name='County of residence', null=True)
+    county_of_residence = models.ForeignKey(County, verbose_name='County of Residence', null=True)
     sub_county = models.ForeignKey(SubCounty, verbose_name='Sub County', null=True)
     ward = models.ForeignKey(Ward, verbose_name='Ward', null=True)
     informal_settlement = models.CharField(verbose_name='Informal Settlement', max_length=250, null=True)
     village = models.CharField(verbose_name='Village', max_length=250, null=True)
-    landmark = models.CharField(verbose_name='Land mark near residence', max_length=250, null=True)
+    landmark = models.CharField(verbose_name='Land Mark near Residence', max_length=250, null=True)
     dreams_id = models.CharField(verbose_name='DREAMS ID', max_length=50, null=True)
-    guardian_name = models.CharField(verbose_name='Primary care give / Guardian\' name', max_length=250, null=True)
+    guardian_name = models.CharField(verbose_name='Primary Care Giver/Guardian\' Name', max_length=250, null=True)
     relationship_with_guardian = models.CharField(verbose_name='Relationship with Guardian', max_length=50, null=True)
-    guardian_phone_number = models.CharField(verbose_name='Phone Number(Care giver / Guardian)', max_length=13, null=True)
-    guardian_national_id = models.CharField(verbose_name='National ID (Care giver / Guardian)', max_length=10, null=True)
+    guardian_phone_number = models.CharField(verbose_name='Phone Number(Care giver/Guardian)', max_length=13, null=True)
+    guardian_national_id = models.CharField(verbose_name='National ID (Care giver/Guardian)', max_length=10, null=True)
 
     enrolled_by = models.ForeignKey(User, null=True)
     odk_enrollment_uuid = models.CharField(max_length=50, null=True, blank=True)
@@ -426,7 +426,7 @@ class CategoricalResponse(models.Model):
     code = models.IntegerField(verbose_name='Response Code')
 
     def __str__(self):
-        return "{} {} ".format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name = 'Yes|No Response'
@@ -439,7 +439,7 @@ class PeriodResponse(models.Model):
     code = models.IntegerField(verbose_name='Response Code')
 
     def __str__(self):
-        return "{} {} ".format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name = 'Duration Response'
@@ -451,7 +451,7 @@ class HouseholdHead(models.Model):
     code = models.IntegerField(verbose_name='Household Head Code')
 
     def __str__(self):
-        return "{} {} ".format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name = 'Head of Household Category'
@@ -463,7 +463,7 @@ class RoofingMaterial(models.Model):
     code = models.IntegerField(verbose_name='Material Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Main Roofing Materials'
@@ -475,7 +475,7 @@ class WallMaterial(models.Model):
     code = models.IntegerField(verbose_name='Material Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Main Wall Materials'
@@ -487,7 +487,7 @@ class FloorMaterial(models.Model):
     code = models.IntegerField(verbose_name='Material Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Main Floor Materials'
@@ -500,7 +500,7 @@ class DrinkingWater(models.Model):
     code = models.IntegerField(verbose_name='Source Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Drinking water Sources'
@@ -513,7 +513,7 @@ class DisabilityType(models.Model):
     code = models.IntegerField(verbose_name='Disability Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Disability Types'
@@ -526,7 +526,7 @@ class SchoolType(models.Model):
     code = models.IntegerField(verbose_name='Type Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'School Types'
@@ -539,7 +539,7 @@ class SchoolLevel(models.Model):
     code = models.IntegerField(verbose_name='Education Level Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Levels of Education'
@@ -552,7 +552,7 @@ class EducationSupporter(models.Model):
     code = models.IntegerField(blank=False)
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Sources of Education Support'
@@ -565,7 +565,7 @@ class ReasonNotInSchool(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Reason Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Reasons not in School'
@@ -578,7 +578,7 @@ class LifeWish(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Wish Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Life Wishes'
@@ -591,7 +591,7 @@ class SourceOfIncome(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Sources of Income'
@@ -604,7 +604,7 @@ class BankingPlace(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Banking Places'
@@ -617,7 +617,7 @@ class HivTestResultResponse(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'HIV Test Responses'
@@ -630,7 +630,7 @@ class ReasonNotInHIVCare(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Reasons not in HIV Care'
@@ -643,7 +643,7 @@ class ReasonNotTestedForHIV(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Reasons not tested for HIV '
@@ -656,7 +656,7 @@ class AgeOfSexualPartner(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Age of Sexual Partner '
@@ -668,7 +668,7 @@ class FrequencyResponse(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Frequency Responses'
@@ -681,7 +681,7 @@ class FamilyPlanningMethod(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Family Planning methods'
@@ -694,7 +694,7 @@ class ReasonNotUsingFamilyPlanning(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Reasons not using Family Planning'
@@ -707,7 +707,7 @@ class GBVHelpProvider(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Sources of GBV Support'
@@ -720,7 +720,7 @@ class Drug(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Drugs'
@@ -732,7 +732,7 @@ class DreamsProgramme(models.Model):
     code = models.IntegerField(blank=False, verbose_name='Code')
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.code)
+        return '{}'.format(self.name)
 
     class Meta:
         verbose_name_plural = 'Dreams Programmes'
@@ -748,9 +748,9 @@ class ClientIndividualAndHouseholdData(models.Model):
     head_of_household = models.ForeignKey(HouseholdHead, null=True, related_name='+')
     head_of_household_other = models.CharField(max_length=50, blank=True, null=True)
     age_of_household_head = models.IntegerField(blank=True, null=True)
-    is_father_alive = models.IntegerField(verbose_name='Father alive?', null=True)
-    is_mother_alive = models.IntegerField(verbose_name='Mother alive?', null=True)
-    is_parent_chronically_ill = models.IntegerField(verbose_name='Is any of your parent/guardian chronically ill?', null=True)
+    is_father_alive = models.ForeignKey(CategoricalResponse, db_column='is_father_alive', verbose_name='Father alive?', null=True, related_name='+')
+    is_mother_alive = models.ForeignKey(CategoricalResponse, db_column='is_mother_alive', verbose_name='Mother alive?', null=True, related_name='+')
+    is_parent_chronically_ill = models.ForeignKey(CategoricalResponse, db_column='is_parent_chronically_ill', verbose_name='Is any of your parent/guardian chronically ill?', null=True, related_name='+')
     main_floor_material = models.ForeignKey(FloorMaterial, verbose_name='Main floor material', null=True, related_name='+')
     main_floor_material_other = models.CharField(max_length=50, verbose_name='Main floor material: other', blank=True, null=True)
     main_roof_material = models.ForeignKey(RoofingMaterial, verbose_name='Main roof material', null=True, related_name='+')
@@ -782,22 +782,22 @@ class ClientEducationAndEmploymentData(models.Model):
     """ Holds education and employment information about Dreams client"""
     client = models.ForeignKey(Client, db_index=True)
     currently_in_school = models.ForeignKey(CategoricalResponse, null=True, verbose_name='Currently schooling', related_name='+')
-    current_school_name = models.CharField(verbose_name='Name of school', blank=True, null=True, max_length=50)
-    current_school_type = models.ForeignKey(SchoolType, verbose_name='Type of school', blank=True, null=True, related_name='+')
-    current_school_level = models.ForeignKey(SchoolLevel, verbose_name='Current school level', null=True, blank=True, related_name='+')
+    current_school_name = models.CharField(verbose_name='Name of School', blank=True, null=True, max_length=50)
+    current_school_type = models.ForeignKey(SchoolType, verbose_name='Type of School', blank=True, null=True, related_name='+')
+    current_school_level = models.ForeignKey(SchoolLevel, verbose_name='Current School Level', null=True, blank=True, related_name='+')
     current_class = models.CharField(verbose_name='Class', max_length=10, blank=True, null=True)
     current_school_level_other = models.CharField(verbose_name='Other Education Level', max_length=20, blank=True, null=True)
-    current_education_supporter = models.ManyToManyField(EducationSupporter, blank=True)
-    current_education_supporter_other = models.CharField(max_length=25, null=True, blank=True, verbose_name='Support towards current education: other')
-    reason_not_in_school = models.ForeignKey(ReasonNotInSchool, null=True, verbose_name='Reason for not going to school', related_name='+')
-    reason_not_in_school_other = models.CharField(verbose_name='Reason for not going to school: other', max_length=50, null=True)
-    last_time_in_school = models.ForeignKey(PeriodResponse, null=True, verbose_name='Last time in school', related_name='+')
+    current_education_supporter = models.ManyToManyField(EducationSupporter, blank=True, verbose_name='Supporter towards current Education')
+    current_education_supporter_other = models.CharField(max_length=25, null=True, blank=True, verbose_name='Supporter towards current Education(other)')
+    reason_not_in_school = models.ForeignKey(ReasonNotInSchool, null=True, verbose_name='Reason for not going to School', related_name='+')
+    reason_not_in_school_other = models.CharField(verbose_name='Reason for not going to school(other)', max_length=50, null=True)
+    last_time_in_school = models.ForeignKey(PeriodResponse, null=True, verbose_name='Last time in School', related_name='+')
     dropout_school_level = models.ForeignKey(SchoolLevel, related_name='+', null=True)
-    dropout_class = models.CharField(max_length=50, verbose_name='Drop out class', null=True)
-    life_wish = models.ForeignKey(LifeWish, verbose_name='Wish in life', blank=True, null=True, related_name='+')
-    life_wish_other = models.CharField(verbose_name='Wish in life: other', max_length=50, blank=True, null=True)
-    current_income_source = models.ForeignKey(SourceOfIncome, null=True, verbose_name='Current source of income', related_name='+')
-    current_income_source_other = models.CharField(verbose_name='Source of income: other', max_length=30, null=True)
+    dropout_class = models.CharField(max_length=50, verbose_name='Drop out Class', null=True)
+    life_wish = models.ForeignKey(LifeWish, verbose_name='Wish in Life', blank=True, null=True, related_name='+')
+    life_wish_other = models.CharField(verbose_name='Wish in life(other)', max_length=50, blank=True, null=True)
+    current_income_source = models.ForeignKey(SourceOfIncome, null=True, verbose_name='Current source of Income', related_name='+')
+    current_income_source_other = models.CharField(verbose_name='Source of income(other)', max_length=30, null=True)
     has_savings = models.ForeignKey(CategoricalResponse, null=True, verbose_name='Do you have savings?', related_name='+')
     banking_place = models.ForeignKey(BankingPlace, verbose_name='Where do you keep your savings?', blank=True, null=True, related_name='+')
     banking_place_other = models.CharField(max_length=20, verbose_name='Other place for savings', null=True)
@@ -808,16 +808,16 @@ class ClientEducationAndEmploymentData(models.Model):
 class ClientHIVTestingData(models.Model):
     """ Holds HIV testing information about a client"""
     client = models.ForeignKey(Client, db_index=True)
-    ever_tested_for_hiv = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
-    period_last_tested = models.ForeignKey(PeriodResponse, blank=False, null=True, related_name='+')
-    last_test_result = models.ForeignKey(HivTestResultResponse, blank=False, null=True, related_name='+')
-    enrolled_in_hiv_care = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
-    care_facility_enrolled = models.CharField(max_length=50, blank=True, null=True)
-    reason_not_in_hiv_care = models.ForeignKey(ReasonNotInHIVCare, blank=True, null=True, related_name='+')
-    reason_not_in_hiv_care_other = models.CharField(max_length=50, blank=True, null=True)
-    knowledge_of_hiv_test_centres = models.ForeignKey(CategoricalResponse, null=True, related_name='+')
-    reason_never_tested_for_hiv = models.ManyToManyField(ReasonNotTestedForHIV, blank=True)
-    reason_never_tested_for_hiv_other = models.CharField(max_length=50, blank=True, null=True)
+    ever_tested_for_hiv = models.ForeignKey(CategoricalResponse, verbose_name='Ever Tested for HIV', blank=False, null=True, related_name='+')
+    period_last_tested = models.ForeignKey(PeriodResponse, verbose_name='Period last Tested', blank=False, null=True, related_name='+')
+    last_test_result = models.ForeignKey(HivTestResultResponse, verbose_name='Last Test Result', blank=False, null=True, related_name='+')
+    enrolled_in_hiv_care = models.ForeignKey(CategoricalResponse, verbose_name='Enrolled in HIV Care?', blank=True, null=True, related_name='+')
+    care_facility_enrolled = models.CharField(max_length=50, verbose_name='Name of Facility', blank=True, null=True)
+    reason_not_in_hiv_care = models.ForeignKey(ReasonNotInHIVCare, verbose_name='Reason not in Care', blank=True, null=True, related_name='+')
+    reason_not_in_hiv_care_other = models.CharField(max_length=50, verbose_name='Reason not in HIV Care(Other)', blank=True, null=True)
+    knowledge_of_hiv_test_centres = models.ForeignKey(CategoricalResponse, verbose_name='Know places where people get tested for HIV?', null=True, related_name='+')
+    reason_never_tested_for_hiv = models.ManyToManyField(ReasonNotTestedForHIV, verbose_name='Reason never tested for HIV', blank=True)
+    reason_never_tested_for_hiv_other = models.CharField(max_length=50, verbose_name='Reason never tested for HIV(Other)', blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
@@ -849,20 +849,20 @@ class ClientSexualActivityData(models.Model):
 class ClientReproductiveHealthData(models.Model):
     """ Holds information about client's reproductive health """
     client = models.ForeignKey(Client, db_index=True)
-    has_biological_children = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
-    no_of_biological_children = models.IntegerField(blank=True, null=True)
-    currently_pregnant = models.ForeignKey(CategoricalResponse, null=True, related_name='+')
-    current_anc_enrollment = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
-    anc_facility_name = models.CharField(max_length=50, blank=True, null=True)
-    fp_methods_awareness = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
-    known_fp_method = models.ManyToManyField(FamilyPlanningMethod,blank=True, related_name='+')
-    known_fp_method_other = models.CharField(max_length=50, null=True, blank=True)
-    currently_use_modern_fp = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
-    current_fp_method = models.ForeignKey(FamilyPlanningMethod, blank=True, null=True, related_name='+')
+    has_biological_children = models.ForeignKey(CategoricalResponse,verbose_name='Do you have biological children?', blank=False, null=True, related_name='+')
+    no_of_biological_children = models.IntegerField(blank=True, null=True, verbose_name='How many biological children do you have?')
+    currently_pregnant = models.ForeignKey(CategoricalResponse, null=True, related_name='+', verbose_name='Are you currently pregnant?')
+    current_anc_enrollment = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+', verbose_name='Are you attending ANC Clinic for this pregnancy')
+    anc_facility_name = models.CharField(max_length=50, blank=True, null=True, verbose_name='Which clinic/facility are you currently seeking ANC services')
+    fp_methods_awareness = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+', verbose_name='Are you aware of any family planning methods?')
+    known_fp_method = models.ManyToManyField(FamilyPlanningMethod,blank=True, related_name='+', verbose_name='Which family planning methods do you know of?')
+    known_fp_method_other = models.CharField(max_length=50, null=True, blank=True, verbose_name='Family planning method(Other)')
+    currently_use_modern_fp = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+', verbose_name='Are you currently using any modern family planning method?')
+    current_fp_method = models.ForeignKey(FamilyPlanningMethod, blank=True, null=True, related_name='+', verbose_name='Which family planning method are you currently using?')
     current_fp_method_other = models.CharField(max_length=50, verbose_name='Other Modern FP method used',
                                                        blank=True, null=True)
-    reason_not_using_fp = models.ForeignKey(ReasonNotUsingFamilyPlanning, null=True, blank=True, related_name='+')
-    reason_not_using_fp_other = models.CharField(max_length=50, blank=True, null=True)
+    reason_not_using_fp = models.ForeignKey(ReasonNotUsingFamilyPlanning, null=True, blank=True, related_name='+', verbose_name='Why are you not using any family planning method?')
+    reason_not_using_fp_other = models.CharField(max_length=50, blank=True, null=True, verbose_name="Reason not using modern family planning method(Other)")
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 

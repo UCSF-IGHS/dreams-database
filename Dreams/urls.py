@@ -57,6 +57,7 @@ urlpatterns = [
     url(r'^excel-output', views.download_excel, name='excel_template'),
     url(r'^download-excel/$', views.downloadEXCEL),
     url(r'^export-page', views.export_page),
+    url(r'^client_baseline_info', views.viewBaselineData),
     #url(r'^$', views.user_login, name='login'),
     url(r'^', views.error_404, name='error_404'),
 ]
