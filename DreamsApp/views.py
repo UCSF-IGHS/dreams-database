@@ -991,36 +991,26 @@ def toggle_status(request):
 
 
 def change_cred(request):
-    # check if user is logged in
     if request.user.is_authenticated() and request.user.is_active:  # user is authenticated
         if request.method == 'GET':
-            # return password change view
             context = {'page': 'account', 'user': request.user,}
             return render(request, 'change_cred.html', context)
         elif request.method == 'POST':
-            # do post functionality here!!
-            # retrieve all fields
             ch_username = request.POST.get('ch_username', '')
             ch_current_password = request.POST.get('ch_current_password', '')
             ch_new_password = request.POST.get('ch_new_password', '')
             ch_confirm_new_password = request.POST.get('ch_confirm_new_password', '')
-            # check if any details is missing
             if ch_username == '' or ch_current_password == '' or ch_new_password == '' or ch_confirm_new_password == '' or ch_confirm_new_password == '':
-                # return error
                 response_data = {
                     'status': 'fail',
                     'message': 'An error occurred as a result of missing details.'
                 }
                 return JsonResponse(response_data)
             else:
-                # all details exist. Check if credentials match
-                # check username
                 if request.user.get_username() == ch_username and request.user.check_password(
-                        ch_current_password) and ch_new_password == ch_confirm_new_password:
-                    # all details match. Change user password
+                    ch_current_password) and ch_new_password == ch_confirm_new_password:
                     request.user.set_password(ch_new_password)
                     request.user.save()
-                    # return success message
                     response_data = {
                         'status': 'success',
                         'message': 'Password changed successfully. Proceed to login with your new credentials'
@@ -1028,7 +1018,6 @@ def change_cred(request):
                     return JsonResponse(response_data)
 
                 else:
-                    # username or password mismatch. return error message
                     response_data = {
                         'status': 'fail',
                         'message': 'An error occurred as a result of wrong credentials.'
