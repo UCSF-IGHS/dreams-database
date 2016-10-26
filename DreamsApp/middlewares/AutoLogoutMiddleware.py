@@ -1,5 +1,5 @@
 # coding=utf-8
-from datetime import datetime
+from datetime import datetime, timedelta as t_delta
 from django.shortcuts import redirect
 from django.contrib.auth import logout
 from django.http import JsonResponse
@@ -13,8 +13,7 @@ class SessionExpiredMiddleware:
             request.session['last_activity'] = datetime.now()
             return
         last_activity = request.session['last_activity']
-        now = datetime.now()
-        if (now - last_activity).minutes > settings.SESSION_EXPIRY_AGE:
+        if ((datetime.now() - last_activity).total_seconds()/60) > settings.SESSION_EXPIRY_AGE:
             logout(request)
             if not request.is_ajax():
                 return redirect('login')
@@ -26,4 +25,6 @@ class SessionExpiredMiddleware:
                     'ip_users': ''
                 }
                 return JsonResponse(response_data)
+        # If user is within session, set a new last_activity value
+        request.session['last_activity'] = datetime.now()
         return
