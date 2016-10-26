@@ -1,7 +1,7 @@
 {% load staticfiles %}
 
-<nav id="dreams-navbar" class="navbar navbar-main " role="navigation" style="background-color: #26247B; border-radius: 0px;padding-top: 10px; margin-bottom: 0px; height: 150px;">
-    <div class="container" style="background-color: #26247B;">
+<nav id="dreams-navbar" class="navbar navbar-main " role="navigation" style="">
+    <div class="container" style="">
 
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
@@ -11,12 +11,12 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" href="/clients">
-                <img id="dp-logo" src="{% static 'images/logo.jpg' %}" alt="Logo" class="img img-responsive" style="height: 164px; margin-top: -40px;z-index: -1;">
+                <img id="dp-logo" src="{% static 'images/logo.jpg' %}" alt="Logo" class="img img-responsive" style="">
             </a>
 
         </div>
 
-        <div id="bs-example-navbar-collapse-1" class="navbar-collapse collapse" style="height:100px; padding: 0px 0px;margin-top:20px;">
+        <div id="bs-example-navbar-collapse-1" class="navbar-collapse collapse" style="">
             <ul class="nav navbar-nav navbar-right" style="margin-bottom: 0px;">
             {% if user.is_anonymous %}
                 <!--<li><a>Please log below</a></li>-->

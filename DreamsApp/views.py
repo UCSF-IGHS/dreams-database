@@ -55,7 +55,7 @@ def user_login(request):
         if request.user.is_authenticated():
             return redirect('clients')
         if request.method == 'GET':
-            return render(request, 'login.html')
+            return render(request, 'login.html', {'page_title':'Login', 'page':'login'})
         elif request.method == 'POST':
             user_name = request.POST.get('inputUsername', '')
             pass_word = request.POST.get('inputPassword', '')
@@ -76,7 +76,9 @@ def user_login(request):
                 audit.save()
                 response_data = {
                     'status': 'fail',
-                    'message': 'Missing username or password.'
+                    'message': 'Missing username or password.',
+                    'page': 'login',
+                    'page_title': 'Login'
                 }
             else:
                 user = authenticate(username=user_name, password=pass_word)
@@ -116,7 +118,7 @@ def clients(request):
             if request.method == 'GET':
                 client_list = Client.objects.filter(id__exact=0)  # Clients list should be empty on start
                 implementing_partner_user = ImplementingPartnerUser.objects.filter(user=request.user).first()
-                context = {'page': 'clients', 'user': request.user, 'clients': client_list,
+                context = {'page': 'clients', 'page_title': 'DREAMS Client list','user': request.user, 'clients': client_list,
                            'implementing_partner_user': implementing_partner_user,
                            'config_data': get_enrollment_form_config_data()}
                 return render(request, 'clients.html', context)
@@ -165,6 +167,7 @@ def client_profile(request):
                                                                                current_AGYW=client_found)
                     cash_transfer_details_form.save(commit=False)
                 return render(request, 'client_profile.html', {'page': 'clients',
+                                                               'page_title': 'DREAMS Client Service Uptake',
                                                                'client': client_found,
                                                                'ct_form': cash_transfer_details_form,
                                                                'ct_id': cash_transfer_details.id,
@@ -174,6 +177,7 @@ def client_profile(request):
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
                 return render(request, 'client_profile.html',
                               {'page': 'clients',
+                               'page_title': 'DREAMS Client Service Uptake',
                                'client': client_found,
                                'ct_form': cash_transfer_details_form,
                                'user': request.user
@@ -702,9 +706,9 @@ def reporting(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
-                return render(request, 'reporting.html', {'user': request.user})
+                return render(request, 'reporting.html', {'user': request.user, 'page_title': 'DREAMS Reporting',})
             elif request.method == 'POST' and request.is_ajax():
-                return render(request, 'reporting.html', {'user': request.user})
+                return render(request, 'reporting.html', {'user': request.user, 'page_title': 'DREAMS Reporting',})
         else:
             raise PermissionDenied
     except Exception as e:
@@ -759,7 +763,7 @@ def logs(request):
                     logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
                 except EmptyPage:
                     logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
-                return render(request, 'log.html', {'page': 'logs', 'logs': logs_list, 'filter_text': filter_text,
+                return render(request, 'log.html', {'page': 'logs', 'page_title': 'DREAMS Logs','logs': logs_list, 'filter_text': filter_text,
                                                     'filter_date': filter_date,
                                                     'items_in_page': 0 if logs_list.end_index() == 0 else
                                                     (logs_list.end_index() - logs_list.start_index() + 1)
@@ -794,7 +798,7 @@ def logs(request):
                 logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
             except EmptyPage:
                 logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
-            return render(request, 'log.html', {'page': 'logs', 'logs': logs_list, 'filter_text': filter_text,
+            return render(request, 'log.html', {'page': 'logs','page_title': 'DREAMS Logs','logs': logs_list, 'filter_text': filter_text,
                                                 'filter_date': filter_date,
                                                 'items_in_page': 0 if logs_list.end_index() == 0 else
                                                 (logs_list.end_index() - logs_list.start_index() + 1)})
@@ -850,7 +854,7 @@ def users(request):
             final_ip_user_list = paginator.page(1)  # Deliver the first page is page is not an integer
         except EmptyPage:
             final_ip_user_list = paginator.page(0)  # Deliver the last page if page is out of scope
-        return render(request, 'users.html', {'page': 'users', 'ip_users': final_ip_user_list,
+        return render(request, 'users.html', {'page': 'users','page_title': 'DREAMS User List', 'ip_users': final_ip_user_list,
                                               'filter_text': filter_text,
                                               'items_in_page': 0 if final_ip_user_list.end_index() == 0 else
                                               (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1),
@@ -996,7 +1000,7 @@ def toggle_status(request):
 def change_cred(request):
     if request.user.is_authenticated() and request.user.is_active:  # user is authenticated
         if request.method == 'GET':
-            context = {'page': 'account', 'user': request.user,}
+            context = {'page': 'account','page_title': 'DREAMS Password Change', 'user': request.user,}
             return render(request, 'change_cred.html', context)
         elif request.method == 'POST':
             ch_username = request.POST.get('ch_username', '')
@@ -1096,7 +1100,7 @@ def grievances_list(request):
         except EmptyPage:
             final_grievance_list = paginator.page(0)  # Deliver the last page if page is out of scope
         response_data = {
-            'page': 'cash_transfer',
+            'page': 'cash_transfer','page_title': 'DREAMS Grievance List',
             'filter_text': filter_text,
             'filter_date': filter_date,
             'items_in_page': 0 if final_grievance_list.end_index() == 0 else
@@ -1308,7 +1312,7 @@ def export_page(request):
                 ips = None
 
             print "IPs", ips
-            context = {'page': 'export', 'ips': ips}
+            context = {'page': 'export','page_title': 'DREAMS Data Export', 'ips': ips}
             return render(request, 'dataExport.html', context)
         except ImplementingPartnerUser.DoesNotExist:
             traceback.format_exc()
@@ -1335,7 +1339,7 @@ def downloadEXCEL(request):
 
 
 def error_404(request):
-    context = {'user': request.user, 'error_code': 404, 'error_title': 'Page Not Found (Error 404)',
+    context = {'user': request.user, 'error_code': 404,'page_title': 'DREAMS Application Error', 'error_title': 'Page Not Found (Error 404)',
                'error_message': 'The page you are looking for does not exist. Go back to previous page or Home page'}
     return render(request, 'error_page.html', context)
 

@@ -5,7 +5,7 @@
     {% include 'includes/user_form.html' %}
     {% include 'includes/confirn_modal.html' %}
 
-    <div style="min-height: 60em;">
+    <div class="wrapper-container">
         <div class="statusBox" >
             <div class="gen-font">
                 <h4>DREAMS User List</h4>
@@ -26,8 +26,7 @@
         </div>
         <div class=" alert hidden dp-action-alert fade in" id="user_actions_alert" role="alert" style="margin-bottom: 10px;"></div>
 
-        <div id="user-list" style="max-height: calc(100vh - 510px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
-            <table class="table table-striped dp-user-table table-bordered" id="dreams-user-table" style="margin: 0px;margin-bottom: 35px;">
+        <table class="table table-striped dp-user-table table-bordered" id="dreams-user-table" style="margin: 0px;margin-bottom: 35px;">
                 <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                     <th>username</th>
                     <th>Full name</th>
@@ -79,7 +78,7 @@
                     {% endif %}
                 </tbody>
             </table>
-        </div>
+
         <div class="pagination fit-item" >
             <span class="step-links">
                 {% if ip_users.has_previous %}
