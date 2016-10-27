@@ -115,32 +115,69 @@ def user_login(request):
 def clients(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-            if request.method == 'GET':
-                client_list = Client.objects.filter(id__exact=0)  # Clients list should be empty on start
-                implementing_partner_user = ImplementingPartnerUser.objects.filter(user=request.user).first()
-                context = {'page': 'clients', 'page_title': 'DREAMS Client list','user': request.user, 'clients': client_list,
-                           'implementing_partner_user': implementing_partner_user,
-                           'config_data': get_enrollment_form_config_data()}
-                return render(request, 'clients.html', context)
-            elif request.method == 'POST':
-                search_value = request.POST.get('searchValue', '')
+            # get search details
+            page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
+            search_option = request.GET.get('clientSearchOption', '') if request.method == 'GET' else request.POST.get('clientSearchOption', '')
+            dreams_id = request.GET.get('searchDreamsId', '') if request.method == 'GET' else request.POST.get('searchDreamsId', '')
+            first_name = request.GET.get('searchFirstName', '') if request.method == 'GET' else request.POST.get('searchFirstName', '')
+            middle_name = request.GET.get('searchMiddleName', '') if request.method == 'GET' else request.POST.get('searchMiddleName', '')
+            last_name = request.GET.get('searchLastName', '') if request.method == 'GET' else request.POST.get('searchLastName', '')
+            log_search_value = ""
 
-                if request.user.has_perm('auth.can_search_client_by_name'):
-                    search_result = Client.objects.filter(Q(dreams_id__in=search_value.split(" ")) |
-                                                          Q(first_name__in=search_value.split(" ")) |
-                                                          Q(last_name__in=search_value.split(" ")) |
-                                                          Q(middle_name__in=search_value.split(" ")))
+            if search_option == "search_dreams_id":
+                search_result = Client.objects.filter(dreams_id__exact=dreams_id)
+                log_search_value = dreams_id
+            elif search_option == "search_name":
+                log_search_value = first_name + " " + middle_name + " " + last_name
+                # Check if the 2 part rule is satisfied
+                name_parts = (first_name, middle_name, last_name)
+                parts_count = 0
+                for name_part in name_parts:
+                    if name_part.strip() != "":
+                        parts_count += 1
+                if parts_count >= 2:
+                    search_result = Client.objects.filter(
+                        first_name__iexact=first_name) if first_name != "" else Client.objects.all()
+                    search_result = search_result.filter(
+                        middle_name__iexact=middle_name) if middle_name != "" else search_result
+                    search_result = search_result.filter(
+                        last_name__iexact=last_name) if last_name != "" else search_result
                 else:
-                    search_result = Client.objects.filter(dreams_id__exact=search_value)
-                # check if user can see clients enrolled more than a week ago
-                log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
+                    search_result = Client.objects.all()[:0]
+            else:
+                search_result = Client.objects.all()[:0]
+            log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", log_search_value)
+
+            if request.is_ajax():
                 json_response = {
-                    'search_result': serializers.serialize('json', search_result[:1]),
+                    'search_result': serializers.serialize('json', search_result),
                     'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                     'can_change_client': request.user.has_perm('auth.can_change_client'),
                     'can_delete_client': request.user.has_perm('auth.can_delete_client')
                 }
                 return JsonResponse(json_response, safe=False)
+            else:
+                # Non ajax request.. Do a paginator
+                # do pagination
+                try:
+                    paginator = Paginator(search_result, 20)
+                    client_paginator = paginator.page(page)
+                except PageNotAnInteger:
+                    client_paginator = paginator.page(1)  # Deliver the first page is page is not an integer
+                except EmptyPage:
+                    client_paginator = paginator.page(paginator.num_pages)  # Deliver the last page if page is out of scope
+                response_data = {
+                    'page': 'client',
+                    'page_title': 'DREAMS Client List',
+                    'search_option': search_option,
+                    'dreams_id': dreams_id,
+                    'first_name': first_name,
+                    'middle_name': middle_name,
+                    'last_name': last_name,
+                    'client_paginator': client_paginator,
+                    'status': 'success'
+                }
+                return render(request, 'clients.html', response_data)
         else:
             return redirect('login')
     except Exception as e:
