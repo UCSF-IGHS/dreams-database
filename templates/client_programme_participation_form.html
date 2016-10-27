@@ -1,0 +1,24 @@
+<form method="POST" class="post-form" id="form_programme_participation">
+    {% csrf_token %}
+    <div class="form-group">
+        {{ programe_participation_form.dreams_program.errors }}
+        <label class="control-label">Which HIV Prevention Programmes have you participated in</label><br/><br/>
+        {{ programe_participation_form.dreams_program }}
+
+        {% for p in programe_participation_form.dreams_program.value %}
+            {% if p == 96 %}
+                <span id="other_program">
+            {% else %}
+                <span id="other_program" class="hidden">
+            {% endif %}
+
+        {{ programe_participation_form.dreams_program_other.errors }}
+        <label class="control-label">Other</label>
+        {{ programe_participation_form.dreams_program_other }}
+        </span>
+
+        {% endfor %}
+
+    </div>
+    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+</form>

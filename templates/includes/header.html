@@ -36,6 +36,7 @@
                 {% if perms.auth.add_grievance %}
                     <li class="{% if page == 'cash_transfer' %}active{% endif %}"><a href="/grievances" >Grievances </a> </li>
                 {% endif %}
+
                 {% if user.is_authenticated %}
                     <li class="dropdown {% if page == 'export' %}active{% endif %}" >
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>

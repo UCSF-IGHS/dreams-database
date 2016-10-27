@@ -1,7 +1,7 @@
 
 -- defining table to be populated by odk enrollment trigger
-DROP TABLE IF EXISTS `odk_dreams_sync`;
-CREATE TABLE `odk_dreams_sync` (
+DROP TABLE IF EXISTS dreams_production.odk_dreams_sync;
+CREATE TABLE dreams_production.odk_dreams_sync (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `uuid` varchar(100) NOT NULL DEFAULT '',
   `synced` int(11) NOT NULL DEFAULT '0',
@@ -18,7 +18,7 @@ AFTER INSERT
 ON odk_aggregate.DREAMS_ENROLMENT_FORM_CORE2
 FOR EACH ROW
 BEGIN
-INSERT INTO dreams_test.odk_dreams_sync
+INSERT INTO dreams_production.odk_dreams_sync
 (
 uuid, form
 )
@@ -40,7 +40,7 @@ AFTER INSERT
 ON odk_aggregate.CT_HOME_VISIT_VERFICATION_FORM_CORE
 FOR EACH ROW
 BEGIN
-INSERT INTO dreams_test.odk_dreams_sync
+INSERT INTO dreams_production.odk_dreams_sync
 (
 uuid, form
 )
@@ -62,6 +62,7 @@ CREATE EVENT event_odk_dreams_enrollment_sync
 ON SCHEDULE EVERY 2 MINUTE STARTS CURRENT_TIMESTAMP
 DO
 call sp_sync_odk_dreams_data();
+CALL sp_update_demographics_location();
 $$
 DELIMITER ;
 
@@ -156,7 +157,7 @@ DROP PROCEDURE IF EXISTS sp_demographic_data$$
 CREATE PROCEDURE sp_demographic_data(IN recordUUID VARCHAR(100))
 	BEGIN
 
-    INSERT INTO dreams_dev.DreamsApp_client
+    INSERT INTO dreams_production.DreamsApp_client
     (
       first_name,
       middle_name,
@@ -213,7 +214,7 @@ CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100), IN
 	BEGIN
     DECLARE individualRecordID INT(11);
 
-    INSERT INTO dreams_dev.DreamsApp_clientindividualandhouseholddata
+    INSERT INTO dreams_production.DreamsApp_clientindividualandhouseholddata
     (
       client_id,
       head_of_household_id, -- q101
@@ -286,7 +287,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_client_disability_type$$
 CREATE PROCEDURE sp_client_disability_type(IN recordID INT(11), IN parentUUID VARCHAR(100))
   BEGIN
-    INSERT INTO dreams_dev.DreamsApp_clientindividualandhouseholddata_disability_type (clientindividualandhouseholddata_id, disabilitytype_id)
+    INSERT INTO dreams_production.DreamsApp_clientindividualandhouseholddata_disability_type (clientindividualandhouseholddata_id, disabilitytype_id)
     SELECT recordID, c.VALUE
     FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_Q113 c
     WHERE c._PARENT_AURI=parentUUID;
@@ -299,7 +300,7 @@ DROP PROCEDURE IF EXISTS sp_sexuality_data$$
 CREATE PROCEDURE sp_sexuality_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
     -- SELECT concat('UUID: ',recordUUID, ', clientID: ', clientID);
-    INSERT INTO dreams_dev.DreamsApp_clientsexualactivitydata
+    INSERT INTO dreams_production.DreamsApp_clientsexualactivitydata
     (
       client_id,
       ever_had_sex_id,
@@ -353,7 +354,7 @@ CREATE PROCEDURE sp_reproductive_health_data(IN recordUUID VARCHAR(100), IN clie
 	BEGIN
     DECLARE repHealthRecordID INT(11);
 
-    INSERT INTO dreams_dev.DreamsApp_clientreproductivehealthdata
+    INSERT INTO dreams_production.DreamsApp_clientreproductivehealthdata
     (
       client_id,
       has_biological_children_id,
@@ -399,7 +400,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_client_rep_health_known_fp_method$$
 CREATE PROCEDURE sp_client_rep_health_known_fp_method(IN recordID INT(11), IN parentUUID VARCHAR(100))
   BEGIN
-    INSERT INTO dreams_dev.DreamsApp_clientreproductivehealthdata_known_fp_method (clientreproductivehealthdata_id, familyplanningmethod_id)
+    INSERT INTO dreams_production.DreamsApp_clientreproductivehealthdata_known_fp_method (clientreproductivehealthdata_id, familyplanningmethod_id)
     SELECT recordID, c.VALUE
     FROM odk_aggregate.DREAMS_ENROLMENT_FORM_Q507 c
     WHERE c._PARENT_AURI=parentUUID;
@@ -415,7 +416,7 @@ CREATE PROCEDURE sp_drug_use_data(IN recordUUID VARCHAR(100), IN clientID INT(11
 	BEGIN
     DECLARE drugUseRecordID INT(11);
 
-    INSERT INTO dreams_dev.DreamsApp_clientdrugusedata
+    INSERT INTO dreams_production.DreamsApp_clientdrugusedata
     (
       client_id,
       used_alcohol_last_12months_id,
@@ -447,7 +448,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_client_drug_used_in_last_12_months$$
 CREATE PROCEDURE sp_client_drug_used_in_last_12_months(IN recordID INT(11), IN parentUUID VARCHAR(100))
   BEGIN
-    INSERT INTO dreams_dev.DreamsApp_clientdrugusedata_drug_used_last_12months (clientdrugusedata_id, drug_id)
+    INSERT INTO dreams_production.DreamsApp_clientdrugusedata_drug_used_last_12months (clientdrugusedata_id, drug_id)
     SELECT recordID, c.VALUE
     FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_7_Q704 c
     WHERE c._PARENT_AURI=parentUUID;
@@ -463,7 +464,7 @@ CREATE PROCEDURE sp_program_participation_data(IN recordUUID VARCHAR(100), IN cl
 	BEGIN
     DECLARE programParticipationRecordID INT(11);
 
-    INSERT INTO dreams_dev.DreamsApp_clientparticipationindreams
+    INSERT INTO dreams_production.DreamsApp_clientparticipationindreams
     (
       client_id,
       dreams_program_other
@@ -486,7 +487,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_client_programs_enrolled$$
 CREATE PROCEDURE sp_client_programs_enrolled(IN recordID INT(11), IN parentUUID VARCHAR(100))
   BEGIN
-    INSERT INTO dreams_dev.DreamsApp_clientparticipationindreams_dreams_program (clientparticipationindreams_id, dreamsprogramme_id)
+    INSERT INTO dreams_production.DreamsApp_clientparticipationindreams_dreams_program (clientparticipationindreams_id, dreamsprogramme_id)
     SELECT recordID, c.VALUE
     FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_8_Q801 c
     WHERE c._PARENT_AURI=parentUUID;
@@ -503,7 +504,7 @@ CREATE PROCEDURE sp_gbv_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
     DECLARE gbvRecordID INT(11);
 
-    INSERT INTO dreams_dev.DreamsApp_clientgenderbasedviolencedata
+    INSERT INTO dreams_production.DreamsApp_clientgenderbasedviolencedata
     (
       client_id,
       humiliated_ever_id,
@@ -567,7 +568,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_client_gbv_help_provider$$
 CREATE PROCEDURE sp_client_gbv_help_provider(IN recordID INT(11), IN parentUUID VARCHAR(100))
   BEGIN
-    INSERT INTO dreams_dev.DreamsApp_clientgenderbasedviolencedata_gbv_help_provider (clientgenderbasedviolencedata_id, gbvhelpprovider_id)
+    INSERT INTO dreams_production.DreamsApp_clientgenderbasedviolencedata_gbv_help_provider (clientgenderbasedviolencedata_id, gbvhelpprovider_id)
     SELECT recordID, c.VALUE
     FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_6_Q610 c
     WHERE c._PARENT_AURI=parentUUID;
@@ -580,7 +581,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_client_gbv_preferred_provider$$
 CREATE PROCEDURE sp_client_gbv_preferred_provider(IN recordID INT(11), IN parentUUID VARCHAR(100))
   BEGIN
-    INSERT INTO dreams_dev.DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce (clientgenderbasedviolencedata_id, gbvhelpprovider_id)
+    INSERT INTO dreams_production.DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce (clientgenderbasedviolencedata_id, gbvhelpprovider_id)
     SELECT recordID, c.VALUE
     FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_6_Q612 c
     WHERE c._PARENT_AURI=parentUUID;
@@ -596,7 +597,7 @@ CREATE PROCEDURE sp_education_and_employment(IN recordUUID VARCHAR(100), IN clie
 	BEGIN
     DECLARE eduRecordID INT(11);
 
-    INSERT INTO dreams_dev.DreamsApp_clienteducationandemploymentdata
+    INSERT INTO dreams_production.DreamsApp_clienteducationandemploymentdata
     (
       client_id,
       currently_in_school_id,
@@ -657,7 +658,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_client_current_education_supporter$$
 CREATE PROCEDURE sp_client_current_education_supporter(IN recordID INT(11), IN parentUUID VARCHAR(100))
   BEGIN
-    INSERT INTO dreams_dev.DreamsApp_clienteducationandemploymentdata_current_educationebf4 (clienteducationandemploymentdata_id, educationsupporter_id)
+    INSERT INTO dreams_production.DreamsApp_clienteducationandemploymentdata_current_educationebf4 (clienteducationandemploymentdata_id, educationsupporter_id)
     SELECT recordID, c.VALUE
     FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_2_Q204 c
     WHERE c._PARENT_AURI=parentUUID;
@@ -673,7 +674,7 @@ CREATE PROCEDURE sp_hiv_testing(IN recordUUID VARCHAR(100), IN clientID INT(11))
 	BEGIN
     DECLARE hivtestingRecordID INT(11);
 
-    INSERT INTO dreams_dev.DreamsApp_clienthivtestingdata
+    INSERT INTO dreams_production.DreamsApp_clienthivtestingdata
     (
       client_id,
       ever_tested_for_hiv_id,
@@ -714,9 +715,9 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_client_hiv_reason_never_tested$$
 CREATE PROCEDURE sp_client_hiv_reason_never_tested(IN recordID INT(11), IN parentUUID VARCHAR(100))
   BEGIN
-    INSERT INTO dreams_dev.DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv (clienthivtestingdata_id, reasonnottestedforhiv_id)
+    INSERT INTO dreams_production.DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv (clienthivtestingdata_id, reasonnottestedforhiv_id)
     SELECT recordID, c.VALUE
-    FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_3_Q3072 c
+    FROM odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_3_Q307 c
     WHERE c._PARENT_AURI=parentUUID;
 
   END $$
@@ -732,7 +733,7 @@ CREATE PROCEDURE sp_ct_home_visit_verification_data(IN recordUUID VARCHAR(100))
 	BEGIN
     DECLARE ct_home_visit_recordID INT(11);
 
-    INSERT INTO dreams_dev.DreamsApp_homevisitverification
+    INSERT INTO dreams_production.DreamsApp_homevisitverification
     (
       client_name,
       dreams_id,
@@ -803,11 +804,32 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_ct_source_of_livelihood$$
 CREATE PROCEDURE sp_ct_source_of_livelihood(IN recordID INT(11), IN parentUUID VARCHAR(100))
   BEGIN
-    INSERT INTO dreams_dev.DreamsApp_homevisitverification_source_of_livelihood (homevisitverification_id, sourceofincome_id)
+    INSERT INTO dreams_production.DreamsApp_homevisitverification_source_of_livelihood (homevisitverification_id, sourceofincome_id)
     SELECT recordID, c.VALUE
     FROM odk_aggregate.CT_HOME_VISIT_VERFICATION_FORM_Q3 c
     WHERE c._PARENT_AURI=parentUUID;
 
+  END $$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_update_demographics_location$$
+CREATE PROCEDURE sp_update_demographics_location()
+  BEGIN
+    UPDATE DreamsApp_client cl
+    INNER JOIN (
+      SELECT
+      w.code ward_code,
+      sc.id subcounty_id,
+      c.id county_id
+    from dreams_production.DreamsApp_ward w
+    INNER JOIN dreams_production.DreamsApp_subcounty sc ON sc.id = w.sub_county_id
+    INNER JOIN dreams_production.DreamsApp_county c ON c.id=sc.county_id
+    ) location ON location.ward_code = cl.ward_id
+    SET cl.sub_county_id = location.subcounty_id, cl.county_of_residence_id = location.county_id
+    WHERE (cl.sub_county_id is NULL OR cl.county_of_residence_id is NULL)
+
+;
   END $$
 DELIMITER ;
 -- ---------------------------------------- fix collation and character set --------------------------------------------
@@ -1158,12 +1180,12 @@ CREATE PROCEDURE sp_create_flat_enrollment_table()
 BEGIN
 
 DECLARE record_id INT(11);
-INSERT INTO DreamsApp_flatenrollmenttablelog(date_started, activity) VALUES(NOW(), 'Initial creation of flat enrollment table');
+INSERT INTO dreams_production.DreamsApp_flatenrollmenttablelog(date_started, activity) VALUES(NOW(), 'Initial creation of flat enrollment table');
 SET record_id = LAST_INSERT_ID();
 
-DROP TABLE IF EXISTS flat_dreams_enrollment;
+DROP TABLE IF EXISTS dreams_production.flat_dreams_enrollment;
 
-CREATE TABLE flat_dreams_enrollment (
+CREATE TABLE dreams_production.flat_dreams_enrollment (
 client_id INT(11) PRIMARY KEY NOT NULL,
 first_name VARCHAR(100),
 middle_name VARCHAR(100),
@@ -1312,7 +1334,7 @@ reason_not_in_hiv_care_id INT(11),
 reason_not_tested_for_hiv VARCHAR(20)
 );
 
-UPDATE DreamsApp_flatenrollmenttablelog SET date_completed = NOW() WHERE id=record_id;
+UPDATE dreams_production.DreamsApp_flatenrollmenttablelog SET date_completed = NOW() WHERE id=record_id;
 
 END$$
 DELIMITER ;
@@ -1327,10 +1349,10 @@ CREATE PROCEDURE sp_populate_flat_enrollment_table()
 BEGIN
 
 DECLARE record_id INT(11);
-INSERT INTO DreamsApp_flatenrollmenttablelog(date_started, activity) VALUES(NOW(), 'First time population of table');
+INSERT INTO dreams_production.DreamsApp_flatenrollmenttablelog(date_started, activity) VALUES(NOW(), 'First time population of table');
 SET record_id = LAST_INSERT_ID();
 
-INSERT INTO flat_dreams_enrollment(
+INSERT INTO dreams_production.flat_dreams_enrollment(
 client_id,
 first_name,
 middle_name,
@@ -1513,15 +1535,15 @@ hiv.care_facility_enrolled,hiv.reason_not_in_hiv_care_other,hiv.reason_never_tes
 hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_result_id,hiv.period_last_tested_id,
 hiv.reason_not_in_hiv_care_id
 from
-DreamsApp_client AS d
-LEFT OUTER JOIN DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
-LEFT OUTER JOIN DreamsApp_clientsexualactivitydata s ON s.client_id = d.id
-LEFT OUTER JOIN DreamsApp_clientreproductivehealthdata rh ON rh.client_id=d.id
-LEFT OUTER JOIN DreamsApp_clientdrugusedata dr on dr.client_id=d.id
-LEFT OUTER JOIN DreamsApp_clientparticipationindreams p on p.client_id=d.id
-LEFT OUTER JOIN DreamsApp_clientgenderbasedviolencedata gbv ON gbv.client_id=d.id
-LEFT OUTER JOIN DreamsApp_clienteducationandemploymentdata edu ON edu.client_id = d.id
-LEFT OUTER JOIN DreamsApp_clienthivtestingdata hiv ON hiv.client_id=d.id
+dreams_production.DreamsApp_client AS d
+LEFT OUTER JOIN dreams_production.DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clientsexualactivitydata s ON s.client_id = d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clientreproductivehealthdata rh ON rh.client_id=d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clientdrugusedata dr on dr.client_id=d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clientparticipationindreams p on p.client_id=d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clientgenderbasedviolencedata gbv ON gbv.client_id=d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clienteducationandemploymentdata edu ON edu.client_id = d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clienthivtestingdata hiv ON hiv.client_id=d.id
 LEFT OUTER JOIN (
 SELECT
 w.id as ward_code,
@@ -1530,109 +1552,109 @@ w.sub_county_id as sub_county_code,
 s.name as sub_county_name,
 s.county_id as county_code,
 c.name as county_name
-from DreamsApp_ward w
-INNER JOIN DreamsApp_subcounty s ON s.id = w.sub_county_id
-INNER JOIN DreamsApp_county c ON s.county_id = c.id
+from dreams_production.DreamsApp_ward w
+INNER JOIN dreams_production.DreamsApp_subcounty s ON s.id = w.sub_county_id
+INNER JOIN dreams_production.DreamsApp_county c ON s.county_id = c.id
 ) l ON l.ward_code = d.ward_id
 group by d.id
 ;
 
 -- update many to many fields
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       i_data.client_id,
       group_concat(disabilitytype_id) AS disability_types
-      from DreamsApp_clientindividualandhouseholddata i_data
-      INNER JOIN DreamsApp_clientindividualandhouseholddata_disability_type dt ON dt.clientindividualandhouseholddata_id = i_data.id
+      from dreams_production.DreamsApp_clientindividualandhouseholddata i_data
+      INNER JOIN dreams_production.DreamsApp_clientindividualandhouseholddata_disability_type dt ON dt.clientindividualandhouseholddata_id = i_data.id
       GROUP BY i_data.client_id
   ) ind_data on ind_data.client_id = e.client_id
 SET e.disability_types = ind_data.disability_types;
 
 -- reproductive data: know fp methods
 
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       rh.client_id,
       group_concat(familyplanningmethod_id) AS known_fp_methods
-      FROM DreamsApp_clientreproductivehealthdata_known_fp_method fp
-      INNER JOIN DreamsApp_clientreproductivehealthdata rh
+      FROM dreams_production.DreamsApp_clientreproductivehealthdata_known_fp_method fp
+      INNER JOIN dreams_production.DreamsApp_clientreproductivehealthdata rh
       ON fp.clientreproductivehealthdata_id = rh.id
       GROUP BY rh.client_id
   ) rpr_data on rpr_data.client_id = e.client_id
 SET e.known_fp_methods = rpr_data.known_fp_methods;
 
 -- drugs used in past one year
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       dd.client_id,
       group_concat(d.drug_id) AS drugs_used_in_last_12_months
-      FROM DreamsApp_clientdrugusedata_drug_used_last_12months d
-      INNER JOIN DreamsApp_clientdrugusedata dd ON d.clientdrugusedata_id = dd.id
+      FROM dreams_production.DreamsApp_clientdrugusedata_drug_used_last_12months d
+      INNER JOIN dreams_production.DreamsApp_clientdrugusedata dd ON d.clientdrugusedata_id = dd.id
       GROUP BY dd.client_id
   ) d_data on d_data.client_id = e.client_id
 SET e.drugs_used_in_last_12_months = d_data.drugs_used_in_last_12_months;
 
 -- dreams programs enrolled
 
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       cpd.client_id   AS client_id,
       group_concat(dp.dreamsprogramme_id) AS programmes_enrolled
-      FROM DreamsApp_clientparticipationindreams_dreams_program dp
-      INNER JOIN DreamsApp_clientparticipationindreams cpd
+      FROM dreams_production.DreamsApp_clientparticipationindreams_dreams_program dp
+      INNER JOIN dreams_production.DreamsApp_clientparticipationindreams cpd
       ON dp.clientparticipationindreams_id = cpd.id
       GROUP BY client_id
   ) p on p.client_id = e.client_id
 SET e.programmes_enrolled = p.programmes_enrolled;
 
 -- gbv sought provider
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       gbv.client_id,
       group_concat(provider.gbvhelpprovider_id) AS provider_list
-      FROM DreamsApp_clientgenderbasedviolencedata_gbv_help_provider provider
-      INNER JOIN DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
+      FROM dreams_production.DreamsApp_clientgenderbasedviolencedata_gbv_help_provider provider
+      INNER JOIN dreams_production.DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
       GROUP BY gbv.client_id
   ) gbv on gbv.client_id = e.client_id
 SET e.providers_sought = gbv.provider_list;
 
 -- gbv preferred provider
 
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       gbv.client_id,
       group_concat(provider.gbvhelpprovider_id) AS provider_list
-      FROM DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce provider -- DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_provider
-      INNER JOIN DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
+      FROM dreams_production.DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce provider -- DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_provider
+      INNER JOIN dreams_production.DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
       GROUP BY gbv.client_id
   ) gbv on gbv.client_id = e.client_id
 SET e.preferred_providers = gbv.provider_list;
 
 -- current education supporter
 
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       ed.client_id,
       group_concat(educationsupporter_id)   AS current_edu_supporter_list
-      FROM DreamsApp_clienteducationandemploymentdata_current_educationebf4 s -- DreamsApp_clienteducationandemploymentdata_current_education_supporter s
-      INNER JOIN DreamsApp_clienteducationandemploymentdata ed ON ed.id = s.clienteducationandemploymentdata_id
+      FROM dreams_production.DreamsApp_clienteducationandemploymentdata_current_educationebf4 s -- DreamsApp_clienteducationandemploymentdata_current_education_supporter s
+      INNER JOIN dreams_production.DreamsApp_clienteducationandemploymentdata ed ON ed.id = s.clienteducationandemploymentdata_id
       GROUP BY ed.client_id
   ) ed on ed.client_id = e.client_id
 SET e.current_edu_supporter_list = ed.current_edu_supporter_list;
 
 -- reason never tested for hiv
 
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       hiv_d.client_id,
       group_concat(rn.reasonnottestedforhiv_id) AS reason_not_tested_for_hiv
-      FROM DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv rn
-      INNER JOIN DreamsApp_clienthivtestingdata hiv_d ON hiv_d.id=rn.clienthivtestingdata_id
+      FROM dreams_production.DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv rn
+      INNER JOIN dreams_production.DreamsApp_clienthivtestingdata hiv_d ON hiv_d.id=rn.clienthivtestingdata_id
       GROUP BY hiv_d.client_id
   ) hiv on hiv.client_id = e.client_id
 SET e.reason_not_tested_for_hiv = hiv.reason_not_tested_for_hiv;
 
-UPDATE DreamsApp_flatenrollmenttablelog SET date_completed = NOW() WHERE id=record_id;
+UPDATE dreams_production.DreamsApp_flatenrollmenttablelog SET date_completed = NOW() WHERE id=record_id;
 
 END$$
 DELIMITER ;
@@ -1647,11 +1669,11 @@ BEGIN
 
 DECLARE record_id INT(11);
 DECLARE last_update_time DATETIME;
-SELECT max(date_completed) into last_update_time from DreamsApp_flatenrollmenttablelog;
-INSERT INTO DreamsApp_flatenrollmenttablelog(date_started, activity) VALUES(NOW(), 'Table Updates');
+SELECT max(date_completed) into last_update_time from dreams_production.DreamsApp_flatenrollmenttablelog;
+INSERT INTO dreams_production.DreamsApp_flatenrollmenttablelog(date_started, activity) VALUES(NOW(), 'Table Updates');
 SET record_id = LAST_INSERT_ID();
 
-INSERT INTO flat_dreams_enrollment(
+INSERT INTO dreams_production.flat_dreams_enrollment(
 client_id,
 first_name,
 middle_name,
@@ -1834,15 +1856,15 @@ hiv.care_facility_enrolled,hiv.reason_not_in_hiv_care_other,hiv.reason_never_tes
 hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_result_id,hiv.period_last_tested_id,
 hiv.reason_not_in_hiv_care_id
 from
-DreamsApp_client AS d
-LEFT OUTER JOIN DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
-LEFT OUTER JOIN DreamsApp_clientsexualactivitydata s ON s.client_id = d.id
-LEFT OUTER JOIN DreamsApp_clientreproductivehealthdata rh ON rh.client_id=d.id
-LEFT OUTER JOIN DreamsApp_clientdrugusedata dr on dr.client_id=d.id
-LEFT OUTER JOIN DreamsApp_clientparticipationindreams p on p.client_id=d.id
-LEFT OUTER JOIN DreamsApp_clientgenderbasedviolencedata gbv ON gbv.client_id=d.id
-LEFT OUTER JOIN DreamsApp_clienteducationandemploymentdata edu ON edu.client_id = d.id
-LEFT OUTER JOIN DreamsApp_clienthivtestingdata hiv ON hiv.client_id=d.id
+dreams_production.DreamsApp_client AS d
+LEFT OUTER JOIN dreams_production.DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clientsexualactivitydata s ON s.client_id = d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clientreproductivehealthdata rh ON rh.client_id=d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clientdrugusedata dr on dr.client_id=d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clientparticipationindreams p on p.client_id=d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clientgenderbasedviolencedata gbv ON gbv.client_id=d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clienteducationandemploymentdata edu ON edu.client_id = d.id
+LEFT OUTER JOIN dreams_production.DreamsApp_clienthivtestingdata hiv ON hiv.client_id=d.id
 LEFT OUTER JOIN (
 SELECT
 w.id as ward_code,
@@ -1851,9 +1873,9 @@ w.sub_county_id as sub_county_code,
 s.name as sub_county_name,
 s.county_id as county_code,
 c.name as county_name
-from DreamsApp_ward w
-INNER JOIN DreamsApp_subcounty s ON s.id = w.sub_county_id
-INNER JOIN DreamsApp_county c ON s.county_id = c.id
+from dreams_production.DreamsApp_ward w
+INNER JOIN dreams_production.DreamsApp_subcounty s ON s.id = w.sub_county_id
+INNER JOIN dreams_production.DreamsApp_county c ON s.county_id = c.id
 ) l ON l.ward_code = d.ward_id
 where (d.date_created > last_update_time or d.date_changed > last_update_time)
   or (i.date_created > last_update_time or i.date_changed > last_update_time)
@@ -2005,12 +2027,12 @@ reason_not_in_hiv_care_id=VALUES(reason_not_in_hiv_care_id)
 
 ;
 -- update many to many fields
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       i_data.client_id,
       group_concat(disabilitytype_id) AS disability_types
-      from DreamsApp_clientindividualandhouseholddata i_data
-      INNER JOIN DreamsApp_clientindividualandhouseholddata_disability_type dt ON dt.clientindividualandhouseholddata_id = i_data.id
+      from dreams_production.DreamsApp_clientindividualandhouseholddata i_data
+      INNER JOIN dreams_production.DreamsApp_clientindividualandhouseholddata_disability_type dt ON dt.clientindividualandhouseholddata_id = i_data.id
       WHERE  (i_data.date_created > last_update_time or i_data.date_changed > last_update_time)
       GROUP BY i_data.client_id
   ) ind_data on ind_data.client_id = e.client_id
@@ -2018,12 +2040,12 @@ SET e.disability_types = ind_data.disability_types;
 
 -- reproductive data: know fp methods
 
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       rh.client_id,
       group_concat(familyplanningmethod_id) AS known_fp_methods
-      FROM DreamsApp_clientreproductivehealthdata_known_fp_method fp
-      INNER JOIN DreamsApp_clientreproductivehealthdata rh
+      FROM dreams_production.DreamsApp_clientreproductivehealthdata_known_fp_method fp
+      INNER JOIN dreams_production.DreamsApp_clientreproductivehealthdata rh
       ON fp.clientreproductivehealthdata_id = rh.id
       WHERE  (rh.date_created > last_update_time or rh.date_changed > last_update_time)
       GROUP BY rh.client_id
@@ -2031,12 +2053,12 @@ UPDATE flat_dreams_enrollment e INNER JOIN (
 SET e.known_fp_methods = rpr_data.known_fp_methods;
 
 -- drugs used in past one year
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       dd.client_id,
       group_concat(d.drug_id) AS drugs_used_in_last_12_months
-      FROM DreamsApp_clientdrugusedata_drug_used_last_12months d
-      INNER JOIN DreamsApp_clientdrugusedata dd ON d.clientdrugusedata_id = dd.id
+      FROM dreams_production.DreamsApp_clientdrugusedata_drug_used_last_12months d
+      INNER JOIN dreams_production.DreamsApp_clientdrugusedata dd ON d.clientdrugusedata_id = dd.id
       WHERE  (dd.date_created > last_update_time or dd.date_changed > last_update_time)
       GROUP BY dd.client_id
   ) d_data on d_data.client_id = e.client_id
@@ -2044,12 +2066,12 @@ SET e.drugs_used_in_last_12_months = d_data.drugs_used_in_last_12_months;
 
 -- dreams programs enrolled
 
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       cpd.client_id   AS client_id,
       group_concat(dp.dreamsprogramme_id) AS programmes_enrolled
-      FROM DreamsApp_clientparticipationindreams_dreams_program dp
-      INNER JOIN DreamsApp_clientparticipationindreams cpd
+      FROM dreams_production.DreamsApp_clientparticipationindreams_dreams_program dp
+      INNER JOIN dreams_production.DreamsApp_clientparticipationindreams cpd
       ON dp.clientparticipationindreams_id = cpd.id
       WHERE  (cpd.date_created > last_update_time or cpd.date_changed > last_update_time)
       GROUP BY client_id
@@ -2057,12 +2079,12 @@ UPDATE flat_dreams_enrollment e INNER JOIN (
 SET e.programmes_enrolled = p.programmes_enrolled;
 
 -- gbv sought provider
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       gbv.client_id,
       group_concat(provider.gbvhelpprovider_id) AS provider_list
-      FROM DreamsApp_clientgenderbasedviolencedata_gbv_help_provider provider
-      INNER JOIN DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
+      FROM dreams_production.DreamsApp_clientgenderbasedviolencedata_gbv_help_provider provider
+      INNER JOIN dreams_production.DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
       WHERE  (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)
       GROUP BY gbv.client_id
   ) gbv on gbv.client_id = e.client_id
@@ -2070,12 +2092,12 @@ SET e.providers_sought = gbv.provider_list;
 
 -- gbv preferred provider
 
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       gbv.client_id,
       group_concat(provider.gbvhelpprovider_id) AS provider_list
-      FROM DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce provider -- DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_provider
-      INNER JOIN DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
+      FROM dreams_production.DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_p1bce provider -- DreamsApp_clientgenderbasedviolencedata_preferred_gbv_help_provider
+      INNER JOIN dreams_production.DreamsApp_clientgenderbasedviolencedata gbv on gbv.id = provider.clientgenderbasedviolencedata_id
       WHERE  (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)
       GROUP BY gbv.client_id
   ) gbv on gbv.client_id = e.client_id
@@ -2083,12 +2105,12 @@ SET e.preferred_providers = gbv.provider_list;
 
 -- current education supporter
 
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       ed.client_id,
       group_concat(educationsupporter_id)   AS current_edu_supporter_list
-      FROM DreamsApp_clienteducationandemploymentdata_current_educationebf4 s -- DreamsApp_clienteducationandemploymentdata_current_education_supporter s
-      INNER JOIN DreamsApp_clienteducationandemploymentdata ed ON ed.id = s.clienteducationandemploymentdata_id
+      FROM dreams_production.DreamsApp_clienteducationandemploymentdata_current_educationebf4 s -- DreamsApp_clienteducationandemploymentdata_current_education_supporter s
+      INNER JOIN dreams_production.DreamsApp_clienteducationandemploymentdata ed ON ed.id = s.clienteducationandemploymentdata_id
       WHERE  (ed.date_created > last_update_time or ed.date_changed > last_update_time)
       GROUP BY ed.client_id
   ) ed on ed.client_id = e.client_id
@@ -2096,18 +2118,18 @@ SET e.current_edu_supporter_list = ed.current_edu_supporter_list;
 
 -- reason never tested for hiv
 
-UPDATE flat_dreams_enrollment e INNER JOIN (
+UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
       hiv_d.client_id,
       group_concat(rn.reasonnottestedforhiv_id) AS reason_not_tested_for_hiv
-      FROM DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv rn
-      INNER JOIN DreamsApp_clienthivtestingdata hiv_d ON hiv_d.id=rn.clienthivtestingdata_id
+      FROM dreams_production.DreamsApp_clienthivtestingdata_reason_never_tested_for_hiv rn
+      INNER JOIN dreams_production.DreamsApp_clienthivtestingdata hiv_d ON hiv_d.id=rn.clienthivtestingdata_id
       WHERE  (hiv_d.date_created > last_update_time or hiv_d.date_changed > last_update_time)
       GROUP BY hiv_d.client_id
   ) hiv on hiv.client_id = e.client_id
 SET e.reason_not_tested_for_hiv = hiv.reason_not_tested_for_hiv;
 
-UPDATE DreamsApp_flatenrollmenttablelog SET date_completed = NOW() WHERE id=record_id;
+UPDATE dreams_production.DreamsApp_flatenrollmenttablelog SET date_completed = NOW() WHERE id=record_id;
 
 END$$
 DELIMITER ;
