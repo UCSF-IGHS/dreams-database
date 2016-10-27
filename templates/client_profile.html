@@ -3,7 +3,6 @@
 {% block content %}
 
 
-<div style="min-height: 60em;">
     <!-- Beginning modal-->
         <!-- Modal -->
     <div class="modal fade" id="intervention-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -142,6 +141,7 @@
     <!-- End Confirm Delete Modal -->
 
     <!-- Start of Client profile section -->
+<div class="wrapper-container">
     <div class="row statusBox">
         <div class="col-xs-12 col-sm-5">
             <p><strong>Client: </strong> {{ client.get_full_name }} </p>

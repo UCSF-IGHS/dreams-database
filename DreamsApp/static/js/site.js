@@ -72,11 +72,11 @@ $(document).ready(function () {
 
     /* End Login form submission */
 
-    function insertClientTableRow(clients_tbody, pk, dreams_id, first_name, last_name, middle_name, date_of_enrollment, append, can_manage_client, can_change_client, can_delete_client) {
+    function insertClientTableRow(clients_tbody, pk, dreams_id, first_name, middle_name, last_name, date_of_enrollment, append, can_manage_client, can_change_client, can_delete_client) {
         var is_superuser = $('#is_superuser').val();
         var row_string = "<tr id='clients_row_" + pk +"' style='cursor: pointer;'>"
                         + "<td>" + dreams_id + "</td>"
-                        + "<td>" + first_name + " " + last_name + " " + middle_name +  "</td>"
+                        + "<td>" + first_name + " " + middle_name + " " + last_name +  "</td>"
                         + "<td>" + date_of_enrollment + "</td>"
                         + "<td id='client_' + " + pk + "'>"
                             + "<div class='btn-group'>"
@@ -117,12 +117,40 @@ $(document).ready(function () {
 
     $('#clients_search_form').submit(function (event) {
         event.preventDefault();
-        // do ajax
+        console.log("Default prevented!");
+        //Check search option
+        var searchOption = $('#clientSearchOption').val();
+        if(searchOption == "search_dreams_id"){
+            // Check if dreams id is entered
+            if($('#search-term-dreams_id').val() == ""){
+                // Show error dialog
+                // Then return
+                $('#client_search_errors').html("* MISSING DREAMS ID: Please enter a valid DREAMS ID.").removeClass("hidden").addClass("shown");;
+                return;
+            }
+        }
+        else if(searchOption == "search_name"){
+            // Check that atleast 2 names are entered
+            var namePartsArray = [$('#search-term-first_name').val(), $('#search-term-middle_name').val(), $('#search-term-last_name').val()]
+            var validParts = 0;
+            $.each(namePartsArray, function (index, namePart) {
+                if($.trim(namePart) != "")
+                    validParts++;
+            })
 
-        // work on reset
-        // do an ajax post
+            if(validParts < 2){
+                // Show error message
+                $('#client_search_errors').html("* INCOMPLETE DETAILS: Please enter at least 2 names.").removeClass("hidden").addClass("shown");
+                // Then return
+                return;
+            }
+        }
+
+        $('#client_search_errors').html("").addClass("hidden");
         var csrftoken = getCookie('csrftoken');
-        $.ajax({
+
+        $(this).unbind("submit").submit();
+        /*$.ajax({
             url : '/clients', // the endpoint
             type : "POST", // http method
             dataType: 'json',
@@ -140,7 +168,7 @@ $(document).ready(function () {
                         f_name = client.fields.first_name == null ? ' ' : client.fields.first_name
                         m_name = client.fields.middle_name == null ? ' ' : client.fields.middle_name
                         l_name = client.fields.last_name == null ? ' ' : client.fields.last_name
-                        insertClientTableRow(clients_tbody, client.pk,client.fields.dreams_id, f_name, l_name, m_name, client.fields.date_of_enrollment, true, can_manage_client, can_change_client, can_delete_client);
+                        insertClientTableRow(clients_tbody, client.pk,client.fields.dreams_id, f_name, m_name, l_name, client.fields.date_of_enrollment, true, can_manage_client, can_change_client, can_delete_client);
                     })
                 }
                 else
@@ -153,7 +181,7 @@ $(document).ready(function () {
                     " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
             }
-        });
+        });*/
 
     })
     
@@ -196,10 +224,6 @@ $(document).ready(function () {
         var targetTable = $(this).data("target_tbody");
         var filterValue = $(this).val();
         filterTable(targetTable, filterValue)
-    })
-
-    $('.filter-enrollment').keyup(function (event) {
-        return
     })
 
     $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
@@ -1749,6 +1773,20 @@ $(document).ready(function () {
 
     $('#forgot_password').click(function (e) {
         $(this).html("Please contact System Administrator for a new password!").css('color','#F00');
+    })
+
+    // Updating client search
+    $('#clientSearchOption').change(function (event) {
+        var searchOption = $(event.target).val();
+        $('#client_search_errors').html("").addClass("hidden");
+        if(searchOption == "search_dreams_id"){
+            $('.search_dreams_id').removeClass("hidden").addClass("shown")
+            $('.search_name').addClass("hidden")
+        }
+        else if(searchOption == "search_name"){
+            $('.search_dreams_id').addClass("hidden")
+            $('.search_name').removeClass("hidden").addClass("shown")
+        }
     })
 });
 

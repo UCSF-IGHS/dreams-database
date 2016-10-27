@@ -4,6 +4,7 @@
 {% block content %}
     {% include 'includes/enrollment_form.html' %}
     {% include 'includes/confirn_modal.html' %}
+    {% include 'includes/error_modal.html' %}
     <div style="min-height: 40em;">
         <div class="statusBox">
             <div class="gen-font">
@@ -11,20 +12,34 @@
             </div>
             <div class="floatRightLinks">
                 <div class="rightItem">
-                    <form id="clients_search_form" class="form-inline" method="post">
+                    <form id="clients_search_form" class="form-inline" action="/clients" method="post"  style="padding-top: 10px;">
                         {% csrf_token %}
-                        <div class="form-group has-feedback">
-                            <input id="search-term-default" type="text" name="searchValue"
-                                   class="form-control filter-enrollment" placeholder="Enter DREAMS ID or Name"
-                                   style="width: 400px;">
-                            <button type="submit" class="btn btn-primary btn-sm"><span
-                                    class="glyphicon glyphicon-search"></span> Search
-                            </button>
-                        </div>
+
+                          <div class="form-group" >
+                               <label style="font-size: 15px;font-weight: 400;">Search by:</label>
+                                <select id="clientSearchOption" class="form-control input-sm text-info"  name="clientSearchOption" style="width: 250px;">
+                                    <option value="search_dreams_id" {% if search_option == "" or search_option == 'search_dreams_id' %}selected{% endif %}>DREAMS ID</option>
+                                    <option value="search_name" {% if search_option != None and search_option == 'search_name' %}selected{% endif %}>Client Name</option>
+                                </select>
+                                {% if  search_option == "" or search_option == "search_dreams_id" %}
+                                    <input id="search-term-dreams_id" type="text" name="searchDreamsId" value="{{ dreams_id }}" class="form-control input-sm text-info search_dreams_id" placeholder="DREAMS ID" style="width: 250px;">
+                                    <input id="search-term-first_name" type="text" name="searchFirstName" value="{{ first_name }}" class="form-control input-sm search_name hidden" placeholder="First Name">
+                                    <input id="search-term-middle_name" type="text" name="searchMiddleName" value="{{ middle_name }}" class="form-control input-sm search_name hidden" placeholder="Middle Name">
+                                    <input id="search-term-last_name" type="text" name="searchLastName" value="{{ last_name }}" class="form-control input-sm search_name hidden" placeholder="Last Name">
+                                {% endif %}
+                                {% if search_option == 'search_name' %}
+                                   <input id="search-term-dreams_id" type="text" name="searchDreamsId" value="{{ dreams_id }}" class="form-control input-sm text-info search_dreams_id hidden" placeholder="DREAMS ID" style="width: 250px;">
+                                   <input id="search-term-first_name" type="text" name="searchFirstName" value="{{ first_name }}" class="form-control input-sm search_name " placeholder="First Name">
+                                   <input id="search-term-middle_name" type="text" name="searchMiddleName" value="{{ middle_name }}" class="form-control input-sm search_name " placeholder="Middle Name">
+                                   <input id="search-term-last_name" type="text" name="searchLastName" value="{{ last_name }}" class="form-control input-sm search_name " placeholder="Last Name">
+                                {% endif %}
+                              <button type="submit" class="btn btn-primary btn-sm" style="margin-right: 10px;"><span class="glyphicon glyphicon-search"></span> Search </button>
+                               <span id="client_search_errors" class=" text-danger"></span>
+
+                          </div>
                     </form>
-                    <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for DREAMS clients by typing
-                        {% if perms.auth.can_search_client_by_name %}name or {% endif %}
-                        DREAMS id in the input above.</span>
+                    <!--<span class="text-info" ><span class="glyphicon glyphicon-info-sign"></span> Search for clients by entering details in the input fields above.</span>-->
+
                 </div>
             </div>
         </div>
@@ -43,11 +58,11 @@
                     <th class="actions-col">Actions</th>
                     </thead>
                     <tbody id="dp-patient-list-body">
-                    {% if clients.count > 0 %}
-                        {% for client in clients %}
-                            <tr id="clients_row_{{ client.id }}"
-                                style="cursor: pointer; background-color: transparent;">
-                                <td>{{ client.dreams_id }}</td>
+
+                    {% if client_paginator %}
+                        {% for client in client_paginator.object_list %}
+                            <tr id="clients_row_{{ client.id }}" style="cursor: pointer; background-color: transparent;">
+                                <td>{{ client.dreams_id}}</td>
                                 <td>{{ client.get_full_name }}</td>
                                 <td>{{ client.date_of_enrollment }}</td>
                                 <td id="client_" + {{ client.id }}>
@@ -109,6 +124,21 @@
             </div>
         </div>
 
+        <div class="pagination fit-item" >
+        <span class="step-links">
+            {% if client_paginator.has_previous %}
+                <a href="?page={{ client_paginator.previous_page_number }}&clientSearchOption={{ search_option }}&searchDreamsId={{ dreams_id }}&searchFirstName={{ first_name }}&searchMiddleName={{ middle_name }}&searchLastName={{ last_name }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ client_paginator.number }} of {{ client_paginator.paginator.num_pages }}
+            </span>
+
+            {% if client_paginator.has_next %}
+                <a href="?page={{ client_paginator.next_page_number }}&clientSearchOption={{ search_option }}&searchDreamsId={{ dreams_id }}&searchFirstName={{ first_name }}&searchMiddleName={{ middle_name }}&searchLastName={{ last_name }}">next</a>
+            {% endif %}
+        </span>
+        <br>
 
         <div class="hidden">
             <button id="btn_show_enrollment_modal" class="" data-toggle="modal" data-target="#enrollment-modal"

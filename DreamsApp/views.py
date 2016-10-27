@@ -55,7 +55,7 @@ def user_login(request):
         if request.user.is_authenticated():
             return redirect('clients')
         if request.method == 'GET':
-            return render(request, 'login.html')
+            return render(request, 'login.html', {'page_title':'Login', 'page':'login'})
         elif request.method == 'POST':
             user_name = request.POST.get('inputUsername', '')
             pass_word = request.POST.get('inputPassword', '')
@@ -76,7 +76,9 @@ def user_login(request):
                 audit.save()
                 response_data = {
                     'status': 'fail',
-                    'message': 'Missing username or password.'
+                    'message': 'Missing username or password.',
+                    'page': 'login',
+                    'page_title': 'Login'
                 }
             else:
                 user = authenticate(username=user_name, password=pass_word)
@@ -113,32 +115,69 @@ def user_login(request):
 def clients(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-            if request.method == 'GET':
-                client_list = Client.objects.filter(id__exact=0)  # Clients list should be empty on start
-                implementing_partner_user = ImplementingPartnerUser.objects.filter(user=request.user).first()
-                context = {'page': 'clients', 'user': request.user, 'clients': client_list,
-                           'implementing_partner_user': implementing_partner_user,
-                           'config_data': get_enrollment_form_config_data()}
-                return render(request, 'clients.html', context)
-            elif request.method == 'POST':
-                search_value = request.POST.get('searchValue', '')
+            # get search details
+            page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
+            search_option = request.GET.get('clientSearchOption', '') if request.method == 'GET' else request.POST.get('clientSearchOption', '')
+            dreams_id = request.GET.get('searchDreamsId', '') if request.method == 'GET' else request.POST.get('searchDreamsId', '')
+            first_name = request.GET.get('searchFirstName', '') if request.method == 'GET' else request.POST.get('searchFirstName', '')
+            middle_name = request.GET.get('searchMiddleName', '') if request.method == 'GET' else request.POST.get('searchMiddleName', '')
+            last_name = request.GET.get('searchLastName', '') if request.method == 'GET' else request.POST.get('searchLastName', '')
+            log_search_value = ""
 
-                if request.user.has_perm('auth.can_search_client_by_name'):
-                    search_result = Client.objects.filter(Q(dreams_id__in=search_value.split(" ")) |
-                                                          Q(first_name__in=search_value.split(" ")) |
-                                                          Q(last_name__in=search_value.split(" ")) |
-                                                          Q(middle_name__in=search_value.split(" ")))
+            if search_option == "search_dreams_id":
+                search_result = Client.objects.filter(dreams_id__exact=dreams_id)
+                log_search_value = dreams_id
+            elif search_option == "search_name":
+                log_search_value = first_name + " " + middle_name + " " + last_name
+                # Check if the 2 part rule is satisfied
+                name_parts = (first_name, middle_name, last_name)
+                parts_count = 0
+                for name_part in name_parts:
+                    if name_part.strip() != "":
+                        parts_count += 1
+                if parts_count >= 2:
+                    search_result = Client.objects.filter(
+                        first_name__iexact=first_name) if first_name != "" else Client.objects.all()
+                    search_result = search_result.filter(
+                        middle_name__iexact=middle_name) if middle_name != "" else search_result
+                    search_result = search_result.filter(
+                        last_name__iexact=last_name) if last_name != "" else search_result
                 else:
-                    search_result = Client.objects.filter(dreams_id__exact=search_value)
-                # check if user can see clients enrolled more than a week ago
-                log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_value)
+                    search_result = Client.objects.all()[:0]
+            else:
+                search_result = Client.objects.all()[:0]
+            log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", log_search_value)
+
+            if request.is_ajax():
                 json_response = {
-                    'search_result': serializers.serialize('json', search_result[:1]),
+                    'search_result': serializers.serialize('json', search_result),
                     'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                     'can_change_client': request.user.has_perm('auth.can_change_client'),
                     'can_delete_client': request.user.has_perm('auth.can_delete_client')
                 }
                 return JsonResponse(json_response, safe=False)
+            else:
+                # Non ajax request.. Do a paginator
+                # do pagination
+                try:
+                    paginator = Paginator(search_result, 20)
+                    client_paginator = paginator.page(page)
+                except PageNotAnInteger:
+                    client_paginator = paginator.page(1)  # Deliver the first page is page is not an integer
+                except EmptyPage:
+                    client_paginator = paginator.page(paginator.num_pages)  # Deliver the last page if page is out of scope
+                response_data = {
+                    'page': 'client',
+                    'page_title': 'DREAMS Client List',
+                    'search_option': search_option,
+                    'dreams_id': dreams_id,
+                    'first_name': first_name,
+                    'middle_name': middle_name,
+                    'last_name': last_name,
+                    'client_paginator': client_paginator,
+                    'status': 'success'
+                }
+                return render(request, 'clients.html', response_data)
         else:
             return redirect('login')
     except Exception as e:
@@ -165,6 +204,7 @@ def client_profile(request):
                                                                                current_AGYW=client_found)
                     cash_transfer_details_form.save(commit=False)
                 return render(request, 'client_profile.html', {'page': 'clients',
+                                                               'page_title': 'DREAMS Client Service Uptake',
                                                                'client': client_found,
                                                                'ct_form': cash_transfer_details_form,
                                                                'ct_id': cash_transfer_details.id,
@@ -174,6 +214,7 @@ def client_profile(request):
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
                 return render(request, 'client_profile.html',
                               {'page': 'clients',
+                               'page_title': 'DREAMS Client Service Uptake',
                                'client': client_found,
                                'ct_form': cash_transfer_details_form,
                                'user': request.user
@@ -702,9 +743,9 @@ def reporting(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
-                return render(request, 'reporting.html', {'user': request.user})
+                return render(request, 'reporting.html', {'user': request.user, 'page_title': 'DREAMS Reporting',})
             elif request.method == 'POST' and request.is_ajax():
-                return render(request, 'reporting.html', {'user': request.user})
+                return render(request, 'reporting.html', {'user': request.user, 'page_title': 'DREAMS Reporting',})
         else:
             raise PermissionDenied
     except Exception as e:
@@ -759,7 +800,7 @@ def logs(request):
                     logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
                 except EmptyPage:
                     logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
-                return render(request, 'log.html', {'page': 'logs', 'logs': logs_list, 'filter_text': filter_text,
+                return render(request, 'log.html', {'page': 'logs', 'page_title': 'DREAMS Logs','logs': logs_list, 'filter_text': filter_text,
                                                     'filter_date': filter_date,
                                                     'items_in_page': 0 if logs_list.end_index() == 0 else
                                                     (logs_list.end_index() - logs_list.start_index() + 1)
@@ -794,7 +835,7 @@ def logs(request):
                 logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
             except EmptyPage:
                 logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
-            return render(request, 'log.html', {'page': 'logs', 'logs': logs_list, 'filter_text': filter_text,
+            return render(request, 'log.html', {'page': 'logs','page_title': 'DREAMS Logs','logs': logs_list, 'filter_text': filter_text,
                                                 'filter_date': filter_date,
                                                 'items_in_page': 0 if logs_list.end_index() == 0 else
                                                 (logs_list.end_index() - logs_list.start_index() + 1)})
@@ -850,7 +891,7 @@ def users(request):
             final_ip_user_list = paginator.page(1)  # Deliver the first page is page is not an integer
         except EmptyPage:
             final_ip_user_list = paginator.page(0)  # Deliver the last page if page is out of scope
-        return render(request, 'users.html', {'page': 'users', 'ip_users': final_ip_user_list,
+        return render(request, 'users.html', {'page': 'users','page_title': 'DREAMS User List', 'ip_users': final_ip_user_list,
                                               'filter_text': filter_text,
                                               'items_in_page': 0 if final_ip_user_list.end_index() == 0 else
                                               (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1),
@@ -994,36 +1035,26 @@ def toggle_status(request):
 
 
 def change_cred(request):
-    # check if user is logged in
     if request.user.is_authenticated() and request.user.is_active:  # user is authenticated
         if request.method == 'GET':
-            # return password change view
-            context = {'page': 'account', 'user': request.user,}
+            context = {'page': 'account','page_title': 'DREAMS Password Change', 'user': request.user,}
             return render(request, 'change_cred.html', context)
         elif request.method == 'POST':
-            # do post functionality here!!
-            # retrieve all fields
             ch_username = request.POST.get('ch_username', '')
             ch_current_password = request.POST.get('ch_current_password', '')
             ch_new_password = request.POST.get('ch_new_password', '')
             ch_confirm_new_password = request.POST.get('ch_confirm_new_password', '')
-            # check if any details is missing
             if ch_username == '' or ch_current_password == '' or ch_new_password == '' or ch_confirm_new_password == '' or ch_confirm_new_password == '':
-                # return error
                 response_data = {
                     'status': 'fail',
                     'message': 'An error occurred as a result of missing details.'
                 }
                 return JsonResponse(response_data)
             else:
-                # all details exist. Check if credentials match
-                # check username
                 if request.user.get_username() == ch_username and request.user.check_password(
-                        ch_current_password) and ch_new_password == ch_confirm_new_password:
-                    # all details match. Change user password
+                    ch_current_password) and ch_new_password == ch_confirm_new_password:
                     request.user.set_password(ch_new_password)
                     request.user.save()
-                    # return success message
                     response_data = {
                         'status': 'success',
                         'message': 'Password changed successfully. Proceed to login with your new credentials'
@@ -1031,7 +1062,6 @@ def change_cred(request):
                     return JsonResponse(response_data)
 
                 else:
-                    # username or password mismatch. return error message
                     response_data = {
                         'status': 'fail',
                         'message': 'An error occurred as a result of wrong credentials.'
@@ -1107,7 +1137,7 @@ def grievances_list(request):
         except EmptyPage:
             final_grievance_list = paginator.page(0)  # Deliver the last page if page is out of scope
         response_data = {
-            'page': 'cash_transfer',
+            'page': 'cash_transfer','page_title': 'DREAMS Grievance List',
             'filter_text': filter_text,
             'filter_date': filter_date,
             'items_in_page': 0 if final_grievance_list.end_index() == 0 else
@@ -1319,7 +1349,7 @@ def export_page(request):
                 ips = None
 
             print "IPs", ips
-            context = {'page': 'export', 'ips': ips}
+            context = {'page': 'export','page_title': 'DREAMS Data Export', 'ips': ips}
             return render(request, 'dataExport.html', context)
         except ImplementingPartnerUser.DoesNotExist:
             traceback.format_exc()
@@ -1346,7 +1376,7 @@ def downloadEXCEL(request):
 
 
 def error_404(request):
-    context = {'user': request.user, 'error_code': 404, 'error_title': 'Page Not Found (Error 404)',
+    context = {'user': request.user, 'error_code': 404,'page_title': 'DREAMS Application Error', 'error_title': 'Page Not Found (Error 404)',
                'error_message': 'The page you are looking for does not exist. Go back to previous page or Home page'}
     return render(request, 'error_page.html', context)
 

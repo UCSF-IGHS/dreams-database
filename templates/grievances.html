@@ -5,7 +5,7 @@
     {% include 'includes/grievance_form.html' %}
     {% include 'includes/confirn_modal.html' %}
 
-    <div style="min-height: 60em;">
+    <div class="wrapper-container">
         <div class="statusBox" >
             <div class="gen-font">
                 <h4>DREAMS Grievances List</h4>
@@ -43,8 +43,7 @@
         </div>
         <div class=" alert hidden dp-action-alert fade in" id="grievances_alert" role="alert" style="margin-bottom: 10px;"></div>
 
-        <div id="user-list" style="max-height: calc(100vh - 510px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
-            <table class="table table-striped dp-user-table table-bordered" id="dreams-grievance-table" style="margin: 0px;">
+        <table class="table table-striped dp-user-table table-bordered" id="dreams-grievance-table" style="margin: 0px;">
                 <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                     <th>Date</th>
                     <th>Nature of Grievance</th>
@@ -93,7 +92,8 @@
                     {% endif %}
                 </tbody>
             </table>
-        </div>
+            
+
         <div class="pagination fit-item" >
         <span class="step-links">
             {% if grievance_list.has_previous %}

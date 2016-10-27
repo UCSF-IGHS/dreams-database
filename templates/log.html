@@ -2,7 +2,7 @@
 {% load staticfiles %}
 
 {% block content %}
-    <div style="min-height: 60em;">
+    <div class="wrapper-container">
         <div class="statusBox" >
             <div class="gen-font" style="margin-bottom: 2px;">
                 <h4>DREAMS Audit Log</h4>
@@ -40,8 +40,8 @@
                 </div>
             </div>
         </div>
-        <div class="audit-log-section" style="max-height: calc(100vh - 490px);overflow-y: auto;border-radius: 5px;border: #efc636 solid 1px;">
-            <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table" style="margin: 0px;">
+
+        <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table" style="margin: 0px;border-radius: 5px;border: #efc636 solid 1px;">
                 <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                     <th>Timestamp</th>
                     <th>User Id</th>
@@ -66,8 +66,8 @@
                         </tr>
                     {% endif %}
                 </tbody>
-            </table>
-        </div>
+        </table>
+
         <div class="pagination">
         <span class="step-links">
             {% if logs.has_previous %}
@@ -86,6 +86,7 @@
             </span>
         </span>
     </div>
+        <br/><br/>
     </div>
 
 {% endblock %}
