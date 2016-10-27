@@ -118,6 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 SESSION_EXPIRY_AGE = 20 # This is in Minutes
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
