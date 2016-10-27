@@ -86,11 +86,8 @@
                                                        data-target="#enrollment-modal" data-client_id='{{ client.id }}'
                                                        style="cursor: pointer;word-spacing: 0px !important;"> View
                                                     Enrollment </a></li>
-                                                <li><a href="#" class="edit_intervention_click edit_client"
-                                                       data-view_mode="view" data-toggle="modal"
-                                                       data-target="#enrollment-modal" data-client_id='{{ client.id }}'
-                                                       style="cursor: pointer;word-spacing: 0px !important;"> View
-                                                    Enrollment </a></li>
+                                                <li><a href="/client_baseline_info?client_id={{ client.id }}" style="cursor: pointer;word-spacing: 0px !important;"> Baseline Information </a></li>
+
                                                 {% if perms.auth.can_change_client %}
                                                     <li><a href="#" class="edit_intervention_click edit_client"
                                                            data-toggle="modal" data-target="#enrollment-modal"
@@ -108,9 +105,6 @@
                                             {% endif %}
                                         </ul>
                                     </div>
-                                </td>
-                                <td>
-                                    <a href="#">Test</a>
                                 </td>
                             </tr>
                         {% endfor %}
