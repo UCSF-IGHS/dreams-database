@@ -217,7 +217,7 @@ $(document).ready(function () {
         return resultName;
     }
 
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+    $('#dreams-profile-tab-control a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         //Load tabs
         var target = $(e.target)
         var panel_id = target.attr('href')

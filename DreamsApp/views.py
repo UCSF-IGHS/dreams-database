@@ -1355,8 +1355,6 @@ def viewBaselineData(request):
     """ Returns client profile """
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
 
-
-
         if request.method == 'GET':
             client_id = int(request.GET['client_id'])
             client_demographics = Client.objects.get(id=client_id)
@@ -1405,6 +1403,177 @@ def viewBaselineData(request):
                 return render(request, 'login.html')
     else:
         raise PermissionDenied
+
+
+def update_demographics_data(request):
+    instance = Client.objects.get(id=62222)
+    if request.is_ajax():
+        template = 'client_demographics_form.html'
+
+        if request.method == 'POST':
+            form = DemographicsForm(request.POST, instance=instance)
+            if form.is_valid():
+                print 'Form is valid. should save'
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'demo_form': form})
+
+
+def update_individual_and_household_data(request):
+    instance = ClientIndividualAndHouseholdData.objects.get(client=62222)
+    if request.is_ajax():
+        template = 'client_individual_household_form.html'
+
+        if request.method == 'POST':
+            form = IndividualAndHouseholdForm(request.POST, instance=instance)
+            if form.is_valid():
+                print 'Form is valid. should save'
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'household_form': form})
+
+
+def update_edu_and_employment_data(request):
+    instance = ClientEducationAndEmploymentData.objects.get(client=62222)
+    if request.is_ajax():
+        template = 'education_and_employment_form.html'
+
+        if request.method == 'POST':
+            form = EducationAndEmploymentForm(request.POST, instance=instance)
+            if form.is_valid():
+                print 'Form is valid. should save'
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'edu_form': form})
+
+
+def update_hiv_testing_data(request):
+    instance = ClientHIVTestingData.objects.get(client=62222)
+    if request.is_ajax():
+        template = 'client_hiv_testing_form.html'
+
+        if request.method == 'POST':
+            form = HivTestForm(request.POST, instance=instance)
+            if form.is_valid():
+                print 'Form is valid. should save'
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'hiv_form': form})
+
+
+def update_sexuality_data(request):
+    instance = ClientSexualActivityData.objects.get(client=62222)
+    if request.is_ajax():
+        template = 'client_sexuality_form.html'
+
+        if request.method == 'POST':
+            form = SexualityForm(request.POST, instance=instance)
+            if form.is_valid():
+                print 'Form is valid. should save'
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'sexuality_form': form})
+
+
+def update_rep_health_data(request):
+    instance = ClientReproductiveHealthData.objects.get(client=62222)
+    if request.is_ajax():
+        template = 'client_reproductive_health_form.html'
+
+        if request.method == 'POST':
+            form = ReproductiveHealthForm(request.POST, instance=instance)
+            if form.is_valid():
+                print 'Form is valid. should save'
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'rh_form': form})
+
+
+def update_gbv_data(request):
+    instance = ClientGenderBasedViolenceData.objects.get(client=62222)
+    if request.is_ajax():
+        template = 'client_gbv_form.html'
+
+        if request.method == 'POST':
+            form = GBVForm(request.POST, instance=instance)
+            if form.is_valid():
+                print 'Form is valid. should save'
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'gbv_form': form})
+
+
+def update_drug_use_data(request):
+    instance = ClientDrugUseData.objects.get(client=62222)
+    if request.is_ajax():
+        template = 'client_drug_use_form.html'
+
+        if request.method == 'POST':
+            form = DrugUseForm(request.POST, instance=instance)
+            if form.is_valid():
+                print 'Form is valid. should save'
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'drug_use_form': form})
+
+
+def update_programme_participation_data(request):
+    instance = ClientParticipationInDreams.objects.get(client=62222)
+    if request.is_ajax():
+        template = 'client_programme_participation_form.html'
+
+        if request.method == 'POST':
+            form = DreamsProgramParticipationForm(request.POST, instance=instance)
+            if form.is_valid():
+                print 'Form is valid. should save'
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'programe_participation_form': form})
 
 
 

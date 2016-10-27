@@ -1,0 +1,172 @@
+<form method="POST" class="post-form" id="form_edu_and_employment">
+    {% csrf_token %}
+    <div class="form-group">
+        {{ edu_form.currently_in_school.errors }}
+        {{ edu_form.currently_in_school.label_tag }}
+        {{ edu_form.currently_in_school }}
+        {% if edu_form.currently_in_school.value == 1 %}
+            <span id="current_school_name">
+        {% else %}
+            <span id="current_school_name" class="hidden">
+        {% endif %}
+        {{ edu_form.current_school_name.errors }}
+        {{ edu_form.current_school_name.label_tag }}
+        {{ edu_form.current_school_name }}
+        </span>
+    </div>
+    {% if edu_form.currently_in_school.value == 1 %}
+        <div id="current_school_type" class="form-group">
+    {% else %}
+        <div id="current_school_type" class="form-group hidden">
+    {% endif %}
+
+    {{ edu_form.current_school_type.errors }}
+    {{ edu_form.current_school_type.label_tag }}
+    {{ edu_form.current_school_type }}
+    </div>
+    {% if edu_form.currently_in_school.value == 1 %}
+        <div id="current_school_level" class="form-group">
+    {% else %}
+        <div id="current_school_level" class="form-group hidden">
+    {% endif %}
+    {{ edu_form.current_school_level.errors }}
+    {{ edu_form.current_school_level.label_tag }}
+    {{ edu_form.current_school_level }}
+    {% if edu_form.current_school_level.value == 96 %}
+        <span id="current_school_level_other">
+    {% else %}
+        <span id="current_school_level_other" class="hidden">
+    {% endif %}
+    {{ edu_form.current_school_level_other.errors }}
+    {{ edu_form.current_school_level_other.label_tag }}
+    {{ edu_form.current_school_level_other }}
+    </span>
+    </div>
+    {% if edu_form.currently_in_school.value == 1 %}
+        <div id="current_class" class="form-group">
+    {% else %}
+        <div id="current_class" class="form-group hidden">
+    {% endif %}
+    {{ edu_form.current_class.errors }}
+    {{ edu_form.current_class.label_tag }}
+    {{ edu_form.current_class }}
+    </div>
+    {% if edu_form.currently_in_school.value == 1 %}
+        <div id="current_education_supporter" class="form-group">
+    {% else %}
+        <div id="current_education_supporter" class="form-group hidden">
+    {% endif %}
+    {{ edu_form.current_education_supporter.errors }}
+    {{ edu_form.current_education_supporter.label_tag }}<br/>
+    {{ edu_form.current_education_supporter }}
+    </div>
+    {% if edu_form.currently_in_school.value == 1 %}
+        <div id="current_education_supporter_other" class="form-group">
+    {% else %}
+        <div id="current_education_supporter_other" class="form-group hidden">
+    {% endif %}
+    {{ edu_form.current_education_supporter_other.errors }}
+    {{ edu_form.current_education_supporter_other.label_tag }}
+    {{ edu_form.current_education_supporter_other }}
+    </div>
+
+    {% if edu_form.currently_in_school.value == 2 %}
+        <div id="reason_not_in_school" class="form-group">
+    {% else %}
+        <div id="reason_not_in_school" class="form-group hidden">
+    {% endif %}
+    {{ edu_form.reason_not_in_school.errors }}
+    {{ edu_form.reason_not_in_school.label_tag }}
+    {{ edu_form.reason_not_in_school }}
+
+    {% if edu_form.reason_not_in_school.value == 96 %}
+        <span id="reason_not_in_school_other">
+    {% else %}
+        <span id="reason_not_in_school_other" class="hidden">
+    {% endif %}
+    {{ edu_form.reason_not_in_school_other.errors }}
+    {{ edu_form.reason_not_in_school_other.label_tag }}
+    {{ edu_form.reason_not_in_school_other }}
+    </span>
+    </div>
+    <div class="form-group">
+        {{ edu_form.last_time_in_school.errors }}
+        {{ edu_form.last_time_in_school.label_tag }}
+        {{ edu_form.last_time_in_school }}
+    </div>
+    {% if edu_form.currently_in_school.value == 2 %}
+        <div id="dropout_school_level" class="form-group">
+    {% else %}
+        <div id="dropout_school_level" class="form-group hidden">
+    {% endif %}
+    {{ edu_form.dropout_school_level.errors }}
+    {{ edu_form.dropout_school_level.label_tag }}
+    {{ edu_form.dropout_school_level }}
+                        <span id="dropout_class">
+                            {{ edu_form.dropout_class.errors }}
+                            {{ edu_form.dropout_class.label_tag }}
+                            {{ edu_form.dropout_class }}
+                        </span>
+    </div>
+    <div class="form-group">
+        {{ edu_form.life_wish.errors }}
+        {{ edu_form.life_wish.label_tag }}
+        {{ edu_form.life_wish }}
+
+        {% if edu_form.life_wish.value == 96 %}
+            <span id="life_wish_other">
+        {% else %}
+            <span id="life_wish_other" class="hidden">
+        {% endif %}
+
+        {{ edu_form.life_wish_other.errors }}
+        {{ edu_form.life_wish_other.label_tag }}
+        {{ edu_form.life_wish_other }}
+        </span>
+    </div>
+    <div class="form-group">
+        {{ edu_form.current_income_source.errors }}
+        {{ edu_form.current_income_source.label_tag }}
+        {{ edu_form.current_income_source }}
+
+        {% if edu_form.current_income_source.value == 96 %}
+            <span id="current_income_source_other">
+        {% else %}
+            <span id="current_income_source_other" class="hidden">
+        {% endif %}
+
+        {{ edu_form.current_income_source_other.errors }}
+        {{ edu_form.current_income_source_other.label_tag }}
+        {{ edu_form.current_income_source_other }}
+        </span>
+    </div>
+    <div class="form-group">
+        {{ edu_form.has_savings.errors }}
+        {{ edu_form.has_savings.label_tag }}
+        {{ edu_form.has_savings }}
+        <br/>
+        {% if edu_form.has_savings.value == 1 %}
+            <span id="banking_place">
+        {% else %}
+            <span id="banking_place" class="hidden">
+        {% endif %}
+        {{ edu_form.banking_place.errors }}
+        {{ edu_form.banking_place.label_tag }}
+        {{ edu_form.banking_place }}
+        </span>
+
+
+
+        {% if edu_form.banking_place.value == 96 %}
+            <span id="banking_place_other">
+        {% else %}
+            <span id="banking_place_other" class="hidden">
+        {% endif %}
+        {{ edu_form.banking_place_other.errors }}
+        {{ edu_form.banking_place_other.label_tag }}
+        {{ edu_form.banking_place_other }}
+        </span>
+    </div>
+
+    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+</form>
