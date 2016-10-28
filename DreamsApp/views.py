@@ -1386,28 +1386,32 @@ def viewBaselineData(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
 
         if request.method == 'GET':
-            client_id = int(request.GET['client_id'])
-            client_demographics = Client.objects.get(id=client_id)
-            client_household = ClientIndividualAndHouseholdData.objects.get(client=client_id)
-            client_edu = ClientEducationAndEmploymentData.objects.get(client=client_id)
-            client_sexual_data = ClientSexualActivityData.objects.get(client=client_id)
-            client_gbv_data = ClientGenderBasedViolenceData.objects.get(client=client_id)
-            client_hiv_data = ClientHIVTestingData.objects.get(client=client_id)
-            client_rh_data = ClientReproductiveHealthData.objects.get(client=client_id)
-            client_drug_data = ClientDrugUseData.objects.get(client=client_id)
-            client_prog_part_data = ClientParticipationInDreams.objects.get(client=client_id)
+            try:
+                client_id = int(request.GET['client_id'])
+                client_demographics = Client.objects.get(id=client_id)
+                client_household = ClientIndividualAndHouseholdData.objects.get(client=client_id)
+                client_edu = ClientEducationAndEmploymentData.objects.get(client=client_id)
+                client_sexual_data = ClientSexualActivityData.objects.get(client=client_id)
+                client_gbv_data = ClientGenderBasedViolenceData.objects.get(client=client_id)
+                client_hiv_data = ClientHIVTestingData.objects.get(client=client_id)
+                client_rh_data = ClientReproductiveHealthData.objects.get(client=client_id)
+                client_drug_data = ClientDrugUseData.objects.get(client=client_id)
+                client_prog_part_data = ClientParticipationInDreams.objects.get(client=client_id)
 
-            demographics_form = DemographicsForm(instance=client_demographics)
-            household_form = IndividualAndHouseholdForm(instance=client_household)
-            edu_and_emp_form = EducationAndEmploymentForm(instance=client_edu)
-            sexuality_form = SexualityForm(instance=client_sexual_data)
-            gbv_form = GBVForm(instance=client_gbv_data)
-            hiv_form = HivTestForm(instance=client_hiv_data)
-            reproductive_health_form = ReproductiveHealthForm(instance=client_rh_data)
-            drug_use_form = DrugUseForm(instance=client_drug_data)
-            participation_form = DreamsProgramParticipationForm(instance=client_prog_part_data)
+                demographics_form = DemographicsForm(instance=client_demographics)
+                household_form = IndividualAndHouseholdForm(instance=client_household)
+                edu_and_emp_form = EducationAndEmploymentForm(instance=client_edu)
+                sexuality_form = SexualityForm(instance=client_sexual_data)
+                gbv_form = GBVForm(instance=client_gbv_data)
+                hiv_form = HivTestForm(instance=client_hiv_data)
+                reproductive_health_form = ReproductiveHealthForm(instance=client_rh_data)
+                drug_use_form = DrugUseForm(instance=client_drug_data)
+                participation_form = DreamsProgramParticipationForm(instance=client_prog_part_data)
+            except Client.DoesNotExist:
+                traceback.format_exc()
+                # raise PermissionDenied
         else:
-            client_id = int(request.POST('client_id', ''))
+            print 'POST not allowed'
 
         if client_id is not None and client_id != 0:
             try:
@@ -1428,17 +1432,20 @@ def viewBaselineData(request):
                                                                 'programe_participation_form': participation_form
                                                                })
             except Client.DoesNotExist:
-                return render(request, 'login.html')
+                traceback.format_exc()
+                return redirect('clients')
             except Exception as e:
-                return render(request, 'login.html')
+                traceback.format_exc()
+                return redirect('clients')
     else:
-        raise PermissionDenied
+        return redirect('login')
 
 
 def update_demographics_data(request):
-    instance = Client.objects.get(id=62222)
+    client_id = int(request.POST['client'])
+    instance = Client.objects.get(id=client_id)
     if request.is_ajax():
-        template = 'client_demographics_form.html'
+        template = 'client_test_demographics_form.html'
 
         if request.method == 'POST':
             form = DemographicsForm(request.POST, instance=instance)
@@ -1455,7 +1462,8 @@ def update_demographics_data(request):
 
 
 def update_individual_and_household_data(request):
-    instance = ClientIndividualAndHouseholdData.objects.get(client=62222)
+    client_id = int(request.POST['client'])
+    instance = ClientIndividualAndHouseholdData.objects.get(client=client_id)
     if request.is_ajax():
         template = 'client_individual_household_form.html'
 
@@ -1474,7 +1482,8 @@ def update_individual_and_household_data(request):
 
 
 def update_edu_and_employment_data(request):
-    instance = ClientEducationAndEmploymentData.objects.get(client=62222)
+    client_id = int(request.POST['client'])
+    instance = ClientEducationAndEmploymentData.objects.get(client=client_id)
     if request.is_ajax():
         template = 'education_and_employment_form.html'
 
@@ -1493,7 +1502,8 @@ def update_edu_and_employment_data(request):
 
 
 def update_hiv_testing_data(request):
-    instance = ClientHIVTestingData.objects.get(client=62222)
+    client_id = int(request.POST['client'])
+    instance = ClientHIVTestingData.objects.get(client=client_id)
     if request.is_ajax():
         template = 'client_hiv_testing_form.html'
 
@@ -1512,7 +1522,8 @@ def update_hiv_testing_data(request):
 
 
 def update_sexuality_data(request):
-    instance = ClientSexualActivityData.objects.get(client=62222)
+    client_id = int(request.POST['client'])
+    instance = ClientSexualActivityData.objects.get(client=client_id)
     if request.is_ajax():
         template = 'client_sexuality_form.html'
 
@@ -1531,7 +1542,8 @@ def update_sexuality_data(request):
 
 
 def update_rep_health_data(request):
-    instance = ClientReproductiveHealthData.objects.get(client=62222)
+    client_id = int(request.POST['client'])
+    instance = ClientReproductiveHealthData.objects.get(client=client_id)
     if request.is_ajax():
         template = 'client_reproductive_health_form.html'
 
@@ -1550,7 +1562,8 @@ def update_rep_health_data(request):
 
 
 def update_gbv_data(request):
-    instance = ClientGenderBasedViolenceData.objects.get(client=62222)
+    client_id = int(request.POST['client'])
+    instance = ClientGenderBasedViolenceData.objects.get(client=client_id)
     if request.is_ajax():
         template = 'client_gbv_form.html'
 
@@ -1569,7 +1582,8 @@ def update_gbv_data(request):
 
 
 def update_drug_use_data(request):
-    instance = ClientDrugUseData.objects.get(client=62222)
+    client_id = int(request.POST['client'])
+    instance = ClientDrugUseData.objects.get(client=client_id)
     if request.is_ajax():
         template = 'client_drug_use_form.html'
 
@@ -1588,7 +1602,8 @@ def update_drug_use_data(request):
 
 
 def update_programme_participation_data(request):
-    instance = ClientParticipationInDreams.objects.get(client=62222)
+    client_id = int(request.POST['client'])
+    instance = ClientParticipationInDreams.objects.get(client=client_id)
     if request.is_ajax():
         template = 'client_programme_participation_form.html'
 

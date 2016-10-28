@@ -38,6 +38,9 @@
             of abuse or addiction</label><br/>
         {{ drug_use_form.produced_alcohol_last_12months }}
     </div>
+    <div class="form-group">
+        {{ drug_use_form.client.as_hidden }}
+    </div>
 
     <button type="submit" class="btn btn-sm btn-primary">Save</button>
 </form>
