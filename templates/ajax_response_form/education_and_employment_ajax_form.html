@@ -1,5 +1,3 @@
-<form method="POST" class="post-form" id="form_edu_and_employment" action="/update-education-employment/">
-    {% csrf_token %}
 <div id="edu_replacement">
     <div class="form-group">
         {{ edu_form.currently_in_school.errors }}
@@ -172,5 +170,3 @@
         {{ edu_form.client.as_hidden }}
     </div>
 </div>
-    <button type="submit" class="btn btn-sm btn-primary">Save</button>
-</form>

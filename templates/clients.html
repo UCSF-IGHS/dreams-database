@@ -12,34 +12,20 @@
             </div>
             <div class="floatRightLinks">
                 <div class="rightItem">
-                    <form id="clients_search_form" class="form-inline" action="/clients" method="post"  style="padding-top: 10px;">
+                    <form id="clients_search_form" class="form-inline" action="/clients" method="post"
+                          style="padding-top: 10px;">
                         {% csrf_token %}
-
-                          <div class="form-group" >
-                               <label style="font-size: 15px;font-weight: 400;">Search by:</label>
-                                <select id="clientSearchOption" class="form-control input-sm text-info"  name="clientSearchOption" style="width: 250px;">
-                                    <option value="search_dreams_id" {% if search_option == "" or search_option == 'search_dreams_id' %}selected{% endif %}>DREAMS ID</option>
-                                    <option value="search_name" {% if search_option != None and search_option == 'search_name' %}selected{% endif %}>Client Name</option>
-                                </select>
-                                {% if  search_option == "" or search_option == "search_dreams_id" %}
-                                    <input id="search-term-dreams_id" type="text" name="searchDreamsId" value="{{ dreams_id }}" class="form-control input-sm text-info search_dreams_id" placeholder="DREAMS ID" style="width: 250px;">
-                                    <input id="search-term-first_name" type="text" name="searchFirstName" value="{{ first_name }}" class="form-control input-sm search_name hidden" placeholder="First Name">
-                                    <input id="search-term-middle_name" type="text" name="searchMiddleName" value="{{ middle_name }}" class="form-control input-sm search_name hidden" placeholder="Middle Name">
-                                    <input id="search-term-last_name" type="text" name="searchLastName" value="{{ last_name }}" class="form-control input-sm search_name hidden" placeholder="Last Name">
-                                {% endif %}
-                                {% if search_option == 'search_name' %}
-                                   <input id="search-term-dreams_id" type="text" name="searchDreamsId" value="{{ dreams_id }}" class="form-control input-sm text-info search_dreams_id hidden" placeholder="DREAMS ID" style="width: 250px;">
-                                   <input id="search-term-first_name" type="text" name="searchFirstName" value="{{ first_name }}" class="form-control input-sm search_name " placeholder="First Name">
-                                   <input id="search-term-middle_name" type="text" name="searchMiddleName" value="{{ middle_name }}" class="form-control input-sm search_name " placeholder="Middle Name">
-                                   <input id="search-term-last_name" type="text" name="searchLastName" value="{{ last_name }}" class="form-control input-sm search_name " placeholder="Last Name">
-                                {% endif %}
-                              <button type="submit" class="btn btn-primary btn-sm" style="margin-right: 10px;"><span class="glyphicon glyphicon-search"></span> Search </button>
-                               <span id="client_search_errors" class=" text-danger"></span>
-
-                          </div>
+                        <div class="form-group has-feedback">
+                            <input id="search-client" type="text" name="search_client_term"
+                                   class="form-control filter-enrollment" value="{{ search_client_term }}"
+                                   placeholder="Enter DREAMS ID or Client's Full Name" style="width: 400px;">
+                            <button type="submit" class="btn btn-primary btn-sm" style="margin-top: 2px;"><span
+                                    class="glyphicon glyphicon-search"></span> Search
+                            </button>
+                            <!--<span id="client_search_errors" class=" text-danger"></span>-->
+                        </div>
                     </form>
-                    <!--<span class="text-info" ><span class="glyphicon glyphicon-info-sign"></span> Search for clients by entering details in the input fields above.</span>-->
-
+                    <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for clients by entering DREAMS ID or the Client's Full Name in the input field above.</span>
                 </div>
             </div>
         </div>
@@ -48,92 +34,74 @@
              style="margin-bottom: 15px;"></div>
 
         <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
-            <div class="panel-body" style="margin: 0px;padding: 0px;background-color: #FFFFFF;">
-                <table class="table table-striped dp-patient-table" id="dreams-client-table"
+            <div class="panel-body" style="margin: 0px;padding: 0px;">
+                <table class="table table-striped table-hover" id="dreams-client-table"
                        style="background-color: transparent;margin: 0px;">
                     <thead class="dp-listing-table-head" style="background-color: #333333;color: #FFFFFF">
                     <th>DREAMS ID</th>
                     <th>Name</th>
                     <th>Date of Enrollment</th>
                     <th class="actions-col">Actions</th>
+                    <th>&nbsp;</th>
+
                     </thead>
                     <tbody id="dp-patient-list-body">
-
                     {% if client_paginator %}
                         {% for client in client_paginator.object_list %}
-                            <tr id="clients_row_{{ client.id }}" style="cursor: pointer; background-color: transparent;">
-                                <td>{{ client.dreams_id}}</td>
+                            <tr id="clients_row_{{ client.id }}" style="cursor: pointer;">
+                                <td>{{ client.dreams_id }}</td>
                                 <td>{{ client.get_full_name }}</td>
                                 <td>{{ client.date_of_enrollment }}</td>
                                 <td id="client_" + {{ client.id }}>
-
                                     <!-- Split button -->
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-sm btn-default"
+                                                onclick="window.location='/client_baseline_info?client_id={{ client.id }}'"
+                                                style="cursor: pointer;"> Enrollment Data
+                                        </button>
+
+                                    </div>
+
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-default"
                                                 onclick="window.location='/client?client_id={{ client.id }}'"
-                                                style="cursor: pointer;"> Interventions
+                                                style="cursor: pointer;"> Service Uptake
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-default dropdown-toggle"
-                                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <span class="caret"></span>
-                                            <span class="sr-only">Toggle Dropdown</span>
-                                        </button>
-                                        <ul class="dropdown-menu">
-
-                                            {% if perms.auth.can_manage_client %}
-                                                <li><a href="#" class="edit_intervention_click edit_client"
-                                                       data-view_mode="view" data-toggle="modal"
-                                                       data-target="#enrollment-modal" data-client_id='{{ client.id }}'
-                                                       style="cursor: pointer;word-spacing: 0px !important;"> View
-                                                    Enrollment </a></li>
-                                                <li><a href="/client_baseline_info?client_id={{ client.id }}" style="cursor: pointer;word-spacing: 0px !important;"> Baseline Information </a></li>
-
-                                                {% if perms.auth.can_change_client %}
-                                                    <li><a href="#" class="edit_intervention_click edit_client"
-                                                           data-toggle="modal" data-target="#enrollment-modal"
-                                                           data-client_id='{{ client.id }}'
-                                                           data-client="JSON.stringify({{ client }});"
-                                                           style="cursor: pointer;word-spacing: 0px !important;"> Edit
-                                                        Enrollment </a></li>
-                                                {% endif %}
-                                                {% if perms.auth.can_delete_client %}
-                                                    <li><a href="#" class="delete_intervention_click "
-                                                           data-client_id='{{ client.id }}'
-                                                           data-confirm-client-delete="Are you sure you want to delete?">
-                                                        Delete Enrollment &nbsp;&nbsp;&nbsp;</a></li>
-                                                {% endif %}
-                                            {% endif %}
-                                        </ul>
                                     </div>
                                 </td>
+
+
                             </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="4" class="table-message">Search to find clients</td>
+                            <td colspan="4" class="table-message">No clients shown. Search to find clients.</td>
                         </tr>
                     {% endif %}
                     </tbody>
                 </table>
             </div>
         </div>
+        {% if client_paginator %}
+            <div class="pagination fit-item">
+            <span class="step-links">
+                {% if client_paginator.has_previous %}
+                    <a href="?page={{ client_paginator.previous_page_number }}&search_client_term={{ search_client_term }}">previous</a>
+                {% endif %}
 
-        <div class="pagination fit-item" >
-        <span class="step-links">
-            {% if client_paginator.has_previous %}
-                <a href="?page={{ client_paginator.previous_page_number }}&clientSearchOption={{ search_option }}&searchDreamsId={{ dreams_id }}&searchFirstName={{ first_name }}&searchMiddleName={{ middle_name }}&searchLastName={{ last_name }}">previous</a>
-            {% endif %}
+                <span class="current">
+                    Page {{ client_paginator.number }} of {{ client_paginator.paginator.num_pages }}
+                </span>
 
-            <span class="current">
-                Page {{ client_paginator.number }} of {{ client_paginator.paginator.num_pages }}
+                {% if client_paginator.has_next %}
+                    <a href="?page={{ client_paginator.next_page_number }}&search_client_term={{ search_client_term }}">next</a>
+                {% endif %}
             </span>
-
-            {% if client_paginator.has_next %}
-                <a href="?page={{ client_paginator.next_page_number }}&clientSearchOption={{ search_option }}&searchDreamsId={{ dreams_id }}&searchFirstName={{ first_name }}&searchMiddleName={{ middle_name }}&searchLastName={{ last_name }}">next</a>
-            {% endif %}
-        </span>
-        <br>
-
+                <br>
+            </div>
+        {% endif %}
         <div class="hidden">
             <button id="btn_show_enrollment_modal" class="" data-toggle="modal" data-target="#enrollment-modal"
                     data-toggle="tooltip" title="New Enrollment"><i class="glyphicon glyphicon-plus text-default"></i>
@@ -141,6 +109,6 @@
             </button>
         </div>
 
-        <br/>
+        <br/><br/><br/><br/><br/><br/><br/><br/>
     </div>
 {% endblock %}

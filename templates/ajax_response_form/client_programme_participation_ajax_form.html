@@ -1,5 +1,3 @@
-<form method="POST" class="post-form" id="form_programme_participation" action="/update-programme-participation/">
-    {% csrf_token %}
 <div id="program_replacement" >
     <div class="form-group">
         {{ programe_participation_form.dreams_program.errors }}
@@ -25,5 +23,3 @@
         {{ programe_participation_form.client.as_hidden }}
     </div>
 </div>
-    <button type="submit" class="btn btn-sm btn-primary">Save</button>
-</form>

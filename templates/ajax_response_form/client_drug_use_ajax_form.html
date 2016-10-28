@@ -1,6 +1,5 @@
-<form method="POST" class="post-form" id="form_drug_use" action="/update-drug-use/">
-    {% csrf_token %}
-    <div id="drug_use_replacement">
+
+<div id="drug_use_replacement">
     <div class="form-group">
         {{ drug_use_form.used_alcohol_last_12months.errors }}
         <label class="control-label">Have you used alcohol in the last 12 months?</label><br/>
@@ -44,5 +43,3 @@
     </div>
 </div>
 
-    <button type="submit" class="btn btn-sm btn-primary">Save</button>
-</form>

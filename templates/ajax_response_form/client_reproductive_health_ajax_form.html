@@ -1,5 +1,3 @@
-<form method="POST" class="post-form" id="form_rep_health" action="/update-reproductive-health/">
-    {% csrf_token %}
 <div id="rh_replacement">
     <div class="form-group">
         {{ rh_form.has_biological_children.errors }}
@@ -94,5 +92,4 @@
         {{ rh_form.client.as_hidden }}
     </div>
 </div>
-    <button type="submit" class="btn btn-sm btn-primary">Save</button>
-</form>
+
