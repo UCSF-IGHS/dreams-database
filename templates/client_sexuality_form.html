@@ -1,0 +1,144 @@
+<form method="POST" class="post-form" id="form_sexuality">
+    {% csrf_token %}
+    <div class="form-group">
+        {{ sexuality_form.ever_had_sex.errors }}
+        {{ sexuality_form.ever_had_sex.label_tag }}
+        {{ sexuality_form.ever_had_sex }}
+    </div>
+    {% if sexuality_form.ever_had_sex.value == 1 %}
+        <div id="age_at_first_sexual_encounter" class="form-group">
+    {% else %}
+        <div id="age_at_first_sexual_encounter" class="form-group hidden">
+    {% endif %}
+    {{ sexuality_form.age_at_first_sexual_encounter.errors }}
+    {{ sexuality_form.age_at_first_sexual_encounter.label_tag }}
+    {{ sexuality_form.age_at_first_sexual_encounter }}
+    </div>
+    {% if sexuality_form.ever_had_sex.value == 1 %}
+        <div id="has_sexual_partner" class="form-group">
+    {% else %}
+        <div id="has_sexual_partner" class="form-group hidden">
+    {% endif %}
+    {{ sexuality_form.has_sexual_partner.errors }}
+    {{ sexuality_form.has_sexual_partner.label_tag }}
+    {{ sexuality_form.has_sexual_partner }}
+    </div>
+    {% if sexuality_form.ever_had_sex.value == 1 %}
+        <div id="sex_partners_in_last_12months" class="form-group">
+    {% else %}
+        <div id="sex_partners_in_last_12months" class="form-group hidden">
+    {% endif %}
+    {{ sexuality_form.sex_partners_in_last_12months.errors }}
+    {{ sexuality_form.sex_partners_in_last_12months.label_tag }}
+    {{ sexuality_form.sex_partners_in_last_12months }}
+    </div>
+    {% if sexuality_form.sex_partners_in_last_12months.value > 0 %}
+        <div id="sex_partners_age" class="form-group">
+    {% else %}
+        <div id="sex_partners_age" class="form-group hidden">
+    {% endif %}
+    <label>Is this partner same age, younger or older than you?</label>
+    <br/>
+    {{ sexuality_form.age_of_last_partner.errors }}
+    <label class="control-label">Last Sexual Partner</label>
+    {{ sexuality_form.age_of_last_partner }}
+    {% if sexuality_form.sex_partners_in_last_12months.value > 1 %}
+        <span id="age_of_second_last_partner">
+                            {{ sexuality_form.age_of_second_last_partner.errors }}
+                            <label class="control-label">Second to last Partner</label>
+                            {{ sexuality_form.age_of_second_last_partner }}
+                        </span>
+    {% endif %}
+
+    {% if sexuality_form.sex_partners_in_last_12months.value > 2 %}
+        <span id="age_of_third_last_partner">
+                            {{ sexuality_form.age_of_third_last_partner.errors }}
+                            <label class="control-label">Third to last Partner</label>
+                            {{ sexuality_form.age_of_third_last_partner }}
+                        </span>
+    {% endif %}
+    </div>
+    {% if sexuality_form.sex_partners_in_last_12months.value > 0 %}
+        <div id="sex_partners_circumcised" class="form-group">
+    {% else %}
+        <div id="sex_partners_circumcised" class="form-group hidden">
+    {% endif %}
+    <label>Is this partner circumcised?</label>
+    <br/>
+    {{ sexuality_form.last_partner_circumcised.errors }}
+    <label class="control-label">Last Sexual Partner</label>
+    {{ sexuality_form.last_partner_circumcised }}
+    {% if sexuality_form.sex_partners_in_last_12months.value > 1 %}
+        <span id="second_last_partner_circumcised">
+                            {{ sexuality_form.second_last_partner_circumcised.errors }}
+                            <label class="control-label">Second to last Partner</label>
+                            {{ sexuality_form.second_last_partner_circumcised }}
+                        </span>
+    {% endif %}
+
+    {% if sexuality_form.sex_partners_in_last_12months.value > 2 %}
+        <span id="third_last_partner_circumcised">
+                            {{ sexuality_form.third_last_partner_circumcised.errors }}
+                            <label class="control-label">Third to last Partner</label>
+                            {{ sexuality_form.third_last_partner_circumcised }}
+                        </span>
+    {% endif %}
+    </div>
+    {% if sexuality_form.sex_partners_in_last_12months.value > 0 %}
+        <div id="sex_partners_hiv_status" class="form-group">
+    {% else %}
+        <div id="sex_partners_hiv_status" class="form-group hidden">
+    {% endif %}
+    <label>Do you know this partner's HIV Status?</label>
+    <br/>
+    {{ sexuality_form.know_last_partner_hiv_status.errors }}
+    <label class="control-label">Last Sexual Partner</label>
+    {{ sexuality_form.know_last_partner_hiv_status }}
+    {% if sexuality_form.sex_partners_in_last_12months.value > 1 %}
+        <span id="know_second_last_partner_hiv_status">
+                            {{ sexuality_form.know_second_last_partner_hiv_status.errors }}
+                            <label class="control-label">Second to last Partner</label>
+                            {{ sexuality_form.know_second_last_partner_hiv_status }}
+                        </span>
+    {% endif %}
+
+    {% if sexuality_form.sex_partners_in_last_12months.value > 2 %}
+        <span id="know_third_last_partner_hiv_status">
+                            {{ sexuality_form.know_third_last_partner_hiv_status.errors }}
+                            <label class="control-label">Third to last Partner</label>
+                            {{ sexuality_form.know_third_last_partner_hiv_status }}
+                        </span>
+    {% endif %}
+    </div>
+    {% if sexuality_form.sex_partners_in_last_12months.value > 0 %}
+        <div id="sex_partners_condom_use" class="form-group">
+    {% else %}
+        <div id="sex_partners_condom_use" class="form-group hidden">
+    {% endif %}
+    <label>How often did/do you use a condom with this partner?</label>
+    <br/>
+    {{ sexuality_form.used_condom_with_last_partner.errors }}
+    <label class="control-label">Last Sexual Partner</label>
+    {{ sexuality_form.used_condom_with_last_partner }}
+
+    {% if sexuality_form.sex_partners_in_last_12months.value > 1 %}
+        <span id="used_condom_with_second_last_partner">
+                            {{ sexuality_form.used_condom_with_second_last_partner.errors }}
+                            <label class="control-label">Second to last Partner</label>
+                            {{ sexuality_form.used_condom_with_second_last_partner }}
+                        </span>
+    {% endif %}
+
+    {% if sexuality_form.sex_partners_in_last_12months.value > 2 %}
+        <span id="used_condom_with_third_last_partner">
+                            {{ sexuality_form.used_condom_with_third_last_partner.errors }}
+                            <label class="control-label">Third to last Partner</label>
+                            {{ sexuality_form.used_condom_with_third_last_partner }}
+                        </span>
+    {% endif %}
+    </div>
+    <div class="form-group">
+        {{ sexuality_form.client.as_hidden }}
+    </div>
+    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+</form>

@@ -7,8 +7,7 @@
 *.pyc
 __pycache__/
 local_settings.py
-db.sqlite3
-*.sqlite3
+*.sqlite3 # temporarily enabled for fitti to test
 media
 
 
@@ -68,6 +67,9 @@ coverage.xml
 *.log
 local_settings.py
 
+# settings file. Remove this is settings changes need to be pushed
+settings.py
+
 # Flask instance folder
 instance/
 
@@ -105,4 +107,7 @@ bower_components
 .bower-cache
 .bower-registry
 .bower-tmp
+
+# Add idea related files
+.idea/*
 

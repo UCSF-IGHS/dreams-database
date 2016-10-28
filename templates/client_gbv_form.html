@@ -1,0 +1,133 @@
+<form method="POST" class="post-form" id="form_gbv">
+    {% csrf_token %}
+    <div class="form-group">
+        <label class="control-label">He said or did something to humiliate you in front of others</label><br/>
+        {{ gbv_form.humiliated_ever.errors }}
+        <label class="control-label">Ever</label>
+        {{ gbv_form.humiliated_ever }}
+
+        {{ gbv_form.humiliated_last_3months.errors }}
+        <label class="control-label">In last 3 Months</label>
+        {{ gbv_form.humiliated_last_3months }}
+    </div>
+
+    <div class="form-group">
+        <label class="control-label">Threatened to hurt or harm you or someone you care about</label><br/>
+        {{ gbv_form.threats_to_hurt_ever.errors }}
+        <label class="control-label">Ever</label>
+        {{ gbv_form.threats_to_hurt_ever }}
+
+        {{ gbv_form.threats_to_hurt_last_3months.errors }}
+        <label class="control-label">In last 3 Months</label>
+        {{ gbv_form.threats_to_hurt_last_3months }}
+    </div>
+
+    <div class="form-group">
+        <label class="control-label">Insulted or made you feel bad about yourself</label><br/>
+        {{ gbv_form.insulted_ever.errors }}
+        <label class="control-label">Ever</label>
+        {{ gbv_form.insulted_ever }}
+
+        {{ gbv_form.insulted_last_3months.errors }}
+        <label class="control-label">In last 3 Months</label>
+        {{ gbv_form.insulted_last_3months }}
+    </div>
+    <div class="form-group">
+        <label class="control-label">Threatened to take away your economic livelihood</label><br/>
+        {{ gbv_form.economic_threat_ever.errors }}
+        <label class="control-label">Ever</label>
+        {{ gbv_form.economic_threat_ever }}
+
+        {{ gbv_form.economic_threat_last_3months.errors }}
+        <label class="control-label">In last 3 Months</label>
+        {{ gbv_form.economic_threat_last_3months }}
+    </div>
+    <div class="form-group">
+        <label class="control-label">Push you, shake you, slap/punch/beat you, hit you with something, try to choke you
+            or throw something at you that could hurt you</label><br/>
+        {{ gbv_form.physical_violence_ever.errors }}
+        <label class="control-label">Ever</label>
+        {{ gbv_form.physical_violence_ever }}
+
+        {{ gbv_form.physical_violence_last_3months.errors }}
+        <label class="control-label">In last 3 Months</label>
+        {{ gbv_form.physical_violence_last_3months }}
+    </div>
+    <div class="form-group">
+        <label class="control-label">Physically forced you to have sexual intercourse with him when you did not
+            want</label><br/>
+        {{ gbv_form.physically_forced_sex_ever.errors }}
+        <label class="control-label">Ever</label>
+        {{ gbv_form.physically_forced_sex_ever }}
+
+        {{ gbv_form.physically_forced_sex_last_3months.errors }}
+        <label class="control-label">In last 3 Months</label>
+        {{ gbv_form.physically_forced_sex_last_3months }}
+    </div>
+    <div class="form-group">
+        <label class="control-label">Physically forced you to perform any other sexual acts you did not want to
+            do</label><br/>
+        {{ gbv_form.physically_forced_other_sex_acts_ever.errors }}
+        <label class="control-label">Ever</label>
+        {{ gbv_form.physically_forced_other_sex_acts_ever }}
+
+        {{ gbv_form.physically_forced_other_sex_acts_last_3months.errors }}
+        <label class="control-label">In last 3 Months</label>
+        {{ gbv_form.physically_forced_other_sex_acts_last_3months }}
+    </div>
+    <div class="form-group">
+        <label class="control-label">Forced you with threats or in any other way to perform sexual acts you did not want
+            to</label><br/>
+        {{ gbv_form.threatened_for_sexual_acts_ever.errors }}
+        <label class="control-label">Ever</label>
+        {{ gbv_form.threatened_for_sexual_acts_ever }}
+
+        {{ gbv_form.threatened_for_sexual_acts_last_3months.errors }}
+        <label class="control-label">In last 3 Months</label>
+        {{ gbv_form.threatened_for_sexual_acts_last_3months }}
+    </div>
+    <div class="form-group">
+        {{ gbv_form.seek_help_after_gbv.errors }}
+        <label class="control-label">Did you seek help after experiencing all of the discussed?</label><br/>
+        {{ gbv_form.seek_help_after_gbv }}
+    </div>
+
+    {% if gbv_form.seek_help_after_gbv.value == 1 %}
+        <div id="gbv_help_provider" class="form-group">
+    {% else %}
+        <div id="gbv_help_provider" class="form-group hidden">
+    {% endif %}
+    {{ gbv_form.gbv_help_provider.errors }}
+    <label class="control-label">From where did you seek help</label><br/>
+    {{ gbv_form.gbv_help_provider }}
+
+    {{ gbv_form.gbv_help_provider_other.errors }}
+    <label class="control-label">Other</label>
+    {{ gbv_form.gbv_help_provider_other }}
+    </div>
+    <div class="form-group">
+
+        {{ gbv_form.knowledge_of_gbv_help_centres.errors }}
+        <label class="control-label">Do you know where to seek help if you experience the different things discussed
+            above</label><br/>
+        {{ gbv_form.knowledge_of_gbv_help_centres }}
+    </div>
+    <div class="form-group">
+
+        {{ gbv_form.preferred_gbv_help_provider.errors }}
+        <label class="control-label">Where would you seek help if you experienced things discussed above</label><br/>
+        {{ gbv_form.preferred_gbv_help_provider }}
+
+        {{ gbv_form.preferred_gbv_help_provider_other.errors }}
+        <label class="control-label">Other</label>
+        {{ gbv_form.preferred_gbv_help_provider_other }}
+    </div>
+    <div class="form-group">
+        {{ gbv_form.client.as_hidden }}
+    </div>
+
+
+    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+    <br/>
+
+</form>

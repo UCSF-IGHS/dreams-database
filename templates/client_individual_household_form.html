@@ -1,0 +1,197 @@
+<form method="POST" class="post-form" id="form_ind_household">
+    {% csrf_token %}
+    <div class="form-group">
+        {{ household_form.head_of_household.errors }}
+        {{ household_form.head_of_household.label_tag }}
+        {{ household_form.head_of_household }}
+
+        {% if household_form.head_of_household.value == 96 %}
+            <span id="household_head_other">
+        {% else %}
+            <span id="household_head_other" class="hidden">
+        {% endif %}
+        {{ household_form.head_of_household_other.errors }}
+        {{ household_form.head_of_household_other.label_tag }}
+        {{ household_form.head_of_household_other }}
+        </span>
+    </div>
+    <div class="form-group">
+        {{ household_form.age_of_household_head.errors }}
+        {{ household_form.age_of_household_head.label_tag }}
+        {{ household_form.age_of_household_head }}
+    </div>
+    <div class="form-group">
+        {{ household_form.is_father_alive.errors }}
+        {{ household_form.is_father_alive.label_tag }}
+        {{ household_form.is_father_alive }}
+
+        {{ household_form.is_mother_alive.errors }}
+        {{ household_form.is_mother_alive.label_tag }}
+        {{ household_form.is_mother_alive }}
+    </div>
+    <div class="form-group">
+        {{ household_form.is_parent_chronically_ill.errors }}
+        {{ household_form.is_parent_chronically_ill.label_tag }}
+        {{ household_form.is_parent_chronically_ill }}
+    </div>
+    <div class="form-group">
+        {{ household_form.main_floor_material.errors }}
+        {{ household_form.main_floor_material.label_tag }}
+        {{ household_form.main_floor_material }}
+
+        {% if household_form.main_floor_material.value == 96 %}
+            <span id="main_floor_material_other">
+        {% else %}
+            <span id="main_floor_material_other" class="hidden">
+        {% endif %}
+        {{ household_form.main_floor_material_other.errors }}
+        {{ household_form.main_floor_material_other.label_tag }}
+        {{ household_form.main_floor_material_other }}
+        </span>
+    </div>
+    <div class="form-group">
+        {{ household_form.main_roof_material.errors }}
+        {{ household_form.main_roof_material.label_tag }}
+        {{ household_form.main_roof_material }}
+
+        {% if household_form.main_roof_material.value == 96 %}
+            <span id="main_roof_material_other">
+        {% else %}
+            <span id="main_roof_material_other" class="hidden">
+        {% endif %}
+        {{ household_form.main_roof_material_other.errors }}
+        {{ household_form.main_roof_material_other.label_tag }}
+        {{ household_form.main_roof_material_other }}
+        </span>
+
+    </div>
+    <div class="form-group">
+        {{ household_form.main_wall_material.errors }}
+        {{ household_form.main_wall_material.label_tag }}
+        {{ household_form.main_wall_material }}
+
+        {% if household_form.main_wall_material.value == 96 %}
+            <span id="main_wall_material_other">
+        {% else %}
+            <span id="main_wall_material_other" class="hidden">
+        {% endif %}
+        {{ household_form.main_wall_material_other.errors }}
+        {{ household_form.main_wall_material_other.label_tag }}
+        {{ household_form.main_wall_material_other }}
+        </span>
+
+    </div>
+
+    <div class="form-group">
+        {{ household_form.source_of_drinking_water.errors }}
+        {{ household_form.source_of_drinking_water.label_tag }}
+        {{ household_form.source_of_drinking_water }}
+
+        {% if household_form.source_of_drinking_water.value == 96 %}
+            <span id="source_of_drinking_water_other">
+        {% else %}
+            <span id="source_of_drinking_water_other" class="hidden">
+        {% endif %}
+
+        {{ household_form.source_of_drinking_water_other.errors }}
+        {{ household_form.source_of_drinking_water_other.label_tag }}
+        {{ household_form.source_of_drinking_water_other }}
+        </span>
+
+    </div>
+    <div class="form-group">
+        {{ household_form.ever_missed_full_day_food_in_4wks.errors }}
+        {{ household_form.ever_missed_full_day_food_in_4wks.label_tag }}
+        {{ household_form.ever_missed_full_day_food_in_4wks }}
+
+        {% if household_form.ever_missed_full_day_food_in_4wks.value == 1 %}
+            <span id="no_of_days_missed_food_in_4wks">
+        {% else %}
+            <span id="no_of_days_missed_food_in_4wks" class="hidden">
+        {% endif %}
+
+        {{ household_form.no_of_days_missed_food_in_4wks.errors }}
+        {{ household_form.no_of_days_missed_food_in_4wks.label_tag }}
+        {{ household_form.no_of_days_missed_food_in_4wks }}
+        </span>
+    </div>
+    <div class="form-group">
+        {{ household_form.has_disability.errors }}
+        {{ household_form.has_disability.label_tag }}
+        {{ household_form.has_disability }}
+    </div>
+
+    {% if household_form.has_disability.value == 1 %}
+        <div id="disability_type">
+    {% else %}
+        <div id="disability_type" class="hidden">
+    {% endif %}
+            <div class="form-group">
+
+                {{ household_form.disability_type.errors }}
+                {{ household_form.disability_type.label_tag }}<br/>
+                {{ household_form.disability_type }}
+            </div>
+            <div class="form-group">
+                {{ household_form.disability_type_other.errors }}
+                {{ household_form.disability_type_other.label_tag }}
+                {{ household_form.disability_type_other }}
+            </div>
+
+    </div>
+
+    <div class="form-group">
+        {{ household_form.no_of_people_in_household.errors }}
+        {{ household_form.no_of_people_in_household.label_tag }}
+        {{ household_form.no_of_people_in_household }}
+    </div>
+    <div class="form-group">
+        {{ household_form.no_of_females.errors }}
+        {{ household_form.no_of_females.label_tag }}
+        {{ household_form.no_of_females }}
+
+        {{ household_form.no_of_males.errors }}
+        {{ household_form.no_of_males.label_tag }}
+        {{ household_form.no_of_males }}
+    </div>
+    <div class="form-group">
+        {{ household_form.no_of_adults.errors }}
+        {{ household_form.no_of_adults.label_tag }}
+        {{ household_form.no_of_adults }}
+
+        {{ household_form.no_of_children.errors }}
+        {{ household_form.no_of_children.label_tag }}
+        {{ household_form.no_of_children }}
+    </div>
+    <div class="form-group">
+        {{ household_form.ever_enrolled_in_ct_program.errors }}
+        {{ household_form.ever_enrolled_in_ct_program.label_tag }}
+        {{ household_form.ever_enrolled_in_ct_program }}
+    </div>
+
+    {% if household_form.ever_enrolled_in_ct_program.value == 1 %}
+        <div id="currently_in_ct_program" class="form-group">
+    {% else %}
+        <div id="currently_in_ct_program" class="form-group hidden">
+    {% endif %}
+
+    {{ household_form.currently_in_ct_program.errors }}
+    {{ household_form.currently_in_ct_program.label_tag }}
+    {{ household_form.currently_in_ct_program }}
+
+    {% if household_form.currently_in_ct_program.value == 1 %}
+        <span id="current_ct_program">
+    {% else %}
+        <span id="current_ct_program" class="hidden">
+    {% endif %}
+    {{ household_form.current_ct_program.errors }}
+    {{ household_form.current_ct_program.label_tag }}
+    {{ household_form.current_ct_program }}
+    </span>
+    </div>
+    <div class="form-group">
+        {{ household_form.client.as_hidden }}
+    </div>
+
+    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+</form>

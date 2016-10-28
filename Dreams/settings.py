@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 Django settings for Dreams project.
 
@@ -23,9 +24,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'su!2p!nf_9pw#$%zf$vk1-07$#c8n1m)@^be7*b7d5niuwa6%m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True   # Changed to False for custom error messaging!
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', '*']
 
 
 # Application definition
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'widget_tweaks',
     'DreamsApp',
 ]
 
@@ -49,6 +51,8 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'DreamsApp.middlewares.AutoLogoutMiddleware.SessionExpiredMiddleware',
+
 ]
 
 ROOT_URLCONF = 'Dreams.urls'
@@ -76,11 +80,22 @@ WSGI_APPLICATION = 'Dreams.wsgi.application'
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+     'default': {
+         'ENGINE': 'django.db.backends.sqlite3',
+         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'dreams_dev',
+#         'USER': 'root',
+#         'PASSWORD':'',
+#         'HOST':'localhost',
+#         'PORT':'',
+#     }
+# }
 
 
 # Password validation
@@ -101,7 +116,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+SESSION_EXPIRY_AGE = 20 # This is in Minutes
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
@@ -113,7 +130,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -125,3 +142,19 @@ TEMPLATE_DIRS = (
     os.path.join(BASE_DIR,  'templates'),
     'DreamsApp',
 )
+
+# Fixture dir. Contains path to json file used at migration
+# Use manage.py loaddata fixture-name
+# e.g manage.py loaddata initial_data.json
+FIXTURE_DIRS = ()
+
+
+# Just in case
+# DEFAULT_FROM_EMAIL = 'dreams.globalhealthapp@gmail.com'
+# SERVER_EMAIL = 'dreams.globalhealthapp@gmail.com'
+# EMAIL_BACKEND='django_smtp_ssl.SSLEmailBackend'  # 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_USE_SSL = True
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 465 # 587
+# EMAIL_HOST_USER = 'dreams.globalhealthapp@gmail.com'
+# EMAIL_HOST_PASSWORD = 'dreamsdev123#'
