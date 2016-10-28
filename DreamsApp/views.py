@@ -10,6 +10,8 @@ from django.contrib.auth.models import Group
 from django.views.generic import ListView, CreateView
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.forms.models import model_to_dict
+from itertools import chain
+import re
 import json
 import traceback
 from datetime import date, timedelta, datetime as dt
@@ -115,38 +117,25 @@ def user_login(request):
 def clients(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-            # get search details
+            # get search details -- search_client_term
             page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
-            search_option = request.GET.get('clientSearchOption', '') if request.method == 'GET' else request.POST.get('clientSearchOption', '')
-            dreams_id = request.GET.get('searchDreamsId', '') if request.method == 'GET' else request.POST.get('searchDreamsId', '')
-            first_name = request.GET.get('searchFirstName', '') if request.method == 'GET' else request.POST.get('searchFirstName', '')
-            middle_name = request.GET.get('searchMiddleName', '') if request.method == 'GET' else request.POST.get('searchMiddleName', '')
-            last_name = request.GET.get('searchLastName', '') if request.method == 'GET' else request.POST.get('searchLastName', '')
-            log_search_value = ""
-
-            if search_option == "search_dreams_id":
-                search_result = Client.objects.filter(dreams_id__exact=dreams_id)
-                log_search_value = dreams_id
-            elif search_option == "search_name":
-                log_search_value = first_name + " " + middle_name + " " + last_name
-                # Check if the 2 part rule is satisfied
-                name_parts = (first_name, middle_name, last_name)
-                parts_count = 0
-                for name_part in name_parts:
-                    if name_part.strip() != "":
-                        parts_count += 1
-                if parts_count >= 2:
-                    search_result = Client.objects.filter(
-                        first_name__iexact=first_name) if first_name != "" else Client.objects.all()
-                    search_result = search_result.filter(
-                        middle_name__iexact=middle_name) if middle_name != "" else search_result
-                    search_result = search_result.filter(
-                        last_name__iexact=last_name) if last_name != "" else search_result
-                else:
-                    search_result = Client.objects.all()[:0]
+            search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get('search_client_term', '')
+            search_client_term = search_client_term.strip()
+            if search_client_term != "":
+                search_client_term_parts = search_client_term.split()
+                search_client_term_parts_string = ''
+                for search_client_term_part in search_client_term_parts:
+                    if search_client_term_parts_string != '':
+                        search_client_term_parts_string += '|'
+                    search_client_term_parts_string += search_client_term_part
+                search_client_term_parts_string += '$'
+                search_result = Client.objects.filter(Q(dreams_id__iregex=r'' + search_client_term_parts_string) |
+                                                      Q(first_name__iregex=r'' + search_client_term_parts_string) |
+                                                      Q(middle_name__iregex=r'' + search_client_term_parts_string) |
+                                                      Q(last_name__iregex=r'' + search_client_term_parts_string)).order_by('first_name').order_by('middle_name').order_by('last_name')
             else:
                 search_result = Client.objects.all()[:0]
-            log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", log_search_value)
+            log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_client_term)
 
             if request.is_ajax():
                 json_response = {
@@ -167,13 +156,9 @@ def clients(request):
                 except EmptyPage:
                     client_paginator = paginator.page(paginator.num_pages)  # Deliver the last page if page is out of scope
                 response_data = {
-                    'page': 'client',
+                    'page': 'clients',
                     'page_title': 'DREAMS Client List',
-                    'search_option': search_option,
-                    'dreams_id': dreams_id,
-                    'first_name': first_name,
-                    'middle_name': middle_name,
-                    'last_name': last_name,
+                    'search_client_term': search_client_term,
                     'client_paginator': client_paginator,
                     'status': 'success'
                 }
