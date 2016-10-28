@@ -47,10 +47,11 @@ html, body{
 
 #dreams-navbar .navbar-nav > li > a:hover,
 #dreams-navbar .navbar-nav > li > a:focus {
-  color: #ffffff;
+    color: #ffffff;
     background-color: #26247B;
 
 }
+
 
 #dreams-navbar .navbar-nav > .active > a,
 #dreams-navbar .navbar-nav > .active > a:hover,
@@ -216,9 +217,6 @@ html, body{
 
 /* Start Clients List */
 
-#dreams-client-table {
-    background-color: transparent;
-}
 
 #dreams-client-table .actions-col{
     min-width: 150px;
@@ -272,18 +270,16 @@ html, body{
 #dreams-profile-tab-control >.nav-tabs> li > a:focus,
 #dreams-profile-tab-control >.nav-tabs> li > a:active,
 #dreams-profile-tab-control >.nav-tabs> li > a:hover{
-     text-decoration: underline;
      background-color: inherit;
-     border: none;
  }
 
 #dreams-profile-tab-control >.nav-tabs> .active > a,
 #dreams-profile-tab-control >.nav-tabs> .active > a:focus,
 #dreams-profile-tab-control >.nav-tabs> .active > a:active,
 #dreams-profile-tab-control >.nav-tabs> .active > a:hover{
-     background-color: #FFFFFF;
-     border: solid 1px #efc636;
-     border-bottom: solid 3px #FFFFFF;
+    background-color: #FFFFFF;
+    border: solid 1px #efc636;
+    border-bottom: solid 3px #FFFFFF;
     z-index: 300;
     margin-bottom: -5px;
     text-decoration: none ;

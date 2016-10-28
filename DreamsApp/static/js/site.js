@@ -149,6 +149,7 @@ $(document).ready(function () {
         var csrftoken = getCookie('csrftoken');
 
         $(this).unbind("submit").submit();
+        return;
         /*$.ajax({
             url : '/clients', // the endpoint
             type : "POST", // http method
