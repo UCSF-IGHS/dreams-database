@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="wrapper-container">
+        <!-- Start of Client profile section -->
+        <div class="row statusBox">
+            <div class="col-xs-12 col-sm-5">
+                <p><strong>Client: </strong> {{ client.get_full_name }} </p>
+                <p><strong>DREAMS Id: </strong> {{ client.dreams_id }}</p>
+                <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }}</p>
+            </div><!--/col-->
+            <div class="col-xs-12 col-sm-4">
+                <p><strong>Phone Number: </strong>
+                    <span>{{ client.phone_number }}
+                        {% if client.phone_number == None and client.guardian_phone_number != None and client.guardian_phone_number != '' %}
+                            (Guardian){{ client.guardian_phone_number }}{% endif %}</span>
+                </p>
+                <p><strong>Age: </strong> {{ client.get_age_at_enrollment }}</p>
+                <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
+            </div><!--/col-->
+
+        </div>
+
+        <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert"></div>
+        <!-- End of Client profile section -->
+        <div class="dreams-profile-tab-control" id="dreams-enrollment-tab-control">
+            <ul class="nav nav-tabs">
+                <li role="presentation"><a href="#demographics" aria-controls="demographics" role="tab"
+                                           data-toggle="tab">Demographics</a>
+                </li>
+                <li role="presentation"><a href="#individual_and_household" aria-controls="individual_and_household"
+                                           role="tab" data-toggle="tab">Individual
+                    and Household</a></li>
+                <li role="presentation"><a href="#education_and_employment" aria-controls="education_and_employment"
+                                           role="tab" data-toggle="tab">Education
+                    and Employment</a></li>
+                <li role="presentation"><a href="#hiv_testing" aria-controls="hiv_testing" role="tab" data-toggle="tab"
+                >HIV Testing</a></li>
+                <li role="presentation"><a href="#sexuality" aria-controls="hiv_testing" role="tab" data-toggle="tab"
+                >Sexuality</a></li>
+                <li role="presentation"><a href="#reproductive_health" aria-controls="reproductive_health" role="tab"
+                                           data-toggle="tab">Reproductive
+                    Health</a></li>
+                <li role="presentation"><a href="#gbv" aria-controls="gbv" role="tab" data-toggle="tab"
+                                           data-tab_table_id="#interventions_4001_table">GBV</a></li>
+                <li role="presentation"><a href="#drug_use" aria-controls="drug_use" role="tab" data-toggle="tab"
+                >Drug Use</a></li>
+                <li role="presentation"><a href="#participation_in_program" aria-controls="participation_in_program"
+                                           role="tab" data-toggle="tab">Programs</a>
+                </li>
+
+            </ul>
+            <div id="results"></div>
+            <div class="tab-content dp-tab-content">
+                <br/>
+                <div role="tabpanel" id="demographics" class="tab-pane fade in active client_profile_tab"
+                     data-tabpanel_id="#demographics">
+                    {% include 'client_demographics_form.html' %}
+                </div>
+
+                <div role="tabpanel" id="individual_and_household" class="tab-pane fade client_profile_tab"
+                     data-tabpanel_id="#individual_and_household">
+                    {% include 'client_individual_household_form.html' %}
+                </div>
+
+                <div role="tabpanel" id="education_and_employment" class="tab-pane fade client_profile_tab"
+                     data-tabpanel_id="#education_and_employment" >
+                    {% include 'education_and_employment_form.html' %}
+                </div>
+
+                <div role="tabpanel" id="hiv_testing" class="tab-pane fade client_profile_tab"
+                     data-tabpanel_id="#hiv_testing" >
+                    {% include 'client_hiv_testing_form.html' %}
+                </div>
+
+                <div role="tabpanel" id="sexuality" class="tab-pane fade client_profile_tab"
+                     data-tabpanel_id="#sexuality" >
+                    {% include 'client_sexuality_form.html' %}
+                </div>
+                <div role="tabpanel" id="reproductive_health" class="tab-pane fade client_profile_tab"
+                     data-tabpanel_id="#reproductive_health" >
+                    {% include 'client_reproductive_health_form.html' %}
+                </div>
+
+                <div role="tabpanel" id="gbv" class="tab-pane fade client_profile_tab" data-tabpanel_id="#gbv"
+                     >
+                    {% include 'client_gbv_form.html' %}
+                </div>
+
+                <div role="tabpanel" id="drug_use" class="tab-pane fade client_profile_tab" data-tabpanel_id="#drug_use"
+                     >
+                    {% include 'client_drug_use_form.html' %}
+                </div>
+
+                <div role="tabpanel" id="participation_in_program" class="tab-pane fade client_profile_tab"
+                     data-tabpanel_id="#participation_in_program" >
+                    {% include 'client_programme_participation_form.html' %}
+                </div>
+                <input id="baseline_current_client_id" class="hidden" type="text"  value="{{ client.id }}">
+
+            </div>
+        </div>
+
+        <br/>
+
+    <script>
+
+        $(document).ready(function () {
+            //Handle demographics tab
+            $('#form_demographics').on('submit', function (event) {
+                event.preventDefault();
+                var form = $('#form_demographics');
+
+                $('#demo_current_client_id').val($('#baseline_current_client_id').val());
+
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: $(this).serialize(),
+                    success: function (data) {
+                        $('#demo_replacement').replaceWith(data);
+
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                       .text('saved successfully')
+                       .trigger('madeVisible')
+                    },
+                    error: function (xhr, errmsg, err) {
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                       .text('Could not save changes')
+                       .trigger('madeVisible')
+
+                    }
+                });
+
+            });
+
+
+            //Handle Individual and household tab
+            $('#form_ind_household').on('submit', function (event) {
+                event.preventDefault();
+
+                var form = $('#form_ind_household');
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: $(this).serialize(),
+                   success: function (data) {
+                        $('#household_replacement').replaceWith(data);
+
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                       .text('saved successfully')
+                       .trigger('madeVisible')
+                    },
+                    error: function (xhr, errmsg, err) {
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                       .text('Could not save changes')
+                       .trigger('madeVisible')
+
+                    }
+                });
+
+            });
+
+
+            //Handle Education and employment tab
+            $('#form_edu_and_employment').on('submit', function (event) {
+                event.preventDefault();
+
+                var form = $('#form_edu_and_employment');
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: $(this).serialize(),
+                     success: function (data) {
+                        $("#edu_replacement").replaceWith(data);
+
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                       .text('saved successfully')
+                       .trigger('madeVisible')
+                    },
+                    error: function (xhr, errmsg, err) {
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                       .text('Could not save changes')
+                       .trigger('madeVisible')
+
+                    }
+                });
+
+            });
+
+
+            //Handle HIV Testing tab
+            $('#form_hiv_testing').on('submit', function (event) {
+                event.preventDefault();
+
+                var form = $('#form_hiv_testing');
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: $(this).serialize(),
+                     success: function (data) {
+                        $('#hiv_testing_replacement').replaceWith(data);
+
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                       .text('saved successfully')
+                       .trigger('madeVisible')
+                    },
+                    error: function (xhr, errmsg, err) {
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                       .text('Could not save changes')
+                       .trigger('madeVisible')
+
+                    }
+                });
+
+            });
+
+
+            //Handle Sexuality Tab
+            $('#form_sexuality').on('submit', function (event) {
+                event.preventDefault();
+
+                var form = $('#form_sexuality');
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: $(this).serialize(),
+                     success: function (data) {
+                        $("#sexuality_replacement").replaceWith(data);
+
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                       .text('saved successfully')
+                       .trigger('madeVisible')
+                    },
+                    error: function (xhr, errmsg, err) {
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                       .text('Could not save changes')
+                       .trigger('madeVisible')
+
+                    }
+                });
+
+            });
+
+
+            //Handle Reproductive Health Tab
+            $('#form_rep_health').on('submit', function (event) {
+                event.preventDefault();
+
+                var form = $('#form_rep_health');
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: $(this).serialize(),
+                     success: function (data) {
+                        $("#rh_replacement").replaceWith(data);
+
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                       .text('saved successfully')
+                       .trigger('madeVisible')
+                    },
+                    error: function (xhr, errmsg, err) {
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                       .text('Could not save changes')
+                       .trigger('madeVisible')
+
+                    }
+                });
+
+            });
+
+
+            //Handle GBV Tab
+            $('#form_gbv').on('submit', function (event) {
+                event.preventDefault();
+
+                var form = $('#form_gbv');
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: $(this).serialize(),
+                     success: function (data) {
+                        $('#gbv_replacement').replaceWith(data);
+
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                       .text('saved successfully')
+                       .trigger('madeVisible')
+                    },
+                    error: function (xhr, errmsg, err) {
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                       .text('Could not save changes')
+                       .trigger('madeVisible')
+
+                    }
+                });
+
+            });
+
+
+            //Handle Drug Use tab
+            $('#form_drug_use').on('submit', function (event) {
+                event.preventDefault();
+
+                var form = $('#form_drug_use');
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: $(this).serialize(),
+                     success: function (data) {
+                        $('#drug_use_replacement').replaceWith(data);
+
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                       .text('saved successfully')
+                       .trigger('madeVisible')
+                    },
+                    error: function (xhr, errmsg, err) {
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                       .text('Could not save changes')
+                       .trigger('madeVisible')
+
+                    }
+                });
+
+            });
+
+
+            //Handle Participation in programmes tab
+            $('#form_programme_participation').on('submit', function (event) {
+                event.preventDefault();
+
+                var form = $('#form_programme_participation');
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: $(this).serialize(),
+                     success: function (data) {
+                        $("#program_replacement").replaceWith(data);
+
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                       .text('saved successfully')
+                       .trigger('madeVisible')
+                    },
+                    error: function (xhr, errmsg, err) {
+                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                       .text('Could not save changes')
+                       .trigger('madeVisible')
+
+                    }
+                });
+
+            });
+
+
+        });
+    </script>
+    </div>
+{% endblock %}

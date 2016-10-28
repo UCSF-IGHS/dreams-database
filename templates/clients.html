@@ -56,6 +56,7 @@
                     <th>Name</th>
                     <th>Date of Enrollment</th>
                     <th class="actions-col">Actions</th>
+                    <th>&nbsp;</th>
                     </thead>
                     <tbody id="dp-patient-list-body">
 
@@ -65,9 +66,16 @@
                                 <td>{{ client.dreams_id}}</td>
                                 <td>{{ client.get_full_name }}</td>
                                 <td>{{ client.date_of_enrollment }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-default"
+                                                onclick="window.location='/client_baseline_info?client_id={{ client.id }}'"
+                                                style="cursor: pointer;"> Enrollment Data
+                                    </button>
+                                </td>
                                 <td id="client_" + {{ client.id }}>
 
                                     <!-- Split button -->
+
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-sm btn-default"
                                                 onclick="window.location='/client?client_id={{ client.id }}'"
@@ -86,7 +94,6 @@
                                                        data-target="#enrollment-modal" data-client_id='{{ client.id }}'
                                                        style="cursor: pointer;word-spacing: 0px !important;"> View
                                                     Enrollment </a></li>
-                                                <li><a href="/client_baseline_info?client_id={{ client.id }}" style="cursor: pointer;word-spacing: 0px !important;"> Baseline Information </a></li>
 
                                                 {% if perms.auth.can_change_client %}
                                                     <li><a href="#" class="edit_intervention_click edit_client"
@@ -106,6 +113,7 @@
                                         </ul>
                                     </div>
                                 </td>
+
                             </tr>
                         {% endfor %}
                     {% else %}

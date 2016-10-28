@@ -1,6 +1,4 @@
-<form method="POST" class="post-form" id="form_ind_household" action="/update-individual-household/">
-    {% csrf_token %}
-    <div id="household_replacement">
+<div id="household_replacement">
     <div class="form-group">
         {{ household_form.head_of_household.errors }}
         {{ household_form.head_of_household.label_tag }}
@@ -127,17 +125,17 @@
     {% else %}
         <div id="disability_type" class="hidden">
     {% endif %}
-            <div class="form-group">
+    <div class="form-group">
 
-                {{ household_form.disability_type.errors }}
-                {{ household_form.disability_type.label_tag }}<br/>
-                {{ household_form.disability_type }}
-            </div>
-            <div class="form-group">
-                {{ household_form.disability_type_other.errors }}
-                {{ household_form.disability_type_other.label_tag }}
-                {{ household_form.disability_type_other }}
-            </div>
+        {{ household_form.disability_type.errors }}
+        {{ household_form.disability_type.label_tag }}<br/>
+        {{ household_form.disability_type }}
+    </div>
+    <div class="form-group">
+        {{ household_form.disability_type_other.errors }}
+        {{ household_form.disability_type_other.label_tag }}
+        {{ household_form.disability_type_other }}
+    </div>
 
     </div>
 
@@ -193,6 +191,5 @@
     <div class="form-group">
         {{ household_form.client.as_hidden }}
     </div>
-    </div>
-    <button type="submit" class="btn btn-sm btn-primary">Save</button>
-</form>
+   </div>
+

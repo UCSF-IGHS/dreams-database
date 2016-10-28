@@ -1445,12 +1445,12 @@ def update_demographics_data(request):
     client_id = int(request.POST['client'])
     instance = Client.objects.get(id=client_id)
     if request.is_ajax():
-        template = 'client_test_demographics_form.html'
+        template = 'client_demographics_ajax_form.html'
 
         if request.method == 'POST':
             form = DemographicsForm(request.POST, instance=instance)
             if form.is_valid():
-                print 'Form is valid. should save'
+                
                 form.save()
             else:
                 print form.errors
@@ -1465,12 +1465,12 @@ def update_individual_and_household_data(request):
     client_id = int(request.POST['client'])
     instance = ClientIndividualAndHouseholdData.objects.get(client=client_id)
     if request.is_ajax():
-        template = 'client_individual_household_form.html'
+        template = 'ajax_response_form/client_individual_household_ajax_form.html'
 
         if request.method == 'POST':
             form = IndividualAndHouseholdForm(request.POST, instance=instance)
             if form.is_valid():
-                print 'Form is valid. should save'
+                
                 form.save()
             else:
                 print form.errors
@@ -1485,12 +1485,12 @@ def update_edu_and_employment_data(request):
     client_id = int(request.POST['client'])
     instance = ClientEducationAndEmploymentData.objects.get(client=client_id)
     if request.is_ajax():
-        template = 'education_and_employment_form.html'
+        template = 'ajax_response_form/education_and_employment_ajax_form.html'
 
         if request.method == 'POST':
             form = EducationAndEmploymentForm(request.POST, instance=instance)
             if form.is_valid():
-                print 'Form is valid. should save'
+                
                 form.save()
             else:
                 print form.errors
@@ -1505,12 +1505,12 @@ def update_hiv_testing_data(request):
     client_id = int(request.POST['client'])
     instance = ClientHIVTestingData.objects.get(client=client_id)
     if request.is_ajax():
-        template = 'client_hiv_testing_form.html'
+        template = 'ajax_response_form/client_hiv_testing_ajax_form.html'
 
         if request.method == 'POST':
             form = HivTestForm(request.POST, instance=instance)
             if form.is_valid():
-                print 'Form is valid. should save'
+                
                 form.save()
             else:
                 print form.errors
@@ -1525,12 +1525,12 @@ def update_sexuality_data(request):
     client_id = int(request.POST['client'])
     instance = ClientSexualActivityData.objects.get(client=client_id)
     if request.is_ajax():
-        template = 'client_sexuality_form.html'
+        template = 'ajax_response_form/client_sexuality_ajax_form.html'
 
         if request.method == 'POST':
             form = SexualityForm(request.POST, instance=instance)
             if form.is_valid():
-                print 'Form is valid. should save'
+                
                 form.save()
             else:
                 print form.errors
@@ -1545,12 +1545,12 @@ def update_rep_health_data(request):
     client_id = int(request.POST['client'])
     instance = ClientReproductiveHealthData.objects.get(client=client_id)
     if request.is_ajax():
-        template = 'client_reproductive_health_form.html'
+        template = 'ajax_response_form/client_reproductive_health_ajax_form.html'
 
         if request.method == 'POST':
             form = ReproductiveHealthForm(request.POST, instance=instance)
             if form.is_valid():
-                print 'Form is valid. should save'
+                
                 form.save()
             else:
                 print form.errors
@@ -1565,12 +1565,12 @@ def update_gbv_data(request):
     client_id = int(request.POST['client'])
     instance = ClientGenderBasedViolenceData.objects.get(client=client_id)
     if request.is_ajax():
-        template = 'client_gbv_form.html'
+        template = 'ajax_response_form/client_gbv_ajax_form.html'
 
         if request.method == 'POST':
             form = GBVForm(request.POST, instance=instance)
             if form.is_valid():
-                print 'Form is valid. should save'
+                
                 form.save()
             else:
                 print form.errors
@@ -1585,12 +1585,12 @@ def update_drug_use_data(request):
     client_id = int(request.POST['client'])
     instance = ClientDrugUseData.objects.get(client=client_id)
     if request.is_ajax():
-        template = 'client_drug_use_form.html'
+        template = 'ajax_response_form/client_drug_use_ajax_form.html'
 
         if request.method == 'POST':
             form = DrugUseForm(request.POST, instance=instance)
             if form.is_valid():
-                print 'Form is valid. should save'
+                
                 form.save()
             else:
                 print form.errors
@@ -1605,12 +1605,12 @@ def update_programme_participation_data(request):
     client_id = int(request.POST['client'])
     instance = ClientParticipationInDreams.objects.get(client=client_id)
     if request.is_ajax():
-        template = 'client_programme_participation_form.html'
+        template = 'ajax_response_form/client_programme_participation_ajax_form.html'
 
         if request.method == 'POST':
             form = DreamsProgramParticipationForm(request.POST, instance=instance)
             if form.is_valid():
-                print 'Form is valid. should save'
+                
                 form.save()
             else:
                 print form.errors
