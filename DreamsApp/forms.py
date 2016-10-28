@@ -1,5 +1,5 @@
 # coding=utf-8
-from django.forms import ModelForm
+from django.forms import ModelForm, forms
 from models import *
 
 # DreamsApp imports
@@ -58,7 +58,8 @@ class IndividualAndHouseholdForm(ModelForm):
     class Meta:
         model = ClientIndividualAndHouseholdData
         fields = '__all__'
-        exclude = ['date_changed', 'date_created', 'client']
+        exclude = ['date_changed', 'date_created']
+
 
 
 class EducationAndEmploymentForm(ModelForm):
@@ -71,7 +72,8 @@ class EducationAndEmploymentForm(ModelForm):
     class Meta:
         model = ClientEducationAndEmploymentData
         fields = '__all__'
-        exclude = ['date_created', 'date_changed', 'client']
+        exclude = ['date_created', 'date_changed']
+
 
 
 class HivTestForm(ModelForm):
@@ -86,7 +88,8 @@ class HivTestForm(ModelForm):
     class Meta:
         model = ClientHIVTestingData
         fields = '__all__'
-        exclude = ['date_created', 'date_changed', 'client']
+        exclude = ['date_created', 'date_changed']
+
 
 
 class SexualityForm(ModelForm):
@@ -112,7 +115,8 @@ class SexualityForm(ModelForm):
     class Meta:
         model = ClientSexualActivityData
         fields = '__all__'
-        exclude = ['date_created', 'date_changed', 'client']
+        exclude = ['date_created', 'date_changed']
+
 
 
 class ReproductiveHealthForm(ModelForm):
@@ -128,7 +132,8 @@ class ReproductiveHealthForm(ModelForm):
     class Meta:
         model = ClientReproductiveHealthData
         fields = '__all__'
-        exclude = ['date_created', 'date_changed', 'client']
+        exclude = ['date_created', 'date_changed']
+
 
 
 class GBVForm(ModelForm):
@@ -165,7 +170,8 @@ class GBVForm(ModelForm):
     class Meta:
         model = ClientGenderBasedViolenceData
         fields = '__all__'
-        exclude = ['date_created', 'date_changed', 'client']
+        exclude = ['date_created', 'date_changed']
+
 
 
 class DrugUseForm(ModelForm):
@@ -180,7 +186,8 @@ class DrugUseForm(ModelForm):
     class Meta:
         model = ClientDrugUseData
         fields = '__all__'
-        exclude = ['date_created', 'date_changed', 'client']
+        exclude = ['date_created', 'date_changed']
+
 
 
 class DreamsProgramParticipationForm(ModelForm):
@@ -188,4 +195,5 @@ class DreamsProgramParticipationForm(ModelForm):
     class Meta:
         model = ClientParticipationInDreams
         fields = '__all__'
-        exclude = ['date_created', 'date_changed', 'client']
+        exclude = ['date_created', 'date_changed']
+

@@ -122,6 +122,9 @@
         <label class="control-label">Other</label>
         {{ gbv_form.preferred_gbv_help_provider_other }}
     </div>
+    <div class="form-group">
+        {{ gbv_form.client.as_hidden }}
+    </div>
 
 
     <button type="submit" class="btn btn-sm btn-primary">Save</button>

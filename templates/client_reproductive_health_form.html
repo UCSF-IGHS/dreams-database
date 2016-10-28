@@ -89,6 +89,9 @@
     <label class="control-label">Other</label>
     {{ rh_form.reason_not_using_fp_other }}
     </div>
+    <div class="form-group">
+        {{ rh_form.client.as_hidden }}
+    </div>
 
     <button type="submit" class="btn btn-sm btn-primary">Save</button>
 </form>

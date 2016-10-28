@@ -227,6 +227,7 @@ $(document).ready(function () {
     })
 
     $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
+    $('.nav-tabs a[href="#' + "demographics" + '"]').tab('show');
 
     function getResultName(results_list, has_resultType, resultId) {
         var resultName = "";
