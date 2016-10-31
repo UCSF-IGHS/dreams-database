@@ -254,148 +254,6 @@ VALUES """
 
         return demographics
 
-    def dump_SQL(self):
-        partner_id = 8
-        return """ SELECT
-            client_id,
-            /*first_name,
-            middle_name,
-            last_name,*/
-            date_of_birth,
-            verification_document_id,
-            /*verification_doc_no,*/
-            date_of_enrollment,
-            /*phone_number,*/
-            dss_id_number,
-            informal_settlement,
-            village,
-            landmark,
-            /*dreams_id,
-            guardian_name,*/
-            relationship_with_guardian,
-            /*guardian_phone_number,
-            guardian_national_id,*/
-            county_of_residence_id,
-            implementing_partner_id,
-            marital_status_id,
-            sub_county_id,
-            ward_id,
-            ward_name,
-            sub_county_code,
-            sub_county_name,
-            county_code,
-            county_name,
-            head_of_household_id,
-            head_of_household_other,
-            age_of_household_head,
-            is_father_alive,
-            is_mother_alive,
-            is_parent_chronically_ill,
-            main_floor_material_id,
-            main_floor_material_other,
-            main_roof_material_id,
-            main_roof_material_other,
-            main_wall_material_id,
-            main_wall_material_other,
-            source_of_drinking_water_id,
-            source_of_drinking_water_other,
-            no_of_adults,
-            no_of_females,
-            no_of_males,
-            no_of_children,
-            currently_in_ct_program_id,
-            current_ct_program,
-            ever_enrolled_in_ct_program_id,
-            ever_missed_full_day_food_in_4wks_id,
-            has_disability_id,
-            no_of_days_missed_food_in_4wks_id,
-            no_of_people_in_household,
-            age_at_first_sexual_encounter,
-            sex_partners_in_last_12months,
-            age_of_last_partner_id,
-            age_of_second_last_partner_id,
-            age_of_third_last_partner_id,
-            ever_had_sex_id,
-            has_sexual_partner_id,
-            know_last_partner_hiv_status_id,
-            know_second_last_partner_hiv_status_id,
-            know_third_last_partner_hiv_status_id,
-            last_partner_circumcised_id,
-            received_money_gift_for_sex_id,
-            second_last_partner_circumcised_id,
-            third_last_partner_circumcised_id,
-            used_condom_with_last_partner_id,
-            used_condom_with_second_last_partner_id,
-            used_condom_with_third_last_partner_id,
-            no_of_biological_children,
-            anc_facility_name,
-            known_fp_method_other,
-            current_fp_method_other,
-            reason_not_using_fp_other,
-            current_anc_enrollment_id,
-            current_fp_method_id,
-            currently_pregnant_id,
-            currently_use_modern_fp_id,
-            fp_methods_awareness_id,
-            has_biological_children_id,
-            reason_not_using_fp_id,
-            drug_abuse_last_12months_other,
-            drug_used_last_12months_other,
-            drug_abuse_last_12months_id,
-            frequency_of_alcohol_last_12months_id,
-            produced_alcohol_last_12months_id,
-            used_alcohol_last_12months_id,
-            dreams_program_other,
-            gbv_help_provider_other,
-            preferred_gbv_help_provider_other,
-            economic_threat_ever_id,
-            economic_threat_last_3months_id,
-            humiliated_ever_id,
-            humiliated_last_3months_id,
-            insulted_ever_id,
-            insulted_last_3months_id,
-            knowledge_of_gbv_help_centres_id,
-            physical_violence_ever_id,
-            physical_violence_last_3months_id,
-            physically_forced_other_sex_acts_ever_id,
-            physically_forced_other_sex_acts_last_3months_id,
-            physically_forced_sex_ever_id,
-            physically_forced_sex_last_3months_id,
-            seek_help_after_gbv_id,
-            threatened_for_sexual_acts_ever_id,
-            threatened_for_sexual_acts_last_3months_id,
-            threats_to_hurt_ever_id,
-            threats_to_hurt_last_3months_id,
-            current_school_name,
-            current_class,
-            current_school_level_other,
-            current_education_supporter_other,
-            reason_not_in_school_other,
-            dropout_class,
-            life_wish_other,
-            current_income_source_other,
-            banking_place_other,
-            banking_place_id,
-            current_income_source_id,
-            current_school_level_id,
-            current_school_type_id,
-            currently_in_school_id,
-            dropout_school_level_id,
-            has_savings_id,
-            last_time_in_school_id,
-            life_wish_id,
-            reason_not_in_school_id,
-            care_facility_enrolled,
-            reason_not_in_hiv_care_other,
-            reason_never_tested_for_hiv_other,
-            enrolled_in_hiv_care_id,
-            ever_tested_for_hiv_id,
-            knowledge_of_hiv_test_centres_id,
-            last_test_result_id,
-            period_last_tested_id,
-            reason_not_in_hiv_care_id
-  from flat_dreams_enrollment WHERE implementing_partner_id = %d  """ %(partner_id)
-
     def execute_SQL_Query(self, sql):
         cursor = connection.cursor()
         try:
@@ -409,7 +267,6 @@ VALUES """
         return
 
     def get_export_rows(self, ip_list_str):
-        sql = self.dump_SQL()
         cursor = connection.cursor()
         #ip_list = (1, 2)
         try:
@@ -443,20 +300,12 @@ VALUES """
         except InvalidFileException as e:
             traceback.format_exc()
 
-    def load_workbook_template(self):
-        DREAMS_TEMPLATE_PLAIN = os.path.join(settings.BASE_DIR, 'templates/excel_template/sample_template.xlsx')
-        try:
-            wb = xl.load_workbook(DREAMS_TEMPLATE_PLAIN)
-            return wb
-        except InvalidFileException as e:
-            traceback.format_exc()
-
     def prepare_excel_doc(self, ip_list_str):
 
         try:
 
             wb = self.load_workbook()
-            refined_sheet = wb.get_sheet_by_name('enrollment_refined')
+            refined_sheet = wb.get_sheet_by_name('dreams_enrollment_data')
             print "Starting DB Query! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             db_data = self.get_export_rows(ip_list_str)
             print "Finished DB Query. Rendering Now. ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
