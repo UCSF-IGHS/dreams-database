@@ -1372,3 +1372,245 @@ def error_404(request):
                'error_message': 'The page you are looking for does not exist. Go back to previous page or Home page'}
     return render(request, 'error_page.html', context)
 
+
+def viewBaselineData(request):
+    """ Returns client profile """
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+
+        if request.method == 'GET':
+            try:
+                client_id = int(request.GET['client_id'])
+                client_demographics = Client.objects.get(id=client_id)
+                client_household = ClientIndividualAndHouseholdData.objects.get(client=client_id)
+                client_edu = ClientEducationAndEmploymentData.objects.get(client=client_id)
+                client_sexual_data = ClientSexualActivityData.objects.get(client=client_id)
+                client_gbv_data = ClientGenderBasedViolenceData.objects.get(client=client_id)
+                client_hiv_data = ClientHIVTestingData.objects.get(client=client_id)
+                client_rh_data = ClientReproductiveHealthData.objects.get(client=client_id)
+                client_drug_data = ClientDrugUseData.objects.get(client=client_id)
+                client_prog_part_data = ClientParticipationInDreams.objects.get(client=client_id)
+
+                demographics_form = DemographicsForm(instance=client_demographics)
+                household_form = IndividualAndHouseholdForm(instance=client_household)
+                edu_and_emp_form = EducationAndEmploymentForm(instance=client_edu)
+                sexuality_form = SexualityForm(instance=client_sexual_data)
+                gbv_form = GBVForm(instance=client_gbv_data)
+                hiv_form = HivTestForm(instance=client_hiv_data)
+                reproductive_health_form = ReproductiveHealthForm(instance=client_rh_data)
+                drug_use_form = DrugUseForm(instance=client_drug_data)
+                participation_form = DreamsProgramParticipationForm(instance=client_prog_part_data)
+            except Client.DoesNotExist:
+                traceback.format_exc()
+                # raise PermissionDenied
+        else:
+            print 'POST not allowed'
+
+        if client_id is not None and client_id != 0:
+            try:
+                client_found = Client.objects.get(id=client_id)
+                if client_found is not None:
+
+                    return render(request, 'client_baseline_data.html', {'page': 'clients',
+                                                               'client': client_found,
+                                                               'user': request.user,
+                                                               'demo_form': demographics_form,
+                                                               'household_form': household_form,
+                                                                'edu_form': edu_and_emp_form,
+                                                                'sexuality_form': sexuality_form,
+                                                                'gbv_form': gbv_form,
+                                                                'hiv_form': hiv_form,
+                                                                'rh_form': reproductive_health_form,
+                                                                'drug_use_form': drug_use_form,
+                                                                'programe_participation_form': participation_form
+                                                               })
+            except Client.DoesNotExist:
+                traceback.format_exc()
+                return redirect('clients')
+            except Exception as e:
+                traceback.format_exc()
+                return redirect('clients')
+    else:
+        return redirect('login')
+
+
+def update_demographics_data(request):
+    client_id = int(request.POST['client'])
+    instance = Client.objects.get(id=client_id)
+    if request.is_ajax():
+        template = 'client_demographics_ajax_form.html'
+
+        if request.method == 'POST':
+            form = DemographicsForm(request.POST, instance=instance)
+            if form.is_valid():
+                
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'demo_form': form})
+
+
+def update_individual_and_household_data(request):
+    client_id = int(request.POST['client'])
+    instance = ClientIndividualAndHouseholdData.objects.get(client=client_id)
+    if request.is_ajax():
+        template = 'ajax_response_form/client_individual_household_ajax_form.html'
+
+        if request.method == 'POST':
+            form = IndividualAndHouseholdForm(request.POST, instance=instance)
+            if form.is_valid():
+                
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'household_form': form})
+
+
+def update_edu_and_employment_data(request):
+    client_id = int(request.POST['client'])
+    instance = ClientEducationAndEmploymentData.objects.get(client=client_id)
+    if request.is_ajax():
+        template = 'ajax_response_form/education_and_employment_ajax_form.html'
+
+        if request.method == 'POST':
+            form = EducationAndEmploymentForm(request.POST, instance=instance)
+            if form.is_valid():
+                
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'edu_form': form})
+
+
+def update_hiv_testing_data(request):
+    client_id = int(request.POST['client'])
+    instance = ClientHIVTestingData.objects.get(client=client_id)
+    if request.is_ajax():
+        template = 'ajax_response_form/client_hiv_testing_ajax_form.html'
+
+        if request.method == 'POST':
+            form = HivTestForm(request.POST, instance=instance)
+            if form.is_valid():
+                
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'hiv_form': form})
+
+
+def update_sexuality_data(request):
+    client_id = int(request.POST['client'])
+    instance = ClientSexualActivityData.objects.get(client=client_id)
+    if request.is_ajax():
+        template = 'ajax_response_form/client_sexuality_ajax_form.html'
+
+        if request.method == 'POST':
+            form = SexualityForm(request.POST, instance=instance)
+            if form.is_valid():
+                
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'sexuality_form': form})
+
+
+def update_rep_health_data(request):
+    client_id = int(request.POST['client'])
+    instance = ClientReproductiveHealthData.objects.get(client=client_id)
+    if request.is_ajax():
+        template = 'ajax_response_form/client_reproductive_health_ajax_form.html'
+
+        if request.method == 'POST':
+            form = ReproductiveHealthForm(request.POST, instance=instance)
+            if form.is_valid():
+                
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'rh_form': form})
+
+
+def update_gbv_data(request):
+    client_id = int(request.POST['client'])
+    instance = ClientGenderBasedViolenceData.objects.get(client=client_id)
+    if request.is_ajax():
+        template = 'ajax_response_form/client_gbv_ajax_form.html'
+
+        if request.method == 'POST':
+            form = GBVForm(request.POST, instance=instance)
+            if form.is_valid():
+                
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'gbv_form': form})
+
+
+def update_drug_use_data(request):
+    client_id = int(request.POST['client'])
+    instance = ClientDrugUseData.objects.get(client=client_id)
+    if request.is_ajax():
+        template = 'ajax_response_form/client_drug_use_ajax_form.html'
+
+        if request.method == 'POST':
+            form = DrugUseForm(request.POST, instance=instance)
+            if form.is_valid():
+                
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'drug_use_form': form})
+
+
+def update_programme_participation_data(request):
+    client_id = int(request.POST['client'])
+    instance = ClientParticipationInDreams.objects.get(client=client_id)
+    if request.is_ajax():
+        template = 'ajax_response_form/client_programme_participation_ajax_form.html'
+
+        if request.method == 'POST':
+            form = DreamsProgramParticipationForm(request.POST, instance=instance)
+            if form.is_valid():
+                
+                form.save()
+            else:
+                print form.errors
+        else:
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return render(request, template, {'programe_participation_form': form})
+
+
+

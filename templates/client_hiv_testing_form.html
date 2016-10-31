@@ -1,0 +1,87 @@
+<form method="POST" class="post-form" id="form_hiv_testing" action="/update-hiv-testing/">
+    {% csrf_token %}
+<div id="hiv_testing_replacement">
+    <div class="form-group">
+        {{ hiv_form.ever_tested_for_hiv.errors }}
+        {{ hiv_form.ever_tested_for_hiv.label_tag }}
+        {{ hiv_form.ever_tested_for_hiv }}
+    </div>
+    {% if hiv_form.ever_tested_for_hiv.value == 1 %}
+        <div id="period_last_tested" class="form-group">
+    {% else %}
+        <div id="period_last_tested" class="form-group hidden">
+    {% endif %}
+    {{ hiv_form.period_last_tested.errors }}
+    {{ hiv_form.period_last_tested.label_tag }}
+    {{ hiv_form.period_last_tested }}
+    </div>
+    {% if hiv_form.ever_tested_for_hiv.value == 1 %}
+        <div id="last_test_result" class="form-group">
+    {% else %}
+        <div id="last_test_result" class="form-group hidden">
+    {% endif %}
+    {{ hiv_form.last_test_result.errors }}
+    {{ hiv_form.last_test_result.label_tag }}
+    {{ hiv_form.last_test_result }}
+    </div>
+    {% if hiv_form.last_test_result.value == 1 %}
+        <div id="enrolled_in_hiv_care" class="form-group">
+    {% else %}
+        <div id="enrolled_in_hiv_care" class="form-group hidden">
+    {% endif %}
+    {{ hiv_form.enrolled_in_hiv_care.errors }}
+    {{ hiv_form.enrolled_in_hiv_care.label_tag }}
+    {{ hiv_form.enrolled_in_hiv_care }}
+    </div>
+    {% if hiv_form.enrolled_in_hiv_care.value == 1 %}
+        <div id="care_facility_enrolled" class="form-group">
+    {% else %}
+        <div id="care_facility_enrolled" class="form-group hidden">
+    {% endif %}
+    {{ hiv_form.care_facility_enrolled.errors }}
+    {{ hiv_form.care_facility_enrolled.label_tag }}
+    {{ hiv_form.care_facility_enrolled }}
+    </div>
+    {% if hiv_form.enrolled_in_hiv_care.value == 2 %}
+        <div id="reason_not_in_hiv_care" class="form-group">
+    {% else %}
+        <div id="reason_not_in_hiv_care" class="form-group hidden">
+    {% endif %}
+    {{ hiv_form.reason_not_in_hiv_care.errors }}
+    {{ hiv_form.reason_not_in_hiv_care.label_tag }}
+    {{ hiv_form.reason_not_in_hiv_care }}
+
+    {{ hiv_form.reason_not_in_hiv_care_other.errors }}
+    {{ hiv_form.reason_not_in_hiv_care_other.label_tag }}
+    {{ hiv_form.reason_not_in_hiv_care_other }}
+    </div>
+    {% if hiv_form.ever_tested_for_hiv.value == 2 %}
+        <div id="reason_never_tested_for_hiv" class="form-group">
+    {% else %}
+        <div id="reason_never_tested_for_hiv" class="form-group hidden">
+    {% endif %}
+    {{ hiv_form.reason_never_tested_for_hiv.errors }}
+    {{ hiv_form.reason_never_tested_for_hiv.label_tag }}<br/>
+    {{ hiv_form.reason_never_tested_for_hiv }}
+    </div>
+    {% if hiv_form.reason_never_tested_for_hiv.value == 96 %}
+        <div id="reason_never_tested_for_hiv_other" class="form-group">
+    {% else %}
+        <div id="reason_never_tested_for_hiv_other" class="form-group hidden">
+    {% endif %}
+    {{ hiv_form.reason_never_tested_for_hiv_other.errors }}
+    {{ hiv_form.reason_never_tested_for_hiv_other.label_tag }}
+    {{ hiv_form.reason_never_tested_for_hiv_other }}
+    </div>
+    <div class="form-group">
+        {{ hiv_form.knowledge_of_hiv_test_centres.errors }}
+        {{ hiv_form.knowledge_of_hiv_test_centres.label_tag }}
+        {{ hiv_form.knowledge_of_hiv_test_centres }}
+    </div>
+    <div class="form-group">
+        {{ hiv_form.client.as_hidden }}
+    </div>
+</div>
+
+    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+</form>

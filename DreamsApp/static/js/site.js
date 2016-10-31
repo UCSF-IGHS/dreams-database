@@ -88,6 +88,7 @@ $(document).ready(function () {
                               + "<ul class='dropdown-menu'>"
                                 if(can_manage_client){
                                     row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-view_mode='view' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk + "' style='cursor: pointer;word-spacing: 0px !important;'> View Enrollment </a></li>";
+                                    row_string += "<li><a href=\"/client_baseline_info?client_id=" + pk + "\" style='cursor: pointer;word-spacing: 0px !important;'> Baseline Information </a></li>";
                                     if(can_change_client)
                                         row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk +"' style='cursor: pointer;word-spacing: 0px !important;'> Edit Enrollment </a></li>"
                                     if(can_delete_client)
@@ -227,6 +228,7 @@ $(document).ready(function () {
     })
 
     $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
+    $('.nav-tabs a[href="#' + "demographics" + '"]').tab('show');
 
     function getResultName(results_list, has_resultType, resultId) {
         var resultName = "";
@@ -241,7 +243,7 @@ $(document).ready(function () {
         return resultName;
     }
 
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+    $('#dreams-profile-tab-control a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         //Load tabs
         var target = $(e.target)
         var panel_id = target.attr('href')
