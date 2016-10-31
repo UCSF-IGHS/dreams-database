@@ -1,11 +1,12 @@
 
 -- defining table to be populated by odk enrollment trigger
 DROP TABLE IF EXISTS dreams_production.odk_dreams_sync;
-CREATE TABLE dreams_production.odk_dreams_sync (
+CREATE TABLE odk_dreams_sync (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `uuid` varchar(100) NOT NULL DEFAULT '',
   `synced` int(11) NOT NULL DEFAULT '0',
   `form` varchar(100) NOT NULL DEFAULT '',
+  'date_created' TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   PRIMARY KEY (`id`)
 );
 
@@ -61,8 +62,10 @@ DROP EVENT IF EXISTS event_odk_dreams_enrollment_sync$$
 CREATE EVENT event_odk_dreams_enrollment_sync
 ON SCHEDULE EVERY 2 MINUTE STARTS CURRENT_TIMESTAMP
 DO
+BEGIN
 call sp_sync_odk_dreams_data();
 CALL sp_update_demographics_location();
+END;
 $$
 DELIMITER ;
 
@@ -150,6 +153,19 @@ END;
   $$
 DELIMITER ;
 
+DELIMITER $$
+DROP FUNCTION IF EXISTS nextDreamsSerial$$
+CREATE FUNCTION nextDreamsSerial(implementing_partner_id INT) RETURNS VARCHAR(200)
+	DETERMINISTIC
+BEGIN
+	DECLARE new_serial INT(11);
+	SELECT
+  (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1) INTO new_serial
+from DreamsApp_client WHERE dreams_id is not null AND DreamsApp_client.implementing_partner_id=implementing_partner_id group by implementing_partner_id;
+
+	return new_serial;
+END$$
+DELIMITER ;
 
 -- Getting demographic data
 DELIMITER $$
