@@ -123,16 +123,23 @@ def clients(request):
             search_client_term = search_client_term.strip()
             if search_client_term != "":
                 search_client_term_parts = search_client_term.split()
-                search_client_term_parts_string = ''
+                search_client_term_parts_string = r''
                 for search_client_term_part in search_client_term_parts:
                     if search_client_term_parts_string != '':
                         search_client_term_parts_string += '|'
                     search_client_term_parts_string += search_client_term_part
                 search_client_term_parts_string += '$'
-                search_result = Client.objects.filter(Q(dreams_id__iregex=r'' + search_client_term_parts_string) |
-                                                      Q(first_name__iregex=r'' + search_client_term_parts_string) |
-                                                      Q(middle_name__iregex=r'' + search_client_term_parts_string) |
-                                                      Q(last_name__iregex=r'' + search_client_term_parts_string)).order_by('first_name').order_by('middle_name').order_by('last_name')
+                search_result = Client.objects.filter(Q(dreams_id__iregex= search_client_term_parts_string) |
+                                                      Q(first_name__iregex= search_client_term_parts_string) |
+                                                      Q(middle_name__iregex= search_client_term_parts_string) |
+                                                      Q(last_name__iregex= search_client_term_parts_string)).order_by('first_name').order_by('middle_name').order_by('last_name')
+                # check for permissions
+                if not request.user.has_perm("auth.can_view_cross_ip_data"):
+                    try:
+                        ip = request.user.implementingpartneruser.implementing_partner
+                        search_result = search_result.filter(implementing_partner_id=ip.id)
+                    except Exception as e:
+                        search_result = Client.objects.all()[:0] # Return empty list.
             else:
                 search_result = Client.objects.all()[:0]
             log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_client_term)
