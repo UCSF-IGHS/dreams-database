@@ -123,16 +123,23 @@ def clients(request):
             search_client_term = search_client_term.strip()
             if search_client_term != "":
                 search_client_term_parts = search_client_term.split()
-                search_client_term_parts_string = ''
+                search_client_term_parts_string = r''
                 for search_client_term_part in search_client_term_parts:
                     if search_client_term_parts_string != '':
                         search_client_term_parts_string += '|'
                     search_client_term_parts_string += search_client_term_part
                 search_client_term_parts_string += '$'
-                search_result = Client.objects.filter(Q(dreams_id__iregex=r'' + search_client_term_parts_string) |
-                                                      Q(first_name__iregex=r'' + search_client_term_parts_string) |
-                                                      Q(middle_name__iregex=r'' + search_client_term_parts_string) |
-                                                      Q(last_name__iregex=r'' + search_client_term_parts_string)).order_by('first_name').order_by('middle_name').order_by('last_name')
+                search_result = Client.objects.filter(Q(dreams_id__iregex= search_client_term_parts_string) |
+                                                      Q(first_name__iregex= search_client_term_parts_string) |
+                                                      Q(middle_name__iregex= search_client_term_parts_string) |
+                                                      Q(last_name__iregex= search_client_term_parts_string)).order_by('first_name').order_by('middle_name').order_by('last_name')
+                # check for permissions
+                if not request.user.has_perm("auth.can_view_cross_ip_data"):
+                    try:
+                        ip = request.user.implementingpartneruser.implementing_partner
+                        search_result = search_result.filter(implementing_partner_id=ip.id)
+                    except Exception as e:
+                        search_result = Client.objects.all()[:0] # Return empty list.
             else:
                 search_result = Client.objects.all()[:0]
             log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_client_term)
@@ -140,6 +147,7 @@ def clients(request):
             if request.is_ajax():
                 json_response = {
                     'search_result': serializers.serialize('json', search_result),
+                    'search_client_term': search_client_term,
                     'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                     'can_change_client': request.user.has_perm('auth.can_change_client'),
                     'can_delete_client': request.user.has_perm('auth.can_delete_client')
@@ -173,11 +181,10 @@ def clients(request):
 def client_profile(request):
     """ Returns client profile """
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        if request.method == 'GET':
-            client_id = int(request.GET['client_id'])
-        else:
-            client_id = int(request.POST('client_id', ''))
-
+        client_id = request.GET.get('client_id', '') if request.method == 'GET' else request.POST.get(
+            'client_id', '')
+        search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
+            'search_client_term', '')
         if client_id is not None and client_id != 0:
             try:
                 client_found = Client.objects.get(id=client_id)
@@ -193,6 +200,7 @@ def client_profile(request):
                                                                'client': client_found,
                                                                'ct_form': cash_transfer_details_form,
                                                                'ct_id': cash_transfer_details.id,
+                                                               'search_client_term': search_client_term,
                                                                'user': request.user
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
@@ -202,6 +210,7 @@ def client_profile(request):
                                'page_title': 'DREAMS Client Service Uptake',
                                'client': client_found,
                                'ct_form': cash_transfer_details_form,
+                               'search_client_term': search_client_term,
                                'user': request.user
                                })
             except Client.DoesNotExist:
@@ -820,7 +829,10 @@ def logs(request):
                 logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
             except EmptyPage:
                 logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
-            return render(request, 'log.html', {'page': 'logs','page_title': 'DREAMS Logs','logs': logs_list, 'filter_text': filter_text,
+            return render(request, 'log.html', {'page': 'logs',
+                                                'page_title': 'DREAMS Logs',
+                                                'logs': logs_list,
+                                                'filter_text': filter_text,
                                                 'filter_date': filter_date,
                                                 'items_in_page': 0 if logs_list.end_index() == 0 else
                                                 (logs_list.end_index() - logs_list.start_index() + 1)})
@@ -1392,6 +1404,8 @@ def viewBaselineData(request):
                 reproductive_health_form = ReproductiveHealthForm(instance=client_rh_data)
                 drug_use_form = DrugUseForm(instance=client_drug_data)
                 participation_form = DreamsProgramParticipationForm(instance=client_prog_part_data)
+
+                search_client_term = request.GET.get('search_client_term', '')
             except Client.DoesNotExist:
                 traceback.format_exc()
                 # raise PermissionDenied
@@ -1414,7 +1428,8 @@ def viewBaselineData(request):
                                                                 'hiv_form': hiv_form,
                                                                 'rh_form': reproductive_health_form,
                                                                 'drug_use_form': drug_use_form,
-                                                                'programe_participation_form': participation_form
+                                                                'programe_participation_form': participation_form,
+                                                                 'search_client_term': search_client_term
                                                                })
             except Client.DoesNotExist:
                 traceback.format_exc()

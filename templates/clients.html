@@ -40,9 +40,8 @@
                     <thead class="dp-listing-table-head" style="background-color: #333333;color: #FFFFFF">
                     <th>DREAMS ID</th>
                     <th>Name</th>
-                    <th>Date of Enrollment</th>
+                    <th>Date of Birth</th>
                     <th class="actions-col">Actions</th>
-                    <th>&nbsp;</th>
 
                     </thead>
                     <tbody id="dp-patient-list-body">
@@ -51,25 +50,16 @@
                             <tr id="clients_row_{{ client.id }}" style="cursor: pointer;">
                                 <td>{{ client.dreams_id }}</td>
                                 <td>{{ client.get_full_name }}</td>
-                                <td>{{ client.date_of_enrollment }}</td>
-                                <td id="client_" + {{ client.id }}>
-                                    <!-- Split button -->
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-default"
-                                                onclick="window.location='/client_baseline_info?client_id={{ client.id }}'"
-                                                style="cursor: pointer;"> Enrollment Data
-                                        </button>
-
-                                    </div>
-
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-default"
-                                                onclick="window.location='/client?client_id={{ client.id }}'"
-                                                style="cursor: pointer;"> Service Uptake
-                                        </button>
-                                    </div>
+                                <td>{{ client.date_of_birth }}</td>
+                                <td id="client_" + {{ client.id }} class="actions-col">
+                                    <button type="button" class="btn btn-sm btn-primary"
+                                            onclick="window.location='/client_baseline_info?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
+                                            style="cursor: pointer;"> Enrollment Data
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-primary"
+                                            onclick="window.location='/client?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
+                                            style="cursor: pointer;"> Service Uptake
+                                    </button>
                                 </td>
 
 
