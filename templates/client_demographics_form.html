@@ -1,3 +1,4 @@
+{% load widget_tweaks %}
 <form method="POST" class="post-form" id="form_demographics" action="/update-demographics/">
     {% csrf_token %}
     <input id="demo_current_client_id" class="hidden" type="text" name="client"/>
