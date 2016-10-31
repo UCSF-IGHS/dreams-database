@@ -276,7 +276,7 @@ class Audit(models.Model):
     search_text = models.CharField(max_length=250, blank=True, null=True)
 
     def __str__(self):
-        return '{} by user id {} at {}'.format(self.action, self.user_id, self.timestamp)
+        return '{} by user id {} at {} value {}'.format(self.action, self.user_id, self.timestamp, self.search_text)
 
     class Meta(object):
         verbose_name = 'Audit'
