@@ -94,31 +94,31 @@ class ImplementingPartnerUser(models.Model):
 
 class Client(models.Model):
     first_name = models.CharField(verbose_name='First Name', max_length=100, null=True)
-    middle_name = models.CharField(verbose_name='Middle Name', max_length=100, null=True)
-    last_name = models.CharField(verbose_name='Last Name', max_length=100, null=True)
+    middle_name = models.CharField(verbose_name='Middle Name', max_length=100, blank=True, null=True)
+    last_name = models.CharField(verbose_name='Last Name', max_length=100, blank=True, null=True)
     date_of_birth = models.DateField(verbose_name='Date of Birth', null=True)
     is_date_of_birth_estimated = models.NullBooleanField(verbose_name='Date of Birth Estimated', default=False, null=True)
-    verification_document = models.ForeignKey(VerificationDocument, null=True, blank=True, verbose_name='Verification Document')  # New
-    verification_doc_no = models.CharField(verbose_name='Verification Doc No', max_length=50, null=True)
+    verification_document = models.ForeignKey(VerificationDocument, null=True, verbose_name='Verification Document')  # New
+    verification_doc_no = models.CharField(verbose_name='Verification Doc No', max_length=50, null=True, blank=True)
     date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True)
-    age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=10, null=True)
+    age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=10, null=True, blank=True)
     marital_status = models.ForeignKey(MaritalStatus, verbose_name='Marital Status', null=True)
 
-    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True, verbose_name='Implementing Partner')  # New
+    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, verbose_name='Implementing Partner')  # New
 
-    phone_number = models.CharField(verbose_name='Phone Number', max_length=13, null=True)
-    dss_id_number = models.CharField(verbose_name='DSS ID Number', max_length=50, null=True)
+    phone_number = models.CharField(verbose_name='Phone Number', max_length=13, null=True, blank=True)
+    dss_id_number = models.CharField(verbose_name='DSS ID Number', max_length=50, null=True, blank=True)
     county_of_residence = models.ForeignKey(County, verbose_name='County of Residence', null=True)
     sub_county = models.ForeignKey(SubCounty, verbose_name='Sub County', null=True)
     ward = models.ForeignKey(Ward, verbose_name='Ward', null=True)
-    informal_settlement = models.CharField(verbose_name='Informal Settlement', max_length=250, null=True)
+    informal_settlement = models.CharField(verbose_name='Informal Settlement', max_length=250, null=True, blank=True)
     village = models.CharField(verbose_name='Village', max_length=250, null=True)
     landmark = models.CharField(verbose_name='Land Mark near Residence', max_length=250, null=True)
     dreams_id = models.CharField(verbose_name='DREAMS ID', max_length=50, null=True)
-    guardian_name = models.CharField(verbose_name='Primary Care Giver/Guardian\' Name', max_length=250, null=True)
-    relationship_with_guardian = models.CharField(verbose_name='Relationship with Guardian', max_length=50, null=True)
-    guardian_phone_number = models.CharField(verbose_name='Phone Number(Care giver/Guardian)', max_length=13, null=True)
-    guardian_national_id = models.CharField(verbose_name='National ID (Care giver/Guardian)', max_length=10, null=True)
+    guardian_name = models.CharField(verbose_name='Primary Care Giver/Guardian\' Name', max_length=250, null=True, blank=True)
+    relationship_with_guardian = models.CharField(verbose_name='Relationship with Guardian', max_length=50, null=True, blank=True)
+    guardian_phone_number = models.CharField(verbose_name='Phone Number(Care giver/Guardian)', max_length=13, null=True, blank=True)
+    guardian_national_id = models.CharField(verbose_name='National ID (Care giver/Guardian)', max_length=10, null=True, blank=True)
 
     enrolled_by = models.ForeignKey(User, null=True)
     odk_enrollment_uuid = models.CharField(max_length=50, null=True, blank=True)
@@ -245,6 +245,9 @@ class Intervention(models.Model):
     changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
     implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True,
                                              related_name='implementing_partner')
+    voided = models.BigIntegerField(blank=True, null=True, default=False)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='voided_by')
+    date_voided = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def get_name_specified(self):
         return self.name_specified if self.name_specified else ''
