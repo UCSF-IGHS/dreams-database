@@ -1501,8 +1501,18 @@ $(document).ready(function () {
 
     jQuery.validator.addMethod("phoneKE", function (phone_number, element) {
         phone_number = phone_number.replace(/\s+/g, "");
-        return this.optional(element) || (phone_number.length >= 10 && phone_number.match(/^((\+[1-9]{1,4}[ \-]*)|(\([0-9]{2,3}\)[ \-]*)|([0-9]{2,4})[ \-]*)*?[0-9]{3,4}?[ \-]*[0-9]{3,4}?$/));
+        return this.optional(element) || ((phone_number.length >= 10 && phone_number.length <= 13) && phone_number.match(/^((\+[1-9]{1,4}[ \-]*)|(\([0-9]{2,3}\)[ \-]*)|([0-9]{2,4})[ \-]*)*?[0-9]{3,4}?[ \-]*[0-9]{3,4}?$/));
     }, "Please specify a valid phone number e.g. +2547XXXXXXXX or 07XXXXXXXX");
+
+    jQuery.validator.addMethod("minTwoNames", function (first_name, element) {
+        var nameArray = [$('#id_first_name').val(), $('#id_middle_name').val(), $('#id_last_name').val()]
+        var countOfNameParts = 0
+        $.each(nameArray, function (index, namePart) {
+            if($.trim(namePart) != "")
+                countOfNameParts++
+        } )
+        return countOfNameParts > 1;
+    }, " * Please enter at least 2 Names");
 
     $('#grievances-form').validate({
         rules: {
@@ -1791,6 +1801,83 @@ $(document).ready(function () {
         }
     })
 
+    /* Validate Enrolment Form */
+
+    /* Demographics */
+    $("#form_demographics").validate({
+        groups:{
+            full_name: "id_first_name id_middle_name id_last_name"
+        },
+        rules: { 
+            implementing_partner: { 
+                required: true 
+            }, 
+            first_name: { 
+                minTwoNames: true 
+            }, 
+            middle_name: { 
+                minTwoNames: true 
+            }, 
+            last_name: { 
+                minTwoNames: true 
+            }, 
+            date_of_birth: { 
+                required: true 
+            }, 
+            date_of_enrollment: { 
+                required: true 
+            }, 
+            verification_document: { 
+                required: true ,
+                number:true
+            }, 
+            marital_status: { 
+                required: true ,
+                number:true
+            }, 
+            phone_number: { 
+                phoneKE: true,
+                required: true
+            }
+          },
+        messages: { 
+            implementing_partner: { 
+                required: " * Please enter your Client Implementing Partner" 
+            }, 
+            first_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            }, 
+            middle_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            }, 
+            last_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            }, 
+            date_of_birth: { 
+                required:  " * Please select Client's Date of Birth" 
+            }, 
+            date_of_enrollment: { 
+                required: " * Please select Client's Date of Enrolment" 
+            }, 
+            verification_document: { 
+                required: " * Please Select Client's Verification Document" 
+            }, 
+            marital_status: { 
+                required: " * Please Select Client's Marital Status" 
+            } , 
+            phone_number: { 
+                required: " * Please enter Client's Phone number" 
+            } 
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_demographics .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_demographics').find('.error').removeClass('text-danger')
+         }
+
+    });
 
 });
 
