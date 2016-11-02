@@ -3,119 +3,134 @@
     {% csrf_token %}
     <input id="demo_current_client_id" class="hidden" type="text" name="client"/>
 
-    <div id="demo_replacement">
-        <div class="form-group">
+
+
+
+    <div id="demo_replacement" style="margin: auto;">
+        <div class="form-group form-inline">
+            <label class="control-label enrolment-label">{{ demo_form.implementing_partner.label_tag}}</label>
+            {{ demo_form.implementing_partner|add_class:"input-sm form-control enrolment-input" }}
             {{ demo_form.implementing_partner.errors }}
-            <label class="control-label">{{ demo_form.implementing_partner.label_tag }}</label>
-            {{ demo_form.implementing_partner }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.first_name.errors }}
-            {{ demo_form.first_name.label_tag }}
-            {{ demo_form.first_name }}
-
+            <label class="control-label enrolment-label">{{ demo_form.first_name.label_tag }}</label>
+            {{ demo_form.first_name |add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline">
             {{ demo_form.middle_name.errors }}
-            {{ demo_form.middle_name.label_tag }}
-            {{ demo_form.middle_name }}
-
+            <label class="control-label enrolment-label">{{ demo_form.middle_name.label_tag }}</label>
+            {{ demo_form.middle_name |add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline">
             {{ demo_form.last_name.errors }}
-            {{ demo_form.last_name.label_tag }}
-            {{ demo_form.last_name }}
+            <label class="control-label enrolment-label">{{ demo_form.last_name.label_tag }}</label>
+            {{ demo_form.last_name |add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.date_of_birth.errors }}
-            {{ demo_form.date_of_birth.label_tag }}
-            {{ demo_form.date_of_birth }}
-
+            <label class="control-label enrolment-label">{{ demo_form.date_of_birth.label_tag }}</label>
+            {{ demo_form.date_of_birth|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline">
             {{ demo_form.date_of_enrollment.errors }}
-            {{ demo_form.date_of_enrollment.label_tag }}
-            {{ demo_form.date_of_enrollment }}
+            <label class="control-label enrolment-label"> {{ demo_form.date_of_enrollment.label_tag }}</label>
+            {{ demo_form.date_of_enrollment|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.verification_document.errors }}
-            {{ demo_form.verification_document.label_tag }}
-            {{ demo_form.verification_document }}
-
+            <label class="control-label enrolment-label">{{ demo_form.verification_document.label_tag }}</label>
+            {{ demo_form.verification_document|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline">
             {{ demo_form.verification_doc_no.errors }}
-            {{ demo_form.verification_doc_no.label_tag }}
-            {{ demo_form.verification_doc_no }}
+            <label class="control-label enrolment-label">{{ demo_form.verification_doc_no.label_tag }}</label>
+            {{ demo_form.verification_doc_no|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.marital_status.errors }}
-            {{ demo_form.marital_status.label_tag }}
-            {{ demo_form.marital_status }}
+            <label class="control-label enrolment-label">{{ demo_form.marital_status.label_tag }}</label>
+            {{ demo_form.marital_status|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.phone_number.errors }}
-            {{ demo_form.phone_number.label_tag }}
-            {{ demo_form.phone_number }}
+            <label class="control-label enrolment-label">{{ demo_form.phone_number.label_tag }}</label>
+            {{ demo_form.phone_number|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.dss_id_number.errors }}
-            {{ demo_form.dss_id_number.label_tag }}
-            {{ demo_form.dss_id_number }}
+            <label class="control-label enrolment-label">{{ demo_form.dss_id_number.label_tag }}</label>
+            {{ demo_form.dss_id_number|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.county_of_residence.errors }}
-            {{ demo_form.county_of_residence.label_tag }}
-            {{ demo_form.county_of_residence }}
-
+            <label class="control-label enrolment-label">{{ demo_form.county_of_residence.label_tag }}</label>
+            {{ demo_form.county_of_residence|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline">
             {{ demo_form.sub_county.errors }}
-            {{ demo_form.sub_county.label_tag }}
-            {{ demo_form.sub_county }}
-
+            <label class="control-label enrolment-label">{{ demo_form.sub_county.label_tag }}</label>
+            {{ demo_form.sub_county|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline">
             {{ demo_form.ward.errors }}
-            {{ demo_form.ward.label_tag }}
-            {{ demo_form.ward }}
+            <label class="control-label enrolment-label">{{ demo_form.ward.label_tag }}</label>
+            {{ demo_form.ward|add_class:"input-sm form-control enrolment-input" }}
 
         </div>
 
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.informal_settlement.errors }}
-            {{ demo_form.informal_settlement.label_tag }}
-            {{ demo_form.informal_settlement }}
-
+            <label class="control-label enrolment-label">{{ demo_form.informal_settlement.label_tag }}</label>
+            {{ demo_form.informal_settlement|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline">
             {{ demo_form.village.errors }}
-            {{ demo_form.village.label_tag }}
-            {{ demo_form.village }}
+            <label class="control-label enrolment-label">{{ demo_form.village.label_tag }}</label>
+            {{ demo_form.village|add_class:"input-sm form-control enrolment-input" }}
         </div>
 
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.landmark.errors }}
-            {{ demo_form.landmark.label_tag }}
-            {{ demo_form.landmark }}
+            <label class="control-label enrolment-label">{{ demo_form.landmark.label_tag }}</label>
+            {{ demo_form.landmark|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.dreams_id.errors }}
-            {{ demo_form.dreams_id.label_tag }}
-            {{ demo_form.dreams_id }}
+            <label class="control-label enrolment-label">{{ demo_form.dreams_id.label_tag }}</label>
+            {{ demo_form.dreams_id|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.guardian_name.errors }}
-            {{ demo_form.guardian_name.label_tag }}
-            {{ demo_form.guardian_name }}
+            <label class="control-label enrolment-label">{{ demo_form.guardian_name.label_tag }}</label>
+            {{ demo_form.guardian_name|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.relationship_with_guardian.errors }}
-            {{ demo_form.relationship_with_guardian.label_tag }}
-            {{ demo_form.relationship_with_guardian }}
+            <label class="control-label enrolment-label">{{ demo_form.relationship_with_guardian.label_tag }}</label>
+            {{ demo_form.relationship_with_guardian|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.guardian_phone_number.errors }}
-            {{ demo_form.guardian_phone_number.label_tag }}
-            {{ demo_form.guardian_phone_number }}
+            <label class="control-label enrolment-label">{{ demo_form.guardian_phone_number.label_tag }}</label>
+            {{ demo_form.guardian_phone_number|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.guardian_national_id.errors }}
-            {{ demo_form.guardian_national_id.label_tag }}
-            {{ demo_form.guardian_national_id }}
+            <label class="control-label enrolment-label">{{ demo_form.guardian_national_id.label_tag }}</label>
+            {{ demo_form.guardian_national_id|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
             {{ demo_form.client.as_hidden }}
         </div>
+        <div class="form-group form-inline" style="text-align: right;">
+            <div style="width: 650px;">
+                <button type="submit" class="btn btn-sm btn-primary" style=""> &nbsp; &nbsp;&nbsp; &nbsp; Save &nbsp;&nbsp;&nbsp;&nbsp;</button>
+            </div>
 
+        </div>
     </div>
 
-    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+
 
 </form>

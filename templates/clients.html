@@ -7,13 +7,13 @@
     {% include 'includes/error_modal.html' %}
     <div style="min-height: 40em;">
         <div class="statusBox">
-            <div class="gen-font">
-                <h4>DREAMS Client List</h4>
+            <div>
+                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+                <h6>DREAMS Client List</h6>
             </div>
             <div class="floatRightLinks">
                 <div class="rightItem">
-                    <form id="clients_search_form" class="form-inline" action="/clients" method="post"
-                          style="padding-top: 10px;">
+                    <form id="clients_search_form" class="form-inline" action="/clients" method="post">
                         {% csrf_token %}
                         <div class="form-group has-feedback">
                             <input id="search-client" type="text" name="search_client_term"
@@ -52,11 +52,11 @@
                                 <td>{{ client.get_full_name }}</td>
                                 <td>{{ client.date_of_birth }}</td>
                                 <td id="client_" + {{ client.id }} class="actions-col">
-                                    <button type="button" class="btn btn-sm btn-primary"
+                                    <button type="button" class="btn btn-sm btn-default"
                                             onclick="window.location='/client_baseline_info?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
                                             style="cursor: pointer;"> Enrollment Data
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-primary"
+                                    <button type="button" class="btn btn-sm btn-default"
                                             onclick="window.location='/client?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
                                             style="cursor: pointer;"> Service Uptake
                                     </button>

@@ -7,13 +7,24 @@
             $('#btn_download_excel').click(function(){
                 //download_excel();
                 var ips = $('#i_p').val();
+                if(ips == null || ips.length == 0){
+                    // Show dialog
+                    $('#ip_selection_alert').removeClass('hidden').addClass('alert-danger')
+                        .text("Please select Implementing Partner to Export Data")
+                        .trigger('madeVisible')
+                    // return
+                    return
+                }
+                return;
+                //if()
                 ajax_download('/download-excel/', {'ips': ips})
                 // download_excel();
                 // alert('Here');
             });
 
         });
- function getCookie(name) {
+
+        function getCookie(name) {
            var cookieValue = null;
            if (document.cookie && document.cookie != '') {
              var cookies = document.cookie.split(';');
@@ -29,95 +40,95 @@
      return cookieValue;
     }
 
-    function getInterventionUsingId() {
+        function getInterventionUsingId() {
 
-        var csrftoken = getCookie('csrftoken');
-        var iv_id = $('#iv_id').val();
+            var csrftoken = getCookie('csrftoken');
+            var iv_id = $('#iv_id').val();
 
-        $.ajax({
-            url : "/ivGet/", // the endpoint
-            type : "POST", // http method
-            dataType: 'json',
-            data : {
-                csrfmiddlewaretoken : csrftoken,
-                intervention_id : iv_id
-            },
-            success : function(data) {
-                alert(data);
-                console.log(data);
+            $.ajax({
+                url : "/ivGet/", // the endpoint
+                type : "POST", // http method
+                dataType: 'json',
+                data : {
+                    csrfmiddlewaretoken : csrftoken,
+                    intervention_id : iv_id
+                },
+                success : function(data) {
+                    alert(data);
+                    console.log(data);
 
-            },
+                },
 
-            // handle a non-successful response
-            error : function(xhr,errmsg,err) {
-                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-            }
-        });
-    }
-
-    function download_excel() {
-         var i_frame = document.getElementById('download_excel');
-         var csrftoken = getCookie('csrftoken');
-         var ips = $('#i_p').val();
-        $.ajax({
-            url : "/download-excel/", // the endpoint
-            type : "POST", // http method
-            dataType: 'json',
-            data : {
-                csrfmiddlewaretoken : csrftoken,
-                ips : ips
-            },
-            success : function(data) {
-                alert(data);
-
-
-            },
-
-            // handle a non-successful response
-            error : function(xhr,errmsg,err) {
-                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-            }
-        });
-         //i_frame.src = "/download-excel/";
-    }
-
-    function ajax_download(url, data) {
-        var $iframe,
-            iframe_doc,
-            iframe_html;
-        var csrftoken = getCookie('csrftoken');
-
-        if (($iframe = $('#download_iframe')).length === 0) {
-            $iframe = $("<iframe id='download_iframe'" +
-                        " style='display: none' src='about:blank'></iframe>"
-                       ).appendTo("body");
+                // handle a non-successful response
+                error : function(xhr,errmsg,err) {
+                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                }
+            });
         }
 
-        iframe_doc = $iframe[0].contentWindow || $iframe[0].contentDocument;
-        if (iframe_doc.document) {
-            iframe_doc = iframe_doc.document;
+        function download_excel() {
+             var i_frame = document.getElementById('download_excel');
+             var csrftoken = getCookie('csrftoken');
+             var ips = $('#i_p').val();
+            $.ajax({
+                url : "/download-excel/", // the endpoint
+                type : "POST", // http method
+                dataType: 'json',
+                data : {
+                    csrfmiddlewaretoken : csrftoken,
+                    ips : ips
+                },
+                success : function(data) {
+                    alert(data);
+
+
+                },
+
+                // handle a non-successful response
+                error : function(xhr,errmsg,err) {
+                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                }
+            });
+             //i_frame.src = "/download-excel/";
         }
 
-        iframe_html = "<html><head></head><body><form method='POST' action='" +
-                      url +"'>"
-        iframe_html +='<input type="hidden" name="csrfmiddlewaretoken" value="' + csrftoken+ '">';
+        function ajax_download(url, data) {
+            var $iframe,
+                iframe_doc,
+                iframe_html;
+            var csrftoken = getCookie('csrftoken');
+
+            if (($iframe = $('#download_iframe')).length === 0) {
+                $iframe = $("<iframe id='download_iframe'" +
+                            " style='display: none' src='about:blank'></iframe>"
+                           ).appendTo("body");
+            }
+
+            iframe_doc = $iframe[0].contentWindow || $iframe[0].contentDocument;
+            if (iframe_doc.document) {
+                iframe_doc = iframe_doc.document;
+            }
+
+            iframe_html = "<html><head></head><body><form method='POST' action='" +
+                          url +"'>"
+            iframe_html +='<input type="hidden" name="csrfmiddlewaretoken" value="' + csrftoken+ '">';
 
 
-        Object.keys(data).forEach(function(key){
-            iframe_html += "<input type='hidden' name='"+key+"' value='"+data[key]+"'>";
+            Object.keys(data).forEach(function(key){
+                iframe_html += "<input type='hidden' name='"+key+"' value='"+data[key]+"'>";
 
-        });
+            });
 
-            iframe_html +="</form></body></html>";
+                iframe_html +="</form></body></html>";
 
-        iframe_doc.open();
-        iframe_doc.write(iframe_html);
-        $(iframe_doc).find('form').submit();
-    }
+            iframe_doc.open();
+            iframe_doc.write(iframe_html);
+            $(iframe_doc).find('form').submit();
+        }
     </script>
 
 
@@ -125,37 +136,46 @@
 {% endblock %}
 
 {% block content %}
-    <h4>Raw Data Export</h4>
 
-    <hr/>
-    <div id="results"></div>
-    <hr/>
-    <div id="download-excel">
-        <form method="post">
-            {% csrf_token %}
-            Implementing Partner<hr/>
-            {% if ips.count == 1 %}
-                <select id="i_p">
-            {% else %}
-                <select id="i_p" multiple>
-            {% endif %}
+    <div class="wrapper-container">
+        <div class="statusBox"  style="">
+            <div>
+                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+                <h6>Raw Data Export &nbsp;</h6>
+            </div>
+            <div class="floatRightLinks">
+                <div class="rightItem">
+                    <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span>
+                        {% if perms.can_view_cross_ip_data %}
+                            Select Implementing Partner/Partners to Export Data.
+                         {% else %}
+                            Select your Implementing Partner to Export Data.
+                          {% endif %}
+                        Select </span>
+                </div>
+            </div>
+        </div>
 
-                {%for ip in ips%}
+        <div class=" alert hidden dp-action-alert fade in" id="ip_selection_alert" role="alert" style="margin-bottom: 10px;"></div>
 
-                    <option value= "{{ ip.id }}">{{ ip }}</option>
-
-                {% endfor %}
-
-            </select>
-            <iframe id="download_excel" style="display: none" ></iframe>
-            <br/><br/>
-                <input type="button" id="btn_download_excel" value="Download EXCEL">
-
-        </form>
-
+        <div id="download-excel" class="fit-item">
+            <form method="post" class="">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Select Implementing Partner</label>
+                    <select id="i_p" {% if ips.count >  1 %}multiple {% endif %} class="form-control" size="{{ ips.count }}">
+                        {%for ip in ips%}
+                            <option value= "{{ ip.id }}">{{ ip }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <iframe id="download_excel" style="display: none" ></iframe>
+                <div class="form-group">
+                    <input class="btn btn-sm btn-primary" type="button" id="btn_download_excel" value="Download EXCEL">
+                </div>
+            </form>
+        </div>
 
     </div>
-
-    <hr/>
 
 {% endblock %}

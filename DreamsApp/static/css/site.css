@@ -200,7 +200,7 @@ html, body{
 }
 
 .statusBox .floatRightLinks{
-    margin-bottom: 10px;
+    margin-bottom: 0px;
 }
 
 .statusBox .floatRightLinks .rightItem {
@@ -209,7 +209,7 @@ html, body{
 
 .statusBox .text-info{
     font-size: 12px;
-    margin-top: -0px;
+    margin-top: 10px;
     margin-left: 5px;
 }
 
@@ -466,4 +466,29 @@ html, body{
 
 .date-field{
 
+}
+
+.enrolment-input{
+    width: 450px !important;
+}
+
+.enrolment-label{
+    width: 200px;
+    text-align: left;
+}
+
+#household_fieldset .enrolment-input{
+
+}
+
+
+.enrolment-input-question label{
+    /*font-size: 12px;
+    font-weight: bold;*/
+}
+
+.enrolment-input-header-question{
+    margin-bottom: 10px;
+    font-size: 15px;
+    font-weight: bolder;
 }

@@ -1107,7 +1107,7 @@ $(document).ready(function () {
         switch (u_action){
             case "deactivate_user":
                 confirm_title = 'Confirm User Deactivation Action'
-                confirm_message = 'Are you sure you want to Deactivate User?'
+                confirm_message = 'Are you sure you want to Deactivate this User?'
                 callback_func = toggleUserStatus
                 active = false;
                 break;
@@ -1119,7 +1119,7 @@ $(document).ready(function () {
                 break;
             case "delete_user":
                 confirm_title = 'Confirm User Delete Action'
-                confirm_message = 'Are you sure you want to Delete User? This action cannot be undone.'
+                confirm_message = 'Are you sure you want to Delete this User? This action cannot be undone.'
                 callback_func = deleteUser
                 break;
             default:
@@ -1790,6 +1790,8 @@ $(document).ready(function () {
             $('.search_name').removeClass("hidden").addClass("shown")
         }
     })
+
+
 });
 
 
