@@ -7,8 +7,9 @@
 
     <div class="wrapper-container">
         <div class="statusBox"  style="">
-            <div class="gen-font">
-                <h4>DREAMS User: Change Password &nbsp;</h4>
+            <div>
+                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+                <h6>{% if user.get_full_name != "" %}{{ user.get_full_name }}: {% else %} DREAMS User: {% endif %}Change Password &nbsp;</h6>
             </div>
             <div class="floatRightLinks">
                 <div class="rightItem">
