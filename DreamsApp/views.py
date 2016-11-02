@@ -1445,7 +1445,7 @@ def update_demographics_data(request):
     client_id = int(request.POST['client'])
     instance = Client.objects.get(id=client_id)
     if request.is_ajax():
-        template = 'client_demographics_ajax_form.html'
+        template = 'ajax_response_form/client_demographics_ajax_form.html'
 
         if request.method == 'POST':
             form = DemographicsForm(request.POST, instance=instance)

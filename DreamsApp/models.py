@@ -113,7 +113,7 @@ class Client(models.Model):
     ward = models.ForeignKey(Ward, verbose_name='Ward', null=True)
     informal_settlement = models.CharField(verbose_name='Informal Settlement', max_length=250, null=True, blank=True)
     village = models.CharField(verbose_name='Village', max_length=250, null=True)
-    landmark = models.CharField(verbose_name='Land Mark near Residence', max_length=250, null=True)
+    landmark = models.CharField(verbose_name='Land Mark near Residence', max_length=250, null=True, blank=True)
     dreams_id = models.CharField(verbose_name='DREAMS ID', max_length=50, null=True)
     guardian_name = models.CharField(verbose_name='Primary Care Giver/Guardian\' Name', max_length=250, null=True, blank=True)
     relationship_with_guardian = models.CharField(verbose_name='Relationship with Guardian', max_length=50, null=True, blank=True)
