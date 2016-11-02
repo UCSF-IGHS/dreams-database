@@ -180,6 +180,20 @@ reason_not_in_hiv_care_id INT(11),
 reason_not_tested_for_hiv VARCHAR(20)
 );
 
+ALTER DATABASE odk_aggregate CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+ALTER TABLE odk_aggregate.DREAMS_ENROLMENT_FORM_CORE CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE odk_aggregate.DREAMS_ENROLMENT_FORM_CORE2 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_Q113 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_2_Q204 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_3_Q307 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE odk_aggregate.DREAMS_ENROLMENT_FORM_Q507 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_6_Q610 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_6_Q612 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_7_Q704 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+ALTER TABLE odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_8_Q801 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+-- ALTER TABLE odk_aggregate.CT_HOME_VISIT_VERFICATION_FORM_CORE CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+-- ALTER TABLE odk_aggregate.CT_HOME_VISIT_VERFICATION_FORM_Q3 CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
+
 CALL sp_update_demographics_location();
 CALL sp_populate_flat_enrollment_table();
 
@@ -287,7 +301,7 @@ DELIMITER ;
 
 DELIMITER $$
 DROP FUNCTION IF EXISTS nextDreamsSerial$$
-CREATE FUNCTION nextDreamsSerial(implementing_partner_id INT) RETURNS VARCHAR(200)
+CREATE FUNCTION nextDreamsSerial(implementing_partner_id INT, ward INT) RETURNS VARCHAR(200)
 	DETERMINISTIC
 BEGIN
 	DECLARE new_serial INT(11);
@@ -295,7 +309,11 @@ BEGIN
   (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1) INTO new_serial
 from DreamsApp_client WHERE dreams_id is not null AND DreamsApp_client.implementing_partner_id=implementing_partner_id group by implementing_partner_id;
 
-	return new_serial;
+  IF new_serial is NULL THEN
+    SET new_serial = 1;
+  END IF;
+
+	return CONCAT(implementing_partner_id, '/', ward, '/',new_serial);
 END$$
 DELIMITER ;
 
@@ -338,7 +356,7 @@ CREATE PROCEDURE sp_demographic_data(IN recordUUID VARCHAR(100))
       d.DEMOGRAPHIC_MARITAL as marital_status,
       d.DEMOGRAPHIC_PHONENO as client_phone_no,
       d.DEMOGRAPHIC_DSSNO as dss_no,
-      COALESCE(d.DEMOGRAPHIC_DREAMSID, nextDreamsSerial(d.IPNAME)) as Dreams_id,
+      COALESCE(d.DEMOGRAPHIC_DREAMSID, nextDreamsSerial(d.IPNAME, d.DEMOGRAPHIC_WARD)) as Dreams_id,
       d.DEMOGRAPHIC_CAREGIVER AS caregiver_name,
       d.DEMOGRAPHIC_RELATIONSHIP as caregiver_relationship,
       d.DEMOGRAPHIC_PHONENUMBER as caregiver_phone_no,
@@ -1312,7 +1330,7 @@ BEGIN
 
 DECLARE record_id INT(11);
 DECLARE last_update_time DATETIME;
-SELECT max(date_completed) into last_update_time from dreams_production.DreamsApp_flatenrollmenttablelog;
+SELECT max(date_started) into last_update_time from dreams_production.DreamsApp_flatenrollmenttablelog;
 INSERT INTO dreams_production.DreamsApp_flatenrollmenttablelog(date_started, activity) VALUES(NOW(), 'Table Updates');
 SET record_id = LAST_INSERT_ID();
 
@@ -1520,15 +1538,15 @@ from dreams_production.DreamsApp_ward w
 INNER JOIN dreams_production.DreamsApp_subcounty s ON s.id = w.sub_county_id
 INNER JOIN dreams_production.DreamsApp_county c ON s.county_id = c.id
 ) l ON l.ward_code = d.ward_id
-where (d.date_created > last_update_time or d.date_changed > last_update_time)
-  or (i.date_created > last_update_time or i.date_changed > last_update_time)
-  or (s.date_created > last_update_time or s.date_changed > last_update_time)
-  or (rh.date_created > last_update_time or rh.date_changed > last_update_time)
-  or (dr.date_created > last_update_time or dr.date_changed > last_update_time)
-  or (p.date_created > last_update_time or p.date_changed > last_update_time)
-  or (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)
-  or (edu.date_created > last_update_time or edu.date_changed > last_update_time)
-  or (hiv.date_created > last_update_time or hiv.date_changed > last_update_time)
+where (d.date_created >= last_update_time or d.date_changed >= last_update_time)
+  or (i.date_created >= last_update_time or i.date_changed >= last_update_time)
+  or (s.date_created >= last_update_time or s.date_changed >= last_update_time)
+  or (rh.date_created >= last_update_time or rh.date_changed >= last_update_time)
+  or (dr.date_created >= last_update_time or dr.date_changed >= last_update_time)
+  or (p.date_created >= last_update_time or p.date_changed >= last_update_time)
+  or (gbv.date_created >= last_update_time or gbv.date_changed >= last_update_time)
+  or (edu.date_created >= last_update_time or edu.date_changed >= last_update_time)
+  or (hiv.date_created >= last_update_time or hiv.date_changed >= last_update_time)
 group by d.id
 ON DUPLICATE KEY UPDATE
 first_name=VALUES(first_name),
