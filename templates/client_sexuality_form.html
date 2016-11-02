@@ -18,79 +18,81 @@
         <label class="control-label enrolment-label">{{ sexuality_form.has_sexual_partner.label_tag }}</label>
         {{ sexuality_form.has_sexual_partner|add_class:"input-sm form-control enrolment-input" }}
     </div>
-    <div id="sex_partners_in_last_12months" class="form-group form-inline {% if sexuality_form.ever_had_sex.value != 1 %}hidden{% endif %}">
-        {{ sexuality_form.sex_partners_in_last_12months.errors }}
-        <label class="control-label enrolment-label">{{ sexuality_form.sex_partners_in_last_12months.label_tag }}</label>
-        {{ sexuality_form.sex_partners_in_last_12months|add_class:"input-sm form-control enrolment-input" }}
-    </div>
-    <label class="control-label enrolment-input-header-question">Is this partner same age, younger or older than you?</label>
-    <div id="sex_partners_age" class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 0 %}hidden{% endif %}">
-        <br/>
-        {{ sexuality_form.age_of_last_partner.errors }}
-        <label class="control-label enrolment-label">Last Sexual Partner</label>
-        {{ sexuality_form.age_of_last_partner|add_class:"input-sm form-control enrolment-input" }}
-    </div>
-    <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 1 %}hidden{% endif %}">
-        {{ sexuality_form.age_of_second_last_partner.errors }}
-        <label class="control-label enrolment-label">Second to last Partner</label>
-        {{ sexuality_form.age_of_second_last_partner|add_class:"input-sm form-control enrolment-input" }}
-    </div>
-    <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 2 %}hidden{% endif %}">
-        {{ sexuality_form.age_of_third_last_partner.errors }}
-        <label class="control-label enrolment-label">Third to last Partner</label>
-        {{ sexuality_form.age_of_third_last_partner|add_class:"input-sm form-control enrolment-input" }}
-    </div>
-    <label class="control-label enrolment-input-header-question">Is this partner circumcised?</label>
-    <div id="sex_partners_circumcised" class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 0 %}hidden{% endif %}">
-        {{ sexuality_form.last_partner_circumcised.errors }}
-        <label class="control-label enrolment-label">Last Sexual Partner</label>
-        {{ sexuality_form.last_partner_circumcised|add_class:"input-sm form-control enrolment-input" }}
-    </div>
-    <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 1 %}hidden{% endif %}">
-            {{ sexuality_form.second_last_partner_circumcised.errors }}
+    <div class="{% if sexuality_form.ever_had_sex.value != 1 %}hidden{% endif %}">
+        <div id="sex_partners_in_last_12months" class="form-group form-inline {% if sexuality_form.ever_had_sex.value != 1 %}hidden{% endif %}">
+            {{ sexuality_form.sex_partners_in_last_12months.errors }}
+            <label class="control-label enrolment-label">{{ sexuality_form.sex_partners_in_last_12months.label_tag }}</label>
+            {{ sexuality_form.sex_partners_in_last_12months|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <label class="control-label enrolment-input-header-question">Is this partner same age, younger or older than you?</label>
+        <div id="sex_partners_age" class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 0 %}hidden{% endif %}">
+            <br/>
+            {{ sexuality_form.age_of_last_partner.errors }}
+            <label class="control-label enrolment-label">Last Sexual Partner</label>
+            {{ sexuality_form.age_of_last_partner|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 1 %}hidden{% endif %}">
+            {{ sexuality_form.age_of_second_last_partner.errors }}
             <label class="control-label enrolment-label">Second to last Partner</label>
-            {{ sexuality_form.second_last_partner_circumcised|add_class:"input-sm form-control enrolment-input"  }}
-    </div>
-    <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 2 %}hidden{% endif %}">
-            {{ sexuality_form.third_last_partner_circumcised.errors }}
+            {{ sexuality_form.age_of_second_last_partner|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 2 %}hidden{% endif %}">
+            {{ sexuality_form.age_of_third_last_partner.errors }}
             <label class="control-label enrolment-label">Third to last Partner</label>
-            {{ sexuality_form.third_last_partner_circumcised|add_class:"input-sm form-control enrolment-input" }}
-    </div>
-    <div id="sex_partners_hiv_status" class="enrolment-input-header-question {% if sexuality_form.sex_partners_in_last_12months.value <= 0 %}hidden{% endif %}">
-        <label class="control-label">Do you know this partner's HIV Status?</label>
-    </div>
-    <div class="form-group form-inline">
-        {{ sexuality_form.know_last_partner_hiv_status.errors }}
-        <label class="control-label enrolment-label">Last Sexual Partner</label>
-        {{ sexuality_form.know_last_partner_hiv_status|add_class:"input-sm form-control enrolment-input" }}
-    </div>
-    <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 1 %}hidden{% endif %}">
-        {{ sexuality_form.know_second_last_partner_hiv_status.errors }}
-        <label class="control-label enrolment-label">Second to last Partner</label>
-        {{ sexuality_form.know_second_last_partner_hiv_status|add_class:"input-sm form-control enrolment-input" }}
-    </div>
-    <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 2 %}hidden{% endif %}">
-        {{ sexuality_form.know_third_last_partner_hiv_status.errors }}
-        <label class="control-label enrolment-label">Third to last Partner</label>
-        {{ sexuality_form.know_third_last_partner_hiv_status|add_class:"input-sm form-control enrolment-input" }}
-    </div>
-    <div id="sex_partners_condom_use" class="form-group enrolment-input-header-question {% if sexuality_form.sex_partners_in_last_12months.value <= 0 %}hidden{% endif %}">
-        <label class="control-label">How often did/do you use a condom with this partner?</label>
-    </div>
-    <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 0 %}hidden{% endif %}">
-        {{ sexuality_form.used_condom_with_last_partner.errors }}
-        <label class="control-label enrolment-label">Last Sexual Partner</label>
-        {{ sexuality_form.used_condom_with_last_partner|add_class:"input-sm form-control enrolment-input" }}
-    </div>
-    <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 1 %}hidden{% endif %}">
-        {{ sexuality_form.used_condom_with_second_last_partner.errors }}
-        <label class="control-label enrolment-label">Second to last Partner</label>
-        {{ sexuality_form.used_condom_with_second_last_partner|add_class:"input-sm form-control enrolment-input" }}
-    </div>
-    <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 2  %}hidden{% endif %}">
-            {{ sexuality_form.used_condom_with_third_last_partner.errors }}
+            {{ sexuality_form.age_of_third_last_partner|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <label class="control-label enrolment-input-header-question">Is this partner circumcised?</label>
+        <div id="sex_partners_circumcised" class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 0 %}hidden{% endif %}">
+            {{ sexuality_form.last_partner_circumcised.errors }}
+            <label class="control-label enrolment-label">Last Sexual Partner</label>
+            {{ sexuality_form.last_partner_circumcised|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 1 %}hidden{% endif %}">
+                {{ sexuality_form.second_last_partner_circumcised.errors }}
+                <label class="control-label enrolment-label">Second to last Partner</label>
+                {{ sexuality_form.second_last_partner_circumcised|add_class:"input-sm form-control enrolment-input"  }}
+        </div>
+        <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 2 %}hidden{% endif %}">
+                {{ sexuality_form.third_last_partner_circumcised.errors }}
+                <label class="control-label enrolment-label">Third to last Partner</label>
+                {{ sexuality_form.third_last_partner_circumcised|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div id="sex_partners_hiv_status" class="enrolment-input-header-question {% if sexuality_form.sex_partners_in_last_12months.value <= 0 %}hidden{% endif %}">
+            <label class="control-label">Do you know this partner's HIV Status?</label>
+        </div>
+        <div class="form-group form-inline">
+            {{ sexuality_form.know_last_partner_hiv_status.errors }}
+            <label class="control-label enrolment-label">Last Sexual Partner</label>
+            {{ sexuality_form.know_last_partner_hiv_status|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 1 %}hidden{% endif %}">
+            {{ sexuality_form.know_second_last_partner_hiv_status.errors }}
+            <label class="control-label enrolment-label">Second to last Partner</label>
+            {{ sexuality_form.know_second_last_partner_hiv_status|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 2 %}hidden{% endif %}">
+            {{ sexuality_form.know_third_last_partner_hiv_status.errors }}
             <label class="control-label enrolment-label">Third to last Partner</label>
-            {{ sexuality_form.used_condom_with_third_last_partner|add_class:"input-sm form-control enrolment-input" }}
+            {{ sexuality_form.know_third_last_partner_hiv_status|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div id="sex_partners_condom_use" class="form-group enrolment-input-header-question {% if sexuality_form.sex_partners_in_last_12months.value <= 0 %}hidden{% endif %}">
+            <label class="control-label">How often did/do you use a condom with this partner?</label>
+        </div>
+        <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 0 %}hidden{% endif %}">
+            {{ sexuality_form.used_condom_with_last_partner.errors }}
+            <label class="control-label enrolment-label">Last Sexual Partner</label>
+            {{ sexuality_form.used_condom_with_last_partner|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 1 %}hidden{% endif %}">
+            {{ sexuality_form.used_condom_with_second_last_partner.errors }}
+            <label class="control-label enrolment-label">Second to last Partner</label>
+            {{ sexuality_form.used_condom_with_second_last_partner|add_class:"input-sm form-control enrolment-input" }}
+        </div>
+        <div class="form-group form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 2  %}hidden{% endif %}">
+                {{ sexuality_form.used_condom_with_third_last_partner.errors }}
+                <label class="control-label enrolment-label">Third to last Partner</label>
+                {{ sexuality_form.used_condom_with_third_last_partner|add_class:"input-sm form-control enrolment-input" }}
+        </div>
     </div>
     <div class="form-group">
         {{ sexuality_form.client.as_hidden }}
