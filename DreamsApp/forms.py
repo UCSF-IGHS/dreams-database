@@ -118,7 +118,6 @@ class SexualityForm(ModelForm):
         exclude = ['date_created', 'date_changed']
 
 
-
 class ReproductiveHealthForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
@@ -128,6 +127,7 @@ class ReproductiveHealthForm(ModelForm):
         self.fields['current_anc_enrollment'].queryset = CategoricalResponse.objects.filter(pk__in=[1, 2])
         self.fields['fp_methods_awareness'].queryset = CategoricalResponse.objects.filter(pk__in=[1, 2])
         self.fields['currently_use_modern_fp'].queryset = CategoricalResponse.objects.filter(pk__in=[1, 2])
+
 
     class Meta:
         model = ClientReproductiveHealthData
