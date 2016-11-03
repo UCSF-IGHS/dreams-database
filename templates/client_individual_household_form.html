@@ -129,25 +129,16 @@
                 <label class="control-label enrolment-label">{{ household_form.has_disability.label_tag }}</label>
                 {{ household_form.has_disability|add_class:"input-sm form-control enrolment-input"  }}
             </div>
-            {% if household_form.has_disability.value == 1 %}
-                <div id="disability_type">
-            {% else %}
-                <div id="disability_type" class="hidden">
-            {% endif %}
-                    <div class="form-group form-inline">
-
-                        {{ household_form.disability_type.errors }}
-                        <label class="control-label enrolment-label">{{ household_form.disability_type.label_tag }}<br/>
-                        {{ household_form.disability_type|add_class:"input-sm form-control enrolment-input"  }}
-                    </div>
-                    <div class="form-group form-inline">
-                        {{ household_form.disability_type_other.errors }}
-                        <label class="control-label enrolment-label">{{ household_form.disability_type_other.label_tag }}</label>
-                        {{ household_form.disability_type_other|add_class:"input-sm form-control enrolment-input"  }}
-                    </div>
-
+            <div class="form-group form-inline {% if household_form.has_disability.value != 1 %}hidden{% endif %}">
+                {{ household_form.disability_type.errors }}
+                <label class="control-label enrolment-label">{{ household_form.disability_type.label_tag }}</label>
+                {{ household_form.disability_type|add_class:"input-sm form-control enrolment-input"  }}
             </div>
-
+            <div class="form-group form-inline">
+                {{ household_form.disability_type_other.errors }}
+                <label class="control-label enrolment-label">{{ household_form.disability_type_other.label_tag }}</label>
+                {{ household_form.disability_type_other|add_class:"input-sm form-control enrolment-input"  }}
+            </div>
             <div class="form-group form-inline">
                 {{ household_form.no_of_people_in_household.errors }}
                 <label class="control-label enrolment-label">{{ household_form.no_of_people_in_household.label_tag }}</label>

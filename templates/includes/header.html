@@ -33,9 +33,10 @@
                         <li class="{% if page == 'users' %}active{% endif %}"><a href="/admin/users" >Users </a> </li>
                     {% endif %}
                 {% endif %}
-                {% if perms.auth.add_grievance %}
+                <!--{% if perms.auth.add_grievance %}
                     <li class="{% if page == 'cash_transfer' %}active{% endif %}"><a href="/grievances" >Grievances </a> </li>
                 {% endif %}
+                -->
 
                 {% if user.is_authenticated %}
                     <li class="dropdown {% if page == 'export' %}active{% endif %}" >

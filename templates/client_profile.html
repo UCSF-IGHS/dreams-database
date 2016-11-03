@@ -51,6 +51,7 @@
                               $(function() {
                                 $( "#date-of-completion" ).datepicker({
                                       maxDate: '0y 0m 0d',
+                                      minDate:  (new Date(2015, 9 , 1)),
                                       changeMonth: true,
                                       changeYear: true
                                 });
@@ -86,7 +87,7 @@
 
                          <div class="form-group hidden" id="no_of_sessions_section">
                             <label for="number-of-ss-sessions-attended" class="control-label">Number of SS Sessions Attended</label>
-                            <input type="number" class="form-control validate-intervention-form-field" id="number-of-ss-sessions-attended" min="1" name="no_of_sessions_attended"></input>
+                            <input type="number" class="form-control validate-intervention-form-field" id="number-of-ss-sessions-attended" value="1" min="1" name="no_of_sessions_attended">
                         </div>
 
                          <div class="form-group hidden" id="notes_section">
