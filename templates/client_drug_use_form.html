@@ -2,29 +2,29 @@
 <form method="POST" class="post-form" id="form_drug_use" action="/update-drug-use/">
     {% csrf_token %}
     <div id="drug_use_replacement">
-        <fieldset disabled>
+        <fieldset>
             <div class="form-group form-inline">
                 {{ drug_use_form.used_alcohol_last_12months.errors }}
                 <label class="control-label enrolment-label">Have you used alcohol in the last 12 months?</label>
-                {{ drug_use_form.used_alcohol_last_12months|add_class:"input-sm form-control enrolment-input" }}
+                {{ drug_use_form.used_alcohol_last_12months|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:used-alcohol" }}
             </div>
-            <div id="frequency_of_alcohol_last_12months" class="form-group form-inline {% if drug_use_form.used_alcohol_last_12months.value != 1 %}hidden{% endif %}">
+            <div id="frequency_of_alcohol_last_12months" class="form-group form-inline used-alcohol {% if drug_use_form.used_alcohol_last_12months.value != 1 %}hidden{% endif %}">
                 {{ drug_use_form.frequency_of_alcohol_last_12months.errors }}
                 <label class="control-label enrolment-label">In the past 12 months, how often did you have a drink containing alcohol?</label>
                 {{ drug_use_form.frequency_of_alcohol_last_12months|add_class:"input-sm form-control enrolment-input" }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline listen-to-change">
                 {{ drug_use_form.drug_abuse_last_12months.errors }}
                 <label class="control-label enrolment-label">Have you used drugs of abuse or addiction in the last 12 months?</label>
-                {{ drug_use_form.drug_abuse_last_12months|add_class:"input-sm form-control enrolment-input" }}
+                {{ drug_use_form.drug_abuse_last_12months|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:used-drugs" }}
             </div>
-            <div id="drug_used_last_12months" class="{% if drug_use_form.drug_abuse_last_12months.value != 1 %}hidden{% endif %}">
+            <div id="drug_used_last_12months" class=" used-drugs {% if drug_use_form.drug_abuse_last_12months.value != 1 %}hidden{% endif %}">
                 <div class="form-group form-inline">
                     {{ drug_use_form.drug_used_last_12months.errors }}
                     <label class="control-label enrolment-label">Which types of drugs of abuse/addiction have you used in last 12 months</label>
                     {{ drug_use_form.drug_used_last_12months|add_class:"input-sm form-control enrolment-input" }}
                 </div>
-                <div class="form-group form-inline">
+                <div class="form-group form-inline used-drugs">
                     {{ drug_use_form.drug_used_last_12months_other.errors }}
                     <label class="control-label enrolment-label">Other</label>
                     {{ drug_use_form.drug_used_last_12months_other|add_class:"input-sm form-control enrolment-input" }}

@@ -2,7 +2,7 @@
 <form method="POST" class="post-form" id="form_programme_participation" action="/update-programme-participation/">
     {% csrf_token %}
     <div id="program_replacement" >
-        <fieldset disabled>
+        <fieldset >
             <div class="form-group form-inline">
                 {{ programe_participation_form.dreams_program.errors }}
                 <label class="control-label enrolment-label">Which HIV Prevention Programmes have you participated in</label>

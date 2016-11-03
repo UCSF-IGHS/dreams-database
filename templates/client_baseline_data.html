@@ -363,8 +363,42 @@
 
             });
 
+            $('.listen-to-change').on('change', function () {
+                var val = $(this).val();
+                var show_class = $(this).data('show_class'); // class to hide/show
+                var show_value = $(this).data('show_value'); // value to determine show/hide
+
+                if(val == show_value){
+                    console.log(show_class);
+                    $('.'+show_class).removeClass('hidden');
+                } else {
+                     console.log(show_class);
+                    $('.'+show_class).addClass('hidden');
+                }
+            });
+
+
 
         });
+
+        function skip_pattern(target_element, target_value, element_list_to_manipulate, hide_class) {
+
+           var option = $('#'+target_element).val();
+            console.log(option + ' against: ' + target_value);
+            if (option == target_value) {
+                for (var i =0; i< element_list_to_manipulate.length; i++ ) {
+                    console.log(element_list_to_manipulate[i])
+                    $('#'+element_list_to_manipulate[i]).removeClass(hide_class);
+                }
+            } else {
+                 for (var i =0; i< element_list_to_manipulate.length; i++ ) {
+                    console.log(element_list_to_manipulate[i])
+                    $('#'+element_list_to_manipulate[i]).addClass(hide_class);
+                }
+            }
+
+
+        }
     </script>
     </div>
 {% endblock %}
