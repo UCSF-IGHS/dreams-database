@@ -127,7 +127,7 @@ def clients(request):
                 for search_client_term_part in search_client_term_parts:
                     if search_client_term_parts_string != '':
                         search_client_term_parts_string += '|'
-                    search_client_term_parts_string += search_client_term_part
+                    search_client_term_parts_string += ('^' + search_client_term_part)
                 search_client_term_parts_string += '$'
                 search_result = Client.objects.filter(Q(dreams_id__iregex= search_client_term_parts_string) |
                                                       Q(first_name__iregex= search_client_term_parts_string) |
@@ -447,7 +447,8 @@ def get_intervention_types(request):
 def save_intervention(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() \
-                and request.user.is_active:
+                and request.user.is_active and request.user.has_perm('auth.can_add_intervention'):
+            # check
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_type_code = int(request.POST.get('intervention_type_code'))
@@ -493,13 +494,25 @@ def save_intervention(request):
                     }
                     return JsonResponse(response_data)
                 else:  # Invalid Intervention Type
-                    raise Exception("Error: Invalid Intervention Type. "
-                                    "Please select a valid Intervention Type to Proceed")
+                    response_data = {
+                        'status': 'fail',
+                        'message': "Error: Invalid Intervention Type. "
+                                    "Please select a valid Intervention Type to Proceed"
+                    }
+                return JsonResponse(response_data)
             else:  # User has no valid IP.
-                raise Exception("Error: You do not belong to an Implementing Partner. "
-                                "Please contact your system admin to add you to the relevant Implementing Partner.")
+                response_data = {
+                    'status': 'fail',
+                    'message': "Error: You do not belong to an Implementing Partner. "
+                                "Please contact your system admin to add you to the relevant Implementing Partner."
+                }
+                return JsonResponse(response_data)
         else:
-            raise PermissionDenied
+            response_data = {
+                'status': 'fail',
+                'message': "Permission Denied: You don't have permission to enter Intervention"
+            }
+            return JsonResponse(response_data)
     except Exception as e:
         # Return error with message
         response_data = {
@@ -586,7 +599,7 @@ def get_intervention(request):
 def update_intervention(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and \
-                request.user.is_active:
+                request.user.is_active and request.user.has_perm('auth.can_change_intervention'):
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_id = int(request.POST.get('intervention_id'))
@@ -632,6 +645,7 @@ def update_intervention(request):
                             'hts_results': serializers.serialize('json', HTSResult.objects.all()),
                             'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
                         }
+                        log_custom_actions(request.user.id, "DreamsApp_intervention", intervention.id, "UPDATE SERVICE UPTAKE", "")
                     else:
                         # Intervention does not belong to Implementing partner. Send back error message
                         raise Exception(
@@ -645,7 +659,10 @@ def update_intervention(request):
                 raise Exception("Error: You do not belong to an Implementing Partner. "
                                 "Please contact your system admin to add you to the relevant Implementing Partner.")
         else:
-            raise PermissionDenied
+            response_data = {
+                'status': 'fail',
+                'message': "You don't Cannot edit interventions. Please contact system admin for help."
+            }
     except Exception as e:
         response_data = {
             'status': 'fail',
@@ -657,7 +674,7 @@ def update_intervention(request):
 def delete_intervention(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and \
-                request.user.is_active:
+                request.user.is_active and request.user.has_perm('auth.can_delete_intervention'):
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_id = int(request.POST.get('intervention_delete_id'))
@@ -685,7 +702,10 @@ def delete_intervention(request):
                 raise Exception("Error: You do not belong to an Implementing Partner. "
                                 "Please contact your system admin to add you to the relevant Implementing Partner.")
         else:
-            raise PermissionDenied
+            response_data = {
+                'status': 'fail',
+                'message': "You don't have permission to delete Intervention. Please contact System Administrator for help."
+            }
     except Exception as e:
         response_data = {
             'status': 'fail',
@@ -1325,6 +1345,7 @@ def cash_transfer_details_save(request):
 
 
 def download_excel(request):
+
     enrolment = DreamsEnrollmentExcelDatabase()
     rows = enrolment.get_export_rows()
     for row in rows:
@@ -1333,7 +1354,7 @@ def download_excel(request):
 
 
 def export_page(request):
-    if request.user.is_authenticated() and request.user.is_active:
+    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm('auth.can_export_raw_data'):
 
         try:
 
@@ -1442,23 +1463,39 @@ def viewBaselineData(request):
 
 
 def update_demographics_data(request):
-    client_id = int(request.POST['client'])
+    client_id = int(request.POST['client'], 0)
     instance = Client.objects.get(id=client_id)
     if request.is_ajax():
-        template = 'ajax_response_form/client_demographics_ajax_form.html'
-
+        #template = 'client_demographics_ajax_form.html'
         if request.method == 'POST':
+            implementing_partner = instance.implementing_partner
+            ward = instance.ward
+            county_of_residence = instance.county_of_residence
+            sub_county = instance.sub_county
             form = DemographicsForm(request.POST, instance=instance)
             if form.is_valid():
-                
                 form.save()
+                instance.implementing_partner = implementing_partner
+                ward = instance.ward
+                instance.county_of_residence = county_of_residence
+                instance.sub_county = sub_county
+                instance.save()
+                response_data = {
+                    'status': 'success',
+                    'errors': form.errors
+                }
+                return JsonResponse(response_data, status=200)
             else:
-                print form.errors
+                response_data = {
+                    'status': 'fail',
+                    'errors': form.errors
+                }
+                return JsonResponse(response_data, status=500)
         else:
             raise PermissionDenied
     else:
         raise PermissionDenied
-    return render(request, template, {'demo_form': form})
+    return render(request, template, {'status': 'success'})
 
 
 def update_individual_and_household_data(request):
@@ -1490,7 +1527,7 @@ def update_edu_and_employment_data(request):
         if request.method == 'POST':
             form = EducationAndEmploymentForm(request.POST, instance=instance)
             if form.is_valid():
-                
+
                 form.save()
             else:
                 print form.errors

@@ -469,7 +469,7 @@ html, body{
 }
 
 .enrolment-input{
-   /* width: 450px !important;*/
+    /*width: 450px !important;*/
 }
 
 .enrolment-label{
@@ -489,6 +489,4 @@ html, body{
 
 .enrolment-input-header-question{
     margin-bottom: 10px;
-    font-size: 15px;
-    font-weight: bolder;
 }

@@ -33,7 +33,7 @@
 
         </div>
         <a class="no-hover" href="/clients?search_client_term={{ search_client_term }}" style="float: right;margin-bottom: 5px;margin-top: -5px;margin-right: 10px;"><span class="glyphicon glyphicon-triangle-left"> </span> Back to Clients list</a>
-        <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert"></div>
+        <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert" style="margin-top: 15px;"></div>
         <!-- End of Client profile section -->
         <div class="dreams-profile-tab-control" id="dreams-enrollment-tab-control">
             <ul class="nav nav-tabs">
@@ -120,9 +120,11 @@
         $(document).ready(function () {
             //Handle demographics tab
             $('#form_demographics').on('submit', function (event) {
-                event.preventDefault();
+                event.preventDefault()
+                if(!$(event.target).valid()) // Check if form is valid
+                    return false;   // return, form is not valid
+                // enable disabled fields
                 var form = $('#form_demographics');
-
                 $('#demo_current_client_id').val($('#baseline_current_client_id').val());
 
                 $.ajax({
@@ -130,7 +132,7 @@
                     url: form.attr('action'),
                     data: $(this).serialize(),
                     success: function (data) {
-                        $('#demo_replacement').replaceWith(data);
+                        //$('#demo_replacement').replaceWith(data);
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                        .text('saved successfully')
                        .trigger('madeVisible')
