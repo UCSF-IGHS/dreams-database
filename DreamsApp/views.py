@@ -447,7 +447,8 @@ def get_intervention_types(request):
 def save_intervention(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() \
-                and request.user.is_active:
+                and request.user.is_active and request.user.has_perm('auth.can_add_intervention'):
+            # check
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_type_code = int(request.POST.get('intervention_type_code'))
@@ -493,13 +494,25 @@ def save_intervention(request):
                     }
                     return JsonResponse(response_data)
                 else:  # Invalid Intervention Type
-                    raise Exception("Error: Invalid Intervention Type. "
-                                    "Please select a valid Intervention Type to Proceed")
+                    response_data = {
+                        'status': 'fail',
+                        'message': "Error: Invalid Intervention Type. "
+                                    "Please select a valid Intervention Type to Proceed"
+                    }
+                return JsonResponse(response_data)
             else:  # User has no valid IP.
-                raise Exception("Error: You do not belong to an Implementing Partner. "
-                                "Please contact your system admin to add you to the relevant Implementing Partner.")
+                response_data = {
+                    'status': 'fail',
+                    'message': "Error: You do not belong to an Implementing Partner. "
+                                "Please contact your system admin to add you to the relevant Implementing Partner."
+                }
+                return JsonResponse(response_data)
         else:
-            raise PermissionDenied
+            response_data = {
+                'status': 'fail',
+                'message': "Permission Denied: You don't have permission to enter Intervention"
+            }
+            return JsonResponse(response_data)
     except Exception as e:
         # Return error with message
         response_data = {
@@ -586,7 +599,7 @@ def get_intervention(request):
 def update_intervention(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and \
-                request.user.is_active:
+                request.user.is_active and request.user.has_perm('auth.can_change_intervention'):
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_id = int(request.POST.get('intervention_id'))
@@ -646,7 +659,10 @@ def update_intervention(request):
                 raise Exception("Error: You do not belong to an Implementing Partner. "
                                 "Please contact your system admin to add you to the relevant Implementing Partner.")
         else:
-            raise PermissionDenied
+            response_data = {
+                'status': 'fail',
+                'message': "You don't Cannot edit interventions. Please contact system admin for help."
+            }
     except Exception as e:
         response_data = {
             'status': 'fail',
@@ -658,7 +674,7 @@ def update_intervention(request):
 def delete_intervention(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and \
-                request.user.is_active:
+                request.user.is_active and request.user.has_perm('auth.can_delete_intervention'):
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_id = int(request.POST.get('intervention_delete_id'))
@@ -686,7 +702,10 @@ def delete_intervention(request):
                 raise Exception("Error: You do not belong to an Implementing Partner. "
                                 "Please contact your system admin to add you to the relevant Implementing Partner.")
         else:
-            raise PermissionDenied
+            response_data = {
+                'status': 'fail',
+                'message': "You don't have permission to delete Intervention. Please contact System Administrator for help."
+            }
     except Exception as e:
         response_data = {
             'status': 'fail',
@@ -1326,6 +1345,7 @@ def cash_transfer_details_save(request):
 
 
 def download_excel(request):
+
     enrolment = DreamsEnrollmentExcelDatabase()
     rows = enrolment.get_export_rows()
     for row in rows:
@@ -1334,7 +1354,7 @@ def download_excel(request):
 
 
 def export_page(request):
-    if request.user.is_authenticated() and request.user.is_active:
+    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm('auth.can_export_raw_data'):
 
         try:
 
