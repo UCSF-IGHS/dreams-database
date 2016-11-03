@@ -2,7 +2,7 @@
 <form method="POST" class="post-form" id="form_gbv" action="/update-gbv/">
     {% csrf_token %}
     <div id="gbv_replacement">
-        <fieldset disabled>
+        <fieldset >
             <label class="control-label enrolment-input-header-question">He said or did something to humiliate you in front of others</label>
             <div class="form-group form-inline">
                 {{ gbv_form.humiliated_ever.errors }}
@@ -105,9 +105,9 @@
             <div class="form-group form-inline">
                 {{ gbv_form.seek_help_after_gbv.errors }}
                 <label class="control-label enrolment-label">Did you seek help after experiencing all of the discussed?</label>
-                {{ gbv_form.seek_help_after_gbv|add_class:"input-sm form-control enrolment-input" }}
+                {{ gbv_form.seek_help_after_gbv|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:sought-help" }}
             </div>
-            <div class="{% if gbv_form.seek_help_after_gbv.value != 1 %}hidden{% endif %}">
+            <div class="sought-help {% if gbv_form.seek_help_after_gbv.value != 1 %}hidden{% endif %}">
                 <div id="gbv_help_provider" class="form-group form-inline">
                     {{ gbv_form.gbv_help_provider.errors }}
                     <label class="control-label enrolment-label">From where did you seek help</label>

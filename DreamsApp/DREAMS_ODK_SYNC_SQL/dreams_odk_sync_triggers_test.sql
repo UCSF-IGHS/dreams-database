@@ -8,7 +8,7 @@ AFTER INSERT
 ON odk_aggregate.DREAMS_ENROLMENT_FORM_CORE2
 FOR EACH ROW
 BEGIN
-INSERT INTO dreams_production.odk_dreams_sync
+INSERT INTO dreams_test.odk_dreams_sync
 (
 uuid, form
 )
@@ -30,7 +30,7 @@ AFTER INSERT
 ON odk_aggregate.CT_HOME_VISIT_VERFICATION_FORM_CORE
 FOR EACH ROW
 BEGIN
-INSERT INTO dreams_production.odk_dreams_sync
+INSERT INTO dreams_test.odk_dreams_sync
 (
 uuid, form
 )

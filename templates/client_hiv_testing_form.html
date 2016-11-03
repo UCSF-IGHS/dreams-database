@@ -33,7 +33,7 @@
             <label class="control-label enrolment-label">{{ hiv_form.reason_not_in_hiv_care.label_tag }}</label>
             {{ hiv_form.reason_not_in_hiv_care|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group form-inline">
+        <div id="reason_not_in_hiv_care_other" class="form-group form-inline {% if hiv_form.last_test_result.value != 1 %}hidden{% endif %}">
             {{ hiv_form.reason_not_in_hiv_care_other.errors }}
             <label class="control-label enrolment-label">{{ hiv_form.reason_not_in_hiv_care_other.label_tag }}</label>
             {{ hiv_form.reason_not_in_hiv_care_other|add_class:"input-sm form-control enrolment-input" }}
