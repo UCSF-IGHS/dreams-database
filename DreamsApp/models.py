@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from datetime import datetime
 from django.utils import timezone
 
+
 class MaritalStatus(models.Model):
     code = models.CharField(verbose_name='Marital Status Code', max_length=10, null=False, blank=False)
     name = models.CharField(max_length=100, null=False)
@@ -247,7 +248,7 @@ class Intervention(models.Model):
                                              related_name='implementing_partner')
     voided = models.BigIntegerField(blank=True, null=True, default=False)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='voided_by')
-    date_voided = models.DateTimeField(auto_now=False, null=True, blank=True)
+    date_voided = models.DateTimeField(null=True, blank=True)
 
     def get_name_specified(self):
         return self.name_specified if self.name_specified else ''

@@ -110,13 +110,13 @@
             <div class="form-group form-inline">
                 {{ household_form.ever_missed_full_day_food_in_4wks.errors }}
                 <label class="control-label enrolment-label">{{ household_form.ever_missed_full_day_food_in_4wks.label_tag }}</label>
-                {{ household_form.ever_missed_full_day_food_in_4wks|add_class:"input-sm form-control enrolment-input"  }}
+                {{ household_form.ever_missed_full_day_food_in_4wks|set_data:"show_value:1"|set_data:"show_class:missed-food"|add_class:"input-sm form-control enrolment-input listen-to-change"  }}
             </div>
             <div class="form-group form-inline">
                 {% if household_form.ever_missed_full_day_food_in_4wks.value == 1 %}
-                    <span id="no_of_days_missed_food_in_4wks">
+                    <span id="no_of_days_missed_food_in_4wks" class="missed-food">
                 {% else %}
-                    <span id="no_of_days_missed_food_in_4wks" class="hidden">
+                    <span id="no_of_days_missed_food_in_4wks" class="missed-food hidden">
                 {% endif %}
 
                 {{ household_form.no_of_days_missed_food_in_4wks.errors }}
@@ -127,17 +127,26 @@
             <div class="form-group form-inline">
                 {{ household_form.has_disability.errors }}
                 <label class="control-label enrolment-label">{{ household_form.has_disability.label_tag }}</label>
-                {{ household_form.has_disability|add_class:"input-sm form-control enrolment-input"  }}
+                {{ household_form.has_disability|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:has-disability" }}
             </div>
-            <div class="form-group form-inline {% if household_form.has_disability.value != 1 %}hidden{% endif %}">
-                {{ household_form.disability_type.errors }}
-                <label class="control-label enrolment-label">{{ household_form.disability_type.label_tag }}</label>
-                {{ household_form.disability_type|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
-            <div class="form-group form-inline">
-                {{ household_form.disability_type_other.errors }}
-                <label class="control-label enrolment-label">{{ household_form.disability_type_other.label_tag }}</label>
-                {{ household_form.disability_type_other|add_class:"input-sm form-control enrolment-input"  }}
+            {% if household_form.has_disability.value == 1 %}
+                <div id="disability_type" class="has-disability">
+            {% else %}
+                <div id="disability_type" class="hidden has-disability">
+            {% endif %}
+                    <div class="form-group form-inline">
+
+                        {{ household_form.disability_type.errors }}
+                        <label class="control-label enrolment-label">{{ household_form.disability_type.label_tag }}</label>
+                        {{ household_form.disability_type|add_class:"input-sm form-control enrolment-input"  }}
+                    </div>
+                    <div class="form-group form-inline">
+                        {{ household_form.disability_type_other.errors }}
+                        <label class="control-label enrolment-label">{{ household_form.disability_type_other.label_tag }}</label>
+                        {{ household_form.disability_type_other|add_class:"input-sm form-control enrolment-input"  }}
+                    </div>
+
+
             </div>
             <div class="form-group form-inline">
                 {{ household_form.no_of_people_in_household.errors }}
@@ -149,57 +158,51 @@
                 <label class="control-label enrolment-label">{{ household_form.no_of_females.label_tag }}</label>
                 {{ household_form.no_of_females|add_class:"input-sm form-control enrolment-input"  }}
             </div>
-            <div class="form-group form-inline">
-                {{ household_form.no_of_males.errors }}
-                <label class="control-label enrolment-label">{{ household_form.no_of_males.label_tag }}</label>
-                {{ household_form.no_of_males|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
-            <div class="form-group form-inline">
-                {{ household_form.no_of_adults.errors }}
-                <label class="control-label enrolment-label">{{ household_form.no_of_adults.label_tag }}</label>
-                {{ household_form.no_of_adults|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
-            <div class="form-group form-inline">
-                {{ household_form.no_of_children.errors }}
-                <label class="control-label enrolment-label">{{ household_form.no_of_children.label_tag }}</label>
-                {{ household_form.no_of_children|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
-            <div class="form-group form-inline">
-                {{ household_form.ever_enrolled_in_ct_program.errors }}
-                <label class="control-label enrolment-label">{{ household_form.ever_enrolled_in_ct_program.label_tag }}</label>
-                {{ household_form.ever_enrolled_in_ct_program|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
+        <div class="form-group form-inline">
+            {{ household_form.no_of_males.errors }}
+            <label class="control-label enrolment-label">{{ household_form.no_of_males.label_tag }}</label>
+            {{ household_form.no_of_males|add_class:"input-sm form-control enrolment-input"  }}
+        </div>
+        <div class="form-group form-inline">
+            {{ household_form.no_of_adults.errors }}
+            <label class="control-label enrolment-label">{{ household_form.no_of_adults.label_tag }}</label>
+            {{ household_form.no_of_adults|add_class:"input-sm form-control enrolment-input"  }}
+        </div>
+        <div class="form-group form-inline">
+            {{ household_form.no_of_children.errors }}
+            <label class="control-label enrolment-label">{{ household_form.no_of_children.label_tag }}</label>
+            {{ household_form.no_of_children|add_class:"input-sm form-control enrolment-input"  }}
+        </div>
+        <div id="ever_enrolled_in_ct_program" class="form-group form-inline ">
+            {{ household_form.ever_enrolled_in_ct_program.errors }}
+            <label class="control-label enrolment-label">{{ household_form.ever_enrolled_in_ct_program.label_tag }}</label>
+            {{ household_form.ever_enrolled_in_ct_program|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:ct-enrollment"  }}
+        </div>
 
-            {% if household_form.ever_enrolled_in_ct_program.value == 1 %}
-                <div id="currently_in_ct_program" class="form-group form-inline">
-            {% else %}
-                <div id="currently_in_ct_program" class="form-group form-inline hidden ">
-            {% endif %}
+        {% if household_form.ever_enrolled_in_ct_program.value == 1 %}
+            <div id="currently_in_ct_program" class="form-group form-inline ct-enrollment">
+        {% else %}
+            <div id="currently_in_ct_program" class="form-group form-inline hidden ct-enrollment">
+        {% endif %}
 
-                {{ household_form.currently_in_ct_program.errors }}
-                <label class="control-label enrolment-label">{{ household_form.currently_in_ct_program.label_tag }}</label>
-                {{ household_form.currently_in_ct_program|add_class:"input-sm form-control enrolment-input"  }}
-                </div>
-            <div class="form-group form-inline">
-            {% if household_form.currently_in_ct_program.value == 1 %}
-                <span id="current_ct_program">
-            {% else %}
-                <span id="current_ct_program" class="hidden">
-            {% endif %}
-            {{ household_form.current_ct_program.errors }}
-            <label class="control-label enrolment-label">{{ household_form.current_ct_program.label_tag }}</label>
-            {{ household_form.current_ct_program|add_class:"input-sm form-control enrolment-input"  }}
-            </span>
+            {{ household_form.currently_in_ct_program.errors }}
+            <label class="control-label enrolment-label">{{ household_form.currently_in_ct_program.label_tag }}</label>
+            {{ household_form.currently_in_ct_program|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:current-ct-enrollment"  }}
             </div>
-            <div class="form-group">
-
-                {{ household_form.client.as_hidden }}
-            </div>
-            <div class="form-group form-inline">
-                 <label class="control-label enrolment-label"></label>
-                 <button type="submit" class="btn btn-sm btn-primary">Save</button>
-            </div>
-        </fieldset>
+        <div class="form-group form-inline">
+        {% if household_form.currently_in_ct_program.value == 1 %}
+            <span id="current_ct_program" class="current-ct-enrollment">
+        {% else %}
+            <span id="current_ct_program" class="hidden current-ct-enrollment">
+        {% endif %}
+        {{ household_form.current_ct_program.errors }}
+        <label class="control-label enrolment-label">{{ household_form.current_ct_program.label_tag }}</label>
+        {{ household_form.current_ct_program|add_class:"input-sm form-control enrolment-input "  }}
+        </span>
+        </div>
+        <div class="form-group">
+            {{ household_form.client.as_hidden }}
+        </div>
     </div>
     <!---->
 </form>
