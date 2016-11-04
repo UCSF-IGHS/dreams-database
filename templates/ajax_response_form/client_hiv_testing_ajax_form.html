@@ -1,6 +1,6 @@
 {% load widget_tweaks %}
 <div id="hiv_testing_replacement">
-    <fieldset>
+    <fieldset {% if not perms.DreamsApp.change_client %}disabled{% endif %}>
         <div class="form-group form-inline">
             {{ hiv_form.ever_tested_for_hiv.errors }}
             <label class="control-label enrolment-label">{{ hiv_form.ever_tested_for_hiv.label_tag }}</label>
@@ -53,6 +53,10 @@
         </div>
         <div class="form-group">
             {{ hiv_form.client.as_hidden }}
+        </div>
+        <div class="form-group form-inline">
+             <label class="control-label enrolment-label"></label>
+             <button type="submit" class="btn btn-sm btn-primary">Save</button>
         </div>
     </fieldset>
 </div>

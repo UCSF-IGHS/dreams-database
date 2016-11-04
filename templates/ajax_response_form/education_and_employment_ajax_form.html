@@ -1,6 +1,6 @@
  {% load widget_tweaks %}
- <div id="edu_replacement">
-        <fieldset id="edu_replacement">
+<div id="edu_replacement">
+        <fieldset id="fieldset_edu_replacement" {% if not perms.DreamsApp.change_client %}disabled{% endif %}>
             <div class="form-group form-inline">
                 {{ edu_form.currently_in_school.errors }}
                 <label class="control-label enrolment-label">{{ edu_form.currently_in_school.label_tag }}</label>
@@ -165,6 +165,10 @@
             </div>
             <div class="form-group">
                 {{ edu_form.client.as_hidden }}
+            </div>
+            <div class="form-group form-inline">
+                 <label class="control-label enrolment-label"></label>
+                 <button type="submit" class="btn btn-sm btn-primary">Save</button>
             </div>
         </fieldset>
     </div>

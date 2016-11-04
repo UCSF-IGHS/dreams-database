@@ -17,7 +17,7 @@
                 <div class="col-xs-12 col-sm-4">
                     <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }}</p>
                      <p><strong>Phone Number: </strong>
-                        <span>{{ client.phone_number }} {% if client.phone_number == None and client.guardian_phone_number != None and client.guardian_phone_number != '' %}(Guardian){{ client.guardian_phone_number }}{% endif %}</span>
+                        <span>{% if client.phone_number != None%}{{ client.phone_number }}{% endif %}{% if client.phone_number == None and client.guardian_phone_number != None and client.guardian_phone_number != '' %}(Guardian){{ client.guardian_phone_number }}{% endif %}</span>
                     </p>
                     <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
                 </div><!--/col-->
@@ -152,14 +152,16 @@
             $('#form_ind_household').on('submit', function (event) {
                 event.preventDefault();
 
+                if(!$(event.target).valid()) // Check if form is valid
+                    return false;
+
                 var form = $('#form_ind_household');
                 $.ajax({
                     type: "POST",
                     url: form.attr('action'),
                     data: $(this).serialize(),
                    success: function (data) {
-                        $('#household_replacement').replaceWith(data);
-
+                        //$('#household_replacement').replaceWith(data);
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                        .text('saved successfully')
                        .trigger('madeVisible')
@@ -179,14 +181,14 @@
             $('#form_edu_and_employment').on('submit', function (event) {
                 event.preventDefault();
 
+                if(!$(event.target).valid()) // Check if form is valid
+                    return false;
                 var form = $('#form_edu_and_employment');
                 $.ajax({
                     type: "POST",
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $("#edu_replacement").replaceWith(data);
-
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                        .text('saved successfully')
                        .trigger('madeVisible')
@@ -205,15 +207,14 @@
             //Handle HIV Testing tab
             $('#form_hiv_testing').on('submit', function (event) {
                 event.preventDefault();
-
+                if(!$(event.target).valid()) // Check if form is valid
+                    return false;
                 var form = $('#form_hiv_testing');
                 $.ajax({
                     type: "POST",
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $('#hiv_testing_replacement').replaceWith(data);
-
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                        .text('saved successfully')
                        .trigger('madeVisible')
@@ -233,14 +234,15 @@
             $('#form_sexuality').on('submit', function (event) {
                 event.preventDefault();
 
+                if(!$(event.target).valid()) // Check if form is valid
+                    return false;
+
                 var form = $('#form_sexuality');
                 $.ajax({
                     type: "POST",
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $("#sexuality_replacement").replaceWith(data);
-
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                        .text('saved successfully')
                        .trigger('madeVisible')
@@ -260,14 +262,15 @@
             $('#form_rep_health').on('submit', function (event) {
                 event.preventDefault();
 
+                if(!$(event.target).valid()) // Check if form is valid
+                    return false;
+
                 var form = $('#form_rep_health');
                 $.ajax({
                     type: "POST",
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $("#rh_replacement").replaceWith(data);
-
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                        .text('saved successfully')
                        .trigger('madeVisible')
@@ -287,14 +290,15 @@
             $('#form_gbv').on('submit', function (event) {
                 event.preventDefault();
 
+                if(!$(event.target).valid()) // Check if form is valid
+                    return false;
+
                 var form = $('#form_gbv');
                 $.ajax({
                     type: "POST",
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $('#gbv_replacement').replaceWith(data);
-
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                        .text('saved successfully')
                        .trigger('madeVisible')
@@ -314,14 +318,15 @@
             $('#form_drug_use').on('submit', function (event) {
                 event.preventDefault();
 
+                if(!$(event.target).valid()) // Check if form is valid
+                    return false;
+
                 var form = $('#form_drug_use');
                 $.ajax({
                     type: "POST",
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $('#drug_use_replacement').replaceWith(data);
-
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                        .text('saved successfully')
                        .trigger('madeVisible')

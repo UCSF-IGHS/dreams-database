@@ -2,7 +2,7 @@
 <form method="POST" class="post-form" id="form_gbv" action="/update-gbv/">
     {% csrf_token %}
     <div id="gbv_replacement">
-        <fieldset >
+        <fieldset {% if not perms.DreamsApp.change_client %}disabled{% endif %}>
             <label class="control-label enrolment-input-header-question">He said or did something to humiliate you in front of others</label>
             <div class="form-group form-inline">
                 {{ gbv_form.humiliated_ever.errors }}
@@ -137,6 +137,10 @@
             </div>
             <div class="form-group">
                 {{ gbv_form.client.as_hidden }}
+            </div>
+            <div class="form-group form-inline">
+                 <label class="control-label enrolment-label"></label>
+                 <button type="submit" class="btn btn-sm btn-primary">Save</button>
             </div>
         </fieldset>
     </div>
