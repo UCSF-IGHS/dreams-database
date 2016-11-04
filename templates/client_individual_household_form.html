@@ -2,7 +2,7 @@
 <form method="POST" class="post-form" id="form_ind_household" action="/update-individual-household/">
     {% csrf_token %}
     <div id="household_replacement">
-        <fieldset id="household_fieldset">
+        <fieldset id="household_fieldset" {% if not perms.DreamsApp.change_client %}disabled{% endif %}>
             <div class="form-group form-inline">
                 {{ household_form.head_of_household.errors }}
                 <label class="control-label enrolment-label">{{ household_form.head_of_household.label_tag }}</label>
@@ -204,5 +204,5 @@
             {{ household_form.client.as_hidden }}
         </div>
     </div>
-    <!--<button type="submit" class="btn btn-sm btn-primary">Save</button>-->
+    <!---->
 </form>

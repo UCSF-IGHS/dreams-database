@@ -447,7 +447,8 @@ def get_intervention_types(request):
 def save_intervention(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() \
-                and request.user.is_active and request.user.has_perm('auth.can_add_intervention'):
+                and request.user.is_active and request.user.has_perm('DreamsApp.add_intervention'):
+
             # check
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
@@ -480,7 +481,7 @@ def save_intervention(request):
                     # Update implementing Partner
                     intervention.implementing_partner = ImplementingPartner.objects. \
                         get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
-                    intervention.save(user_id=request.user.id, action="INSERT")
+                    intervention.save(user_id=request.user.id, action="INSERT") # Logging
                     # using defer() miraculously solved serialization problem of datetime properties.
                     intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created'). \
                         get(id__exact=intervention.id)
@@ -510,14 +511,14 @@ def save_intervention(request):
         else:
             response_data = {
                 'status': 'fail',
-                'message': "Permission Denied: You don't have permission to enter Intervention"
+                'message': "Permission Denied: You don't have permission to Add Intervention"
             }
             return JsonResponse(response_data)
     except Exception as e:
         # Return error with message
         response_data = {
             'status': 'fail',
-            'message': e.message
+            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
         }
         return JsonResponse(response_data)
 
@@ -543,8 +544,9 @@ def get_intervention_list(request):
 
             list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date',
                                                                'date_created').filter(client__exact=client_id,
-                                                                                      intervention_type__in=iv_type_ids).order_by(
-                '-intervention_date', '-date_created', '-date_changed')
+                                                                                      intervention_type__in=iv_type_ids,
+                                                                                      voided=False)\
+                .order_by('-intervention_date', '-date_created', '-date_changed')
             if not request.user.has_perm('auth.can_view_cross_ip_data'):
                 list_of_interventions = list_of_interventions.filter(
                     implementing_partner_id=request.user.implementingpartneruser.implementing_partner.id)
@@ -599,7 +601,7 @@ def get_intervention(request):
 def update_intervention(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and \
-                request.user.is_active and request.user.has_perm('auth.can_change_intervention'):
+                request.user.is_active and request.user.has_perm('DreamsApp.change_intervention'):
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_id = int(request.POST.get('intervention_id'))
@@ -631,7 +633,7 @@ def update_intervention(request):
                         if i_type.has_no_of_sessions:
                             intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
-                        intervention.save(user_id=request.user.id, action="UPDATE")
+                        intervention.save(user_id=request.user.id, action="UPDATE") # Logging
                         # using defer() miraculously solved serialization problem of datetime properties.
                         intervention = Intervention.objects.defer('date_changed', 'intervention_date',
                                                                   'date_created').get(id__exact=intervention.id)
@@ -645,7 +647,6 @@ def update_intervention(request):
                             'hts_results': serializers.serialize('json', HTSResult.objects.all()),
                             'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
                         }
-                        log_custom_actions(request.user.id, "DreamsApp_intervention", intervention.id, "UPDATE SERVICE UPTAKE", "")
                     else:
                         # Intervention does not belong to Implementing partner. Send back error message
                         raise Exception(
@@ -661,12 +662,13 @@ def update_intervention(request):
         else:
             response_data = {
                 'status': 'fail',
-                'message': "You don't Cannot edit interventions. Please contact system admin for help."
+                'message': "You Cannot edit interventions. Please contact System Administrator for help."
             }
+            return JsonResponse(response_data)
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message
+            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
         }
         return JsonResponse(response_data)
 
@@ -674,7 +676,7 @@ def update_intervention(request):
 def delete_intervention(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and \
-                request.user.is_active and request.user.has_perm('auth.can_delete_intervention'):
+                request.user.is_active and request.user.has_perm('DreamsApp.delete_intervention'):
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_id = int(request.POST.get('intervention_delete_id'))
@@ -683,7 +685,11 @@ def delete_intervention(request):
                     # Check if intervention belongs to IP
                     intervention = Intervention.objects.filter(pk=intervention_id).first()
                     if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
-                        intervention.delete()
+                        intervention.voided = True
+                        intervention.voided_by = request.user
+                        intervention.date_voided = datetime.datetime.now()
+                        intervention.save(user_id=request.user.id, action="UPDATE") # Updating logs
+                        #intervention.delete() # No deletion whatsoever
                         log_custom_actions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", None)
                         response_data = {
                             'status': 'success',
@@ -692,24 +698,36 @@ def delete_intervention(request):
                         }
                         return JsonResponse(response_data)
                     else:
-                        raise Exception(
-                            'You do not have the rights to delete this intervention because it was created by a '
-                            'different Implementing Partner'
-                        )
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'You do not have the rights to delete this intervention because it was created by a '
+                                'different Implementing Partner'
+                        }
+                        return JsonResponse(response_data)
                 else:
-                    raise Exception("Error: No intervention selected for deletion")
+                    response_data = {
+                        'status': 'fail',
+                        'message': "Error: No intervention selected for deletion"
+                    }
+                    return JsonResponse(response_data)
             else:
-                raise Exception("Error: You do not belong to an Implementing Partner. "
-                                "Please contact your system admin to add you to the relevant Implementing Partner.")
+                response_data = {
+                    'status': 'fail',
+                    'message': "Error: You do not belong to an Implementing Partner. "
+                                "Please contact your system admin to add you to the relevant Implementing Partner."
+                }
+                return JsonResponse(response_data)
         else:
             response_data = {
                 'status': 'fail',
                 'message': "You don't have permission to delete Intervention. Please contact System Administrator for help."
             }
+            return JsonResponse(response_data)
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message
+            'message': "An error occurred while processing request. "
+                       "Contact System Administrator if this error Persists."
         }
         return JsonResponse(response_data)
 
@@ -987,7 +1005,7 @@ def save_user(request):
                         response_data = {
                             'status': 'success',
                             'message': 'User registered but could not send login detais to provided email address. '
-                                        'Contact System Admin for help ' + e.message,
+                                        'Contact System Admin for help ',
                             'ip_users': serializers.serialize('json', [ip_user, ])
                         }
                         return JsonResponse(response_data)
@@ -1000,7 +1018,7 @@ def save_user(request):
         except Exception as e:
             response_data = {
                 'status': 'fail',
-                'message': e.message,
+                'message': "An error occurred while processing request. Contact System Administrator if this error Persists.",
                 'ip_users': ''
             }
             return JsonResponse(response_data)
@@ -1046,7 +1064,7 @@ def toggle_status(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message
+            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
         }
         return JsonResponse(response_data)
 
@@ -1168,7 +1186,7 @@ def grievances_list(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message
+            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
         }
         return JsonResponse(response_data)
 
@@ -1199,7 +1217,7 @@ def grievances_create(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message
+            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
         }
         return JsonResponse(response_data)
 
@@ -1242,7 +1260,7 @@ def grievances_edit(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message
+            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
         }
         return JsonResponse(response_data)
 
@@ -1272,7 +1290,7 @@ def grievances_delete(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message
+            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
         }
         return JsonResponse(response_data)
 
@@ -1299,7 +1317,7 @@ def grievances_get(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message
+            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
         }
         return JsonResponse(response_data)
 
@@ -1339,7 +1357,7 @@ def cash_transfer_details_save(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message
+            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
         }
         return JsonResponse(response_data)
 
@@ -1354,7 +1372,7 @@ def download_excel(request):
 
 
 def export_page(request):
-    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm('auth.can_export_raw_data'):
+    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm('DreamsApp.can_export_raw_data'):
 
         try:
 
@@ -1439,18 +1457,19 @@ def viewBaselineData(request):
                 if client_found is not None:
 
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
-                                                               'client': client_found,
-                                                               'user': request.user,
-                                                               'demo_form': demographics_form,
-                                                               'household_form': household_form,
-                                                                'edu_form': edu_and_emp_form,
-                                                                'sexuality_form': sexuality_form,
-                                                                'gbv_form': gbv_form,
-                                                                'hiv_form': hiv_form,
-                                                                'rh_form': reproductive_health_form,
-                                                                'drug_use_form': drug_use_form,
-                                                                'programe_participation_form': participation_form,
-                                                                 'search_client_term': search_client_term
+                                                                         'page_title': 'DREAMS Enrollment Data',
+                                                                         'client': client_found,
+                                                                       'user': request.user,
+                                                                       'demo_form': demographics_form,
+                                                                       'household_form': household_form,
+                                                                        'edu_form': edu_and_emp_form,
+                                                                        'sexuality_form': sexuality_form,
+                                                                        'gbv_form': gbv_form,
+                                                                        'hiv_form': hiv_form,
+                                                                        'rh_form': reproductive_health_form,
+                                                                        'drug_use_form': drug_use_form,
+                                                                        'programe_participation_form': participation_form,
+                                                                         'search_client_term': search_client_term
                                                                })
             except Client.DoesNotExist:
                 traceback.format_exc()

@@ -1812,7 +1812,7 @@ $(document).ready(function () {
             implementing_partner: { 
                 required: true 
             }, 
-            first_name: { 
+            age_of_household_head: { 
                 minTwoNames: true 
             }, 
             middle_name: { 
@@ -1879,6 +1879,345 @@ $(document).ready(function () {
 
     });
 
+    /* Individual household information validation
+
+     */
+    $("#form_ind_household").validate({
+        rules: { 
+            head_of_household: { 
+                required: true 
+            }, 
+            age_of_household_head: { 
+                number:true,
+                required: true 
+            }, 
+            is_father_alive: { 
+                required: true
+            }, 
+            is_mother_alive: { 
+                required: true
+            }, 
+            is_parent_chronically_ill: { 
+                required: true 
+            }, 
+            main_floor_material: { 
+                required: true 
+            }, 
+            main_roof_material: { 
+                required: true 
+            }, 
+            main_wall_material: { 
+                required: true 
+            }, 
+            source_of_drinking_water: { 
+                required: true 
+            },
+            ever_missed_full_day_food_in_4wks: { 
+                required: true 
+            }, 
+            has_disability: { 
+                required: true 
+            }, 
+            no_of_people_in_household: { 
+                required: true ,
+                number: true
+            }, 
+            no_of_females: { 
+                required: true ,
+                number: true
+            }, 
+            no_of_males: { 
+                required: true ,
+                number: true
+            }, 
+            no_of_adults: { 
+                required: true ,
+                number:true
+            }, 
+            no_of_children: { 
+                required: true ,
+                number:true
+            }, 
+            ever_enrolled_in_ct_program: { 
+                required: true 
+            }
+        },
+        messages: { 
+            head_of_household: { 
+                required: " * Please Select Head of Household" 
+            }, 
+            age_of_household_head: { 
+                required:  " * Please enter the age of Head of Household" ,
+                number: " Enter valid age e.g 45"
+            }, 
+            is_father_alive: { 
+                required:  " * Required field" 
+            }, 
+            is_mother_alive: { 
+                required:  " * Required field" 
+            }, 
+            is_parent_chronically_ill: { 
+                required:  " * Required field" 
+            }, 
+            main_floor_material: { 
+                required:  " * Required field" 
+            }, 
+            main_roof_material: { 
+                required:  " * Required field" 
+            }, 
+            main_wall_material: { 
+                required:  " * Required field" 
+            } , 
+            source_of_drinking_water: { 
+                required:  " * Required field" 
+            } ,
+            ever_missed_full_day_food_in_4wks: { 
+                required:  " * Required field"  
+            }, 
+            has_disability: { 
+                required:  " * Required field" 
+            }, 
+            no_of_people_in_household: { 
+                required:  " * Required field" ,
+                number: " Enter valid number e.g 5"
+            }, 
+            no_of_females: { 
+                required:  " * Required field" ,
+                number: " Enter valid number e.g 5"
+            }, 
+            no_of_males: { 
+                required:  " * Required field" ,
+                number: " Enter valid number e.g 5"
+            }, 
+            no_of_adults: { 
+                required:  " * Required field" ,
+                number: " Enter valid number e.g 5"
+            } , 
+            no_of_children: { 
+                required:  " * Required field" ,
+                number: " Enter valid number e.g 5"
+            } ,
+            ever_enrolled_in_ct_program: { 
+                required:  " * Required field" 
+            } 
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_ind_household .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_ind_household').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+    /* Education and Employment validation
+
+     */
+    $("#form_edu_and_employment").validate({
+        rules: { 
+            currently_in_school: { 
+                required: true 
+            }, 
+            has_savings: { 
+                required: true 
+            }
+        },
+        messages: { 
+            currently_in_school: { 
+                required: " * Please Select Head of Household" 
+            }, 
+            has_savings: { 
+                required:  " * Required field" 
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_edu_and_employment .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_edu_and_employment').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+
+    /* HIV Testing validation
+
+     */
+    $("#form_hiv_testing").validate({
+        rules: { 
+            ever_tested_for_hiv: { 
+                required: true 
+            }
+        },
+        messages: { 
+            ever_tested_for_hiv: { 
+                required: " * Required field" 
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_hiv_testing .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_hiv_testing').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+    /* Sexual activity validation
+
+     */
+    $("#form_sexuality").validate({
+        rules: { 
+            ever_had_sex: { 
+                required: true 
+            }
+        },
+        messages: { 
+            ever_had_sex: { 
+                required: " * Required field" 
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_sexuality .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_sexuality').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+
+    /* Reproductive health validation
+
+     */
+    $("#form_rep_health").validate({
+        rules: { 
+            fp_methods_awareness: { 
+                required: true 
+            }
+        },
+        messages: { 
+            fp_methods_awareness: { 
+                required: " * Required field" 
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_rep_health .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_rep_health').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+
+    /* GBV validation
+
+     */
+    $("#form_gbv").validate({
+        rules: { 
+            humiliated_ever: { 
+                required: true 
+            }, 
+            threats_to_hurt_ever: { 
+                required: true 
+            }, 
+            insulted_ever: { 
+                required: true
+            }, 
+            economic_threat_ever: { 
+                required: true
+            }, 
+            physical_violence_ever: { 
+                required: true 
+            }, 
+            physically_forced_sex_ever: { 
+                required: true 
+            }, 
+            physically_forced_other_sex_acts_ever: { 
+                required: true 
+            }, 
+            threatened_for_sexual_acts_ever: { 
+                required: true 
+            }
+        },
+        messages: { 
+            humiliated_ever: { 
+                required: " * Required field" 
+            }, 
+            threats_to_hurt_ever: { 
+                required:  " * Required field" 
+            }, 
+            insulted_ever: { 
+                required:  " * Required field" 
+            }, 
+            economic_threat_ever: { 
+                required:  " * Required field" 
+            }, 
+            physical_violence_ever: { 
+                required:  " * Required field" 
+            }, 
+            physically_forced_sex_ever: { 
+                required:  " * Required field" 
+            }, 
+            physically_forced_other_sex_acts_ever: { 
+                required:  " * Required field" 
+            }, 
+            threatened_for_sexual_acts_ever: { 
+                required:  " * Required field" 
+            } 
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_gbv .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_gbv').find('.error').removeClass('text-danger')
+         }
+
+    });
+    
+    
+    /* Drug Use validation
+
+     */
+    $("#form_drug_use").validate({
+        rules: { 
+            used_alcohol_last_12months: { 
+                required: true 
+            }, 
+            drug_abuse_last_12months: { 
+                required: true 
+            }, 
+            produced_alcohol_last_12months: { 
+                required: true
+            }
+        },
+        messages: { 
+            used_alcohol_last_12months: { 
+                required: " * Required field" 
+            }, 
+            drug_abuse_last_12months: { 
+                required:  " * Required field" 
+            }, 
+            produced_alcohol_last_12months: { 
+                required:  " * Required field" 
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_drug_use .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_drug_use').find('.error').removeClass('text-danger')
+         }
+
+    });
 });
 
 

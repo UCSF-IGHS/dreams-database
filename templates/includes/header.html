@@ -41,9 +41,11 @@
                 {% if user.is_authenticated %}
                     <li class="dropdown {% if page == 'export' %}active{% endif %}" >
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
-                      <ul class="dropdown-menu">
-                          <li><a href="/export-page" class="text-danger">Raw Export</a></li>
-                      </ul>
+                      {% if perms.DreamsApp.can_export_raw_data %}<ul class="dropdown-menu">
+                          <ul>
+                              <li><a href="/export-page" class="text-danger">Raw Export</a></li>
+                          </ul>
+                      {% endif %}
                     </li>
                 {% endif %}
                 <li class="{% if page == 'help' %}active{% endif %} hidden" ><a href="/help" onclick="return false;">Help</a></li>
