@@ -247,7 +247,7 @@ class Intervention(models.Model):
                                              related_name='implementing_partner')
     voided = models.BigIntegerField(blank=True, null=True, default=False)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='voided_by')
-    date_voided = models.DateTimeField(auto_now=True, null=True, blank=True)
+    date_voided = models.DateTimeField(auto_now=False, null=True, blank=True)
 
     def get_name_specified(self):
         return self.name_specified if self.name_specified else ''

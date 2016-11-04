@@ -2,7 +2,7 @@
 <form method="POST" class="post-form" id="form_sexuality" action="/update-sexuality/">
     {% csrf_token %}
 <div id="sexuality_replacement">
- <fieldset id="fs_sexuality_replacement" disabled>
+ <fieldset id="fs_sexuality_replacement" {% if not perms.DreamsApp.change_client %}disabled{% endif %}>
      <div class="form-group form-inline">
         {{ sexuality_form.ever_had_sex.errors }}
         <label class="control-label enrolment-label">{{ sexuality_form.ever_had_sex.label_tag }}</label>
@@ -96,6 +96,10 @@
     </div>
     <div class="form-group">
         {{ sexuality_form.client.as_hidden }}
+    </div>
+    <div class="form-group form-inline">
+         <label class="control-label enrolment-label"></label>
+         <button type="submit" class="btn btn-sm btn-primary">Save</button>
     </div>
  </fieldset>
 </div>

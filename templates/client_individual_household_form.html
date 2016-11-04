@@ -2,7 +2,7 @@
 <form method="POST" class="post-form" id="form_ind_household" action="/update-individual-household/">
     {% csrf_token %}
     <div id="household_replacement">
-        <fieldset id="household_fieldset" disabled>
+        <fieldset id="household_fieldset" {% if not perms.DreamsApp.change_client %}disabled{% endif %}>
             <div class="form-group form-inline">
                 {{ household_form.head_of_household.errors }}
                 <label class="control-label enrolment-label">{{ household_form.head_of_household.label_tag }}</label>
@@ -149,51 +149,57 @@
                 <label class="control-label enrolment-label">{{ household_form.no_of_females.label_tag }}</label>
                 {{ household_form.no_of_females|add_class:"input-sm form-control enrolment-input"  }}
             </div>
-        <div class="form-group form-inline">
-            {{ household_form.no_of_males.errors }}
-            <label class="control-label enrolment-label">{{ household_form.no_of_males.label_tag }}</label>
-            {{ household_form.no_of_males|add_class:"input-sm form-control enrolment-input"  }}
-        </div>
-        <div class="form-group form-inline">
-            {{ household_form.no_of_adults.errors }}
-            <label class="control-label enrolment-label">{{ household_form.no_of_adults.label_tag }}</label>
-            {{ household_form.no_of_adults|add_class:"input-sm form-control enrolment-input"  }}
-        </div>
-        <div class="form-group form-inline">
-            {{ household_form.no_of_children.errors }}
-            <label class="control-label enrolment-label">{{ household_form.no_of_children.label_tag }}</label>
-            {{ household_form.no_of_children|add_class:"input-sm form-control enrolment-input"  }}
-        </div>
-        <div class="form-group form-inline">
-            {{ household_form.ever_enrolled_in_ct_program.errors }}
-            <label class="control-label enrolment-label">{{ household_form.ever_enrolled_in_ct_program.label_tag }}</label>
-            {{ household_form.ever_enrolled_in_ct_program|add_class:"input-sm form-control enrolment-input"  }}
-        </div>
-
-        {% if household_form.ever_enrolled_in_ct_program.value == 1 %}
-            <div id="currently_in_ct_program" class="form-group form-inline">
-        {% else %}
-            <div id="currently_in_ct_program" class="form-group form-inline hidden ">
-        {% endif %}
-
-            {{ household_form.currently_in_ct_program.errors }}
-            <label class="control-label enrolment-label">{{ household_form.currently_in_ct_program.label_tag }}</label>
-            {{ household_form.currently_in_ct_program|add_class:"input-sm form-control enrolment-input"  }}
+            <div class="form-group form-inline">
+                {{ household_form.no_of_males.errors }}
+                <label class="control-label enrolment-label">{{ household_form.no_of_males.label_tag }}</label>
+                {{ household_form.no_of_males|add_class:"input-sm form-control enrolment-input"  }}
             </div>
-        <div class="form-group form-inline">
-        {% if household_form.currently_in_ct_program.value == 1 %}
-            <span id="current_ct_program">
-        {% else %}
-            <span id="current_ct_program" class="hidden">
-        {% endif %}
-        {{ household_form.current_ct_program.errors }}
-        <label class="control-label enrolment-label">{{ household_form.current_ct_program.label_tag }}</label>
-        {{ household_form.current_ct_program|add_class:"input-sm form-control enrolment-input"  }}
-        </span>
-        </div>
-        <div class="form-group">
-            {{ household_form.client.as_hidden }}
-        </div>
+            <div class="form-group form-inline">
+                {{ household_form.no_of_adults.errors }}
+                <label class="control-label enrolment-label">{{ household_form.no_of_adults.label_tag }}</label>
+                {{ household_form.no_of_adults|add_class:"input-sm form-control enrolment-input"  }}
+            </div>
+            <div class="form-group form-inline">
+                {{ household_form.no_of_children.errors }}
+                <label class="control-label enrolment-label">{{ household_form.no_of_children.label_tag }}</label>
+                {{ household_form.no_of_children|add_class:"input-sm form-control enrolment-input"  }}
+            </div>
+            <div class="form-group form-inline">
+                {{ household_form.ever_enrolled_in_ct_program.errors }}
+                <label class="control-label enrolment-label">{{ household_form.ever_enrolled_in_ct_program.label_tag }}</label>
+                {{ household_form.ever_enrolled_in_ct_program|add_class:"input-sm form-control enrolment-input"  }}
+            </div>
+
+            {% if household_form.ever_enrolled_in_ct_program.value == 1 %}
+                <div id="currently_in_ct_program" class="form-group form-inline">
+            {% else %}
+                <div id="currently_in_ct_program" class="form-group form-inline hidden ">
+            {% endif %}
+
+                {{ household_form.currently_in_ct_program.errors }}
+                <label class="control-label enrolment-label">{{ household_form.currently_in_ct_program.label_tag }}</label>
+                {{ household_form.currently_in_ct_program|add_class:"input-sm form-control enrolment-input"  }}
+                </div>
+            <div class="form-group form-inline">
+            {% if household_form.currently_in_ct_program.value == 1 %}
+                <span id="current_ct_program">
+            {% else %}
+                <span id="current_ct_program" class="hidden">
+            {% endif %}
+            {{ household_form.current_ct_program.errors }}
+            <label class="control-label enrolment-label">{{ household_form.current_ct_program.label_tag }}</label>
+            {{ household_form.current_ct_program|add_class:"input-sm form-control enrolment-input"  }}
+            </span>
+            </div>
+            <div class="form-group">
+
+                {{ household_form.client.as_hidden }}
+            </div>
+            <div class="form-group form-inline">
+                 <label class="control-label enrolment-label"></label>
+                 <button type="submit" class="btn btn-sm btn-primary">Save</button>
+            </div>
+        </fieldset>
     </div>
-    <!--<button type="submit" class="btn btn-sm btn-primary">Save</button>-->
+    <!---->
 </form>

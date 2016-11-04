@@ -2,7 +2,7 @@
 <form method="POST" class="post-form" id="form_rep_health" action="/update-reproductive-health/">
     {% csrf_token %}
     <div id="rh_replacement">
-        <fieldset disabled>
+        <fieldset {% if not perms.DreamsApp.change_client %}disabled{% endif %}>
             <div class="form-group form-inline">
                 {{ rh_form.has_biological_children.errors }}
                 <label class="control-label enrolment-label">{{ rh_form.has_biological_children.label_tag }}</label>
@@ -72,6 +72,10 @@
                 </div>
             <div class="form-group">
                 {{ rh_form.client.as_hidden }}
+            </div>
+            <div class="form-group form-inline">
+                 <label class="control-label enrolment-label"></label>
+                 <button type="submit" class="btn btn-sm btn-primary">Save</button>
             </div>
         </fieldset>
     </div>
