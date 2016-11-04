@@ -2,53 +2,53 @@
 <form method="POST" class="post-form" id="form_hiv_testing" action="/update-hiv-testing/">
     {% csrf_token %}
 <div id="hiv_testing_replacement">
-    <fieldset disabled>
+    <fieldset>
         <div class="form-group form-inline">
             {{ hiv_form.ever_tested_for_hiv.errors }}
             <label class="control-label enrolment-label">{{ hiv_form.ever_tested_for_hiv.label_tag }}</label>
-            {{ hiv_form.ever_tested_for_hiv|add_class:"input-sm form-control enrolment-input" }}
+            {{ hiv_form.ever_tested_for_hiv|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:ever-tested"|set_data:"hide_class:ever-tested-no"|set_data:"hide_on_show:never-tested" }}
         </div>
-        <div id="period_last_tested" class="form-group form-inline {% if hiv_form.ever_tested_for_hiv.value != 1 %}hidden{% endif %}">
+        <div id="period_last_tested" class="form-group ever-tested form-inline {% if hiv_form.ever_tested_for_hiv.value != 1 %}hidden{% endif %}">
             {{ hiv_form.period_last_tested.errors }}
             <label class="control-label enrolment-label">{{ hiv_form.period_last_tested.label_tag }}</label>
-            {{ hiv_form.period_last_tested|add_class:"input-sm form-control enrolment-input" }}
+            {{ hiv_form.period_last_tested|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:any"|set_data:"show_class:recent-test" }}
         </div>
-        <div id="last_test_result" class="form-group form-inline {% if hiv_form.ever_tested_for_hiv.value != 1 %}hidden{% endif %}">
+        <div id="last_test_result" class="form-group ever-tested-no recent-test form-inline {% if hiv_form.ever_tested_for_hiv.value != 1 %}hidden{% endif %}">
             {{ hiv_form.last_test_result.errors }}
             <label class="control-label enrolment-label">{{ hiv_form.last_test_result.label_tag }}</label>
-            {{ hiv_form.last_test_result|add_class:"input-sm form-control enrolment-input" }}
+            {{ hiv_form.last_test_result|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:positive"|set_data:"hide_class:positive enrolled not-in-care not-in-care-other" }}
         </div>
-        <div id="enrolled_in_hiv_care" class="form form-inline-group {% if hiv_form.last_test_result.value != 1 %} hidden{% endif %}">
+        <div id="enrolled_in_hiv_care" class="form-group ever-tested-no positive form-inline {% if hiv_form.last_test_result.value != 1 %} hidden{% endif %}">
             {{ hiv_form.enrolled_in_hiv_care.errors }}
             <label class="control-label enrolment-label">{{ hiv_form.enrolled_in_hiv_care.label_tag }}</label>
-            {{ hiv_form.enrolled_in_hiv_care|add_class:"input-sm form-control enrolment-input" }}
+            {{ hiv_form.enrolled_in_hiv_care|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:enrolled"|set_data:"hide_on_show:not-in-care" }}
         </div>
-        <div id="care_facility_enrolled" class="form-group form-inline {% if hiv_form.enrolled_in_hiv_care.value != 1 %}hidden{% endif %}">
+        <div id="care_facility_enrolled" class="form-group ever-tested-no enrolled form-inline {% if hiv_form.enrolled_in_hiv_care.value != 1 %}hidden{% endif %}">
             {{ hiv_form.care_facility_enrolled.errors }}
             <label class="control-label enrolment-label">{{ hiv_form.care_facility_enrolled.label_tag }}</label>
             {{ hiv_form.care_facility_enrolled|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div id="reason_not_in_hiv_care" class="form-group form-inline {% if hiv_form.enrolled_in_hiv_care.value != 2 %} hidden{% endif %}">
+        <div id="reason_not_in_hiv_care" class="form-group ever-tested-no not-in-care form-inline {% if hiv_form.enrolled_in_hiv_care.value != 2 %} hidden{% endif %}">
             {{ hiv_form.reason_not_in_hiv_care.errors }}
             <label class="control-label enrolment-label">{{ hiv_form.reason_not_in_hiv_care.label_tag }}</label>
-            {{ hiv_form.reason_not_in_hiv_care|add_class:"input-sm form-control enrolment-input" }}
+            {{ hiv_form.reason_not_in_hiv_care|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_class:not-in-care-other" }}
         </div>
-        <div id="reason_not_in_hiv_care_other" class="form-group form-inline {% if hiv_form.last_test_result.value != 1 %}hidden{% endif %}">
+        <div id="reason_not_in_hiv_care_other" class="form-group ever-tested-no not-in-care-other form-inline {% if hiv_form.last_test_result.value != 1 %}hidden{% endif %}">
             {{ hiv_form.reason_not_in_hiv_care_other.errors }}
             <label class="control-label enrolment-label">{{ hiv_form.reason_not_in_hiv_care_other.label_tag }}</label>
             {{ hiv_form.reason_not_in_hiv_care_other|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div id="reason_never_tested_for_hiv" class="form-group form-inline {% if hiv_form.ever_tested_for_hiv.value != 2 %}hidden{% endif %}">
+        <div id="reason_never_tested_for_hiv" class="form-group ever-tested-no never-tested form-inline {% if hiv_form.ever_tested_for_hiv.value != 2 %}hidden{% endif %}">
             {{ hiv_form.reason_never_tested_for_hiv.errors }}
             <label class="control-label enrolment-label">{{ hiv_form.reason_never_tested_for_hiv.label_tag }}</label>
-            {{ hiv_form.reason_never_tested_for_hiv|add_class:"input-sm form-control enrolment-input" }}
+            {{ hiv_form.reason_never_tested_for_hiv|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_class:reason-not-tested-other" }}
         </div>
-        <div id="reason_never_tested_for_hiv_other" class="form-group form-inline {% if hiv_form.reason_never_tested_for_hiv.value != 96 %}hidden{% endif %}">
+        <div id="reason_never_tested_for_hiv_other" class="form-group ever-tested-no  reason-not-tested-other form-inline {% if hiv_form.reason_never_tested_for_hiv.value != 96 %}hidden{% endif %}">
             {{ hiv_form.reason_never_tested_for_hiv_other.errors }}
             <label class="control-label enrolment-label">{{ hiv_form.reason_never_tested_for_hiv_other.label_tag }}</label>
             {{ hiv_form.reason_never_tested_for_hiv_other|add_class:"input-sm form-control enrolment-input" }}
         </div>
-        <div class="form-group form-inline">
+        <div class="form-group form-inline never-tested ever-tested-no {% if hiv_form.ever_tested_for_hiv.value != 2 %}hidden{% endif %}">
             {{ hiv_form.knowledge_of_hiv_test_centres.errors }}
             <label class="control-label enrolment-label">{{ hiv_form.knowledge_of_hiv_test_centres.label_tag }}</label>
             {{ hiv_form.knowledge_of_hiv_test_centres|add_class:"input-sm form-control enrolment-input" }}

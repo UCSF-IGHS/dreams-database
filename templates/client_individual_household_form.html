@@ -176,7 +176,7 @@
         <div id="ever_enrolled_in_ct_program" class="form-group form-inline ">
             {{ household_form.ever_enrolled_in_ct_program.errors }}
             <label class="control-label enrolment-label">{{ household_form.ever_enrolled_in_ct_program.label_tag }}</label>
-            {{ household_form.ever_enrolled_in_ct_program|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:ct-enrollment"  }}
+            {{ household_form.ever_enrolled_in_ct_program|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:ct-enrollment"|set_data:"hide_class:current-ct-enrollment"  }}
         </div>
 
         {% if household_form.ever_enrolled_in_ct_program.value == 1 %}
