@@ -352,8 +352,6 @@
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $("#program_replacement").replaceWith(data);
-
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                        .text('saved successfully')
                        .trigger('madeVisible')
