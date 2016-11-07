@@ -1,4 +1,6 @@
 {% load widget_tweaks %}
+{% load in_list_filter %}
+
 <form method="POST" class="post-form" id="form_programme_participation" action="/update-programme-participation/">
     {% csrf_token %}
     <div id="program_replacement" >
@@ -6,9 +8,9 @@
             <div class="form-group form-inline">
                 {{ programe_participation_form.dreams_program.errors }}
                 <label class="control-label enrolment-label">Which HIV Prevention Programmes have you participated in</label>
-                {{ programe_participation_form.dreams_program|add_class:"input-sm form-control enrolment-input"  }}
+                {{ programe_participation_form.dreams_program|add_class:"input-sm form-control enrolment-input multi-select"|set_data:"show_value:96"|set_data:"show_if_true:other-program"   }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group other-program form-inline {% if not 96|in_list:programe_participation_form.dreams_program.value %} hidden {% endif %}">
                 {{ programe_participation_form.dreams_program_other.errors }}
                 <label class="control-label enrolment-label">Other</label>
                 {{ programe_participation_form.dreams_program_other|add_class:"input-sm form-control enrolment-input"  }}
@@ -18,5 +20,5 @@
             </div>
         </fieldset>
     </div>
-    <!--<button type="submit" class="btn btn-sm btn-primary">Save</button>-->
+    <button type="submit" class="btn btn-sm btn-primary">Save</button>
 </form>

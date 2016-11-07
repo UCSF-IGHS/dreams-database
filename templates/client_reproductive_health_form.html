@@ -6,9 +6,9 @@
             <div class="form-group form-inline">
                 {{ rh_form.has_biological_children.errors }}
                 <label class="control-label enrolment-label">{{ rh_form.has_biological_children.label_tag }}</label>
-                {{ rh_form.has_biological_children|add_class:"input-sm form-control enrolment-input"  }}
+                {{ rh_form.has_biological_children|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:no-of-children"  }}
             </div>
-            <div class="form-group form-inline {% if rh_form.has_biological_children.value < 1 %}hidden{% endif %}">
+            <div class="form-group form-inline no-of-children {% if not rh_form.no_of_biological_children.value %}hidden{% endif %}">
                 {{ rh_form.no_of_biological_children.errors }}
                 <label class="control-label enrolment-label">No of Children</label>
                 {{ rh_form.no_of_biological_children|add_class:"input-sm form-control enrolment-input"  }}
@@ -16,60 +16,68 @@
             <div class="form-group form-inline">
                 {{ rh_form.currently_pregnant.errors }}
                 <label class="control-label enrolment-label">{{ rh_form.currently_pregnant.label_tag }}</label>
-                {{ rh_form.currently_pregnant|add_class:"input-sm form-control enrolment-input"  }}
+                {{ rh_form.currently_pregnant|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:client-pregnant"|set_data:"hide_if_false:anc-facility" }}
             </div>
-            <div class="{% if rh_form.currently_pregnant.value != 1 %}hidden{% endif %}">
-                <div id="current_anc_enrollment" class="form-group form-inline">
-                    {{ rh_form.current_anc_enrollment.errors }}
-                    <label class="control-label enrolment-label">{{ rh_form.current_anc_enrollment.label_tag }}</label>
-                    {{ rh_form.current_anc_enrollment|add_class:"input-sm form-control enrolment-input"  }}<br/>
-                </div>
-                <div class="form-group form-inline {% if rh_form.current_anc_enrollment.value != 1 %}hidden{% endif %}">
-                    {{ rh_form.anc_facility_name.errors }}
-                    <label class="control-label enrolment-label">Facility Enrolled</label>
-                    {{ rh_form.anc_facility_name|add_class:"input-sm form-control enrolment-input"  }}
-                </div>
+
+            <div id="current_anc_enrollment" class="form-group client-pregnant form-inline {% if rh_form.currently_pregnant.value != 1 %}hidden{% endif %}">
+                {{ rh_form.current_anc_enrollment.errors }}
+                <label class="control-label enrolment-label">{{ rh_form.current_anc_enrollment.label_tag }}</label>
+                {{ rh_form.current_anc_enrollment|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:anc-facility"  }}<br/>
             </div>
+            <div class="form-group anc-facility form-inline {% if not rh_form.anc_facility_name.value %}hidden{% endif %}">
+                {{ rh_form.anc_facility_name.errors }}
+                <label class="control-label enrolment-label">Facility Enrolled</label>
+                {{ rh_form.anc_facility_name|add_class:"input-sm form-control enrolment-input"  }}
+            </div>
+
             <div class="form-group form-inline">
                 {{ rh_form.fp_methods_awareness.errors }}
                 <label class="control-label enrolment-label">{{ rh_form.fp_methods_awareness.label_tag }}</label>
-                {{ rh_form.fp_methods_awareness|add_class:"input-sm form-control enrolment-input"  }}
+                {{ rh_form.fp_methods_awareness|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:known-fp-methods"|set_data:"hide_if_false:know-fp"  }}
             </div>
-            <div id="known_fp_method" class="form-group form-inline">
-                {{ rh_form.known_fp_method.errors }}
-                <label class="control-label enrolment-label">{{ rh_form.known_fp_method.label_tag }}</label>
-                {{ rh_form.known_fp_method|add_class:"input-sm form-control enrolment-input"  }}
+
+            <div class="known-fp-methods know-fp {% if rh_form.fp_methods_awareness.value != 1 %} hidden {% endif %}">
+                <div id="known_fp_method" class="form-group form-inline known-fp-methods know-fp">
+                    {{ rh_form.known_fp_method.errors }}
+                    <label class="control-label enrolment-label">{{ rh_form.known_fp_method.label_tag }}</label>
+                    {{ rh_form.known_fp_method|add_class:"input-sm form-control enrolment-input multi-select"|set_data:"show_value:96"|set_data:"show_if_true:known-fp-method-other" }}
+                </div>
+                <div class="form-group form-inline know-fp known-fp-method-other {% if not rh_form.known_fp_method_other.value %} hidden {% endif %}">
+                    {{ rh_form.known_fp_method_other.errors }}
+                    <label class="control-label enrolment-label">Other</label>
+                    {{ rh_form.known_fp_method_other|add_class:"input-sm form-control enrolment-input"  }}
+                </div>
             </div>
-            <div class="form-group form-inline">
-                {{ rh_form.known_fp_method_other.errors }}
-                <label class="control-label enrolment-label">Other</label>
-                {{ rh_form.known_fp_method_other|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline known-fp-methods know-fp ">
                 {{ rh_form.currently_use_modern_fp.errors }}
                 <label class="control-label enrolment-label">{{ rh_form.currently_use_modern_fp.label_tag }}</label>
-                {{ rh_form.currently_use_modern_fp|add_class:"input-sm form-control enrolment-input"  }}
+                {{ rh_form.currently_use_modern_fp|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:client-current-fp"|set_data:"hide_if_true:reason-not-using-fp"  }}
             </div>
-            <div id="current_fp_method" class="form-group form-inline">
-                {{ rh_form.current_fp_method.errors }}
-                <label class="control-label enrolment-label">{{ rh_form.current_fp_method.label_tag }}</label>
-                {{ rh_form.current_fp_method|add_class:"input-sm form-control enrolment-input"  }}
+            <div class="client-current-fp know-fp {% if not rh_form.current_fp_method.value %} hidden {% endif %}">
+                <div id="current_fp_method" class="form-group form-inline">
+                    {{ rh_form.current_fp_method.errors }}
+                    <label class="control-label enrolment-label">{{ rh_form.current_fp_method.label_tag }}</label>
+                    {{ rh_form.current_fp_method|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:client-current-fp-other"  }}
+                </div>
+                <div class="form-group client-current-fp-other form-inline know-fp {% if rh_form.fp_methods_awareness.value != 1 %} hidden {% endif %}">
+                    {{ rh_form.current_fp_method_other.errors }}
+                    <label class="control-label enrolment-label">Other</label>
+                    {{ rh_form.current_fp_method_other|add_class:"input-sm form-control enrolment-input"  }}
+                </div>
             </div>
-            <div class="form-group form-inline">
-                {{ rh_form.current_fp_method_other.errors }}
-                <label class="control-label enrolment-label">Other</label>
-                {{ rh_form.current_fp_method_other|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
+            <div class="reason-not-using-fp know-fp {% if rh_form.fp_methods_awareness.value != 1 %} hidden {% endif %}">
             <div id="reason_not_using_fp" class="form-group form-inline">
                 {{ rh_form.reason_not_using_fp.errors }}
                 <label class="control-label enrolment-label">{{ rh_form.reason_not_using_fp.label_tag }}</label>
-                {{ rh_form.reason_not_using_fp|add_class:"input-sm form-control enrolment-input"  }}
+                {{ rh_form.reason_not_using_fp|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:reason-not-using-fp-other"  }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline reason-not-using-fp-other {% if not rh_form.reason_not_using_fp_other.value %} hidden {% endif %}  ">
                 {{ rh_form.reason_not_using_fp_other.errors }}
                 <label class="control-label enrolment-label">Other</label>
                 {{ rh_form.reason_not_using_fp_other|add_class:"input-sm form-control enrolment-input"  }}
-                </div>
+             </div>
+            </div>
+
             <div class="form-group">
                 {{ rh_form.client.as_hidden }}
             </div>

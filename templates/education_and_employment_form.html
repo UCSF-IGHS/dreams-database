@@ -6,117 +6,92 @@
             <div class="form-group form-inline">
                 {{ edu_form.currently_in_school.errors }}
                 <label class="control-label enrolment-label">{{ edu_form.currently_in_school.label_tag }}</label>
-                {{ edu_form.currently_in_school|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:currently-schooling"|set_data:"hide_class:current-school-other education-supporter-other"|set_data:"hide_on_show:currently-not-schooling reason-not-in-school-other last_time_in_school dropout_school_level dropout_class"  }}
+                {{ edu_form.currently_in_school|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:in-school"|set_data:"hide_if_true:not-in-school" }}
             </div>
-            <div id="current_school_name" class="form-group currently-schooling form-inline {% if edu_form.currently_in_school.value != 1 %} hidden {% endif %}">
-                {{ edu_form.current_school_name.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.current_school_name.label_tag }}</label>
-                {{ edu_form.current_school_name|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
-            <div id="current_school_type" class="form-group currently-schooling currently-schooling form-inline {% if edu_form.currently_in_school.value != 1 %}hidden{% endif %}">
-                {{ edu_form.current_school_type.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.current_school_type.label_tag }}</label>
-                {{ edu_form.current_school_type|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
-            <div id="current_school_level" class="form-group currently-schooling form-inline {% if edu_form.currently_in_school.value != 1 %}hidden{% endif %}">
-                {{ edu_form.current_school_level.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.current_school_level.label_tag }}</label>
-                {{ edu_form.current_school_level|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_class:current-school-other"  }}
-            </div>
+            <div class="in-school {% if edu_form.currently_in_school.value != 1 %} hidden {% endif %} ">
+                <div id="current_school_name" class="form-group  form-inline">
+                    {{ edu_form.current_school_name.errors }}
+                    <label class="control-label enrolment-label">{{ edu_form.current_school_name.label_tag }}</label>
+                    {{ edu_form.current_school_name|add_class:"input-sm form-control enrolment-input"  }}
+                </div>
+                <div id="current_school_type" class="form-group  form-inline">
+                    {{ edu_form.current_school_type.errors }}
+                    <label class="control-label enrolment-label">{{ edu_form.current_school_type.label_tag }}</label>
+                    {{ edu_form.current_school_type|add_class:"input-sm form-control enrolment-input"  }}
+                </div>
+                <div id="current_school_level" class="form-group  form-inline">
+                    {{ edu_form.current_school_level.errors }}
+                    <label class="control-label enrolment-label">{{ edu_form.current_school_level.label_tag }}</label>
+                    {{ edu_form.current_school_level|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:current_school_level_other"  }}
+                    <div class="form-group current_school_level_other {% if not edu_form.current_school_level_other.value %} hidden {% endif %}">
+                        {{ edu_form.current_school_level_other.errors }}
+                        <label class="control-label enrolment-label">{{ edu_form.current_school_level_other.label_tag }}</label>
+                        {{ edu_form.current_school_level_other|add_class:"input-sm form-control enrolment-input"  }}
+                    </div>
 
-            {% if edu_form.current_school_level.value == 96 %}
-                <div id="current_school_level_other" class="form-group current-school-other  form-inline">
-            {% else %}
-                <div id="current_school_level_other" class="form-group current-school-other form-inline hidden">
-            {% endif %}
-                {{ edu_form.current_school_level_other.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.current_school_level_other.label_tag }}</label>
-                {{ edu_form.current_school_level_other|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
+                </div>
 
-            {% if edu_form.currently_in_school.value == 1 %}
-                <div id="current_class" class="form-group currently-schooling form-inline">
-            {% else %}
-                <div id="current_class" class="form-group currently-schooling form-inline hidden">
-            {% endif %}
-                {{ edu_form.current_class.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.current_class.label_tag }}</label>
-                {{ edu_form.current_class|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
+                <div id="current_class" class="form-group  form-inline {% if not edu_form.current_class.value  %} hidden {% endif %}">
+                    {{ edu_form.current_class.errors }}
+                    <label class="control-label enrolment-label">{{ edu_form.current_class.label_tag }}</label>
+                    {{ edu_form.current_class|add_class:"input-sm form-control enrolment-input"  }}
+                </div>
 
-            {% if edu_form.currently_in_school.value == 1 %}
-                    <div id="current_education_supporter" class="form-group currently-schooling form-inline">
+                <div id="current_education_supporter" class="form-group form-inline ">
+                    {{ edu_form.current_education_supporter.errors }}
+                    <label class="control-label enrolment-label">{{ edu_form.current_education_supporter.label_tag }}</label>
+                    {{ edu_form.current_education_supporter|add_class:"input-sm form-control enrolment-input multi-select"|set_data:"show_value:96"|set_data:"show_if_true:education-supporter-other"  }}
+                </div>
+
+                {% if edu_form.currently_in_school.value == 1 %}
+                    <div id="current_education_supporter_other" class="form-group education-supporter-other form-inline">
                 {% else %}
-                    <div id="current_education_supporter" class="form-group currently-schooling form-inline hidden">
+                    <div id="current_education_supporter_other" class="form-group education-supporter-other form-inline hidden">
                 {% endif %}
-                {{ edu_form.current_education_supporter.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.current_education_supporter.label_tag }}</label>
-                {{ edu_form.current_education_supporter|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_class:education-supporter-other"  }}
+                    {{ edu_form.current_education_supporter_other.errors }}
+                    <label class="control-label enrolment-label">{{ edu_form.current_education_supporter_other.label_tag }}</label>
+                    {{ edu_form.current_education_supporter_other|add_class:"input-sm form-control enrolment-input"  }}
+                </div>
             </div>
+            <div class="not-in-school {% if edu_form.currently_in_school.value != 2 %} hidden {% endif %}">
+                <div id="reason_not_in_school" class="form-group form-inline">
+                    {{ edu_form.reason_not_in_school.errors }}
+                    <label class="control-label enrolment-label">{{ edu_form.reason_not_in_school.label_tag }}</label>
+                    {{ edu_form.reason_not_in_school|add_class:"input-sm form-control enrolment-input listen-to-change if-not-listener "|set_data:"show_value:96"|set_data:"if_not_value:1"|set_data:"show_if_true:reason_not_in_school_other"|set_data:"if_not_show_class:drop-out-info"  }}
 
-            {% if edu_form.currently_in_school.value == 1 %}
-                <div id="current_education_supporter_other" class="form-group education-supporter-other form-inline">
-            {% else %}
-                <div id="current_education_supporter_other" class="form-group education-supporter-other form-inline hidden">
-            {% endif %}
-                {{ edu_form.current_education_supporter_other.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.current_education_supporter_other.label_tag }}</label>
-                {{ edu_form.current_education_supporter_other|add_class:"input-sm form-control enrolment-input"  }}
+                    <div class="reason_not_in_school_other {% if not edu_form.reason_not_in_school_other.value %} hidden {% endif %} " >
+                        {{ edu_form.reason_not_in_school_other.errors }}
+                        <label class="control-label enrolment-label">{{ edu_form.reason_not_in_school_other.label_tag }}</label>
+                        {{ edu_form.reason_not_in_school_other|add_class:"input-sm form-control enrolment-input"  }}
+                    </div>
+                </div>
+                <div class="drop-out-info {% if edu_form.reason_not_in_school.value == 1 %} hidden {% endif %}">
+                    <div class="form-group form-inline ">
+                        {{ edu_form.last_time_in_school.errors }}
+                        <label class="control-label enrolment-label">{{ edu_form.last_time_in_school.label_tag }}</label>
+                        {{ edu_form.last_time_in_school|add_class:"input-sm form-control enrolment-input"  }}
+                    </div>
+
+                    <div id="dropout_school_level" class="form-group form-inline">
+                        {{ edu_form.dropout_school_level.errors }}
+                        <label class="control-label enrolment-label">{{ edu_form.dropout_school_level.label_tag }}</label>
+                        {{ edu_form.dropout_school_level|add_class:"input-sm form-control enrolment-input"  }}
+                    </div>
+
+                    <div id="dropout_class" class="form-group form-inline">
+                        {{ edu_form.dropout_class.errors }}
+                        <label class="control-label enrolment-label">{{ edu_form.dropout_class.label_tag }}</label>
+                        {{ edu_form.dropout_class|add_class:"input-sm form-control enrolment-input"  }}
+                    </div>
+                </div>
             </div>
-
-            {% if edu_form.currently_in_school.value == 2 %}
-                <div id="reason_not_in_school" class="form-group form-inline currently-not-schooling">
-            {% else %}
-                <div id="reason_not_in_school" class="form-group form-inline currently-not-schooling hidden">
-            {% endif %}
-                {{ edu_form.reason_not_in_school.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.reason_not_in_school.label_tag }}</label>
-                {{ edu_form.reason_not_in_school|add_class:"input-sm form-control enrolment-input listen-to-change "|set_data:"show_value:1"|set_data:"show_class:last_time_in_school dropout_school_level dropout_class"  }}
-            </div>
-
-            {% if edu_form.reason_not_in_school.value == 96 %}
-                <div id="reason_not_in_school_other" class="form-group form-inline reason-not-in-school-other">
-            {% else %}
-                <div id="reason_not_in_school_other" class="form-group reason-not-in-school-other form-inline hidden">
-            {% endif %}
-                {{ edu_form.reason_not_in_school_other.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.reason_not_in_school_other.label_tag }}</label>
-                {{ edu_form.reason_not_in_school_other|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
-
-            <div class="form-group form-inline last_time_in_school">
-                {{ edu_form.last_time_in_school.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.last_time_in_school.label_tag }}</label>
-                {{ edu_form.last_time_in_school|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
-
-            {% if edu_form.currently_in_school.value == 2 %}
-                <div id="dropout_school_level" class="form-group form-inline dropout_school_level">
-            {% else %}
-                <div id="dropout_school_level" class="form-group form-inline hidden dropout_school_level">
-            {% endif %}
-                {{ edu_form.dropout_school_level.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.dropout_school_level.label_tag }}</label>
-                {{ edu_form.dropout_school_level|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
-
-            <div id="dropout_class" class="form-group form-inline dropout_class">
-                {{ edu_form.dropout_class.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.dropout_class.label_tag }}</label>
-                {{ edu_form.dropout_class|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
-
             <div class="form-group form-inline">
                 {{ edu_form.life_wish.errors }}
                 <label class="control-label enrolment-label">{{ edu_form.life_wish.label_tag }}</label>
-                {{ edu_form.life_wish|add_class:"input-sm form-control enrolment-input"  }}
+                {{ edu_form.life_wish|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:life_wish_other"  }}
             </div>
 
-            {% if edu_form.life_wish.value == 96 %}
-                <div id="life_wish_other" class="form-group form-inline">
-            {% else %}
-                <div id="life_wish_other" class="form-group form-inline hidden">
-            {% endif %}
+            <div id="life_wish_other" class="form-group form-inline life_wish_other {% if not edu_form.life_wish_other.value %} hidden {% endif %}">
 
                 {{ edu_form.life_wish_other.errors }}
                 <label class="control-label enrolment-label">{{ edu_form.life_wish_other.label_tag }}</label>
@@ -126,15 +101,10 @@
             <div class="form-group form-inline">
                 {{ edu_form.current_income_source.errors }}
                 <label class="control-label enrolment-label">{{ edu_form.current_income_source.label_tag }}</label>
-                {{ edu_form.current_income_source|add_class:"input-sm form-control enrolment-input"  }}
+                {{ edu_form.current_income_source|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:current_income_source_other" }}
             </div>
 
-            {% if edu_form.current_income_source.value == 96 %}
-                <div id="current_income_source_other" class="form-group form-inline">
-            {% else %}
-                <div id="current_income_source_other" class="form-group form-inline hidden">
-            {% endif %}
-
+            <div id="current_income_source_other" class="form-group form-inline current_income_source_other {% if not edu_form.current_income_source_other.value %} hidden {% endif %}">
                 {{ edu_form.current_income_source_other.errors }}
                 <label class="control-label enrolment-label">{{ edu_form.current_income_source_other.label_tag }}</label>
                 {{ edu_form.current_income_source_other|add_class:"input-sm form-control enrolment-input"  }}
@@ -143,27 +113,19 @@
             <div class="form-group form-inline">
                 {{ edu_form.has_savings.errors }}
                 <label class="control-label enrolment-label">{{ edu_form.has_savings.label_tag }}</label>
-                {{ edu_form.has_savings|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:has-savings"|set_data:"hide_class:banking-place-other"  }}
+                {{ edu_form.has_savings|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:has-savings" }}
             </div>
 
-            {% if edu_form.has_savings.value == 1 %}
-                <div id="banking_place" class="form-group form-inline has-savings">
-            {% else %}
-                <div id="banking_place" class="form-group form-inline hidden has-savings">
-            {% endif %}
+            <div id="banking_place" class="form-group form-inline has-savings {% if edu_form.has_savings.value != 1 %} hidden {% endif %}">
                 {{ edu_form.banking_place.errors }}
                 <label class="control-label enrolment-label">{{ edu_form.banking_place.label_tag }}</label>
-                {{ edu_form.banking_place|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_class:banking-place-other"  }}
-            </div>
+                {{ edu_form.banking_place|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:banking-place-other"  }}
 
-            {% if edu_form.banking_place.value == 96 %}
-                <div id="banking_place_other" class="form-group form-inline banking-place-other">
-            {% else %}
-                <div id="banking_place_other" class="form-group form-inline hidden banking-place-other">
-            {% endif %}
-                {{ edu_form.banking_place_other.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.banking_place_other.label_tag }}</label>
-                {{ edu_form.banking_place_other|add_class:"input-sm form-control enrolment-input"  }}
+                <div class="banking-place-other {% if not edu_form.banking_place_other.value %} hidden {% endif %}">
+                    {{ edu_form.banking_place_other.errors }}
+                    <label class="control-label enrolment-label">{{ edu_form.banking_place_other.label_tag }}</label>
+                    {{ edu_form.banking_place_other|add_class:"input-sm form-control enrolment-input"  }}
+                </div>
             </div>
             <div class="form-group">
                 {{ edu_form.client.as_hidden }}
