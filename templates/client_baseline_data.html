@@ -367,22 +367,72 @@
             });
 
             $('.listen-to-change').on('change', function () {
+
                 var val = $(this).val();
-                var show_class = $(this).data('show_class'); // class to hide/show
+                var show_class = $(this).data('show_class'); // class to show
+                var hide_on_show = $(this).data('hide_on_show'); // class to show
+                var hide_class = $(this).data('hide_class'); // class to hide
                 var show_value = $(this).data('show_value'); // value to determine show/hide
 
-                if(val == show_value){
-                    console.log(show_class);
+                if (!(typeof hide_class == undefined) && hide_class != null && hide_class != ''){
+                    var hide_classes = hide_class.split(" ");
+                    hide_class = hide_classes;
+                }
+
+                if (!(typeof hide_on_show == undefined) && hide_on_show != null && hide_on_show != ''){
+                    var hide_on_show_classes = hide_on_show.split(" ");
+                    hide_on_show = hide_on_show_classes;
+                }
+
+
+
+
+                if(val == show_value || show_value=='any'){
                     $('.'+show_class).removeClass('hidden');
+
+                    if (!(typeof hide_on_show == undefined) && hide_on_show != null && hide_on_show != '') {
+                        for (var i = 0; i < hide_on_show.length; i++) {
+                            var class_name = hide_on_show[i];
+                            $('.' + class_name).addClass('hidden');
+                            $('.' + class_name).find('input,select').each(function () {
+                                $(this).val('');
+                                $(this).attr('checked', false);
+                            });
+                        }
+                    }
+
                 } else {
-                     console.log(show_class);
+
                     $('.'+show_class).addClass('hidden');
+
+                    $('.'+show_class).find('input,select').each(function(){
+                        $(this).val('');
+                        $(this).attr('checked',false);
+                    });
+
+                    if (!(typeof hide_class == undefined) && hide_class != null && hide_class != '') {
+                        for (var i = 0; i < hide_class.length; i++) {
+                            var class_name = hide_class[i];
+                            $('.' + class_name).addClass('hidden');
+                            $('.' + class_name).find('input,select').each(function () {
+                                $(this).val('');
+                                $(this).attr('checked', false);
+                            });
+
+                        }
+                    }
+
+                    if (!(typeof hide_on_show == undefined) && hide_on_show != null && hide_on_show != '') {
+                        for (var i = 0; i < hide_on_show.length; i++) {
+                            var class_name = hide_on_show[i];
+                            $('.' + class_name).removeClass('hidden');
+                        }
+                    }
                 }
             });
 
-
-
         });
+
 
         function skip_pattern(target_element, target_value, element_list_to_manipulate, hide_class) {
 
