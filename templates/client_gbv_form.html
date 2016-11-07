@@ -7,9 +7,9 @@
             <div class="form-group form-inline">
                 {{ gbv_form.humiliated_ever.errors }}
                 <label class="control-label enrolment-label">Ever</label>
-                {{ gbv_form.humiliated_ever|add_class:"input-sm form-control enrolment-input" }}
+                {{ gbv_form.humiliated_ever|add_class:"input-sm form-control has-gbv-experience enrolment-input listen-to-change multi-value-listener"|set_data:"show_value:1"|set_data:"show_if_true:humiliated_last_3months"|set_data:"group_get_value_class:has-gbv-experience"|set_data:"group_show_class:sought-help-yes"|set_data:"group_hide_class:no-gbv-experience" }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline humiliated_last_3months {% if not gbv_form.humiliated_last_3months.value %} hidden {% endif %}">
                 {{ gbv_form.humiliated_last_3months.errors }}
                 <label class="control-label enrolment-label">In last 3 Months</label>
                 {{ gbv_form.humiliated_last_3months|add_class:"input-sm form-control enrolment-input" }}
@@ -19,9 +19,9 @@
             <div class="form-group form-inline">
                 {{ gbv_form.threats_to_hurt_ever.errors }}
                 <label class="control-label enrolment-label">Ever</label>
-                {{ gbv_form.threats_to_hurt_ever|add_class:"input-sm form-control enrolment-input" }}
+                {{ gbv_form.threats_to_hurt_ever|add_class:"input-sm form-control has-gbv-experience enrolment-input listen-to-change multi-value-listener"|set_data:"show_value:1"|set_data:"show_if_true:threats_to_hurt_last_3months"|set_data:"group_get_value_class:has-gbv-experience"|set_data:"group_show_class:sought-help-yes"|set_data:"group_hide_class:no-gbv-experience" }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline threats_to_hurt_last_3months {% if not gbv_form.threats_to_hurt_last_3months.value %} hidden {% endif %}">
                 {{ gbv_form.threats_to_hurt_last_3months.errors }}
                 <label class="control-label enrolment-label">In last 3 Months</label>
                 {{ gbv_form.threats_to_hurt_last_3months|add_class:"input-sm form-control enrolment-input" }}
@@ -31,9 +31,9 @@
             <div class="form-group form-inline">
                 {{ gbv_form.insulted_ever.errors }}
                 <label class="control-label enrolment-label">Ever</label>
-                {{ gbv_form.insulted_ever|add_class:"input-sm form-control enrolment-input" }}
+                {{ gbv_form.insulted_ever|add_class:"input-sm form-control has-gbv-experience enrolment-input listen-to-change multi-value-listener"|set_data:"show_value:1"|set_data:"show_if_true:insulted_last_3months"|set_data:"group_get_value_class:has-gbv-experience"|set_data:"group_show_class:sought-help-yes"|set_data:"group_hide_class:no-gbv-experience" }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline insulted_last_3months {% if not gbv_form.insulted_last_3months.value %} hidden {% endif %}">
                 {{ gbv_form.insulted_last_3months.errors }}
                 <label class="control-label enrolment-label">In last 3 Months</label>
                 {{ gbv_form.insulted_last_3months|add_class:"input-sm form-control enrolment-input" }}
@@ -43,9 +43,9 @@
             <div class="form-group form-inline">
                 {{ gbv_form.economic_threat_ever.errors }}
                 <label class="control-label enrolment-label">Ever</label>
-                {{ gbv_form.economic_threat_ever|add_class:"input-sm form-control enrolment-input" }}
+                {{ gbv_form.economic_threat_ever|add_class:"input-sm form-control has-gbv-experience enrolment-input listen-to-change multi-value-listener"|set_data:"show_value:1"|set_data:"show_if_true:economic_threat_last_3months"|set_data:"group_get_value_class:has-gbv-experience"|set_data:"group_show_class:sought-help-yes"|set_data:"group_hide_class:no-gbv-experience" }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline economic_threat_last_3months {% if not gbv_form.economic_threat_last_3months.value %} hidden {% endif %}">
                 {{ gbv_form.economic_threat_last_3months.errors }}
                 <label class="control-label enrolment-label">In last 3 Months</label>
                 {{ gbv_form.economic_threat_last_3months|add_class:"input-sm form-control enrolment-input" }}
@@ -53,12 +53,12 @@
 
             <label class="control-label enrolment-input-header-question">Push you, shake you, slap/punch/beat you, hit you with something, try to choke you
                     or throw something at you that could hurt you</label>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline ">
                 {{ gbv_form.physical_violence_ever.errors }}
                 <label class="control-label enrolment-label">Ever</label>
-                {{ gbv_form.physical_violence_ever|add_class:"input-sm form-control enrolment-input" }}
+                {{ gbv_form.physical_violence_ever|add_class:"input-sm form-control has-gbv-experience enrolment-input listen-to-change multi-value-listener"|set_data:"show_value:1"|set_data:"show_if_true:physical_violence_last_3months"|set_data:"group_get_value_class:has-gbv-experience"|set_data:"group_show_class:sought-help-yes"|set_data:"group_hide_class:no-gbv-experience" }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline physical_violence_last_3months {% if not gbv_form.physical_violence_last_3months.value %} hidden {% endif %}">
                 {{ gbv_form.physical_violence_last_3months.errors }}
                 <label class="control-label enrolment-label">In last 3 Months</label>
                 {{ gbv_form.physical_violence_last_3months|add_class:"input-sm form-control enrolment-input" }}
@@ -69,9 +69,9 @@
             <div class="form-group form-inline">
                 {{ gbv_form.physically_forced_sex_ever.errors }}
                 <label class="control-label enrolment-label">Ever</label>
-                {{ gbv_form.physically_forced_sex_ever|add_class:"input-sm form-control enrolment-input" }}
+                {{ gbv_form.physically_forced_sex_ever|add_class:"input-sm has-gbv-experience form-control enrolment-input listen-to-change multi-value-listener"|set_data:"show_value:1"|set_data:"show_if_true:physically_forced_sex_last_3months"|set_data:"group_get_value_class:has-gbv-experience"|set_data:"group_show_class:sought-help-yes"|set_data:"group_hide_class:no-gbv-experience" }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline physically_forced_sex_last_3months {% if not gbv_form.physically_forced_sex_last_3months.value %} hidden {% endif %}">
                 {{ gbv_form.physically_forced_sex_last_3months.errors }}
                 <label class="control-label enrolment-label">In last 3 Months</label>
                 {{ gbv_form.physically_forced_sex_last_3months|add_class:"input-sm form-control enrolment-input" }}
@@ -82,9 +82,9 @@
             <div class="form-group form-inline">
                 {{ gbv_form.physically_forced_other_sex_acts_ever.errors }}
                 <label class="control-label enrolment-label">Ever</label>
-                {{ gbv_form.physically_forced_other_sex_acts_ever|add_class:"input-sm form-control enrolment-input" }}
+                {{ gbv_form.physically_forced_other_sex_acts_ever|add_class:"input-sm has-gbv-experience form-control enrolment-input listen-to-change multi-value-listener"|set_data:"show_value:1"|set_data:"show_if_true:physically_forced_other_sex_acts_last_3months"|set_data:"group_get_value_class:has-gbv-experience"|set_data:"group_show_class:sought-help-yes"|set_data:"group_hide_class:no-gbv-experience" }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline physically_forced_other_sex_acts_last_3months {% if not gbv_form.physically_forced_other_sex_acts_last_3months.value %} hidden {% endif %}">
                 {{ gbv_form.physically_forced_other_sex_acts_last_3months.errors }}
                 <label class="control-label enrolment-label">In last 3 Months</label>
                 {{ gbv_form.physically_forced_other_sex_acts_last_3months|add_class:"input-sm form-control enrolment-input" }}
@@ -95,45 +95,47 @@
             <div class="form-group form-inline">
                 {{ gbv_form.threatened_for_sexual_acts_ever.errors }}
                 <label class="control-label enrolment-label">Ever</label>
-                {{ gbv_form.threatened_for_sexual_acts_ever|add_class:"input-sm form-control enrolment-input" }}
+                {{ gbv_form.threatened_for_sexual_acts_ever|add_class:"input-sm form-control has-gbv-experience enrolment-input listen-to-change multi-value-listener"|set_data:"show_value:1"|set_data:"show_if_true:threatened_for_sexual_acts_last_3months"|set_data:"group_get_value_class:has-gbv-experience"|set_data:"group_show_class:sought-help-yes"|set_data:"group_hide_class:no-gbv-experience" }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline threatened_for_sexual_acts_last_3months {% if not gbv_form.threatened_for_sexual_acts_last_3months.value %} hidden {% endif %}">
                 {{ gbv_form.threatened_for_sexual_acts_last_3months.errors }}
                 <label class="control-label enrolment-label">In last 3 Months</label>
                 {{ gbv_form.threatened_for_sexual_acts_last_3months|add_class:"input-sm form-control enrolment-input" }}
             </div>
-            <div class="form-group form-inline">
+            <div  class="form-group sought-help form-inline {% if gbv_form.seek_help_after_gbv.value != 1 %} hidden {% endif %}">
                 {{ gbv_form.seek_help_after_gbv.errors }}
                 <label class="control-label enrolment-label">Did you seek help after experiencing all of the discussed?</label>
-                {{ gbv_form.seek_help_after_gbv|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_class:sought-help" }}
+                {{ gbv_form.seek_help_after_gbv|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:sought-help-yes" }}
             </div>
-            <div class="sought-help {% if gbv_form.seek_help_after_gbv.value != 1 %}hidden{% endif %}">
-                <div id="gbv_help_provider" class="form-group form-inline">
+            <div class="client-sought-help">
+                <div id="gbv_help_provider" class="form-group form-inline {% if not gbv_form.gbv_help_provider.value %}hidden{% endif %} sought-help-yes">
                     {{ gbv_form.gbv_help_provider.errors }}
                     <label class="control-label enrolment-label">From where did you seek help</label>
-                    {{ gbv_form.gbv_help_provider|add_class:"input-sm form-control enrolment-input" }}
+                    {{ gbv_form.gbv_help_provider|add_class:"input-sm form-control enrolment-input multi-select"|set_data:"show_value:96"|set_data:"show_if_true:gbv_help_provider_other" }}
                 </div>
-                <div class="form-group form-inline">
+                <div class="form-group form-inline gbv_help_provider_other {% if not gbv_form.gbv_help_provider_other.value %}hidden{% endif %}">
                     {{ gbv_form.gbv_help_provider_other.errors }}
                     <label class="control-label enrolment-label">Other</label>
                     {{ gbv_form.gbv_help_provider_other|add_class:"input-sm form-control enrolment-input" }}
                 </div>
             </div>
-            <div class="form-group form-inline">
-                {{ gbv_form.knowledge_of_gbv_help_centres.errors }}
-                <label class="control-label enrolment-label">Do you know where to seek help if you experience the different things discussed
-                    above</label>
-                {{ gbv_form.knowledge_of_gbv_help_centres|add_class:"input-sm form-control enrolment-input" }}
-            </div>
-            <div class="form-group form-inline">
-                {{ gbv_form.preferred_gbv_help_provider.errors }}
-                <label class="control-label enrolment-label">Where would you seek help if you experienced things discussed above</label>
-                {{ gbv_form.preferred_gbv_help_provider|add_class:"input-sm form-control enrolment-input" }}
-            </div>
-            <div class="form-group form-inline">
-                {{ gbv_form.preferred_gbv_help_provider_other.errors }}
-                <label class="control-label enrolment-label">Other</label>
-                {{ gbv_form.preferred_gbv_help_provider_other|add_class:"input-sm form-control enrolment-input" }}
+            <div class="no-gbv-experience {% if not gbv_form.knowledge_of_gbv_help_centres.value %} hidden {% endif %}">
+                <div class="form-group form-inline">
+                    {{ gbv_form.knowledge_of_gbv_help_centres.errors }}
+                    <label class="control-label enrolment-label">Do you know where to seek help if you experience the different things discussed
+                        above</label>
+                    {{ gbv_form.knowledge_of_gbv_help_centres|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:preferred-provider" }}
+                </div>
+                <div class="form-group form-inline preferred-provider {% if not gbv_form.preferred_gbv_help_provider.value %} hidden {% endif %} ">
+                    {{ gbv_form.preferred_gbv_help_provider.errors }}
+                    <label class="control-label enrolment-label">Where would you seek help if you experienced things discussed above</label>
+                    {{ gbv_form.preferred_gbv_help_provider|add_class:"input-sm form-control enrolment-input multi-select"|set_data:"show_value:96"|set_data:"show_if_true:preferred_gbv_help_provider_other" }}
+                </div>
+                <div class="form-group form-inline preferred_gbv_help_provider_other {% if not gbv_form.preferred_gbv_help_provider_other.value %} hidden {% endif %}">
+                    {{ gbv_form.preferred_gbv_help_provider_other.errors }}
+                    <label class="control-label enrolment-label">Other</label>
+                    {{ gbv_form.preferred_gbv_help_provider_other|add_class:"input-sm form-control enrolment-input" }}
+                </div>
             </div>
             <div class="form-group">
                 {{ gbv_form.client.as_hidden }}

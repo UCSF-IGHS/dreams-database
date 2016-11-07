@@ -369,30 +369,30 @@
             $('.listen-to-change').on('change', function () {
 
                 var val = $(this).val();
-                var show_class = $(this).data('show_class'); // class to show
-                var hide_on_show = $(this).data('hide_on_show'); // class to show
-                var hide_class = $(this).data('hide_class'); // class to hide
+                var show_if_true = $(this).data('show_if_true'); // class to show
+                var hide_if_true = $(this).data('hide_if_true'); // class to show
+                var hide_if_false = $(this).data('hide_if_false'); // class to hide
                 var show_value = $(this).data('show_value'); // value to determine show/hide
 
-                if (!(typeof hide_class == undefined) && hide_class != null && hide_class != ''){
-                    var hide_classes = hide_class.split(" ");
-                    hide_class = hide_classes;
+                if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != ''){
+                    var hide_classes = hide_if_false.split(" ");
+                    hide_if_false = hide_classes;
                 }
 
-                if (!(typeof hide_on_show == undefined) && hide_on_show != null && hide_on_show != ''){
-                    var hide_on_show_classes = hide_on_show.split(" ");
-                    hide_on_show = hide_on_show_classes;
+                if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != ''){
+                    var hide_on_show_classes = hide_if_true.split(" ");
+                    hide_if_true = hide_on_show_classes;
                 }
 
 
 
 
                 if(val == show_value || show_value=='any'){
-                    $('.'+show_class).removeClass('hidden');
+                    $('.'+show_if_true).removeClass('hidden');
 
-                    if (!(typeof hide_on_show == undefined) && hide_on_show != null && hide_on_show != '') {
-                        for (var i = 0; i < hide_on_show.length; i++) {
-                            var class_name = hide_on_show[i];
+                    if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                        for (var i = 0; i < hide_if_true.length; i++) {
+                            var class_name = hide_if_true[i];
                             $('.' + class_name).addClass('hidden');
                             $('.' + class_name).find('input,select').each(function () {
                                 $(this).val('');
@@ -403,16 +403,16 @@
 
                 } else {
 
-                    $('.'+show_class).addClass('hidden');
+                    $('.'+show_if_true).addClass('hidden');
 
-                    $('.'+show_class).find('input,select').each(function(){
+                    $('.'+show_if_true).find('input,select').each(function(){
                         $(this).val('');
                         $(this).attr('checked',false);
                     });
 
-                    if (!(typeof hide_class == undefined) && hide_class != null && hide_class != '') {
-                        for (var i = 0; i < hide_class.length; i++) {
-                            var class_name = hide_class[i];
+                    if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
+                        for (var i = 0; i < hide_if_false.length; i++) {
+                            var class_name = hide_if_false[i];
                             $('.' + class_name).addClass('hidden');
                             $('.' + class_name).find('input,select').each(function () {
                                 $(this).val('');
@@ -422,16 +422,71 @@
                         }
                     }
 
-                    if (!(typeof hide_on_show == undefined) && hide_on_show != null && hide_on_show != '') {
-                        for (var i = 0; i < hide_on_show.length; i++) {
-                            var class_name = hide_on_show[i];
+                    if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                        for (var i = 0; i < hide_if_true.length; i++) {
+                            var class_name = hide_if_true[i];
                             $('.' + class_name).removeClass('hidden');
                         }
                     }
                 }
             });
 
+            $('.multi-select').on('change', function () {
+
+                var selected = $(this).val();
+                var show_value = $(this).data('show_value');
+                var show_if_true = $(this).data('show_if_true');
+
+                for (var i=0; i<selected.length; i++){
+                    if(selected[i]==show_value){
+                        $('.'+show_if_true).removeClass('hidden');
+                    } else {
+                        $('.'+show_if_true).addClass('hidden');
+                    }
+                }
+                console.log(selected);
+            });
+
+            $('.if-not-listener').on('change', function () {
+
+                var selected = $(this).val();
+                var if_not_value = $(this).data('if_not_value');
+                var if_not_show_class = $(this).data('if_not_show_class');
+
+                if(selected==if_not_value){
+                    $('.'+if_not_show_class).addClass('hidden');
+                } else {
+                    $('.'+if_not_show_class).removeClass('hidden');
+                }
+            });
+
+            $('.multi-value-listener').on('change', function () {
+
+                var selected = $(this).val();
+                var group_value = $(this).data('group_value');
+                var group_get_value_class = $(this).data('group_get_value_class');
+                var group_show_class = $(this).data('group_show_class');
+                var group_hide_class = $(this).data('group_hide_class');
+                var result = false;
+                $('.'+group_get_value_class +' :selected').each(function () {
+                    if($(this).val() == 1){
+                        result = true;
+                        return false;
+                    }
+                });
+
+                if(result){
+                    $('.'+group_show_class).removeClass('hidden');
+                    $('.'+group_hide_class).addClass('hidden');
+                } else {
+                    $('.'+group_show_class).addClass('hidden');
+                    $('.'+group_hide_class).removeClass('hidden');
+                }
+            });
+
         });
+
+
 
 
         function skip_pattern(target_element, target_value, element_list_to_manipulate, hide_class) {
@@ -452,6 +507,7 @@
 
 
         }
+
     </script>
     </div>
 {% endblock %}
