@@ -394,7 +394,7 @@
 
             });
 
-            $('.listen-to-change').on('change', function () {
+            $('.listen-to-change').on('change keyup', function () {
 
                 var val = $(this).val();
                 var show_if_true = $(this).data('show_if_true'); // class to show
@@ -512,10 +512,31 @@
                 }
             });
 
+            $('.sexual-partner-info').on('change keyup', function () {
+
+                var value = parseInt($(this).val().trim());
+                $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
+                switch(true){
+                    case (value == 1):
+                        $('.last-partner').removeClass('hidden');
+                        $('.sexual-partners').removeClass('hidden');
+                        break;
+                    case (value == 2):
+                        $('.second-last-partner, .last-partner').removeClass('hidden');
+                        $('.sexual-partners').removeClass('hidden');
+                        break;
+                    case (value > 2):
+                        $('.third-last-partner, .second-last-partner, .last-partner').removeClass('hidden');
+                        $('.sexual-partners').removeClass('hidden');
+                        break;
+                    default:
+                        $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
+                        $('.sexual-partners').addClass('hidden');
+                }
+
+            });
+
         });
-
-
-
 
         function skip_pattern(target_element, target_value, element_list_to_manipulate, hide_class) {
 
