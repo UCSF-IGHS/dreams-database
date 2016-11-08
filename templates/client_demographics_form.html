@@ -10,7 +10,7 @@
         <fieldset {% if not perms.DreamsApp.change_client %}disabled{% endif %}>
             <div class="form-group form-inline " >
                 <label class="control-label enrolment-label">{{ demo_form.implementing_partner.label_tag}}</label>
-                {{ demo_form.implementing_partner|attr:" title:You cannot change Client Implementing Partner"|add_class:"input-sm form-control enrolment-input"}}
+                {{ demo_form.implementing_partner|attr:"disabled title:You cannot change Client Implementing Partner"|add_class:"input-sm form-control enrolment-input"}}
                 {{ demo_form.implementing_partner.errors }}
             </div>
             <div class="form-group form-inline">
@@ -28,15 +28,46 @@
                 <label class="control-label enrolment-label">{{ demo_form.last_name.label_tag }}</label>
                 {{ demo_form.last_name |add_class:"input-sm form-control enrolment-input" }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group  form-inline">
                 {{ demo_form.date_of_birth.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.date_of_birth.label_tag }}</label>
-                {{ demo_form.date_of_birth|add_class:"input-sm form-control enrolment-input" }}
+                <div class="form-group has-feedback">
+                    {{ demo_form.date_of_birth|add_class:"input-sm form-control enrolment-input pointer-area" }}
+                    <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                    <script>
+                          $(function() {
+                            $( "#id_date_of_birth" ).datepicker({
+                                  minDate: (new Date(1991, 10 , 1)),
+                                  maxDate:  (new Date(2007, 9 , 1)),
+                                    dateFormat: 'yy-mm-dd',
+                                  changeMonth: true,
+                                  changeYear: true
+                            });
+                          });
+                    </script>
+                </div>
             </div>
+
+
+
             <div class="form-group form-inline">
                 {{ demo_form.date_of_enrollment.errors }}
                 <label class="control-label enrolment-label"> {{ demo_form.date_of_enrollment.label_tag }}</label>
-                {{ demo_form.date_of_enrollment|add_class:"input-sm form-control enrolment-input" }}
+                <div class="form-group has-feedback">
+                    {{ demo_form.date_of_enrollment|add_class:"input-sm form-control enrolment-input pointer-area" }}
+                    <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                    <script>
+                          $(function() {
+                            $( "#id_date_of_enrollment" ).datepicker({
+                                  maxDate: '0y 0m 0d',
+                                  minDate:  (new Date(2015, 9 , 1)),
+                                dateFormat: 'yy-mm-dd',
+                                  changeMonth: true,
+                                  changeYear: true
+                            });
+                          });
+                    </script>
+                </div>
             </div>
             <div class="form-group form-inline">
                 {{ demo_form.verification_document.errors }}
@@ -56,7 +87,7 @@
             <div class="form-group form-inline">
                 {{ demo_form.phone_number.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.phone_number.label_tag }}</label>
-                {{ demo_form.phone_number|attr:"required"|add_class:"input-sm form-control enrolment-input" }}
+                {{ demo_form.phone_number|attr:"max_length:10"|add_class:"input-sm form-control enrolment-input" }}
             </div>
             <div class="form-group form-inline">
                 {{ demo_form.dss_id_number.errors }}

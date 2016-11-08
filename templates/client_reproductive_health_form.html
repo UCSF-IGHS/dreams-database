@@ -11,7 +11,7 @@
             <div class="form-group form-inline no-of-children {% if not rh_form.no_of_biological_children.value %}hidden{% endif %}">
                 {{ rh_form.no_of_biological_children.errors }}
                 <label class="control-label enrolment-label">No of Children</label>
-                {{ rh_form.no_of_biological_children|add_class:"input-sm form-control enrolment-input"  }}
+                {{ rh_form.no_of_biological_children|attr:"min_value:1"|add_class:"input-sm form-control enrolment-input"  }}
             </div>
             <div class="form-group form-inline">
                 {{ rh_form.currently_pregnant.errors }}

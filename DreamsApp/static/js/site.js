@@ -1501,8 +1501,10 @@ $(document).ready(function () {
 
     jQuery.validator.addMethod("phoneKE", function (phone_number, element) {
         phone_number = phone_number.replace(/\s+/g, "");
-        return this.optional(element) || ((phone_number.length >= 10 && phone_number.length <= 13) && phone_number.match(/^((\+[1-9]{1,4}[ \-]*)|(\([0-9]{2,3}\)[ \-]*)|([0-9]{2,4})[ \-]*)*?[0-9]{3,4}?[ \-]*[0-9]{3,4}?$/));
-    }, "Please specify a valid phone number e.g. +2547XXXXXXXX or 07XXXXXXXX");
+        if(phone_number == "")
+            return true;
+        return (phone_number.length == 10 && phone_number.match(/^((\([0-9]{2,3}\)[ \-]*)|([0-9]{2,4})[ \-]*)*?[0-9]{3,4}?[ \-]*[0-9]{3,4}?$/));
+    }, "Please specify a valid phone number e.g. 07XXXXXXXX");
 
     jQuery.validator.addMethod("minTwoNames", function (first_name, element) {
         var nameArray = [$('#id_first_name').val(), $('#id_middle_name').val(), $('#id_last_name').val()]
@@ -1513,6 +1515,35 @@ $(document).ready(function () {
         } )
         return countOfNameParts > 1;
     }, " * Please enter at least 2 Names");
+
+    $.validator.addMethod('positiveNumber', function (value) {
+        return Number(value) >= 0;
+    }, ' Enter a positive number.');
+
+    $.validator.addMethod('positiveNumberZeroExclusive', function (value) {
+        return Number(value) > 0;
+    }, ' Enter a positive number greater than 0.');
+
+    $.validator.addMethod('matchingAgeDisaggregatedCount', function (value) {
+        var pple_in_household = parseInt($('#id_no_of_people_in_household').val());
+        var adults_in_household = parseInt($('#id_no_of_adults').val());
+        var children_in_household = parseInt($('#id_no_of_children').val());
+        if(isNaN(adults_in_household) || isNaN(children_in_household) || isNaN(pple_in_household) || pple_in_household != (adults_in_household + children_in_household))
+            return false;
+
+        return true;
+    }, ' ');
+
+    $.validator.addMethod('matchingGenderDisaggregatedCount', function (value) {
+        var pple_in_household = parseInt($('#id_no_of_people_in_household').val(), 10);
+        var males_in_household = parseInt($('#id_no_of_males').val(), 10);
+        var females_id_household = parseInt($('#id_no_of_females').val(), 10) ;
+
+        if(isNaN(females_id_household) || isNaN(males_in_household) || isNaN(pple_in_household) || pple_in_household != (males_in_household + females_id_household))
+            return false;
+        return true;
+    }, ' ');
+
 
     $('#grievances-form').validate({
         rules: {
@@ -1571,8 +1602,7 @@ $(document).ready(function () {
                 required: "* Please select Reporter Category"
             },
             reporter_phone: {
-                required: "* Please enter Complainant's Telephone Number",
-                phoneKE: "* Please enter a valid Phone Number e.g. +2547XXXXXXXX or 07XXXXXXXX"
+                phoneKE: "* Please enter a valid Phone Number e.g. 07XXXXXXXX"
             },
             received_by: {
                 required: "* Please enter Receiver's Name"
@@ -1836,10 +1866,15 @@ $(document).ready(function () {
                 number:true
             }, 
             phone_number: { 
-                phoneKE: true,
-                required: true
+                phoneKE: true
+            },
+            guardian_phone_number:{
+                phoneKE:true
+            },
+            guardian_national_id:{
+                number:true
             }
-          },
+              },
         messages: { 
             implementing_partner: { 
                 required: " * Please enter your Client Implementing Partner" 
@@ -1866,7 +1901,13 @@ $(document).ready(function () {
                 required: " * Please Select Client's Marital Status" 
             } , 
             phone_number: { 
-                required: " * Please enter Client's Phone number" 
+                phoneKE: " * Please enter valid Phone number" 
+            } , 
+            guardian_phone_number: { 
+                phoneKE: " * Please enter Valid Phone number" 
+            } , 
+            guardian_national_id: { 
+                number: " * Please enter valid National ID" 
             } 
         }, 
         highlight: function (element) { 
@@ -1889,7 +1930,8 @@ $(document).ready(function () {
             }, 
             age_of_household_head: { 
                 number:true,
-                required: true 
+                required: true ,
+                positiveNumberZeroExclusive: true
             }, 
             is_father_alive: { 
                 required: true
@@ -1920,23 +1962,30 @@ $(document).ready(function () {
             }, 
             no_of_people_in_household: { 
                 required: true ,
-                number: true
+                number: true,
+                positiveNumber: true
             }, 
             no_of_females: { 
                 required: true ,
-                number: true
+                number: true,
+                positiveNumber: true
             }, 
             no_of_males: { 
                 required: true ,
-                number: true
+                number: true,
+                positiveNumber: true,
+                matchingGenderDisaggregatedCount: true
             }, 
             no_of_adults: { 
                 required: true ,
-                number:true
+                number:true,
+                positiveNumber: true
             }, 
             no_of_children: { 
                 required: true ,
-                number:true
+                number:true,
+                positiveNumber: true,
+                matchingAgeDisaggregatedCount: true
             }, 
             ever_enrolled_in_ct_program: { 
                 required: true 
@@ -1987,7 +2036,8 @@ $(document).ready(function () {
             }, 
             no_of_males: { 
                 required:  " * Required field" ,
-                number: " Enter valid number e.g 5"
+                number: " Enter valid number e.g 5",
+                matchingGenderDisaggregatedCount: " Number of females and males in household do not add up."
             }, 
             no_of_adults: { 
                 required:  " * Required field" ,
@@ -1995,7 +2045,8 @@ $(document).ready(function () {
             } , 
             no_of_children: { 
                 required:  " * Required field" ,
-                number: " Enter valid number e.g 5"
+                number: " Enter valid number e.g 5",
+                matchingAgeDisaggregatedCount: " Number of adults and children in household do not add up."
             } ,
             ever_enrolled_in_ct_program: { 
                 required:  " * Required field" 
@@ -2098,7 +2149,11 @@ $(document).ready(function () {
         rules: { 
             fp_methods_awareness: { 
                 required: true 
+            },
+            no_of_biological_children:{
+                positiveNumber: true
             }
+
         },
         messages: { 
             fp_methods_awareness: { 

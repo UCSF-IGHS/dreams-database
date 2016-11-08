@@ -490,3 +490,8 @@ html, body{
 .enrolment-input-header-question{
     margin-bottom: 10px;
 }
+
+
+.pointer-area{
+    cursor: pointer;
+}
