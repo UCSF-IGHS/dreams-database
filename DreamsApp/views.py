@@ -1491,6 +1491,7 @@ def update_demographics_data(request):
             ward = instance.ward
             county_of_residence = instance.county_of_residence
             sub_county = instance.sub_county
+            implementing_partner = instance.implementing_partner
             form = DemographicsForm(request.POST, instance=instance)
             if form.is_valid():
                 form.save()
@@ -1498,10 +1499,12 @@ def update_demographics_data(request):
                 ward = instance.ward
                 instance.county_of_residence = county_of_residence
                 instance.sub_county = sub_county
+                instance.implementing_partner = implementing_partner
                 instance.save()
                 response_data = {
                     'status': 'success',
-                    'errors': form.errors
+                    'errors': form.errors,
+                    'client_age': instance.get_current_age()
                 }
                 return JsonResponse(response_data, status=200)
             else:
