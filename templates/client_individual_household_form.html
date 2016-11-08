@@ -43,13 +43,13 @@
             <div class="form-group form-inline">
                 {{ household_form.main_floor_material.errors }}
                 <label class="control-label enrolment-label">{{ household_form.main_floor_material.label_tag }}</label>
-                {{ household_form.main_floor_material|add_class:"input-sm form-control enrolment-input"  }}
+                {{ household_form.main_floor_material|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:floor-material-other"  }}
             </div>
             <div class="form-group form-inline">
                 {% if household_form.main_floor_material.value == 96 %}
-                    <span id="main_floor_material_other">
+                    <span id="main_floor_material_other" class="floor-material-other">
                 {% else %}
-                    <span id="main_floor_material_other" class="hidden">
+                    <span id="main_floor_material_other" class="hidden floor-material-other">
                 {% endif %}
                 {{ household_form.main_floor_material_other.errors }}
                 <label class="control-label enrolment-label">{{ household_form.main_floor_material_other.label_tag }}</label>
@@ -59,13 +59,13 @@
             <div class="form-group form-inline">
                 {{ household_form.main_roof_material.errors }}
                 <label class="control-label enrolment-label">{{ household_form.main_roof_material.label_tag }}</label>
-                {{ household_form.main_roof_material|add_class:"input-sm form-control enrolment-input"  }}
+                {{ household_form.main_roof_material|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:roof-material-other"  }}
             </div>
             <div class="form-group form-inline">
                 {% if household_form.main_roof_material.value == 96 %}
-                    <span id="main_roof_material_other">
+                    <span id="main_roof_material_other" class="roof-material-other">
                 {% else %}
-                    <span id="main_roof_material_other" class="hidden">
+                    <span id="main_roof_material_other" class="hidden roof-material-other">
                 {% endif %}
                 {{ household_form.main_roof_material_other.errors }}
                 <label class="control-label enrolment-label">{{ household_form.main_roof_material_other.label_tag }}</label>
@@ -76,13 +76,13 @@
             <div class="form-group form-inline">
                 {{ household_form.main_wall_material.errors }}
                 <label class="control-label enrolment-label">{{ household_form.main_wall_material.label_tag }}</label>
-                {{ household_form.main_wall_material|add_class:"input-sm form-control enrolment-input"  }}
+                {{ household_form.main_wall_material|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:wall-material-other"  }}
             </div>
             <div class="form-group form-inline">
                 {% if household_form.main_wall_material.value == 96 %}
-                    <span id="main_wall_material_other">
+                    <span id="main_wall_material_other" class="wall-material-other">
                 {% else %}
-                    <span id="main_wall_material_other" class="hidden">
+                    <span id="main_wall_material_other" class="hidden wall-material-other">
                 {% endif %}
                 {{ household_form.main_wall_material_other.errors }}
                 <label class="control-label enrolment-label">{{ household_form.main_wall_material_other.label_tag }}</label>
@@ -93,13 +93,13 @@
             <div class="form-group form-inline">
                 {{ household_form.source_of_drinking_water.errors }}
                 <label class="control-label enrolment-label">{{ household_form.source_of_drinking_water.label_tag }}</label>
-                {{ household_form.source_of_drinking_water|add_class:"input-sm form-control enrolment-input"  }}
+                {{ household_form.source_of_drinking_water|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:drinking-water-other"  }}
             </div>
             <div class="form-group form-inline">
                 {% if household_form.source_of_drinking_water.value == 96 %}
-                    <span id="source_of_drinking_water_other">
+                    <span id="source_of_drinking_water_other" class="drinking-water-other">
                 {% else %}
-                    <span id="source_of_drinking_water_other" class="hidden">
+                    <span id="source_of_drinking_water_other" class="hidden drinking-water-other">
                 {% endif %}
 
                 {{ household_form.source_of_drinking_water_other.errors }}
