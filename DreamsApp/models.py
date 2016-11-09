@@ -126,6 +126,11 @@ class Client(models.Model):
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
+    voided = models.BigIntegerField(blank=True, null=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
+
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
         if user_id is None:
@@ -247,6 +252,7 @@ class Intervention(models.Model):
     implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True,
                                              related_name='implementing_partner')
     voided = models.BigIntegerField(blank=True, null=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='voided_by')
     date_voided = models.DateTimeField(null=True, blank=True)
 
@@ -415,11 +421,6 @@ class ClientCashTransferDetails(models.Model):
     class Meta(object):
         verbose_name = 'Cash Transfer Detail'
         verbose_name_plural = 'Cash Transfer Details'
-
-
-
-
-
 
 """ Models for Responses to questions on enrollment form"""
 
@@ -780,6 +781,10 @@ class ClientIndividualAndHouseholdData(models.Model):
     current_ct_program = models.CharField(verbose_name='Cash Transfer Programme currently enrolled in', max_length=50, null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.BigIntegerField(blank=True, null=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientEducationAndEmploymentData(models.Model):
@@ -807,6 +812,10 @@ class ClientEducationAndEmploymentData(models.Model):
     banking_place_other = models.CharField(max_length=20, verbose_name='Other place for savings', null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.BigIntegerField(blank=True, null=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientHIVTestingData(models.Model):
@@ -824,6 +833,10 @@ class ClientHIVTestingData(models.Model):
     reason_never_tested_for_hiv_other = models.CharField(max_length=50, verbose_name='Reason never tested for HIV(Other)', blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.BigIntegerField(blank=True, null=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientSexualActivityData(models.Model):
@@ -848,6 +861,10 @@ class ClientSexualActivityData(models.Model):
     received_money_gift_for_sex = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.BigIntegerField(blank=True, null=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientReproductiveHealthData(models.Model):
@@ -869,6 +886,10 @@ class ClientReproductiveHealthData(models.Model):
     reason_not_using_fp_other = models.CharField(max_length=50, blank=True, null=True, verbose_name="Reason not using modern family planning method(Other)")
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.BigIntegerField(blank=True, null=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientGenderBasedViolenceData(models.Model):
@@ -898,6 +919,10 @@ class ClientGenderBasedViolenceData(models.Model):
     preferred_gbv_help_provider_other = models.CharField(max_length=50, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.BigIntegerField(blank=True, null=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientDrugUseData(models.Model):
@@ -912,6 +937,10 @@ class ClientDrugUseData(models.Model):
     produced_alcohol_last_12months = models.ForeignKey(CategoricalResponse, null=True, related_name='+')
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.BigIntegerField(blank=True, null=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientParticipationInDreams(models.Model):
@@ -921,6 +950,10 @@ class ClientParticipationInDreams(models.Model):
     dreams_program = models.ManyToManyField(DreamsProgramme, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.BigIntegerField(blank=True, null=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class AgeBracket(models.Model):
