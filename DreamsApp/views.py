@@ -133,6 +133,7 @@ def clients(request):
                                                       Q(first_name__iregex= search_client_term_parts_string) |
                                                       Q(middle_name__iregex= search_client_term_parts_string) |
                                                       Q(last_name__iregex= search_client_term_parts_string)).order_by('first_name').order_by('middle_name').order_by('last_name')
+                search_result = search_result.filter(voided=False);
                 # check for permissions
                 if not request.user.has_perm("auth.can_view_cross_ip_data"):
                     try:
