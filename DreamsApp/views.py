@@ -133,6 +133,7 @@ def clients(request):
                                                       Q(first_name__iregex= search_client_term_parts_string) |
                                                       Q(middle_name__iregex= search_client_term_parts_string) |
                                                       Q(last_name__iregex= search_client_term_parts_string)).order_by('first_name').order_by('middle_name').order_by('last_name')
+                search_result = search_result.filter(voided=False);
                 # check for permissions
                 if not request.user.has_perm("auth.can_view_cross_ip_data"):
                     try:
@@ -1492,6 +1493,7 @@ def update_demographics_data(request):
             county_of_residence = instance.county_of_residence
             sub_county = instance.sub_county
             implementing_partner = instance.implementing_partner
+            dreams_id = instance.dreams_id
             form = DemographicsForm(request.POST, instance=instance)
             if form.is_valid():
                 form.save()
@@ -1500,6 +1502,7 @@ def update_demographics_data(request):
                 instance.county_of_residence = county_of_residence
                 instance.sub_county = sub_county
                 instance.implementing_partner = implementing_partner
+                instance.dreams_id = dreams_id
                 instance.save()
                 response_data = {
                     'status': 'success',
@@ -1584,15 +1587,21 @@ def update_sexuality_data(request):
     client_id = int(request.POST['client'])
     instance = ClientSexualActivityData.objects.get(client=client_id)
     if request.is_ajax():
-        template = 'ajax_response_form/client_sexuality_ajax_form.html'
-
         if request.method == 'POST':
             form = SexualityForm(request.POST, instance=instance)
             if form.is_valid():
-                
                 form.save()
+                response_data = {
+                    'status': 'success',
+                    'errors': form.errors
+                }
+                return JsonResponse(response_data, status=200)
             else:
-                print form.errors
+                response_data = {
+                    'status': 'fail',
+                    'errors': form.errors
+                }
+                return JsonResponse(response_data, status=500)
         else:
             raise PermissionDenied
     else:

@@ -1499,6 +1499,28 @@ $(document).ready(function () {
         }
     })
 
+    function getAge(birthDate) {
+          var now = new Date();
+
+          function isLeap(year) {
+            return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+          }
+
+          // days since the birthdate
+          var days = Math.floor((now.getTime() - birthDate.getTime())/1000/60/60/24);
+          var age = 0;
+          // iterate the years
+          for (var y = birthDate.getFullYear(); y <= now.getFullYear(); y++){
+            var daysInYear = isLeap(y) ? 366 : 365;
+            if (days >= daysInYear){
+              days -= daysInYear;
+              age++;
+              // increment the age only if there are available enough days for the year.
+            }
+          }
+          return age;
+    }
+
     jQuery.validator.addMethod("phoneKE", function (phone_number, element) {
         phone_number = phone_number.replace(/\s+/g, "");
         if(phone_number == "")
@@ -1544,6 +1566,28 @@ $(document).ready(function () {
         return true;
     }, ' ');
 
+    $.validator.addMethod('under18WithID', function (value) {
+        var currDOB = new Date($('#id_date_of_birth').val());
+        var age = getAge(currDOB);
+        var verificationDoc = $('#id_verification_document').val() || 0
+
+        console.log(verificationDoc)
+        console.log(age)
+        if(age < 18 && verificationDoc == 2)
+            return false;
+        return true;
+    }, ' ');
+
+    //requiresChildren
+    $.validator.addMethod('requiresChildren', function (value) {
+        var hasBiologicalChildren = $('#id_has_biological_children').val() || 0
+        var noOfBiologicalChildren =  parseInt($('#id_no_of_biological_children').val()) || 0
+
+        console.log(hasBiologicalChildren + " " + noOfBiologicalChildren)
+        if(hasBiologicalChildren == 1 && noOfBiologicalChildren < 1)
+            return false;
+        return true;
+    }, ' ');
 
     $('#grievances-form').validate({
         rules: {
@@ -1859,7 +1903,8 @@ $(document).ready(function () {
             }, 
             verification_document: { 
                 required: true ,
-                number:true
+                number:true,
+                under18WithID: true
             }, 
             marital_status: { 
                 required: true ,
@@ -1895,7 +1940,8 @@ $(document).ready(function () {
                 required: " * Please select Client's Date of Enrolment" 
             }, 
             verification_document: { 
-                required: " * Please Select Client's Verification Document" 
+                required: " * Please Select Client's Verification Document" ,
+                under18WithID: " National ID is not Applicable for girls under 18 years of age."
             }, 
             marital_status: { 
                 required: " * Please Select Client's Marital Status" 
@@ -2151,14 +2197,37 @@ $(document).ready(function () {
                 required: true 
             },
             no_of_biological_children:{
-                positiveNumber: true
+                positiveNumber: true,
+                requiresChildren: true
+            },
+            currently_pregnant:{
+                required:true
+            },
+            known_fp_method:{
+                required: true
+            },
+            currently_use_modern_fp:{
+                required: true
             }
 
         },
         messages: { 
             fp_methods_awareness: { 
                 required: " * Required field" 
+            },
+            no_of_biological_children:{
+                requiresChildren: "Number of biological children required."
+            },
+            currently_pregnant:{
+                required: "* Required field"
+            },
+            known_fp_method:{
+                required: "* Required field"
+            },
+            currently_use_modern_fp: {
+                required: "* Required field"
             }
+
         }, 
         highlight: function (element) { 
             //$('#form_demographics').find('.error').addClass('text-danger') 
