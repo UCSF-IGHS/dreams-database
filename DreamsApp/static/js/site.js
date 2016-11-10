@@ -2373,6 +2373,48 @@ $(document).ready(function () {
          }
 
     });
+    
+    
+    $('.manual_download').click(function (event) {
+        var item = event.target;
+        var manual = $(item).data("manual");
+        var manual_friendly_name = $(item).data("manual_friendly_name");
+        ajax_download_file('help/download/', {'manual':manual, 'manual_friendly_name':manual_friendly_name});
+        console.log(manual);
+    })
+    
+    function ajax_download_file(url, data) {
+        var $iframe, iframe_doc, iframe_html;
+        var csrftoken = getCookie('csrftoken');
+
+        if (($iframe = $('#download_iframe')).length === 0) {
+            $iframe = $("<iframe id='download_iframe'" +
+                        " style='display: none' src='about:blank'></iframe>"
+                       ).appendTo("body");
+        }
+
+        iframe_doc = $iframe[0].contentWindow || $iframe[0].contentDocument;
+        if (iframe_doc.document) {
+            iframe_doc = iframe_doc.document;
+        }
+
+        iframe_html = "<html><head></head><body><form method='POST' action='" +
+                      url +"'>"
+        iframe_html +='<input type="hidden" name="csrfmiddlewaretoken" value="' + csrftoken+ '">';
+
+
+        Object.keys(data).forEach(function(key){
+            iframe_html += "<input type='hidden' name='"+key+"' value='"+data[key]+"'>";
+
+        });
+
+        iframe_html +="</form></body></html>";
+
+        iframe_doc.open();
+        iframe_doc.write(iframe_html);
+        $(iframe_doc).find('form').submit();
+    }
+
 });
 
 
