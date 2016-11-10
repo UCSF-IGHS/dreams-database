@@ -100,6 +100,7 @@ class Client(models.Model):
     date_of_birth = models.DateField(verbose_name='Date of Birth', null=True, blank=True)
     is_date_of_birth_estimated = models.NullBooleanField(verbose_name='Date of Birth Estimated', default=False, null=True, blank=True)
     verification_document = models.ForeignKey(VerificationDocument, null=True, blank=True, verbose_name='Verification Document')  # New
+    verification_document_other = models.CharField(max_length=50, verbose_name="Verification Document(Other)", blank=True, null=True)
     verification_doc_no = models.CharField(verbose_name='Verification Doc No', max_length=50, null=True, blank=True)
     date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True, blank=True)
     age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=10, null=True, blank=True)
@@ -844,7 +845,7 @@ class ClientSexualActivityData(models.Model):
     client = models.ForeignKey(Client, db_index=True)
     ever_had_sex = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
     age_at_first_sexual_encounter = models.IntegerField(verbose_name='Age at first sexual encounter', null=True, blank=True)
-    has_sexual_partner = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
+    has_sexual_partner = models.ForeignKey(CategoricalResponse, verbose_name='Has current sexual partner', blank=True, null=True, related_name='+')
     sex_partners_in_last_12months = models.IntegerField(verbose_name='Sexual partners in the last 12 months', null=True, blank=True)
     age_of_last_partner = models.ForeignKey(AgeOfSexualPartner, null=True, blank=True, related_name='+')
     age_of_second_last_partner = models.ForeignKey(AgeOfSexualPartner, null=True, blank=True, related_name='+')

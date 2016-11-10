@@ -6,7 +6,7 @@
      <div class="form-group form-inline">
         {{ sexuality_form.ever_had_sex.errors }}
         <label class="control-label enrolment-label">{{ sexuality_form.ever_had_sex.label_tag }}</label>
-        {{ sexuality_form.ever_had_sex|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:sex-experience-yes"|set_data:"hide_if_false:sexual-partners sex-experience-yes"|set_data:"hide_if_true:no-of-partners" }}
+        {{ sexuality_form.ever_had_sex|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:sex-experience-yes"|set_data:"hide_if_false:sexual-partners sex-experience-yes" }}
     </div>
     <div class="sex-experience-yes {% if sexuality_form.ever_had_sex.value != 1 %} hidden {% endif %}">
         <div id="age_at_first_sexual_encounter" class="form-group form-inline">
@@ -17,7 +17,7 @@
         <div id="has_sexual_partner" class="form-group form-inline">
             {{ sexuality_form.has_sexual_partner.errors }}
             <label class="control-label enrolment-label">{{ sexuality_form.has_sexual_partner.label_tag }}</label>
-            {{ sexuality_form.has_sexual_partner|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:any"|set_data:"show_if_true:no-of-partners" }}
+            {{ sexuality_form.has_sexual_partner|add_class:"input-sm form-control enrolment-input" }}
         </div>
         <div id="sex_partners_in_last_12months" class="form-group no-of-partners form-inline {% if sexuality_form.sex_partners_in_last_12months.value <= 0 %}hidden{% endif %}">
             {{ sexuality_form.sex_partners_in_last_12months.errors }}
