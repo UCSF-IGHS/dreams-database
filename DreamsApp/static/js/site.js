@@ -1598,6 +1598,18 @@ $(document).ready(function () {
         return true;
     }, ' ');
 
+    //requiredIfOtherSpecify
+    $.validator.addMethod('requiredIfOtherSpecify', function (value) {
+        var isEntered = false;
+        if(value != "" && value.toString() != "0")
+            isEntered = true;
+        var other_specify = parseInt($('#id_verification_document').val(), 10) || 0
+
+        if(other_specify == 96 && !isEntered)
+            return false;
+        return true;
+    }, ' ');
+
     $('#grievances-form').validate({
         rules: {
             date: {
@@ -1915,6 +1927,9 @@ $(document).ready(function () {
                 number:true,
                 under18WithID: true
             }, 
+            verification_document_other:{
+                requiredIfOtherSpecify:true
+            },
             marital_status: { 
                 required: true ,
                 number:true
@@ -1952,6 +1967,9 @@ $(document).ready(function () {
                 required: " * Please Select Client's Verification Document" ,
                 under18WithID: " National ID is not Applicable for girls under 18 years of age."
             }, 
+            verification_document_other:{
+                requiredIfOtherSpecify: "* Required field"
+            },
             marital_status: { 
                 required: " * Please Select Client's Marital Status" 
             } , 
