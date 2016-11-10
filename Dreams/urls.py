@@ -43,6 +43,7 @@ urlpatterns = [
     url(r'^logout$', views.log_me_out),
     url(r'^reporting$', views.reporting, name='reporting'),
     url(r'^help$', views.user_help, name='user_help'),
+    url(r'^help/download/$', views.user_help_download, name='user_help_download'),
     url(r'^logs$', views.logs, name='logs'),
     url(r'^admin/users$', views.users, name='users'),
     url(r'^admin/users/save$', views.save_user, name='new user'),

@@ -7,16 +7,16 @@ from django.core.exceptions import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import Group
-from django.views.generic import ListView, CreateView
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.forms.models import model_to_dict
-from itertools import chain
-import re
-import json
-import traceback
-from datetime import date, timedelta, datetime as dt
 from django.db.models import Q
-from DreamsApp.models import *
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import FileSystemStorage
+
+from django.conf import settings
+
+import json
+
+
+from datetime import date, timedelta, datetime as dt
 from DreamsApp.forms import *
 from Dreams_Utils import *
 from Dreams_Utils_Plain import *
@@ -133,6 +133,7 @@ def clients(request):
                                                       Q(first_name__iregex= search_client_term_parts_string) |
                                                       Q(middle_name__iregex= search_client_term_parts_string) |
                                                       Q(last_name__iregex= search_client_term_parts_string)).order_by('first_name').order_by('middle_name').order_by('last_name')
+                search_result = search_result.filter(voided=False);
                 # check for permissions
                 if not request.user.has_perm("auth.can_view_cross_ip_data"):
                     try:
@@ -789,14 +790,45 @@ def user_help(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
-                return render(request, 'help.html', {'user': request.user})
+                return render(request, 'help.html', {
+                    'user': request.user,
+                    'page': 'help',
+                    'page_title': 'DREAMS User help'
+                })
             elif request.method == 'POST' and request.is_ajax():
-                return render(request, 'help.html', {'user': request.user})
+                return render(request, 'help.html', {
+                    'user': request.user,
+                    'page': 'help',
+                    'page_title': 'DREAMS User help'
+                })
         else:
             raise PermissionDenied
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+
+
+def user_help_download(request):
+    if request.user.is_authenticated() and request.user.is_active:
+        try:
+            manual_filename = request.POST.get('manual') if request.method == 'POST' else request.GET.get('manual')
+            manual_friendly_name = request.POST.get('manual_friendly_name') if request.method == 'POST' else request.GET.get('manual_friendly_name')
+            fs = FileSystemStorage(location= os.path.join(settings.BASE_DIR, 'templates', 'manuals'))
+            com_path = fs.location
+            filename = manual_filename + '.pdf'
+            if fs.exists(filename):
+                with fs.open(filename) as pdf:
+                    response = HttpResponse(pdf, content_type='application/pdf')
+                    response['Content-Disposition'] = 'attachment; filename="' + manual_friendly_name + '"'
+                    return response
+            else:
+                traceback.format_exc()
+            return
+        except Exception as e:
+            traceback.format_exc()
+            return
+    else:
+        raise PermissionDenied
 
 
 def logs(request):
@@ -1492,6 +1524,7 @@ def update_demographics_data(request):
             county_of_residence = instance.county_of_residence
             sub_county = instance.sub_county
             implementing_partner = instance.implementing_partner
+            dreams_id = instance.dreams_id
             form = DemographicsForm(request.POST, instance=instance)
             if form.is_valid():
                 form.save()
@@ -1500,6 +1533,7 @@ def update_demographics_data(request):
                 instance.county_of_residence = county_of_residence
                 instance.sub_county = sub_county
                 instance.implementing_partner = implementing_partner
+                instance.dreams_id = dreams_id
                 instance.save()
                 response_data = {
                     'status': 'success',
@@ -1584,15 +1618,21 @@ def update_sexuality_data(request):
     client_id = int(request.POST['client'])
     instance = ClientSexualActivityData.objects.get(client=client_id)
     if request.is_ajax():
-        template = 'ajax_response_form/client_sexuality_ajax_form.html'
-
         if request.method == 'POST':
             form = SexualityForm(request.POST, instance=instance)
             if form.is_valid():
-                
                 form.save()
+                response_data = {
+                    'status': 'success',
+                    'errors': form.errors
+                }
+                return JsonResponse(response_data, status=200)
             else:
-                print form.errors
+                response_data = {
+                    'status': 'fail',
+                    'errors': form.errors
+                }
+                return JsonResponse(response_data, status=500)
         else:
             raise PermissionDenied
     else:

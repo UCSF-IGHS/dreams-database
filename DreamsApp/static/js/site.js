@@ -1499,6 +1499,28 @@ $(document).ready(function () {
         }
     })
 
+    function getAge(birthDate) {
+          var now = new Date();
+
+          function isLeap(year) {
+            return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+          }
+
+          // days since the birthdate
+          var days = Math.floor((now.getTime() - birthDate.getTime())/1000/60/60/24);
+          var age = 0;
+          // iterate the years
+          for (var y = birthDate.getFullYear(); y <= now.getFullYear(); y++){
+            var daysInYear = isLeap(y) ? 366 : 365;
+            if (days >= daysInYear){
+              days -= daysInYear;
+              age++;
+              // increment the age only if there are available enough days for the year.
+            }
+          }
+          return age;
+    }
+
     jQuery.validator.addMethod("phoneKE", function (phone_number, element) {
         phone_number = phone_number.replace(/\s+/g, "");
         if(phone_number == "")
@@ -1544,6 +1566,37 @@ $(document).ready(function () {
         return true;
     }, ' ');
 
+    $.validator.addMethod('under18WithID', function (value) {
+        var currDOB = new Date($('#id_date_of_birth').val());
+        var age = getAge(currDOB);
+        var verificationDoc = $('#id_verification_document').val() || 0
+
+        if(age < 18 && verificationDoc == 2)
+            return false;
+        return true;
+    }, ' ');
+
+    //requiresChildren
+    $.validator.addMethod('requiresChildren', function (value) {
+        var hasBiologicalChildren = $('#id_has_biological_children').val() || 0
+        var noOfBiologicalChildren =  parseInt($('#id_no_of_biological_children').val()) || 0
+
+        if(hasBiologicalChildren == 1 && noOfBiologicalChildren < 1)
+            return false;
+        return true;
+    }, ' ');
+
+    //positiveNumberZeroExclusive
+    $.validator.addMethod('requiredIfEverHadSex', function (value) {
+        var isEntered = false;
+        if(value != "" && value.toString() != "0")
+            isEntered = true;
+        var ever_had_sex = parseInt($('#id_ever_had_sex').val(), 10) || 0
+
+        if(ever_had_sex > 0 && !isEntered)
+            return false;
+        return true;
+    }, ' ');
 
     $('#grievances-form').validate({
         rules: {
@@ -1859,7 +1912,8 @@ $(document).ready(function () {
             }, 
             verification_document: { 
                 required: true ,
-                number:true
+                number:true,
+                under18WithID: true
             }, 
             marital_status: { 
                 required: true ,
@@ -1895,7 +1949,8 @@ $(document).ready(function () {
                 required: " * Please select Client's Date of Enrolment" 
             }, 
             verification_document: { 
-                required: " * Please Select Client's Verification Document" 
+                required: " * Please Select Client's Verification Document" ,
+                under18WithID: " National ID is not Applicable for girls under 18 years of age."
             }, 
             marital_status: { 
                 required: " * Please Select Client's Marital Status" 
@@ -2124,11 +2179,33 @@ $(document).ready(function () {
         rules: { 
             ever_had_sex: { 
                 required: true 
+            },
+            age_at_first_sexual_encounter:{
+                requiredIfEverHadSex: true,
+                positiveNumberZeroExclusive:true
+            },
+            has_sexual_partner:{
+                requiredIfEverHadSex: true
+            },
+            sex_partners_in_last_12months:{
+                requiredIfEverHadSex: true,
+                positiveNumber: true
             }
         },
         messages: { 
             ever_had_sex: { 
                 required: " * Required field" 
+            },
+            age_at_first_sexual_encounter:{
+                requiredIfEverHadSex: " * Required field",
+                positiveNumberZeroExclusive: "Enter a positive number greater than 0."
+            },
+            has_sexual_partner:{
+                positiveNumber: " Enter positive number e.g 0,1,2...",
+                requiredIfEverHadSex: "* Required field"
+            },
+            sex_partners_in_last_12months:{
+                requiredIfEverHadSex: " * Required field"
             }
         }, 
         highlight: function (element) { 
@@ -2151,14 +2228,37 @@ $(document).ready(function () {
                 required: true 
             },
             no_of_biological_children:{
-                positiveNumber: true
+                positiveNumber: true,
+                requiresChildren: true
+            },
+            currently_pregnant:{
+                required:true
+            },
+            known_fp_method:{
+                required: true
+            },
+            currently_use_modern_fp:{
+                required: true
             }
 
         },
         messages: { 
             fp_methods_awareness: { 
                 required: " * Required field" 
+            },
+            no_of_biological_children:{
+                requiresChildren: "Number of biological children required."
+            },
+            currently_pregnant:{
+                required: "* Required field"
+            },
+            known_fp_method:{
+                required: "* Required field"
+            },
+            currently_use_modern_fp: {
+                required: "* Required field"
             }
+
         }, 
         highlight: function (element) { 
             //$('#form_demographics').find('.error').addClass('text-danger') 
@@ -2273,6 +2373,48 @@ $(document).ready(function () {
          }
 
     });
+    
+    
+    $('.manual_download').click(function (event) {
+        var item = event.target;
+        var manual = $(item).data("manual");
+        var manual_friendly_name = $(item).data("manual_friendly_name");
+        ajax_download_file('help/download/', {'manual':manual, 'manual_friendly_name':manual_friendly_name});
+        console.log(manual);
+    })
+    
+    function ajax_download_file(url, data) {
+        var $iframe, iframe_doc, iframe_html;
+        var csrftoken = getCookie('csrftoken');
+
+        if (($iframe = $('#download_iframe')).length === 0) {
+            $iframe = $("<iframe id='download_iframe'" +
+                        " style='display: none' src='about:blank'></iframe>"
+                       ).appendTo("body");
+        }
+
+        iframe_doc = $iframe[0].contentWindow || $iframe[0].contentDocument;
+        if (iframe_doc.document) {
+            iframe_doc = iframe_doc.document;
+        }
+
+        iframe_html = "<html><head></head><body><form method='POST' action='" +
+                      url +"'>"
+        iframe_html +='<input type="hidden" name="csrfmiddlewaretoken" value="' + csrftoken+ '">';
+
+
+        Object.keys(data).forEach(function(key){
+            iframe_html += "<input type='hidden' name='"+key+"' value='"+data[key]+"'>";
+
+        });
+
+        iframe_html +="</form></body></html>";
+
+        iframe_doc.open();
+        iframe_doc.write(iframe_html);
+        $(iframe_doc).find('form').submit();
+    }
+
 });
 
 
