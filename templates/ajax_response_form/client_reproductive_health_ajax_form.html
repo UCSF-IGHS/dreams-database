@@ -1,0 +1,95 @@
+<div id="rh_replacement">
+    <div class="form-group">
+        {{ rh_form.has_biological_children.errors }}
+        {{ rh_form.has_biological_children.label_tag }}<br/>
+        {{ rh_form.has_biological_children }}
+        {% if rh_form.has_biological_children.value == 1 %}
+            <span id="no_of_children">
+        {% else %}
+            <span id="no_of_children" class="hidden">
+        {% endif %}
+        {{ rh_form.no_of_biological_children.errors }}
+        <label class="control-label">No of Children</label>
+        {{ rh_form.no_of_biological_children }}
+        </span>
+    </div>
+
+    <div class="form-group">
+        {{ rh_form.currently_pregnant.errors }}
+        {{ rh_form.currently_pregnant.label_tag }}<br/>
+        {{ rh_form.currently_pregnant }}
+    </div>
+
+    {% if rh_form.currently_pregnant.value == 1 %}
+        <div id="current_anc_enrollment" class="form-group">
+    {% else %}
+        <div id="current_anc_enrollment" class="form-group hidden">
+    {% endif %}
+    {{ rh_form.current_anc_enrollment.errors }}
+    {{ rh_form.current_anc_enrollment.label_tag }}<br/>
+    {{ rh_form.current_anc_enrollment }}<br/>
+
+    {% if rh_form.current_anc_enrollment.value == 1 %}
+        <span id="anc_facility">
+    {% else %}
+        <span id="anc_facility" class="hidden">
+    {% endif %}
+    {{ rh_form.anc_facility_name.errors }}
+    <label class="control-label">Facility Enrolled</label>
+    {{ rh_form.anc_facility_name }}
+    </span>
+    </div>
+    <div class="form-group">
+        {{ rh_form.fp_methods_awareness.errors }}
+        {{ rh_form.fp_methods_awareness.label_tag }}<br/>
+        {{ rh_form.fp_methods_awareness }}
+    </div>
+    {% if rh_form.fp_methods_awareness.value == 1 %}
+        <div id="known_fp_method" class="form-group">
+    {% else %}
+        <div id="known_fp_method" class="form-group hidden">
+    {% endif %}
+    {{ rh_form.known_fp_method.errors }}
+    {{ rh_form.known_fp_method.label_tag }}<br/>
+    {{ rh_form.known_fp_method }}
+
+    {{ rh_form.known_fp_method_other.errors }}
+    <label class="control-label">Other</label>
+    {{ rh_form.known_fp_method_other }}
+    </div>
+    <div class="form-group">
+        {{ rh_form.currently_use_modern_fp.errors }}
+        {{ rh_form.currently_use_modern_fp.label_tag }}<br/>
+        {{ rh_form.currently_use_modern_fp }}
+    </div>
+    {% if rh_form.currently_use_modern_fp.value == 1 %}
+        <div id="current_fp_method" class="form-group">
+    {% else %}
+        <div id="current_fp_method" class="form-group hidden">
+    {% endif %}
+    {{ rh_form.current_fp_method.errors }}
+    {{ rh_form.current_fp_method.label_tag }}<br/>
+    {{ rh_form.current_fp_method }}
+
+    {{ rh_form.current_fp_method_other.errors }}
+    <label class="control-label">Other</label>
+    {{ rh_form.current_fp_method_other }}
+    </div>
+    {% if rh_form.currently_use_modern_fp.value == 2 %}
+        <div id="reason_not_using_fp" class="form-group">
+    {% else %}
+        <div id="reason_not_using_fp" class="form-group hidden">
+    {% endif %}
+    {{ rh_form.reason_not_using_fp.errors }}
+    {{ rh_form.reason_not_using_fp.label_tag }}<br/>
+    {{ rh_form.reason_not_using_fp }}
+
+    {{ rh_form.reason_not_using_fp_other.errors }}
+    <label class="control-label">Other</label>
+    {{ rh_form.reason_not_using_fp_other }}
+    </div>
+    <div class="form-group">
+        {{ rh_form.client.as_hidden }}
+    </div>
+</div>
+
