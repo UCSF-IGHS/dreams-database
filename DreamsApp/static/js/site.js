@@ -1571,8 +1571,6 @@ $(document).ready(function () {
         var age = getAge(currDOB);
         var verificationDoc = $('#id_verification_document').val() || 0
 
-        console.log(verificationDoc)
-        console.log(age)
         if(age < 18 && verificationDoc == 2)
             return false;
         return true;
@@ -1583,8 +1581,19 @@ $(document).ready(function () {
         var hasBiologicalChildren = $('#id_has_biological_children').val() || 0
         var noOfBiologicalChildren =  parseInt($('#id_no_of_biological_children').val()) || 0
 
-        console.log(hasBiologicalChildren + " " + noOfBiologicalChildren)
         if(hasBiologicalChildren == 1 && noOfBiologicalChildren < 1)
+            return false;
+        return true;
+    }, ' ');
+
+    //positiveNumberZeroExclusive
+    $.validator.addMethod('requiredIfEverHadSex', function (value) {
+        var isEntered = false;
+        if(value != "" && value.toString() != "0")
+            isEntered = true;
+        var ever_had_sex = parseInt($('#id_ever_had_sex').val(), 10) || 0
+
+        if(ever_had_sex > 0 && !isEntered)
             return false;
         return true;
     }, ' ');
@@ -2170,11 +2179,33 @@ $(document).ready(function () {
         rules: { 
             ever_had_sex: { 
                 required: true 
+            },
+            age_at_first_sexual_encounter:{
+                requiredIfEverHadSex: true,
+                positiveNumberZeroExclusive:true
+            },
+            has_sexual_partner:{
+                requiredIfEverHadSex: true
+            },
+            sex_partners_in_last_12months:{
+                requiredIfEverHadSex: true,
+                positiveNumber: true
             }
         },
         messages: { 
             ever_had_sex: { 
                 required: " * Required field" 
+            },
+            age_at_first_sexual_encounter:{
+                requiredIfEverHadSex: " * Required field",
+                positiveNumberZeroExclusive: "Enter a positive number greater than 0."
+            },
+            has_sexual_partner:{
+                positiveNumber: " Enter positive number e.g 0,1,2...",
+                requiredIfEverHadSex: "* Required field"
+            },
+            sex_partners_in_last_12months:{
+                requiredIfEverHadSex: " * Required field"
             }
         }, 
         highlight: function (element) { 
