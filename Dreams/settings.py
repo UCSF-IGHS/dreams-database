@@ -138,6 +138,8 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
+#MEDIA_ROOT = './manuals/'
+
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR,  'templates'),
     'DreamsApp',

@@ -7,16 +7,16 @@ from django.core.exceptions import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import Group
-from django.views.generic import ListView, CreateView
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.forms.models import model_to_dict
-from itertools import chain
-import re
-import json
-import traceback
-from datetime import date, timedelta, datetime as dt
 from django.db.models import Q
-from DreamsApp.models import *
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import FileSystemStorage
+
+from django.conf import settings
+
+import json
+
+
+from datetime import date, timedelta, datetime as dt
 from DreamsApp.forms import *
 from Dreams_Utils import *
 from Dreams_Utils_Plain import *
@@ -790,14 +790,45 @@ def user_help(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
-                return render(request, 'help.html', {'user': request.user})
+                return render(request, 'help.html', {
+                    'user': request.user,
+                    'page': 'help',
+                    'page_title': 'DREAMS User help'
+                })
             elif request.method == 'POST' and request.is_ajax():
-                return render(request, 'help.html', {'user': request.user})
+                return render(request, 'help.html', {
+                    'user': request.user,
+                    'page': 'help',
+                    'page_title': 'DREAMS User help'
+                })
         else:
             raise PermissionDenied
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+
+
+def user_help_download(request):
+    if request.user.is_authenticated() and request.user.is_active:
+        try:
+            manual_filename = request.POST.get('manual') if request.method == 'POST' else request.GET.get('manual')
+            manual_friendly_name = request.POST.get('manual_friendly_name') if request.method == 'POST' else request.GET.get('manual_friendly_name')
+            fs = FileSystemStorage(location= os.path.join(settings.BASE_DIR, 'templates', 'manuals'))
+            com_path = fs.location
+            filename = manual_filename + '.pdf'
+            if fs.exists(filename):
+                with fs.open(filename) as pdf:
+                    response = HttpResponse(pdf, content_type='application/pdf')
+                    response['Content-Disposition'] = 'attachment; filename="' + manual_friendly_name + '"'
+                    return response
+            else:
+                traceback.format_exc()
+            return
+        except Exception as e:
+            traceback.format_exc()
+            return
+    else:
+        raise PermissionDenied
 
 
 def logs(request):
