@@ -275,10 +275,18 @@ VALUES """
             if len(ip_tuple_l) > 1:
                 eval_listt = eval(ip_list_str)
                 ip_list = tuple(eval_listt)
-                cursor.execute("SELECT * FROM flat_dreams_enrollment WHERE implementing_partner_id IN %s ", [ip_list])
+                counter = 0;
+                targetted = "SELECT * FROM flat_dreams_enrollment WHERE implementing_partner_id IN ("
+                for ip_ids in ip_tuple_l:
+                    counter += 1
+                    targetted += ip_ids
+                    if counter != len(ip_tuple_l):
+                        targetted += ","
+                targetted += ")"
+                cursor.execute("SELECT * FROM flat_dreams_enrollment WHERE implementing_partner_id IN (%s)", eval(ip_list))
             else:
                 ip_list = int(ip_list_str)
-                cursor.execute("SELECT * FROM flat_dreams_enrollment WHERE implementing_partner_id = %s ", [ip_list])
+                cursor.execute("SELECT * FROM flat_dreams_enrollment WHERE implementing_partner_id = %s ", ip_list)
 
             print "Query was successful"
             columns = [col[0] for col in cursor.description]
