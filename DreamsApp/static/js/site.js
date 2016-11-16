@@ -2398,7 +2398,6 @@ $(document).ready(function () {
         var manual = $(item).data("manual");
         var manual_friendly_name = $(item).data("manual_friendly_name");
         ajax_download_file('help/download/', {'manual':manual, 'manual_friendly_name':manual_friendly_name});
-        console.log(manual);
     })
     
     function ajax_download_file(url, data) {
