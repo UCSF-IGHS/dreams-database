@@ -10,6 +10,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
+from django.db import connection
 
 from django.conf import settings
 
@@ -22,13 +23,18 @@ from Dreams_Utils import *
 from Dreams_Utils_Plain import *
 
 
-def get_enrollment_form_config_data():
+def get_enrollment_form_config_data(request):
     try:
+        try:
+            current_ip = request.user.implementingpartneruser.implementing_partner.code
+        except Exception as e:
+            current_ip = 0
         config_data = {
             'implementing_partners': ImplementingPartner.objects.all(),
             'verification_documents': VerificationDocument.objects.all(),
             'marital_status': MaritalStatus.objects.all(),
-            'counties': County.objects.all()
+            'counties': County.objects.all(),
+            'current_ip': current_ip
             #  'sub_counties': SubCounty.objects.all(),
             #  'wards': Ward.objects.all()
         }
@@ -152,7 +158,8 @@ def clients(request):
                     'search_client_term': search_client_term,
                     'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                     'can_change_client': request.user.has_perm('auth.can_change_client'),
-                    'can_delete_client': request.user.has_perm('auth.can_delete_client')
+                    'can_delete_client': request.user.has_perm('auth.can_delete_client'),
+                    'config': get_enrollment_form_config_data(request)
                 }
                 return JsonResponse(json_response, safe=False)
             else:
@@ -170,7 +177,8 @@ def clients(request):
                     'page_title': 'DREAMS Client List',
                     'search_client_term': search_client_term,
                     'client_paginator': client_paginator,
-                    'status': 'success'
+                    'status': 'success',
+                    'config_data': get_enrollment_form_config_data(request)
                 }
                 return render(request, 'clients.html', response_data)
         else:
@@ -230,9 +238,15 @@ def save_client(request):
                 return render(request, 'enrollment.html', {'client': None})
             elif request.method == 'POST' and request.is_ajax():
                 # process saving user
+                dreams_id = request.POST.get('dreams_id', '')
+                if dreams_id == '':
+                    cursor = connection.cursor()
+                    cursor.execute(
+                        "SELECT (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1) from DreamsApp_client WHERE dreams_id is not null AND DreamsApp_client.implementing_partner_id=implementing_partner_id group by implementing_partner_id;")
+                    next_serial = cursor.fetchone()[0]
+                    dreams_id = str(request.user.implementingpartneruser.implementing_partner.code) + '/' + str(request.POST.get('ward', '')) + '/' + str(next_serial)
                 client = Client.objects.create(
-                    implementing_partner=ImplementingPartner.objects.filter(
-                        code__exact=request.POST.get('implementing_partner', '')).first(),
+                    implementing_partner=request.user.implementingpartneruser.implementing_partner,
                     first_name=request.POST.get('first_name', ''),
                     middle_name=request.POST.get('middle_name', ''),
                     last_name=request.POST.get('last_name', ''),
@@ -242,7 +256,7 @@ def save_client(request):
                         code__exact=request.POST.get('verification_document', '')).first(),
                     verification_doc_no=request.POST.get('verification_doc_no', ''),
                     date_of_enrollment=request.POST.get('date_of_enrollment', ''),
-                    age_at_enrollment=int(request.POST.get('age_at_enrollment', 10)),
+                    #age_at_enrollment=int(request.POST.get('age_at_enrollment', 10)),
                     marital_status=MaritalStatus.objects.filter(
                         code__exact=str(request.POST.get('marital_status', ''))).first(),
                     phone_number=request.POST.get('phone_number', ''),
@@ -254,7 +268,7 @@ def save_client(request):
                     informal_settlement=request.POST.get('informal_settlement', ''),
                     village=request.POST.get('village', ''),
                     landmark=request.POST.get('landmark', ''),
-                    dreams_id=request.POST.get('dreams_id', ''),
+                    dreams_id=dreams_id,
                     guardian_name=request.POST.get('guardian_name', ''),
                     relationship_with_guardian=request.POST.get('relationship_with_guardian', ''),
                     guardian_phone_number=request.POST.get('guardian_phone_number', ''),
@@ -262,10 +276,19 @@ def save_client(request):
                     enrolled_by=request.user
                 )
                 client.save(user_id=request.user.id, action="INSERT")
+                # cascade create other modules
+                ClientIndividualAndHouseholdData.objects.get_or_create(client=client)
+                ClientEducationAndEmploymentData.objects.get_or_create(client=client)
+                ClientHIVTestingData.objects.get_or_create(client=client)
+                ClientSexualActivityData.objects.get_or_create(client=client)
+                ClientReproductiveHealthData.objects.get_or_create(client=client)
+                ClientGenderBasedViolenceData.objects.get_or_create(client=client)
+                ClientDrugUseData.objects.get_or_create(client=client)
+                ClientParticipationInDreams.objects.get_or_create(client=client)
                 if request.is_ajax():
                     response_data = {
                         'status': 'success',
-                        'message': 'Enrollment to DREAMS successful.',
+                        'message': 'Enrollment to DREAMS successful. Redirecting you to the full enrolment data view',
                         'client_id': client.id,
                         'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                         'can_change_client': request.user.has_perm('auth.can_change_client'),
