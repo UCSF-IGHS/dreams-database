@@ -70,7 +70,7 @@
                             <label for="verification_document">Verification Document</label>
                             <select id="id_verification_document" name="verification_document" class="form-control  enrolment-input listen-to-change" data-show_value="96" data-show_if_true="verification-doc-other" >
                                 <option value="">Select Option</option>
-                                {% for verification_document in config_data.verification_documents %}
+                                {% for verification_document in verification_documents %}
                                 <option data-verification_document_id="{{ verification_document.id }}" value="{{ verification_document.code }}">{{ verification_document.name }}</option>
                                 {% endfor %}
                             </select>
@@ -127,7 +127,7 @@
                             <label for="marital_status">Marital Status</label>
                             <select id="id_marital_status" name="marital_status" class="form-control clear_value" >
                                 <option value="">Select Option</option>
-                                {% for ms in config_data.marital_status %}
+                                {% for ms in marital_status %}
                                 <option data-marital_status_id="{{ ms.id }}" value="{{ ms.code }}" >{{ ms.name }}</option>
                                 {% endfor %}
                             </select>
@@ -150,7 +150,7 @@
                             <label for="county_of_residence">County of Residence</label>
                             <select id="id_county_of_residence" name="county_of_residence" class="form-control clear_value">
                                 <option value="">Select County</option>
-                                {% for county in config_data.counties %}
+                                {% for county in counties %}
                                     <option data-county_of_residence_id="{{ county.id }}" value="{{ county.code }}">{{ county.name }}</option>
                                 {% endfor %}
                             </select>
@@ -161,7 +161,7 @@
                             <label for="sub_county">Sub-County</label>
                             <select id="id_sub_county" name="sub_county" class="form-control clear_value" >
                                 <option value="">Select Sub-County</option>
-                                {% for sub_county in config_data.sub_counties %}
+                                {% for sub_county in sub_counties %}
                                 <option value="{{ sub_county.code }}" data-sub_county_id="{{ sub_county.id }}" data-county_code="{{ sub_county.county.code }}">{{ sub_county.name }}</option>
                                 {% endfor %}
                             </select>

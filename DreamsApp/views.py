@@ -140,6 +140,11 @@ def clients(request):
                                                       Q(middle_name__iregex= search_client_term_parts_string) |
                                                       Q(last_name__iregex= search_client_term_parts_string))\
                     .exclude(voided=True).order_by('first_name').order_by('middle_name').order_by('last_name')
+                # search_result = Client.objects.filter(Q(dreams_id__iregex= search_client_term_parts_string) |
+                #                                       Q(first_name__iregex= search_client_term_parts_string,
+                #                                         middle_name__iregex=search_client_term_parts_string,
+                #                                         last_name__iregex=search_client_term_parts_string))\
+                #     .exclude(voided=True).order_by('first_name').order_by('middle_name').order_by('last_name')
                 #search_result = search_result.filter(voided=False);
                 # check for permissions
                 if not request.user.has_perm("auth.can_view_cross_ip_data"):
@@ -151,7 +156,10 @@ def clients(request):
             else:
                 search_result = Client.objects.all()[:0]
             log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_client_term)
-
+            try:
+                current_ip = request.user.implementingpartneruser.implementing_partner.code
+            except Exception as e:
+                current_ip = 0
             if request.is_ajax():
                 json_response = {
                     'search_result': serializers.serialize('json', search_result),
@@ -159,7 +167,11 @@ def clients(request):
                     'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                     'can_change_client': request.user.has_perm('auth.can_change_client'),
                     'can_delete_client': request.user.has_perm('auth.can_delete_client'),
-                    'config': get_enrollment_form_config_data(request)
+                    'implementing_partners': ImplementingPartner.objects.all(),
+                    'verification_documents': VerificationDocument.objects.all(),
+                    'marital_status': MaritalStatus.objects.all(),
+                    'counties': County.objects.all(),
+                    'current_ip': current_ip
                 }
                 return JsonResponse(json_response, safe=False)
             else:
@@ -178,7 +190,11 @@ def clients(request):
                     'search_client_term': search_client_term,
                     'client_paginator': client_paginator,
                     'status': 'success',
-                    'config_data': get_enrollment_form_config_data(request)
+                    'implementing_partners': ImplementingPartner.objects.all(),
+                    'verification_documents': VerificationDocument.objects.all(),
+                    'marital_status': MaritalStatus.objects.all(),
+                    'counties': County.objects.all(),
+                    'current_ip': current_ip
                 }
                 return render(request, 'clients.html', response_data)
         else:
