@@ -92,9 +92,8 @@
                 <br>
             </div>
         {% endif %}
-        <div class="hidden">
-            <button id="btn_show_enrollment_modal" class="" data-toggle="modal" data-target="#enrollment-modal"
-                    data-toggle="tooltip" title="New Enrollment"><i class="glyphicon glyphicon-plus text-default"></i>
+        <div>
+            <button id="btn_show_enrollment_modal" class="btn btn-primary {% if not perms.DreamsApp.add_client %} hidden {% endif %}" data-toggle="modal" data-target="#enrollment-modal" data-toggle="tooltip" title="New Enrollment"><i class="glyphicon glyphicon-plus text-default"></i>
                 New Enrollment
             </button>
         </div>

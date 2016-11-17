@@ -920,6 +920,11 @@ $(document).ready(function () {
 
     $('#enrollment-form').submit(function (event) {
         event.preventDefault();
+
+        // validate
+        if (!$('#enrollment-form').valid())
+            return
+
         var enrollment_form_submit_mode = 'new';
         var post_url = '/clientSave';
         var clientForm = $(event.target);
@@ -943,7 +948,12 @@ $(document).ready(function () {
                     var clients_tbody = $('#dp-patient-list-body')
                     var date_of_enrollment = new Date($('#enrollment-form #date_of_enrollment').val());
                     date_of_enrollment = $.datepicker.formatDate('MM d, yy', date_of_enrollment)
-                    if(enrollment_form_submit_mode == 'new'){
+                    // redirect to demographics page
+                    $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
+                        .text(result.message)
+                        .trigger('madeVisible')
+                    window.location='/client_baseline_info?client_id=' + result.client_id + '&search_client_term='
+                    /*if(enrollment_form_submit_mode == 'new'){
                         // Prepend new line into the clients' table
                         insertClientTableRow(clients_tbody, result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, result.can_manage_client, result.can_change_client, result.can_delete_client)
                     }
@@ -952,10 +962,8 @@ $(document).ready(function () {
                         // Insert updated value
                         insertClientTableRow($('#dp-patient-list-body'), result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, false, result.can_manage_client, result.can_change_client, result.can_delete_client);
                     }
-                    $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
-                        .text(result.message)
-                        .trigger('madeVisible')
-
+                    
+                    */
                     // Close enrollment modal when done
                     $("#enrollment-modal").modal('hide');
                 }
@@ -980,12 +988,12 @@ $(document).ready(function () {
         $('#enrollment-modal').modal('toggle');
     })
 
-    $('#county_of_residence').change(function (event) {
+    $('#id_county_of_residence').change(function (event) {
         getSubCounties(false, null, null, null);
     })
 
     function getSubCounties(setSelected, c_code, sub_county_id, ward_id) {
-        var county_code = setSelected == true ? c_code : $('#county_of_residence').val();
+        var county_code = setSelected == true ? c_code : $('#id_county_of_residence').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url : "/getSubCounties", // the endpoint
@@ -996,15 +1004,15 @@ $(document).ready(function () {
             },
             success : function(data) {
                 var sub_counties = $.parseJSON(data.sub_counties);
-                $("#sub_county option").remove();
-                $("#sub_county").append("<option value=''>Select Sub-County</option>");
+                $("#id_sub_county option").remove();
+                $("#id_sub_county").append("<option value=''>Select Sub-County</option>");
                 $.each(sub_counties, function (index, field) {
-                    $("#sub_county").append("<option data-sub_county_id='" + field.pk + "' value='" + field.fields.code + "'>" + field.fields.name + "</option>");
+                    $("#id_sub_county").append("<option data-sub_county_id='" + field.pk + "' value='" + field.fields.code + "'>" + field.fields.name + "</option>");
                 })
 
                 // setting sub-county when necessary
                 if(setSelected){    // set selected sub county
-                    $('#sub_county option').each(function() {
+                    $('#id_sub_county option').each(function() {
                         if(sub_county_id != null && $(this).data('sub_county_id') ==  sub_county_id ) {
                             $(this).prop("selected", true);
                             // Load wards since a subcounty has been selected
@@ -1024,7 +1032,7 @@ $(document).ready(function () {
     }
 
     function getWards(setSelected, sc_code, ward_id) {
-        var sc_code = setSelected ? sc_code : $('#sub_county').val();
+        var sc_code = setSelected ? sc_code : $('#id_sub_county').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url : "/getWards", // the endpoint
@@ -1035,14 +1043,14 @@ $(document).ready(function () {
             },
             success : function(data) {
                 var wards = $.parseJSON(data.wards);
-                $("#ward option").remove();
-                $("#ward").append("<option value=''>Select Ward</option>");
+                $("#id_ward option").remove();
+                $("#id_ward").append("<option value=''>Select Ward</option>");
                 $.each(wards, function (index, field) {
-                    $("#ward").append("<option data-ward_id='" + field.pk + "' value='" + field.fields.code + "'>" + field.fields.name + "</option>");
+                    $("#id_ward").append("<option data-ward_id='" + field.pk + "' value='" + field.fields.code + "'>" + field.fields.name + "</option>");
                 })
 
                 if(setSelected){
-                    $('#ward option').each(function() {
+                    $('#id_ward option').each(function() {
                         if(ward_id != null && $(this).data('ward_id') ==  ward_id ) {
                             $(this).prop("selected", true);
                         }
@@ -1059,7 +1067,7 @@ $(document).ready(function () {
         });
     }
     
-    $('#sub_county').change(function (event) {
+    $('#id_sub_county').change(function (event) {
         getWards(false, null, null);
     })
 
@@ -1898,6 +1906,123 @@ $(document).ready(function () {
 
     /* Validate Enrolment Form */
 
+    $("#enrollment-form").validate({
+        groups:{
+            full_name: "id_first_name id_middle_name id_last_name"
+        },
+        rules: { 
+            implementing_partner: { 
+                required: true ,
+            }, 
+            age_of_household_head: { 
+                minTwoNames: true 
+            }, 
+            first_name: { 
+                minTwoNames: true 
+            }, 
+            middle_name: { 
+                minTwoNames: true 
+            }, 
+            last_name: { 
+                minTwoNames: true 
+            }, 
+            date_of_birth: { 
+                required: true 
+            }, 
+            date_of_enrollment: { 
+                required: true 
+            }, 
+            verification_document: { 
+                required: true ,
+                number:true,
+                under18WithID: true
+            }, 
+            verification_document_other:{
+                requiredIfOtherSpecify:true
+            },
+            marital_status: { 
+                required: true ,
+                number:true
+            }, 
+            phone_number: { 
+                phoneKE: true
+            },
+            county_of_residence:{
+                required:true
+            },
+            sub_county:{
+              required: true
+            },
+            ward:{
+                required: true
+            },
+            guardian_phone_number:{
+                phoneKE:true
+            },
+            guardian_national_id:{
+                number:true
+            }
+              },
+        messages: { 
+            implementing_partner: { 
+                required: " * Please enter your Client Implementing Partner" 
+            }, 
+            first_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            }, 
+            first_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            },
+             middle_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            }, 
+            last_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            }, 
+            date_of_birth: { 
+                required:  " * Please select Client's Date of Birth" 
+            }, 
+            date_of_enrollment: { 
+                required: " * Please select Client's Date of Enrolment" 
+            }, 
+            verification_document: { 
+                required: " * Please Select Client's Verification Document" ,
+                under18WithID: " National ID is not Applicable for girls under 18 years of age."
+            }, 
+            verification_document_other:{
+                requiredIfOtherSpecify: "* Required field"
+            },
+            marital_status: { 
+                required: " * Please Select Client's Marital Status" 
+            } , 
+            phone_number: { 
+                phoneKE: " * Please enter valid Phone number" 
+            } , 
+            county_of_residence:{
+                required: " * Please Select Client's County of Residence"
+            },
+            sub_county:{
+                required: " * Please Select Client's Sub County"
+            },
+            ward:{
+                required: " * Please Select Client's Ward"
+            },
+            guardian_phone_number: { 
+                phoneKE: " * Please enter Valid Phone number" 
+            } , 
+            guardian_national_id: { 
+                number: " * Please enter valid National ID" 
+            } 
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_demographics .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_demographics').find('.error').removeClass('text-danger')
+         }
+
+    });
     /* Demographics */
     $("#form_demographics").validate({
         groups:{
@@ -2431,6 +2556,72 @@ $(document).ready(function () {
         iframe_doc.write(iframe_html);
         $(iframe_doc).find('form').submit();
     }
+
+
+    $('.listen-to-change').on('change keyup', function () {
+
+                var val = $(this).val();
+                var show_if_true = $(this).data('show_if_true'); // class to show
+                var hide_if_true = $(this).data('hide_if_true'); // class to show
+                var hide_if_false = $(this).data('hide_if_false'); // class to hide
+                var show_value = $(this).data('show_value'); // value to determine show/hide
+
+                if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != ''){
+                    var hide_classes = hide_if_false.split(" ");
+                    hide_if_false = hide_classes;
+                }
+
+                if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != ''){
+                    var hide_on_show_classes = hide_if_true.split(" ");
+                    hide_if_true = hide_on_show_classes;
+                }
+
+
+
+
+                if(val == show_value || show_value=='any'){
+                    $('.'+show_if_true).removeClass('hidden');
+
+                    if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                        for (var i = 0; i < hide_if_true.length; i++) {
+                            var class_name = hide_if_true[i];
+                            $('.' + class_name).addClass('hidden');
+                            $('.' + class_name).find('input,select').each(function () {
+                                $(this).val('');
+                                $(this).attr('checked', false);
+                            });
+                        }
+                    }
+
+                } else {
+
+                    $('.'+show_if_true).addClass('hidden');
+
+                    $('.'+show_if_true).find('input,select').each(function(){
+                        $(this).val('');
+                        $(this).attr('checked',false);
+                    });
+
+                    if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
+                        for (var i = 0; i < hide_if_false.length; i++) {
+                            var class_name = hide_if_false[i];
+                            $('.' + class_name).addClass('hidden');
+                            $('.' + class_name).find('input,select').each(function () {
+                                $(this).val('');
+                                $(this).attr('checked', false);
+                            });
+
+                        }
+                    }
+
+                    if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                        for (var i = 0; i < hide_if_true.length; i++) {
+                            var class_name = hide_if_true[i];
+                            $('.' + class_name).removeClass('hidden');
+                        }
+                    }
+                }
+            });
 
 });
 
