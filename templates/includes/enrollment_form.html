@@ -20,7 +20,7 @@
                         <!-- Permanently hidden Fields -->
 
                         <input class="hidden clear_value" name="client_id" id="client_id"/>
-                        <input class="hidden clear_value" type="text" name="implementing_partner" value="{{ config_data.current_ip }}">
+                        <input class="hidden clear_value" type="text" name="implementing_partner" value="{{ current_ip }}">
                         <!-- End of permanently hidden fields -->
 
                         <div class="form-group">
@@ -172,7 +172,7 @@
                             <label for="ward">Ward</label>
                             <select id="id_ward" name="ward" class="form-control clear_value" >
                                 <option value="">Select Ward</option>
-                                {% for ward in config_data.wards %}
+                                {% for ward in wards %}
                                 <option value="{{ ward.code }}">{{ ward.name }}</option>
                                 {% endfor %}
 
