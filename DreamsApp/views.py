@@ -120,6 +120,49 @@ def user_login(request):
         return HttpResponseServerError(tb)
 
 
+def build_filter_client_queryset(turple_1, turple_2, turple_3, turple_4, turple_5, turple_6):
+    try:
+        return Client.objects.filter(Q(first_name__icontains=str(turple_1[0]), middle_name__icontains=str(turple_1[1]),last_name__icontains=str(turple_1[2])) |
+                                              Q(first_name__icontains=str(turple_2[0]), middle_name__icontains=str(turple_2[1]),last_name__icontains=str(turple_2[2])) |
+                                              Q(first_name__icontains=str(turple_3[0]), middle_name__icontains=str(turple_3[1]),last_name__icontains=str(turple_3[2])) |
+                                              Q(first_name__icontains=str(turple_4[0]), middle_name__icontains=str(turple_4[1]),last_name__icontains=str(turple_4[2])) |
+                                              Q(first_name__icontains=str(turple_5[0]), middle_name__icontains=str(turple_5[1]),last_name__icontains=str(turple_5[2])) |
+                                              Q(first_name__icontains=str(turple_6[0]), middle_name__icontains=str(turple_6[1]),last_name__icontains=str(turple_6[2])))\
+            .exclude(voided=True)\
+            .order_by('first_name')\
+            .order_by('middle_name')\
+            .order_by('last_name')
+    except Exception as e:
+        return Client.objects.all()[0]
+
+
+def filter_clients(search_client_term):
+    search_client_term_parts = search_client_term.split()
+    # check number of parts
+    parts_count = len(search_client_term_parts)
+    if parts_count == 1:
+        filter_text = search_client_term_parts[0]
+        search_result = Client.objects.filter(Q(dreams_id__iexact=filter_text) |
+                                              Q(first_name__iexact=filter_text) |
+                                              Q(middle_name__iexact=filter_text) |
+                                              Q(last_name__iexact=filter_text)) \
+            .exclude(voided=True).order_by('first_name').order_by('middle_name').order_by('last_name')
+    elif parts_count > 1:
+        # this is not a dreams id search but a name search
+        filter_text_1 = search_client_term_parts[0]
+        filter_text_2 = search_client_term_parts[1]
+        filter_text_3 = '' if parts_count == 2 else search_client_term_parts[2]
+        # first name and middle name
+        search_result = build_filter_client_queryset((filter_text_1, filter_text_2, filter_text_3),
+                                     (filter_text_2, filter_text_1, filter_text_3),
+                                     (filter_text_2, filter_text_3, filter_text_1),
+                                     (filter_text_3, filter_text_2, filter_text_1),
+                                     (filter_text_3, filter_text_1, filter_text_2),
+                                     (filter_text_1, filter_text_3, filter_text_2))
+
+    return search_result
+
+
 def clients(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
@@ -128,24 +171,7 @@ def clients(request):
             search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get('search_client_term', '')
             search_client_term = search_client_term.strip()
             if search_client_term != "":
-                search_client_term_parts = search_client_term.split()
-                search_client_term_parts_string = r''
-                for search_client_term_part in search_client_term_parts:
-                    if search_client_term_parts_string != '':
-                        search_client_term_parts_string += '|'
-                    search_client_term_parts_string += ('^' + search_client_term_part)
-                search_client_term_parts_string += '$'
-                search_result = Client.objects.filter(Q(dreams_id__iregex= search_client_term_parts_string) |
-                                                      Q(first_name__iregex= search_client_term_parts_string) |
-                                                      Q(middle_name__iregex= search_client_term_parts_string) |
-                                                      Q(last_name__iregex= search_client_term_parts_string))\
-                    .exclude(voided=True).order_by('first_name').order_by('middle_name').order_by('last_name')
-                # search_result = Client.objects.filter(Q(dreams_id__iregex= search_client_term_parts_string) |
-                #                                       Q(first_name__iregex= search_client_term_parts_string,
-                #                                         middle_name__iregex=search_client_term_parts_string,
-                #                                         last_name__iregex=search_client_term_parts_string))\
-                #     .exclude(voided=True).order_by('first_name').order_by('middle_name').order_by('last_name')
-                #search_result = search_result.filter(voided=False);
+                search_result = filter_clients(search_client_term)
                 # check for permissions
                 if not request.user.has_perm("auth.can_view_cross_ip_data"):
                     try:
