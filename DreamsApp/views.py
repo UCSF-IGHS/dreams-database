@@ -10,7 +10,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
-from django.db import connection
+from django.db import connection as db_conn_2
 
 from django.conf import settings
 
@@ -292,9 +292,9 @@ def save_client(request):
                         'can_delete_client': request.user.has_perm('auth.can_delete_client')
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
-                dreams_id = request.POST.get('dreams_id', '')
-                if dreams_id == '':
-                    cursor = connection.cursor()
+                dreams_id = str(request.POST.get('dreams_id', ''))
+                if str(dreams_id) == '':
+                    cursor = db_conn_2.cursor()
                     try:
                         cursor.execute(
                             """
