@@ -930,11 +930,7 @@ $(document).ready(function () {
         var clientForm = $(event.target);
         if(!validateClientForm(clientForm))
             return;
-        var client_id = $('#enrollment-form #client_id').val();
-        if(client_id != null && client_id != ''){
-            enrollment_form_submit_mode = 'edit';
-            post_url = '/clientEdit';
-        }
+
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url : post_url,
@@ -943,7 +939,6 @@ $(document).ready(function () {
             data:$('#enrollment-form').serialize(),
             success : function(data) {
                 var result = $.parseJSON(data)
-
                 if(result.status == "success"){
                     var clients_tbody = $('#dp-patient-list-body')
                     var date_of_enrollment = new Date($('#enrollment-form #date_of_enrollment').val());
@@ -953,18 +948,6 @@ $(document).ready(function () {
                         .text(result.message)
                         .trigger('madeVisible')
                     window.location='/client_baseline_info?client_id=' + result.client_id + '&search_client_term='
-                    /*if(enrollment_form_submit_mode == 'new'){
-                        // Prepend new line into the clients' table
-                        insertClientTableRow(clients_tbody, result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, result.can_manage_client, result.can_change_client, result.can_delete_client)
-                    }
-                    else{
-                        $('#clients_row_' + result.client_id).remove(); // remove row
-                        // Insert updated value
-                        insertClientTableRow($('#dp-patient-list-body'), result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, false, result.can_manage_client, result.can_change_client, result.can_delete_client);
-                    }
-                    
-                    */
-                    // Close enrollment modal when done
                     $("#enrollment-modal").modal('hide');
                 }
                 else{
@@ -974,8 +957,6 @@ $(document).ready(function () {
                         .trigger('madeVisible')
                 }
             },
-
-            // handle a non-successful response
             error : function(xhr,errmsg,err) {
                 $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')
                         .text('An error occurred while processing client details. Contact system administratior if this persists')
