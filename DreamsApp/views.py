@@ -292,8 +292,8 @@ def save_client(request):
                         'can_delete_client': request.user.has_perm('auth.can_delete_client')
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
-                dreams_id = request.POST.get('dreams_id', '')
-                if dreams_id == '':
+                dreams_id = str(request.POST.get('dreams_id', ''))
+                if str(dreams_id) == '':
                     cursor = connection.cursor()
                     try:
                         cursor.execute(
