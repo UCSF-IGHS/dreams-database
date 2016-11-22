@@ -295,10 +295,18 @@ def save_client(request):
                 dreams_id = request.POST.get('dreams_id', '')
                 if dreams_id == '':
                     cursor = connection.cursor()
-                    cursor.execute(
-                        "SELECT (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1) from DreamsApp_client WHERE dreams_id is not null AND DreamsApp_client.implementing_partner_id=implementing_partner_id group by implementing_partner_id;")
-                    next_serial = cursor.fetchone()[0]
-                    dreams_id = str(ip_code) + '/' + str(request.POST.get('ward', '')) + '/' + str(next_serial)
+                    try:
+                        cursor.execute(
+                            """
+                            SELECT (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1)
+                            from DreamsApp_client WHERE dreams_id is not null
+                            AND DreamsApp_client.implementing_partner_id=%s group by implementing_partner_id;""", (ip_code,))
+                        next_serial = cursor.fetchone()[0]
+                    except Exception as e:
+                        next_serial = 1
+                    finally:
+                        dreams_id = str(ip_code) + '/' + str(request.POST.get('ward', '')) + '/' + str(next_serial)
+                        cursor.close()
                 client = Client.objects.create(
                     implementing_partner=request.user.implementingpartneruser.implementing_partner,
                     first_name=request.POST.get('first_name', ''),
