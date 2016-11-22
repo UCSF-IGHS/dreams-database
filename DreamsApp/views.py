@@ -280,13 +280,25 @@ def save_client(request):
                 return render(request, 'enrollment.html', {'client': None})
             elif request.method == 'POST' and request.is_ajax():
                 # process saving user
+                try:
+                    ip_code = request.user.implementingpartneruser.implementing_partner.code
+                except Exception as e:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Enrollment Failed. You do not belong to an implementing partner',
+                        'client_id': None,
+                        'can_manage_client': request.user.has_perm('auth.can_manage_client'),
+                        'can_change_client': request.user.has_perm('auth.can_change_client'),
+                        'can_delete_client': request.user.has_perm('auth.can_delete_client')
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
                 dreams_id = request.POST.get('dreams_id', '')
                 if dreams_id == '':
                     cursor = connection.cursor()
                     cursor.execute(
                         "SELECT (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1) from DreamsApp_client WHERE dreams_id is not null AND DreamsApp_client.implementing_partner_id=implementing_partner_id group by implementing_partner_id;")
                     next_serial = cursor.fetchone()[0]
-                    dreams_id = str(request.user.implementingpartneruser.implementing_partner.code) + '/' + str(request.POST.get('ward', '')) + '/' + str(next_serial)
+                    dreams_id = str(ip_code) + '/' + str(request.POST.get('ward', '')) + '/' + str(next_serial)
                 client = Client.objects.create(
                     implementing_partner=request.user.implementingpartneruser.implementing_partner,
                     first_name=request.POST.get('first_name', ''),
@@ -343,8 +355,15 @@ def save_client(request):
         else:
             raise PermissionDenied
     except Exception as e:
-        tb = traceback.format_exc(e)
-        return HttpResponseServerError(tb)
+        response_data = {
+            'status': 'fail',
+            'message': e.message,
+            'client_id': None,
+            'can_manage_client': request.user.has_perm('auth.can_manage_client'),
+            'can_change_client': request.user.has_perm('auth.can_change_client'),
+            'can_delete_client': request.user.has_perm('auth.can_delete_client')
+        }
+        return JsonResponse(json.dumps(response_data), safe=False)
 
 
 def edit_client(request):
