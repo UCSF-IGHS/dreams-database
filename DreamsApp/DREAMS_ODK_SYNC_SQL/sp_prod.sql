@@ -341,13 +341,15 @@ CREATE PROCEDURE sp_demographic_data(IN recordUUID VARCHAR(100))
       guardian_national_id,
       informal_settlement,
       landmark,
+      village,
       verification_document_id,
       verification_document_other,
       verification_doc_no,
       implementing_partner_id,
       ward_id,
       odk_enrollment_uuid,
-      date_created
+      date_created,
+      voided
     )
     select
       d.DEMOGRAPHIC_FIRSTNAME_1 as f_name,
@@ -365,13 +367,15 @@ CREATE PROCEDURE sp_demographic_data(IN recordUUID VARCHAR(100))
       d.DEMOGRAPHIC_NATIONAL_ID as caregiver_ID_no,
       d.DEMOGRAPHIC_INFORMALSTTLEMENTT as informal_settlement,
       d.DEMOGRAPHIC_LANDMARK as landmark,
+      d.DEMOGRAPHIC_VILLAGE as village,
       d.VERIFICATIONDOC as verification_doc,
       d.VERIFICATIONDOCSPECIFY as verification_doc_other,
       COALESCE(d.VERIFICATION_1, d.VERIFICATION_2, d.VERIFICATION_3) as verification_doc_no,
       d.IPNAME as ip_name,
       d.DEMOGRAPHIC_WARD,
       d._URI as uuid,
-      now()
+      now(),
+      0
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE d
     where d.ENROLNOTENROLED = 1 and _URI=recordUUID ;
   END
