@@ -921,6 +921,7 @@ $(document).ready(function () {
     $('#enrollment-form').submit(function (event) {
         event.preventDefault();
 
+        $('#id_implementing_partner').val($('#temp_current_ip').val())
         // validate
         if (!$('#enrollment-form').valid())
             return
@@ -974,21 +975,21 @@ $(document).ready(function () {
     })
 
     function getSubCounties(setSelected, c_code, sub_county_id, ward_id) {
-        var county_code = setSelected == true ? c_code : $('#id_county_of_residence').val();
+        var county_id = setSelected == true ? c_code : $('#id_county_of_residence').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url : "/getSubCounties", // the endpoint
             type : "GET", // http method
             dataType: 'json',
             data : {
-                county_code : county_code,
+                county_id : county_id,
             },
             success : function(data) {
                 var sub_counties = $.parseJSON(data.sub_counties);
                 $("#id_sub_county option").remove();
                 $("#id_sub_county").append("<option value=''>Select Sub-County</option>");
                 $.each(sub_counties, function (index, field) {
-                    $("#id_sub_county").append("<option data-sub_county_id='" + field.pk + "' value='" + field.fields.code + "'>" + field.fields.name + "</option>");
+                    $("#id_sub_county").append("<option data-sub_county_id='" + field.pk + "' value='" + field.pk + "'>" + field.fields.name + "</option>");
                 })
 
                 // setting sub-county when necessary
@@ -1012,22 +1013,22 @@ $(document).ready(function () {
         });
     }
 
-    function getWards(setSelected, sc_code, ward_id) {
-        var sc_code = setSelected ? sc_code : $('#id_sub_county').val();
+    function getWards(setSelected, sc_id, ward_id) {
+        var sc_id = setSelected ? sc_id : $('#id_sub_county').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url : "/getWards", // the endpoint
             type : "GET", // http method
             dataType: 'json',
             data : {
-                sub_county_code : sc_code,
+                sub_county_id : sc_id,
             },
             success : function(data) {
                 var wards = $.parseJSON(data.wards);
                 $("#id_ward option").remove();
                 $("#id_ward").append("<option value=''>Select Ward</option>");
                 $.each(wards, function (index, field) {
-                    $("#id_ward").append("<option data-ward_id='" + field.pk + "' value='" + field.fields.code + "'>" + field.fields.name + "</option>");
+                    $("#id_ward").append("<option data-ward_id='" + field.pk + "' value='" + field.pk + "'>" + field.fields.name + "</option>");
                 })
 
                 if(setSelected){
