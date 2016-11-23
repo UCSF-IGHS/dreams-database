@@ -1,0 +1,217 @@
+{% load widget_tweaks %}
+
+{% block enrollment_new %}
+<div class="modal fade " id="enrollment-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html"
+         >
+    <form method="POST" class="post-form" id="enrollment-form" action="/clientSave">
+
+        <input class="disabled" id="temp_current_ip" value="{{ current_ip }}">
+        {% csrf_token %}
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header btn-default" style="border-radius: 4px 4px 0px 0px;">
+                <button type="button" class="close" id="close__enrollment_modal" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel"><span class="glyphicon glyphicon-file"></span> CLIENT ENROLLMENT FORM</h4>
+                </div>
+                <div class="modal-body">
+                    <div style="margin: auto 15px;">
+                        <input id="demo_current_client_id" class="hidden" type="text" name="client"/>
+
+                        <div class="form-group hidden " >
+                                    <label class="control-label enrolment-label">{{ demo_form.implementing_partner.label_tag}}</label>
+                                    {{ demo_form.implementing_partner|add_class:"input-sm form-control enrolment-input hidden"}}
+                                    {{ demo_form.implementing_partner.errors }}
+                                </div>
+                        <div class="form-group">
+                            {{ demo_form.first_name.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.first_name.label_tag }}</label>
+                            {{ demo_form.first_name |add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.middle_name.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.middle_name.label_tag }}</label>
+                            {{ demo_form.middle_name |add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.last_name.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.last_name.label_tag }}</label>
+                            {{ demo_form.last_name |add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.date_of_birth.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.date_of_birth.label_tag }}</label>
+                            <div class="form-group has-feedback">
+                                {{ demo_form.date_of_birth|add_class:"input-sm form-control enrolment-input pointer-area" }}
+                                <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                                <script>
+                                      $(function() {
+                                        $( "#id_date_of_birth" ).datepicker({
+                                              minDate: (new Date(1991, 10 , 1)),
+                                              maxDate:  (new Date(2007, 9 , 1)),
+                                                dateFormat: 'yy-mm-dd',
+                                              changeMonth: true,
+                                              changeYear: true
+                                        });
+                                      });
+
+                                </script>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            {{ demo_form.date_of_enrollment.errors }}
+                            <label class="control-label enrolment-label"> {{ demo_form.date_of_enrollment.label_tag }}</label>
+                            <div class="form-group has-feedback">
+                                {{ demo_form.date_of_enrollment|add_class:"input-sm form-control enrolment-input pointer-area" }}
+                                <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                                <script>
+                                      $(function() {
+                                        $( "#id_date_of_enrollment" ).datepicker({
+                                              maxDate: '0y 0m 0d',
+                                              minDate:  (new Date(2015, 9 , 1)),
+                                            dateFormat: 'yy-mm-dd',
+                                              changeMonth: true,
+                                              changeYear: true
+                                        });
+                                      });
+                                </script>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.verification_document.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.verification_document.label_tag }}</label>
+                            {{ demo_form.verification_document|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:verification-doc-other" }}
+                        </div>
+                        <div class="form-group verification-doc-other {% if not demo_form.verification_document_other.value %} hidden {% endif %}">
+                            {{ demo_form.verification_document_other.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.verification_document_other.label_tag }}</label>
+                            {{ demo_form.verification_document_other|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.verification_doc_no.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.verification_doc_no.label_tag }}</label>
+                            {{ demo_form.verification_doc_no|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.marital_status.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.marital_status.label_tag }}</label>
+                            {{ demo_form.marital_status|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.phone_number.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.phone_number.label_tag }}</label>
+                            {{ demo_form.phone_number|attr:"max_length:10"|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.dss_id_number.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.dss_id_number.label_tag }}</label>
+                            {{ demo_form.dss_id_number|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <!--<div class="form-group">
+                            {{ demo_form.county_of_residence.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.county_of_residence.label_tag }}</label>
+                            {{ demo_form.county_of_residence|add_class:"input-sm form-control enrolment-input" }}
+                            {{ demo_form.county_of_residence|add_class:"input-sm form-control enrolment-input hidden" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.sub_county.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.sub_county.label_tag }}</label>
+                            {{ demo_form.sub_county|add_class:"input-sm form-control enrolment-input" }}
+                            {{ demo_form.sub_county|add_class:"input-sm form-control enrolment-input hidden" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.ward.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.ward.label_tag }}</label>
+                            {{ demo_form.ward|add_class:"input-sm form-control enrolment-input" }}
+                            {{ demo_form.ward|add_class:"input-sm form-control enrolment-input hidden" }}
+
+                        </div>
+                        -->
+
+                        <div class="form-group">
+                            <label for="county_of_residence">County of Residence</label>
+                            <select id="id_county_of_residence" name="county_of_residence" class="form-control clear_value">
+                                <option value="">Select County</option>
+                                {% for county in counties %}
+                                    <option data-county_of_residence_id="{{ county.id }}" value="{{ county.id }}">{{ county.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                         <div class="form-group">
+                            <label for="sub_county">Sub-County</label>
+                            <select id="id_sub_county" name="sub_county" class="form-control clear_value" >
+                                <option value="">Select Sub-County</option>
+                                {% for sub_county in sub_counties %}
+                                <option value="{{ sub_county.id }}" data-sub_county_id="{{ sub_county.id }}" data-county_id="{{ sub_county.county.id }}">{{ sub_county.name }}</option>
+                                {% endfor %}
+                            </select>
+                         </div>
+
+                         <div class="form-group">
+                            <label for="ward">Ward</label>
+                            <select id="id_ward" name="ward" class="form-control clear_value" >
+                                <option value="">Select Ward</option>
+                                {% for ward in wards %}
+                                <option value="{{ ward.code }}">{{ ward.name }}</option>
+                                {% endfor %}
+
+                            </select>
+                         </div>
+
+                        <div class="form-group">
+                            {{ demo_form.informal_settlement.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.informal_settlement.label_tag }}</label>
+                            {{ demo_form.informal_settlement|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.village.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.village.label_tag }}</label>
+                            {{ demo_form.village|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+
+                        <div class="form-group">
+                            {{ demo_form.landmark.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.landmark.label_tag }}</label>
+                            {{ demo_form.landmark|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.dreams_id.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.dreams_id.label_tag }}</label>
+                            {{ demo_form.dreams_id|attr:"disabled"|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.guardian_name.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.guardian_name.label_tag }}</label>
+                            {{ demo_form.guardian_name|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.relationship_with_guardian.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.relationship_with_guardian.label_tag }}</label>
+                            {{ demo_form.relationship_with_guardian|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.guardian_phone_number.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.guardian_phone_number.label_tag }}</label>
+                            {{ demo_form.guardian_phone_number|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.guardian_national_id.errors }}
+                            <label class="control-label enrolment-label">{{ demo_form.guardian_national_id.label_tag }}</label>
+                            {{ demo_form.guardian_national_id|add_class:"input-sm form-control enrolment-input" }}
+                        </div>
+                        <div class="form-group">
+                            {{ demo_form.client.as_hidden }}
+                        </div>
+                    </div>
+              </div>
+              <div class="modal-footer">
+                <button id="btn_hide_enrollment" type="button" class="btn btn-sm btn-default"> Cancel </button>
+                <button id="btn_save_enrollment" type="submit" class="btn btn-sm btn-primary" > Save Enrollment </button>
+              </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

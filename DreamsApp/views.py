@@ -197,7 +197,8 @@ def clients(request):
                     'verification_documents': VerificationDocument.objects.all(),
                     'marital_status': MaritalStatus.objects.all(),
                     'counties': County.objects.all(),
-                    'current_ip': current_ip
+                    'current_ip': current_ip,
+                    'demo_form': DemographicsForm()
                 }
                 return JsonResponse(json_response, safe=False)
             else:
@@ -220,7 +221,8 @@ def clients(request):
                     'verification_documents': VerificationDocument.objects.all(),
                     'marital_status': MaritalStatus.objects.all(),
                     'counties': County.objects.all(),
-                    'current_ip': current_ip
+                    'current_ip': current_ip,
+                    'demo_form': DemographicsForm()
                 }
                 return render(request, 'clients.html', response_data)
         else:
@@ -292,74 +294,94 @@ def save_client(request):
                         'can_delete_client': request.user.has_perm('auth.can_delete_client')
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
-                dreams_id = str(request.POST.get('dreams_id', ''))
-                if str(dreams_id) == '':
-                    cursor = db_conn_2.cursor()
-                    try:
-                        cursor.execute(
-                            """
-                            SELECT (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1)
-                            from DreamsApp_client WHERE dreams_id is not null
-                            AND DreamsApp_client.implementing_partner_id=%s group by implementing_partner_id;""", (ip_code,))
-                        next_serial = cursor.fetchone()[0]
-                    except Exception as e:
-                        next_serial = 1
-                    finally:
-                        dreams_id = str(ip_code) + '/' + str(request.POST.get('ward', '')) + '/' + str(next_serial)
-                        cursor.close()
-                client = Client.objects.create(
-                    implementing_partner=request.user.implementingpartneruser.implementing_partner,
-                    first_name=request.POST.get('first_name', ''),
-                    middle_name=request.POST.get('middle_name', ''),
-                    last_name=request.POST.get('last_name', ''),
-                    date_of_birth=request.POST.get('date_of_birth', ''),
-                    is_date_of_birth_estimated=request.POST.get('is_date_of_birth_estimated', ''),
-                    verification_document=VerificationDocument.objects.filter(
-                        code__exact=request.POST.get('verification_document', '')).first(),
-                    verification_doc_no=request.POST.get('verification_doc_no', ''),
-                    date_of_enrollment=request.POST.get('date_of_enrollment', ''),
-                    #age_at_enrollment=int(request.POST.get('age_at_enrollment', 10)),
-                    marital_status=MaritalStatus.objects.filter(
-                        code__exact=str(request.POST.get('marital_status', ''))).first(),
-                    phone_number=request.POST.get('phone_number', ''),
-                    dss_id_number=request.POST.get('dss_id_number', ''),
-                    county_of_residence=County.objects.filter(
-                        code__exact=request.POST.get('county_of_residence', '')).first(),
-                    sub_county=SubCounty.objects.filter(code__exact=request.POST.get('sub_county', '')).first(),
-                    ward=Ward.objects.filter(code__exact=request.POST.get('ward', '')).first(),
-                    informal_settlement=request.POST.get('informal_settlement', ''),
-                    village=request.POST.get('village', ''),
-                    landmark=request.POST.get('landmark', ''),
-                    dreams_id=dreams_id,
-                    guardian_name=request.POST.get('guardian_name', ''),
-                    relationship_with_guardian=request.POST.get('relationship_with_guardian', ''),
-                    guardian_phone_number=request.POST.get('guardian_phone_number', ''),
-                    guardian_national_id=request.POST.get('guardian_national_id', ''),
-                    enrolled_by=request.user
-                )
-                client.save(user_id=request.user.id, action="INSERT")
-                # cascade create other modules
-                ClientIndividualAndHouseholdData.objects.get_or_create(client=client)
-                ClientEducationAndEmploymentData.objects.get_or_create(client=client)
-                ClientHIVTestingData.objects.get_or_create(client=client)
-                ClientSexualActivityData.objects.get_or_create(client=client)
-                ClientReproductiveHealthData.objects.get_or_create(client=client)
-                ClientGenderBasedViolenceData.objects.get_or_create(client=client)
-                ClientDrugUseData.objects.get_or_create(client=client)
-                ClientParticipationInDreams.objects.get_or_create(client=client)
-                if request.is_ajax():
+                client_form = DemographicsForm(request.POST)
+                if client_form.is_valid():
+                    client = client_form.save()
+                    # client = Client.objects.create(
+                    #     implementing_partner=request.user.implementingpartneruser.implementing_partner,
+                    #     first_name=request.POST.get('first_name', ''),
+                    #     middle_name=request.POST.get('middle_name', ''),
+                    #     last_name=request.POST.get('last_name', ''),
+                    #     date_of_birth=request.POST.get('date_of_birth', ''),
+                    #     is_date_of_birth_estimated=request.POST.get('is_date_of_birth_estimated', ''),
+                    #     verification_document=VerificationDocument.objects.filter(
+                    #         code__exact=request.POST.get('verification_document', '')).first(),
+                    #     verification_doc_no=request.POST.get('verification_doc_no', ''),
+                    #     date_of_enrollment=request.POST.get('date_of_enrollment', ''),
+                    #     #age_at_enrollment=int(request.POST.get('age_at_enrollment', 10)),
+                    #     marital_status=MaritalStatus.objects.filter(
+                    #         code__exact=str(request.POST.get('marital_status', ''))).first(),
+                    #     phone_number=request.POST.get('phone_number', ''),
+                    #     dss_id_number=request.POST.get('dss_id_number', ''),
+                    #     county_of_residence=County.objects.filter(
+                    #         code__exact=request.POST.get('county_of_residence', '')).first(),
+                    #     sub_county=SubCounty.objects.filter(code__exact=request.POST.get('sub_county', '')).first(),
+                    #     ward=Ward.objects.filter(code__exact=request.POST.get('ward', '')).first(),
+                    #     informal_settlement=request.POST.get('informal_settlement', ''),
+                    #     village=request.POST.get('village', ''),
+                    #     landmark=request.POST.get('landmark', ''),
+                    #     dreams_id=dreams_id,
+                    #     guardian_name=request.POST.get('guardian_name', ''),
+                    #     relationship_with_guardian=request.POST.get('relationship_with_guardian', ''),
+                    #     guardian_phone_number=request.POST.get('guardian_phone_number', ''),
+                    #     guardian_national_id=request.POST.get('guardian_national_id', ''),
+                    #     enrolled_by=request.user
+                    # )
+                    # client.save(user_id=request.user.id, action="INSERT")
+
+                    # Check client dreams_id
+                    if str(client.dreams_id) == '':
+                        # Generate client dreams_id
+                        cursor = db_conn_2.cursor()
+                        try:
+                            cursor.execute(
+                                """
+                                SELECT (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1)
+                                from DreamsApp_client WHERE dreams_id is not null
+                                AND DreamsApp_client.implementing_partner_id=%s group by implementing_partner_id;""",
+                                (ip_code,))
+                            next_serial = cursor.fetchone()[0]
+                            client.dreams_id = str(ip_code) + '/' + str(client.ward.code if client.ward != None else '') \
+                                               + '/' + str(next_serial)
+                        except Exception as e:
+                            next_serial = 1
+                            client.dreams_id = str(ip_code) + '/' + str(1) \
+                                               + '/' + str(next_serial)
+                        finally:
+                            cursor.close()
+                            client.save()
+                    # cascade create other modules
+                    ClientIndividualAndHouseholdData.objects.get_or_create(client=client)
+                    ClientEducationAndEmploymentData.objects.get_or_create(client=client)
+                    ClientHIVTestingData.objects.get_or_create(client=client)
+                    ClientSexualActivityData.objects.get_or_create(client=client)
+                    ClientReproductiveHealthData.objects.get_or_create(client=client)
+                    ClientGenderBasedViolenceData.objects.get_or_create(client=client)
+                    ClientDrugUseData.objects.get_or_create(client=client)
+                    ClientParticipationInDreams.objects.get_or_create(client=client)
+                    if request.is_ajax():
+                        response_data = {
+                            'status': 'success',
+                            'message': 'Enrollment to DREAMS successful. Redirecting you to the full enrolment data view',
+                            'client_id': client.id,
+                            'can_manage_client': request.user.has_perm('auth.can_manage_client'),
+                            'can_change_client': request.user.has_perm('auth.can_change_client'),
+                            'can_delete_client': request.user.has_perm('auth.can_delete_client')
+                        }
+                        return JsonResponse(json.dumps(response_data), safe=False)
+                    else:
+                        # redirect to page
+                        return redirect('clients')
+                else:
                     response_data = {
-                        'status': 'success',
-                        'message': 'Enrollment to DREAMS successful. Redirecting you to the full enrolment data view',
-                        'client_id': client.id,
+                        'status': 'fail',
+                        'message': client_form.errors,
+                        'client_id': None,
                         'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                         'can_change_client': request.user.has_perm('auth.can_change_client'),
                         'can_delete_client': request.user.has_perm('auth.can_delete_client')
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
-                else:
-                    # redirect to page
-                    return redirect('clients')
         else:
             raise PermissionDenied
     except Exception as e:
@@ -830,8 +852,8 @@ def get_sub_counties(request):
     try:
         if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
             response_data = {}
-            county_code = request.GET['county_code']
-            county = County.objects.get(code__exact=county_code)
+            county_id = request.GET['county_id']
+            county = County.objects.get(id__exact=county_id)
             sub_counties = SubCounty.objects.filter(county__exact=county.id)
             sub_counties = serializers.serialize('json', sub_counties)
             response_data["sub_counties"] = sub_counties
@@ -846,8 +868,8 @@ def get_sub_counties(request):
 def get_wards(request):
     if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
         response_data = {}
-        sub_county_code = request.GET['sub_county_code']
-        sub_county = SubCounty.objects.get(code__exact=sub_county_code)
+        sub_county_id = request.GET['sub_county_id']
+        sub_county = SubCounty.objects.get(id__exact=sub_county_id)
         wards = Ward.objects.filter(sub_county__exact=sub_county.id)
         wards = serializers.serialize('json', wards)
         response_data["wards"] = wards
