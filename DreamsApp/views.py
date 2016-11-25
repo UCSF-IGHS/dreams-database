@@ -1678,10 +1678,17 @@ def update_individual_and_household_data(request):
         if request.method == 'POST':
             form = IndividualAndHouseholdForm(request.POST, instance=instance)
             if form.is_valid():
-                
                 form.save()
+                response_data = {
+                    'status': 'success'
+                }
+                return JsonResponse(response_data, status=200)
             else:
-                print form.errors
+                response_data = {
+                    'status': 'fail',
+                    'errors': form.errors
+                }
+                return JsonResponse(response_data, status=500)
         else:
             raise PermissionDenied
     else:
@@ -1694,16 +1701,22 @@ def update_edu_and_employment_data(request):
     instance = ClientEducationAndEmploymentData.objects.get(client=client_id)
     if request.is_ajax():
         template = 'ajax_response_form/education_and_employment_ajax_form.html'
-
+        form = EducationAndEmploymentForm(request.POST, instance=instance)
         if request.method == 'POST':
-            form = EducationAndEmploymentForm(request.POST, instance=instance)
             if form.is_valid():
-
                 form.save()
+                response_data = {
+                    'status': 'success'
+                }
+                return JsonResponse(response_data, status=200)
             else:
                 print form.errors
         else:
-            raise PermissionDenied
+            response_data = {
+                'status': 'fail',
+                'errors': form.errors
+            }
+            return JsonResponse(response_data, status=500)
     else:
         raise PermissionDenied
     return render(request, template, {'edu_form': form})
@@ -1718,10 +1731,17 @@ def update_hiv_testing_data(request):
         if request.method == 'POST':
             form = HivTestForm(request.POST, instance=instance)
             if form.is_valid():
-                
                 form.save()
+                response_data = {
+                    'status': 'success'
+                }
+                return JsonResponse(response_data, status=200)
             else:
-                print form.errors
+                response_data = {
+                    'status': 'fail',
+                    'errors': form.errors
+                }
+                return JsonResponse(response_data, status=500)
         else:
             raise PermissionDenied
     else:
@@ -1738,8 +1758,7 @@ def update_sexuality_data(request):
             if form.is_valid():
                 form.save()
                 response_data = {
-                    'status': 'success',
-                    'errors': form.errors
+                    'status': 'success'
                 }
                 return JsonResponse(response_data, status=200)
             else:
@@ -1764,10 +1783,17 @@ def update_rep_health_data(request):
         if request.method == 'POST':
             form = ReproductiveHealthForm(request.POST, instance=instance)
             if form.is_valid():
-                
                 form.save()
+                response_data = {
+                    'status': 'success'
+                }
+                return JsonResponse(response_data, status=200)
             else:
-                print form.errors
+                response_data = {
+                    'status': 'fail',
+                    'errors': form.errors
+                }
+                return JsonResponse(response_data, status=500)
         else:
             raise PermissionDenied
     else:
@@ -1784,10 +1810,17 @@ def update_gbv_data(request):
         if request.method == 'POST':
             form = GBVForm(request.POST, instance=instance)
             if form.is_valid():
-                
                 form.save()
+                response_data = {
+                    'status': 'success'
+                }
+                return JsonResponse(response_data, status=200)
             else:
-                print form.errors
+                response_data = {
+                    'status': 'fail',
+                    'errors': form.errors
+                }
+                return JsonResponse(response_data, status=500)
         else:
             raise PermissionDenied
     else:
@@ -1804,10 +1837,17 @@ def update_drug_use_data(request):
         if request.method == 'POST':
             form = DrugUseForm(request.POST, instance=instance)
             if form.is_valid():
-                
                 form.save()
+                response_data = {
+                    'status': 'success'
+                }
+                return JsonResponse(response_data, status=200)
             else:
-                print form.errors
+                response_data = {
+                    'status': 'fail',
+                    'errors': form.errors
+                }
+                return JsonResponse(response_data, status=500)
         else:
             raise PermissionDenied
     else:
@@ -1824,10 +1864,17 @@ def update_programme_participation_data(request):
         if request.method == 'POST':
             form = DreamsProgramParticipationForm(request.POST, instance=instance)
             if form.is_valid():
-                
                 form.save()
+                response_data = {
+                    'status': 'success'
+                }
+                return JsonResponse(response_data, status=200)
             else:
-                print form.errors
+                response_data = {
+                    'status': 'fail',
+                    'errors': form.errors
+                }
+                return JsonResponse(response_data, status=500)
         else:
             raise PermissionDenied
     else:
