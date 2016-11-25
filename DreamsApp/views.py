@@ -1680,9 +1680,7 @@ def update_individual_and_household_data(request):
             if form.is_valid():
                 form.save()
                 response_data = {
-                    'status': 'success',
-                    'errors': form.errors,
-                    'client_age': instance.get_current_age()
+                    'status': 'success'
                 }
                 return JsonResponse(response_data, status=200)
             else:
@@ -1708,9 +1706,7 @@ def update_edu_and_employment_data(request):
             if form.is_valid():
                 form.save()
                 response_data = {
-                    'status': 'success',
-                    'errors': form.errors,
-                    'client_age': instance.get_current_age()
+                    'status': 'success'
                 }
                 return JsonResponse(response_data, status=200)
             else:
@@ -1737,9 +1733,7 @@ def update_hiv_testing_data(request):
             if form.is_valid():
                 form.save()
                 response_data = {
-                    'status': 'success',
-                    'errors': form.errors,
-                    'client_age': instance.get_current_age()
+                    'status': 'success'
                 }
                 return JsonResponse(response_data, status=200)
             else:
@@ -1764,9 +1758,7 @@ def update_sexuality_data(request):
             if form.is_valid():
                 form.save()
                 response_data = {
-                    'status': 'success',
-                    'errors': form.errors,
-                    'client_age': instance.get_current_age()
+                    'status': 'success'
                 }
                 return JsonResponse(response_data, status=200)
             else:
@@ -1793,9 +1785,7 @@ def update_rep_health_data(request):
             if form.is_valid():
                 form.save()
                 response_data = {
-                    'status': 'success',
-                    'errors': form.errors,
-                    'client_age': instance.get_current_age()
+                    'status': 'success'
                 }
                 return JsonResponse(response_data, status=200)
             else:
@@ -1822,9 +1812,7 @@ def update_gbv_data(request):
             if form.is_valid():
                 form.save()
                 response_data = {
-                    'status': 'success',
-                    'errors': form.errors,
-                    'client_age': instance.get_current_age()
+                    'status': 'success'
                 }
                 return JsonResponse(response_data, status=200)
             else:
@@ -1851,9 +1839,7 @@ def update_drug_use_data(request):
             if form.is_valid():
                 form.save()
                 response_data = {
-                    'status': 'success',
-                    'errors': form.errors,
-                    'client_age': instance.get_current_age()
+                    'status': 'success'
                 }
                 return JsonResponse(response_data, status=200)
             else:
@@ -1880,9 +1866,7 @@ def update_programme_participation_data(request):
             if form.is_valid():
                 form.save()
                 response_data = {
-                    'status': 'success',
-                    'errors': form.errors,
-                    'client_age': instance.get_current_age()
+                    'status': 'success'
                 }
                 return JsonResponse(response_data, status=200)
             else:
