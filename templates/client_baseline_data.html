@@ -190,9 +190,14 @@
                     data: $(this).serialize(),
                    success: function (data) {
                         //$('#household_replacement').replaceWith(data);
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                       .text('saved successfully')
-                       .trigger('madeVisible')
+                       if(data.status == 'success') {
+                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                   .text('saved successfully')
+                                   .trigger('madeVisible')
+                       }
+                       else {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                       }
                     },
                     error: function (xhr, errmsg, err) {
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
@@ -217,9 +222,14 @@
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                       .text('saved successfully')
-                       .trigger('madeVisible')
+                        if(data.status == 'success') {
+                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                   .text('saved successfully')
+                                   .trigger('madeVisible')
+                       }
+                       else {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                       }
                     },
                     error: function (xhr, errmsg, err) {
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
@@ -235,6 +245,7 @@
             //Handle HIV Testing tab
             $('#form_hiv_testing').on('submit', function (event) {
                 event.preventDefault();
+
                 if(!$(event.target).valid()) // Check if form is valid
                     return false;
                 var form = $('#form_hiv_testing');
@@ -243,9 +254,14 @@
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                       .text('saved successfully')
-                       .trigger('madeVisible')
+                        if(data.status == 'success') {
+                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                   .text('saved successfully')
+                                   .trigger('madeVisible')
+                       }
+                       else {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                       }
                     },
                     error: function (xhr, errmsg, err) {
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
@@ -271,9 +287,14 @@
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                       .text('saved successfully')
-                       .trigger('madeVisible')
+                        if(data.status == 'success') {
+                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                   .text('saved successfully')
+                                   .trigger('madeVisible')
+                       }
+                       else {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                       }
                     },
                     error: function (xhr, errmsg, err) {
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
@@ -298,9 +319,14 @@
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                       .text('saved successfully')
-                       .trigger('madeVisible')
+                        if(data.status == 'success') {
+                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                   .text('saved successfully')
+                                   .trigger('madeVisible')
+                       }
+                       else {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                       }
                     },
                     error: function (xhr, errmsg, err) {
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
@@ -326,9 +352,14 @@
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                       .text('saved successfully')
-                       .trigger('madeVisible')
+                        if(data.status == 'success') {
+                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                   .text('saved successfully')
+                                   .trigger('madeVisible')
+                       }
+                       else {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                       }
                     },
                     error: function (xhr, errmsg, err) {
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
@@ -354,9 +385,14 @@
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                       .text('saved successfully')
-                       .trigger('madeVisible')
+                        if(data.status == 'success') {
+                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                   .text('saved successfully')
+                                   .trigger('madeVisible')
+                       }
+                       else {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                       }
                     },
                     error: function (xhr, errmsg, err) {
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
@@ -373,15 +409,23 @@
             $('#form_programme_participation').on('submit', function (event) {
                 event.preventDefault();
 
+                if(!$(event.target).valid()) // Check if form is valid
+                    return false;
+
                 var form = $('#form_programme_participation');
                 $.ajax({
                     type: "POST",
                     url: form.attr('action'),
                     data: $(this).serialize(),
                      success: function (data) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                       .text('saved successfully')
-                       .trigger('madeVisible')
+                        if(data.status == 'success') {
+                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                   .text('saved successfully')
+                                   .trigger('madeVisible')
+                       }
+                       else {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                       }
                     },
                     error: function (xhr, errmsg, err) {
                         $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
