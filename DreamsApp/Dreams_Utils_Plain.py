@@ -343,7 +343,7 @@ VALUES """
             'last_name': 6,
             'date_of_birth': 7,
             'verification_document_id': 8,
-            'verification_doc_other': 9,
+            'verification_document_other': 9,
             'verification_doc_no': 10,
             'date_of_enrollment': 11,
             'marital_status_id': 16,
@@ -374,6 +374,9 @@ VALUES """
                     ws.cell(row=i, column=v, value=partner)
             elif k == 'IP_Code':
                 val = row.get('implementing_partner_id')
+                ws.cell(row=i, column=v, value=val)
+            elif k == 'verification_document_other':
+                val = row.get('verification_doc_other')
                 ws.cell(row=i, column=v, value=val)
             elif k == 'verification_document_id':
                 val = row.get(k)
@@ -1125,6 +1128,7 @@ VALUES """
             1: 'Birth Certificate',
             2: 'National ID',
             3: 'National ID waiting card',
+            96: 'Other (Specify)',
         }
 
     def map_marital_status_codes(self):
