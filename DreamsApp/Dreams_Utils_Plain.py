@@ -376,7 +376,7 @@ VALUES """
                 val = row.get('implementing_partner_id')
                 ws.cell(row=i, column=v, value=val)
             elif k == 'verification_document_other':
-                val = row.get('verification_doc_other')
+                val = row.get('verification_document_other')
                 ws.cell(row=i, column=v, value=val)
             elif k == 'verification_document_id':
                 val = row.get(k)
