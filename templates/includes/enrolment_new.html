@@ -11,7 +11,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
               <div class="modal-header btn-default" style="border-radius: 4px 4px 0px 0px;">
-                <button type="button" class="close" id="close__enrollment_modal" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" id="close__enrollment_modal" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" id="exampleModalLabel"><span class="glyphicon glyphicon-file"></span> CLIENT ENROLLMENT FORM</h4>
                 </div>
                 <div class="modal-body">
@@ -156,7 +156,7 @@
                             <label class="control-label enrolment-label">{{ demo_form.landmark.label_tag }}</label>
                             {{ demo_form.landmark|add_class:"input-sm form-control enrolment-input" }}
                         </div>
-                        <div class="form-group">
+                        <div class="form-group hidden">
                             {{ demo_form.dreams_id.errors }}
                             <label class="control-label enrolment-label">{{ demo_form.dreams_id.label_tag }}</label>
                             {{ demo_form.dreams_id|add_class:"input-sm form-control enrolment-input" }}

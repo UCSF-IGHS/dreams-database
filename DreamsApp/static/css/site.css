@@ -495,3 +495,7 @@ html, body{
 .pointer-area{
     cursor: pointer;
 }
+
+.ui-datepicker .ui-datepicker-title select {
+    color: #0078d7;
+}

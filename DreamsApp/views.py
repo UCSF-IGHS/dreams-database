@@ -725,6 +725,7 @@ def update_intervention(request):
                     intervention = Intervention.objects.get(id__exact=intervention_id)
                     # check if intervention belongs to the ip
                     if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
+                        intervention.intervention_type = InterventionType.objects.get(code__exact=int(request.POST.get('intervention_type_code')))
                         intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
                         intervention.name_specified = request.POST.get('other_specify',
                                                                        '') if intervention.intervention_type.is_specified else ''
