@@ -28,9 +28,28 @@
             <p><strong>Email: </strong><a href="mailto:dreams@ucglobalprograms.org" target="_blank">dreams@ucglobalprograms.org</a> </p>
             <br>
             <h4>Manuals</h4>
-            <p><strong>ODK Enrolment</strong> <a class="manual_download pointer-area" data-manual="odk_enrolment_manual" data-manual_friendly_name="DREAMS ODK Enrolment Manual.pdf">download</a></p>
-            <p><strong>DREAMS Web Application</strong> <a class="manual_download pointer-area" data-manual="web_app_manual" data-manual_friendly_name="DREAMS Web Application Manual.pdf">download</a></p>
+            <p>
+                <form id="frm_download_odk" action="help/download/" method="post" target="_blank">
+                    {% csrf_token %}
+                    <strong>ODK Enrolment</strong>
+                    <input class="hidden" name="manual" value="odk_enrolment_manual">
+                    <input class="hidden" name="manual_friendly_name" value="DREAMS ODK Enrolment Manual.pdf">
+                    <a target="_blank" class="manual_download pointer-area" data-form_id="#frm_download_odk" data-manual="odk_enrolment_manual" data-manual_friendly_name="DREAMS ODK Enrolment Manual.pdf">download</a>
+                </form>
+            </p>
+            <p>
+                <form id="frm_download_webapp" action="help/download/" method="post" target="_blank">
+                    {% csrf_token %}
+                    <strong>DREAMS Web Application</strong>
+                    <input class="hidden" name="manual" value="web_app_manual">
+                    <input class="hidden" name="manual_friendly_name" value="DREAMS Web Application Manual.pdf">
+                    <a target="_blank" class="manual_download pointer-area" data-form_id="#frm_download_webapp" >download</a>
+                </form>
+            </p>
         </div>
+
+
+        <br>
 
     </div>
 
