@@ -544,7 +544,9 @@ def get_intervention_types(request):
             i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id, ) \
                 .exclude(is_age_restricted=True, min_age__gt=current_age) \
                 .exclude(is_age_restricted=True, max_age__lt=current_age) \
-                .exclude(is_given_once=True, id__in=given_intervention_type_ids).order_by('code')
+                .order_by('code')
+                #.exclude(is_given_once=True, id__in=given_intervention_type_ids).order_by('code')
+            """This code has been commented out to allow for change of intervention types for one time interventions"""
             # get id's of interventions that can only be given once and are already given
             i_types = serializers.serialize('json', i_types)
             response_data["itypes"] = i_types
@@ -569,29 +571,45 @@ def save_intervention(request):
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_type_code = int(request.POST.get('intervention_type_code'))
+                intervention_type = InterventionType.objects.get(code__exact=intervention_type_code)
+                """Check that this is not a one time intervention that has already been given"""
+                try:
+                    if intervention_type.is_given_once and (Intervention.objects.filter(intervention_type=intervention_type).first() is not None):
+                        """An intervention has been found. This is an error
+                            Return error message to user
+                        """
+                        response_data = {
+                            'status': 'fail',
+                            'message': "Error: This is a one time service that has already been offered. Please conside"
+                                       "r editing if necessary"
+                        }
+                        return JsonResponse(response_data)
+                except Exception as e:
+                    """An error has occurred. Throw exception. This will be handled elsewhere"""
+                    raise Exception(e.message)
+
                 if intervention_type_code is not None and type(intervention_type_code) is int:
-                    i_type = InterventionType.objects.get(code__exact=intervention_type_code)
                     intervention = Intervention()
                     intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
-                    intervention.intervention_type = i_type
-                    intervention.name_specified = request.POST.get('other_specify', '') if i_type.is_specified else ''
+                    intervention.intervention_type = intervention_type
+                    intervention.name_specified = request.POST.get('other_specify', '') if intervention_type.is_specified else ''
                     intervention.intervention_date = request.POST.get('intervention_date')
                     created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
                     intervention.created_by = created_by
                     intervention.date_created = dt.now()
                     intervention.comment = request.POST.get('comment', '')
 
-                    if i_type.has_hts_result:
+                    if intervention_type.has_hts_result:
                         intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
 
-                    if i_type.has_pregnancy_result:
+                    if intervention_type.has_pregnancy_result:
                         intervention.pregnancy_test_result = PregnancyTestResult.objects.get(
                             code__exact=int(request.POST.get('pregnancy_test_result')))
 
-                    if i_type.has_ccc_number:
+                    if intervention_type.has_ccc_number:
                         intervention.client_ccc_number = request.POST.get('client_ccc_number')
 
-                    if i_type.has_no_of_sessions:
+                    if intervention_type.has_no_of_sessions:
                         intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
                     # Update implementing Partner
@@ -605,7 +623,7 @@ def save_intervention(request):
                         'status': 'success',
                         'message': 'Intervention successfully saved',
                         'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
-                        'i_type': serializers.serialize('json', [i_type]),
+                        'i_type': serializers.serialize('json', [intervention_type]),
                         'hts_results': serializers.serialize('json', HTSResult.objects.all()),
                         'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
                     }
