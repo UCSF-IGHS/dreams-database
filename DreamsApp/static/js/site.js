@@ -203,9 +203,6 @@ $(document).ready(function () {
 
     $('#intervention-modal').on('shown.bs.modal', function (event) {
          if(modalMode == "edit"){
-             alert('Editing!!');
-             console.log(intervention);
-             console.log(interventionTypes)
              $('#intervention_id').val(intervention.pk) // This is the intervention id
              $('#intervention-modal #intervention-type-select').val(currentInterventionType.fields.code).change();
              prePopulateInterventionModal(intervention, currentInterventionType)
