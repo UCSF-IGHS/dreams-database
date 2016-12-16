@@ -464,9 +464,6 @@ html, body{
     border-color: green;
 }
 
-.date-field{
-
-}
 
 .enrolment-input{
     /*width: 450px !important;*/
@@ -494,4 +491,19 @@ html, body{
 
 .pointer-area{
     cursor: pointer;
+}
+
+
+.ui-datepicker {
+
+ }
+
+.ui-datepicker .ui-datepicker-title{
+
+}
+
+.ui-datepicker .ui-datepicker-title select{
+    background: #FFFFFE;
+    color: #5e5e5e;
+    border-color: #adadad;
 }

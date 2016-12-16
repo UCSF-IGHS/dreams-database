@@ -1,27 +1,20 @@
 {% extends 'base.html' %}
 {% block pageJs %}
 
+
     <script type="text/javascript">
         $(document).ready(function(){
-
-            $('#btn_download_excel').click(function(){
-                //download_excel();
+            $('#btn_download_enrollment_excel').click(function(){
+                var frm = $('#frm_download-excel')
                 var ips = $('#i_p').val();
                 if(ips == null || ips.length == 0){
-                    // Show dialog
                     $('#ip_selection_alert').removeClass('hidden').addClass('alert-danger')
                         .text("Please select Implementing Partner to Export Data")
                         .trigger('madeVisible')
-                    // return
-                    return
+                    return;
                 }
-                //return;
-                //if()
-                ajax_download('/download-excel/', {'ips': ips})
-                // download_excel();
-                // alert('Here');
+                frm.submit();
             });
-
         });
 
         function getCookie(name) {
@@ -96,42 +89,7 @@
              //i_frame.src = "/download-excel/";
         }
 
-        function ajax_download(url, data) {
-            var $iframe,
-                iframe_doc,
-                iframe_html;
-            var csrftoken = getCookie('csrftoken');
-
-            if (($iframe = $('#download_iframe')).length === 0) {
-                $iframe = $("<iframe id='download_iframe'" +
-                            " style='display: none' src='about:blank'></iframe>"
-                           ).appendTo("body");
-            }
-
-            iframe_doc = $iframe[0].contentWindow || $iframe[0].contentDocument;
-            if (iframe_doc.document) {
-                iframe_doc = iframe_doc.document;
-            }
-
-            iframe_html = "<html><head></head><body><form method='POST' action='" +
-                          url +"'>"
-            iframe_html +='<input type="hidden" name="csrfmiddlewaretoken" value="' + csrftoken+ '">';
-
-
-            Object.keys(data).forEach(function(key){
-                iframe_html += "<input type='hidden' name='"+key+"' value='"+data[key]+"'>";
-
-            });
-
-                iframe_html +="</form></body></html>";
-
-            iframe_doc.open();
-            iframe_doc.write(iframe_html);
-            $(iframe_doc).find('form').submit();
-        }
     </script>
-
-
 
 {% endblock %}
 
@@ -151,27 +109,26 @@
                          {% else %}
                             Select your Implementing Partner to Export Data.
                           {% endif %}
-                        Select </span>
+                    </span>
                 </div>
             </div>
         </div>
 
         <div class=" alert hidden dp-action-alert fade in" id="ip_selection_alert" role="alert" style="margin-bottom: 10px;"></div>
 
-        <div id="download-excel" class="fit-item">
-            <form method="post" class="">
+        <div class="fit-item">
+            <form id="frm_download-excel" method="post" class="" action="/download-excel/" target="_blank">
                 {% csrf_token %}
                 <div class="form-group">
                     <label>Select Implementing Partner</label>
-                    <select id="i_p" {% if ips.count >  1 %}multiple {% endif %} class="form-control" size="{{ ips.count }}">
+                    <select id="i_p" name="ips" {% if ips.count >  1 %}multiple {% endif %} class="form-control" size="{{ ips.count }}">
                         {%for ip in ips%}
                             <option value= "{{ ip.id }}">{{ ip }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <iframe id="download_excel" style="display: none" ></iframe>
                 <div class="form-group">
-                    <input class="btn btn-sm btn-primary" type="button" id="btn_download_excel" value="Download EXCEL">
+                    <input class="btn btn-sm btn-primary" type="button" id="btn_download_enrollment_excel" value="Download EXCEL">
                 </div>
             </form>
         </div>
