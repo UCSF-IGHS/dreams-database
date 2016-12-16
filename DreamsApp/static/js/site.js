@@ -117,7 +117,6 @@ $(document).ready(function () {
 
     $('#clients_search_form').submit(function (event) {
         event.preventDefault();
-        console.log("Default prevented!");
         //Check search option
         var searchOption = $('#clientSearchOption').val();
         if(searchOption == "search_dreams_id"){
@@ -150,6 +149,7 @@ $(document).ready(function () {
         var csrftoken = getCookie('csrftoken');
 
         $(this).unbind("submit").submit();
+        return;
         /*$.ajax({
             url : '/clients', // the endpoint
             type : "POST", // http method
@@ -188,28 +188,30 @@ $(document).ready(function () {
     $('#intervention-modal').on('show.bs.modal', function (event) {
          // check the mode... Can be new or edit
         var button = $(event.relatedTarget) // Button that triggered the modal
-        var interventionCategoryCode = button.data('whatever')
         var currentClientId = $('#current_client_id').val();
-         // Check if this is null.
-         if (interventionCategoryCode != null && interventionCategoryCode != "edit") { // This is a new mode
-             fetchRelatedInterventions(interventionCategoryCode, currentClientId)
+
+        var interventionCategoryCode = $("#dreams-profile-tab-control ul li.active a").data('intervention_category_code')
+        if(currentClientId == null || interventionCategoryCode == null)
+            return
+        fetchRelatedInterventions(interventionCategoryCode, currentClientId)
+         if ((typeof $(button).data('whatever') != 'undefined' &&  $(button).data('whatever')  != null))
              modalMode = "new";
-         }
-         else{
+         else
              modalMode = "edit"
-             // this is an edit mode.. adjsut the view accordingly
-             // set intervention type and disable field
-             // This does not happen here! It is handled elsewhere!
-         }
+
     })
 
     $('#intervention-modal').on('shown.bs.modal', function (event) {
-         if(modalMode == null || modalMode == "new"){
-             // Do nothing
-         }
-        else if (modalMode == "edit"){
+         if(modalMode == "edit"){
              $('#intervention_id').val(intervention.pk) // This is the intervention id
+             $('#intervention-modal #intervention-type-select').val(currentInterventionType.fields.code).change();
+             prePopulateInterventionModal(intervention, currentInterventionType)
+
          }
+        else {
+             $('#intervention-modal #intervention-type-select').val('').change();
+         }
+
     })
 
     $('#intervention-modal').on('hide.bs.modal', function (event) {
@@ -217,7 +219,7 @@ $(document).ready(function () {
         $('#error-space').text("");
         $('#comments-text').val("")
         // reset the form
-
+        intervention = null;
     })
 
     $('.filter').keyup(function () {
@@ -335,6 +337,7 @@ $(document).ready(function () {
             url : "/ivgetTypes", // the endpoint
             type : "POST", // http method
             dataType: 'json',
+            async: false,
             data : {
                 csrfmiddlewaretoken : csrftoken,
                 category_code : interventionCategoryCode,   //$('#i_types').val()
@@ -476,36 +479,36 @@ $(document).ready(function () {
         switch (intervention_category_code){
             case 1001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 break;
             case 2001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='test_result'> "+  hts_result + pregnancy_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='test_result'> "+  hts_result + pregnancy_result +  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='test_result'> "+  hts_result + pregnancy_result+  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number+ "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='test_result'> "+  hts_result + pregnancy_result+  "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number+ "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 tabpanel_id = '#biomedical-interventions';
                 break;
             case 3001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 tabpanel_id = '#post-gbv-care';
                 break;
             case 4001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'>"+ iv.fields.comment + "</td><td><span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='comment'>"+ iv.fields.comment + "</td><td><span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 tabpanel_id = '#social-protection';
                 break;
             case 5001:
                 if(!top)
-                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.get_name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).append("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.get_name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 else
-                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
+                    $(table_id).prepend("<tr id='intervention_"+ iv.pk +"'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date +  "</td><td class='no_of_sessions_attended'> "+ iv.fields.no_of_sessions_attended +  "</td><td class='comment'> "+ iv.fields.comment + "</td><td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td></tr>")
                 tabpanel_id = '#other-interventions';
                 break;
 
@@ -518,14 +521,11 @@ $(document).ready(function () {
 
     function setInterventionActionHandler(iv, iv_type, intervention_category_code) {
         $('#intervention_' + iv.pk + ' .edit_intervention_click').click(function (event) {
-            $('#intervention-modal').modal('show'); // this is to show the modal
+            modalMode = 'edit'
             currentInterventionCategoryCode_Global = intervention_category_code // this will be needed during update!
-            interventionTypes = [iv_type]
+            currentInterventionType = iv_type;
             intervention = iv
-            setInterventionTypesSelect(interventionTypes)
-            $('#intervention-type-select').val(iv_type.fields.code).change() // this should change the current selected option and trigger the modal fields to be rendered appropriately
-            // set disabled fields and ad values as required
-            prePopulateInterventionModal(iv, iv_type)
+            $('#intervention-modal').modal('show'); // this is to show the modal
         })
 
         $('#intervention_' + iv.pk + ' .delete_intervention_click').click(function (event) {
@@ -542,6 +542,8 @@ $(document).ready(function () {
         // get selected option id
         var currentInterventionTypeCode = $('#intervention-type-select').val(); // code
         // search global variable
+        var interventionTypeEmpty = false
+
         $.each(interventionTypes, function (index, type) {
             if(currentInterventionTypeCode == type.fields.code){
                 // Check if there's need to show specify field
@@ -557,17 +559,27 @@ $(document).ready(function () {
                 showSection(type.fields.has_no_of_sessions, '#no_of_sessions_section')
                 // notes
                 showSection(true, '#notes_section')
-
+                interventionTypeEmpty = true;
                 return false
             }
         })
+
+        if (interventionTypeEmpty == false){
+            showSection(false, '#other_specify_section')
+            showSection(false, '#intervention_date_section')
+            showSection(false, '#hts_result_section')
+            showSection(false, '#ccc_number_section')
+            showSection(false, '#pregnancy_test_section')
+            showSection(false, '#no_of_sessions_section')
+            showSection(false, '#notes_section')
+        }
+
     })
 
     function prePopulateInterventionModal(iv, iv_type) {
-        $('#intervention-type-select').attr('disabled','disabled')
-
+        //$('#intervention-type-select').attr('disabled','disabled') //This has been commented out. Intervention type can now be changed on edit
         // Populate values
-
+        $('#intervention-type-select').val(iv_type.fields.code).change();
         setDateField(iv.fields.intervention_date) // done
         if(iv_type.fields.is_specified)
             $('#other_specify').val(iv.fields.name_specified)
@@ -585,7 +597,6 @@ $(document).ready(function () {
             $('#number-of-ss-sessions-attended').val(iv.fields.no_of_sessions_attended)
         // notes
         $('#comments-text').val(iv.fields.comment)
-
     }
 
     $('#intervention-entry-form').submit(function (event) {
@@ -642,8 +653,7 @@ $(document).ready(function () {
                         $('#' + row_id + ' .intervention_date').text(iv.fields.intervention_date)
                         // check for the rest of the fields
                         // Specified name
-                        if(iv_type.fields.is_specified)
-                            $('#' + row_id + ' .name').text(iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified))
+                        $('#' + row_id + ' .name').text(iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified))
 
                         if(iv_type.fields.has_hts_result)
                             $('#' + row_id + ' .test_result').text(hts_result)
@@ -919,16 +929,18 @@ $(document).ready(function () {
 
     $('#enrollment-form').submit(function (event) {
         event.preventDefault();
+
+        $('#id_implementing_partner').val($('#temp_current_ip').val())
+        // validate
+        if (!$('#enrollment-form').valid())
+            return
+
         var enrollment_form_submit_mode = 'new';
         var post_url = '/clientSave';
         var clientForm = $(event.target);
         if(!validateClientForm(clientForm))
             return;
-        var client_id = $('#enrollment-form #client_id').val();
-        if(client_id != null && client_id != ''){
-            enrollment_form_submit_mode = 'edit';
-            post_url = '/clientEdit';
-        }
+
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url : post_url,
@@ -937,25 +949,15 @@ $(document).ready(function () {
             data:$('#enrollment-form').serialize(),
             success : function(data) {
                 var result = $.parseJSON(data)
-
                 if(result.status == "success"){
                     var clients_tbody = $('#dp-patient-list-body')
                     var date_of_enrollment = new Date($('#enrollment-form #date_of_enrollment').val());
                     date_of_enrollment = $.datepicker.formatDate('MM d, yy', date_of_enrollment)
-                    if(enrollment_form_submit_mode == 'new'){
-                        // Prepend new line into the clients' table
-                        insertClientTableRow(clients_tbody, result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, result.can_manage_client, result.can_change_client, result.can_delete_client)
-                    }
-                    else{
-                        $('#clients_row_' + result.client_id).remove(); // remove row
-                        // Insert updated value
-                        insertClientTableRow($('#dp-patient-list-body'), result.client_id,$('#enrollment-form #dreams_id').val(), $('#enrollment-form #first_name').val(), $('#enrollment-form #last_name').val(), $('#enrollment-form #middle_name').val(), date_of_enrollment, false, false, result.can_manage_client, result.can_change_client, result.can_delete_client);
-                    }
+                    // redirect to demographics page
                     $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
                         .text(result.message)
                         .trigger('madeVisible')
-
-                    // Close enrollment modal when done
+                    window.location='/client_baseline_info?client_id=' + result.client_id + '&search_client_term='
                     $("#enrollment-modal").modal('hide');
                 }
                 else{
@@ -965,8 +967,6 @@ $(document).ready(function () {
                         .trigger('madeVisible')
                 }
             },
-
-            // handle a non-successful response
             error : function(xhr,errmsg,err) {
                 $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')
                         .text('An error occurred while processing client details. Contact system administratior if this persists')
@@ -979,31 +979,31 @@ $(document).ready(function () {
         $('#enrollment-modal').modal('toggle');
     })
 
-    $('#county_of_residence').change(function (event) {
+    $('#id_county_of_residence').change(function (event) {
         getSubCounties(false, null, null, null);
     })
 
     function getSubCounties(setSelected, c_code, sub_county_id, ward_id) {
-        var county_code = setSelected == true ? c_code : $('#county_of_residence').val();
+        var county_id = setSelected == true ? c_code : $('#id_county_of_residence').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url : "/getSubCounties", // the endpoint
             type : "GET", // http method
             dataType: 'json',
             data : {
-                county_code : county_code,
+                county_id : county_id,
             },
             success : function(data) {
                 var sub_counties = $.parseJSON(data.sub_counties);
-                $("#sub_county option").remove();
-                $("#sub_county").append("<option value=''>Select Sub-County</option>");
+                $("#id_sub_county option").remove();
+                $("#id_sub_county").append("<option value=''>Select Sub-County</option>");
                 $.each(sub_counties, function (index, field) {
-                    $("#sub_county").append("<option data-sub_county_id='" + field.pk + "' value='" + field.fields.code + "'>" + field.fields.name + "</option>");
+                    $("#id_sub_county").append("<option data-sub_county_id='" + field.pk + "' value='" + field.pk + "'>" + field.fields.name + "</option>");
                 })
 
                 // setting sub-county when necessary
                 if(setSelected){    // set selected sub county
-                    $('#sub_county option').each(function() {
+                    $('#id_sub_county option').each(function() {
                         if(sub_county_id != null && $(this).data('sub_county_id') ==  sub_county_id ) {
                             $(this).prop("selected", true);
                             // Load wards since a subcounty has been selected
@@ -1022,26 +1022,26 @@ $(document).ready(function () {
         });
     }
 
-    function getWards(setSelected, sc_code, ward_id) {
-        var sc_code = setSelected ? sc_code : $('#sub_county').val();
+    function getWards(setSelected, sc_id, ward_id) {
+        var sc_id = setSelected ? sc_id : $('#id_sub_county').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url : "/getWards", // the endpoint
             type : "GET", // http method
             dataType: 'json',
             data : {
-                sub_county_code : sc_code,
+                sub_county_id : sc_id,
             },
             success : function(data) {
                 var wards = $.parseJSON(data.wards);
-                $("#ward option").remove();
-                $("#ward").append("<option value=''>Select Ward</option>");
+                $("#id_ward option").remove();
+                $("#id_ward").append("<option value=''>Select Ward</option>");
                 $.each(wards, function (index, field) {
-                    $("#ward").append("<option data-ward_id='" + field.pk + "' value='" + field.fields.code + "'>" + field.fields.name + "</option>");
+                    $("#id_ward").append("<option data-ward_id='" + field.pk + "' value='" + field.pk + "'>" + field.fields.name + "</option>");
                 })
 
                 if(setSelected){
-                    $('#ward option').each(function() {
+                    $('#id_ward option').each(function() {
                         if(ward_id != null && $(this).data('ward_id') ==  ward_id ) {
                             $(this).prop("selected", true);
                         }
@@ -1058,7 +1058,7 @@ $(document).ready(function () {
         });
     }
     
-    $('#sub_county').change(function (event) {
+    $('#id_sub_county').change(function (event) {
         getWards(false, null, null);
     })
 
@@ -1106,7 +1106,7 @@ $(document).ready(function () {
         switch (u_action){
             case "deactivate_user":
                 confirm_title = 'Confirm User Deactivation Action'
-                confirm_message = 'Are you sure you want to Deactivate User?'
+                confirm_message = 'Are you sure you want to Deactivate this User?'
                 callback_func = toggleUserStatus
                 active = false;
                 break;
@@ -1118,7 +1118,7 @@ $(document).ready(function () {
                 break;
             case "delete_user":
                 confirm_title = 'Confirm User Delete Action'
-                confirm_message = 'Are you sure you want to Delete User? This action cannot be undone.'
+                confirm_message = 'Are you sure you want to Delete this User? This action cannot be undone.'
                 callback_func = deleteUser
                 break;
             default:
@@ -1498,10 +1498,116 @@ $(document).ready(function () {
         }
     })
 
+    function getAge(birthDate) {
+          var now = new Date();
+
+          function isLeap(year) {
+            return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+          }
+
+          // days since the birthdate
+          var days = Math.floor((now.getTime() - birthDate.getTime())/1000/60/60/24);
+          var age = 0;
+          // iterate the years
+          for (var y = birthDate.getFullYear(); y <= now.getFullYear(); y++){
+            var daysInYear = isLeap(y) ? 366 : 365;
+            if (days >= daysInYear){
+              days -= daysInYear;
+              age++;
+              // increment the age only if there are available enough days for the year.
+            }
+          }
+          return age;
+    }
+
     jQuery.validator.addMethod("phoneKE", function (phone_number, element) {
         phone_number = phone_number.replace(/\s+/g, "");
-        return this.optional(element) || (phone_number.length >= 10 && phone_number.match(/^((\+[1-9]{1,4}[ \-]*)|(\([0-9]{2,3}\)[ \-]*)|([0-9]{2,4})[ \-]*)*?[0-9]{3,4}?[ \-]*[0-9]{3,4}?$/));
-    }, "Please specify a valid phone number e.g. +2547XXXXXXXX or 07XXXXXXXX");
+        if(phone_number == "")
+            return true;
+        return (phone_number.length == 10 && phone_number.match(/^((\([0-9]{2,3}\)[ \-]*)|([0-9]{2,4})[ \-]*)*?[0-9]{3,4}?[ \-]*[0-9]{3,4}?$/));
+    }, "Please specify a valid phone number e.g. 07XXXXXXXX");
+
+    jQuery.validator.addMethod("minTwoNames", function (first_name, element) {
+        var nameArray = [$('#id_first_name').val(), $('#id_middle_name').val(), $('#id_last_name').val()]
+        var countOfNameParts = 0
+        $.each(nameArray, function (index, namePart) {
+            if($.trim(namePart) != "")
+                countOfNameParts++
+        } )
+        return countOfNameParts > 1;
+    }, " * Please enter at least 2 Names");
+
+    $.validator.addMethod('positiveNumber', function (value) {
+        return Number(value) >= 0;
+    }, ' Enter a positive number.');
+
+    $.validator.addMethod('positiveNumberZeroExclusive', function (value) {
+        return Number(value) > 0;
+    }, ' Enter a positive number greater than 0.');
+
+    $.validator.addMethod('matchingAgeDisaggregatedCount', function (value) {
+        var pple_in_household = parseInt($('#id_no_of_people_in_household').val());
+        var adults_in_household = parseInt($('#id_no_of_adults').val());
+        var children_in_household = parseInt($('#id_no_of_children').val());
+        if(isNaN(adults_in_household) || isNaN(children_in_household) || isNaN(pple_in_household) || pple_in_household != (adults_in_household + children_in_household))
+            return false;
+
+        return true;
+    }, ' ');
+
+    $.validator.addMethod('matchingGenderDisaggregatedCount', function (value) {
+        var pple_in_household = parseInt($('#id_no_of_people_in_household').val(), 10);
+        var males_in_household = parseInt($('#id_no_of_males').val(), 10);
+        var females_id_household = parseInt($('#id_no_of_females').val(), 10) ;
+
+        if(isNaN(females_id_household) || isNaN(males_in_household) || isNaN(pple_in_household) || pple_in_household != (males_in_household + females_id_household))
+            return false;
+        return true;
+    }, ' ');
+
+    $.validator.addMethod('under18WithID', function (value) {
+        var currDOB = new Date($('#id_date_of_birth').val());
+        var age = getAge(currDOB);
+        var verificationDoc = $('#id_verification_document').val() || 0
+
+        if(age < 18 && verificationDoc == 2)
+            return false;
+        return true;
+    }, ' ');
+
+    //requiresChildren
+    $.validator.addMethod('requiresChildren', function (value) {
+        var hasBiologicalChildren = $('#id_has_biological_children').val() || 0
+        var noOfBiologicalChildren =  parseInt($('#id_no_of_biological_children').val()) || 0
+
+        if(hasBiologicalChildren == 1 && noOfBiologicalChildren < 1)
+            return false;
+        return true;
+    }, ' ');
+
+    //positiveNumberZeroExclusive
+    $.validator.addMethod('requiredIfEverHadSex', function (value) {
+        var isEntered = false;
+        if(value != "" && value.toString() != "0")
+            isEntered = true;
+        var ever_had_sex = parseInt($('#id_ever_had_sex').val(), 10) || 0
+
+        if(ever_had_sex > 0 && !isEntered)
+            return false;
+        return true;
+    }, ' ');
+
+    //requiredIfOtherSpecify
+    $.validator.addMethod('requiredIfOtherSpecify', function (value) {
+        var isEntered = false;
+        if(value != "" && value.toString() != "0")
+            isEntered = true;
+        var other_specify = parseInt($('#id_verification_document').val(), 10) || 0
+
+        if(other_specify == 96 && !isEntered)
+            return false;
+        return true;
+    }, ' ');
 
     $('#grievances-form').validate({
         rules: {
@@ -1560,8 +1666,7 @@ $(document).ready(function () {
                 required: "* Please select Reporter Category"
             },
             reporter_phone: {
-                required: "* Please enter Complainant's Telephone Number",
-                phoneKE: "* Please enter a valid Phone Number e.g. +2547XXXXXXXX or 07XXXXXXXX"
+                phoneKE: "* Please enter a valid Phone Number e.g. 07XXXXXXXX"
             },
             received_by: {
                 required: "* Please enter Receiver's Name"
@@ -1789,7 +1894,694 @@ $(document).ready(function () {
             $('.search_name').removeClass("hidden").addClass("shown")
         }
     })
+
+    /* Validate Enrolment Form */
+
+    $("#enrollment-form").validate({
+        groups:{
+            full_name: "id_first_name id_middle_name id_last_name"
+        },
+        rules: { 
+            implementing_partner: { 
+                required: true ,
+            }, 
+            age_of_household_head: { 
+                minTwoNames: true 
+            }, 
+            first_name: { 
+                minTwoNames: true 
+            }, 
+            middle_name: { 
+                minTwoNames: true 
+            }, 
+            last_name: { 
+                minTwoNames: true 
+            }, 
+            date_of_birth: { 
+                required: true 
+            }, 
+            date_of_enrollment: { 
+                required: true 
+            }, 
+            verification_document: { 
+                required: true ,
+                number:true,
+                under18WithID: true
+            }, 
+            verification_document_other:{
+                requiredIfOtherSpecify:true
+            },
+            marital_status: { 
+                required: true ,
+                number:true
+            }, 
+            phone_number: { 
+                phoneKE: true
+            },
+            county_of_residence:{
+                required:true
+            },
+            sub_county:{
+              required: true
+            },
+            ward:{
+                required: true
+            },
+            guardian_phone_number:{
+                phoneKE:true
+            },
+            guardian_national_id:{
+                number:true
+            }
+              },
+        messages: { 
+            implementing_partner: { 
+                required: " * Please enter your Client Implementing Partner" 
+            }, 
+            first_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            }, 
+            first_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            },
+             middle_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            }, 
+            last_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            }, 
+            date_of_birth: { 
+                required:  " * Please select Client's Date of Birth" 
+            }, 
+            date_of_enrollment: { 
+                required: " * Please select Client's Date of Enrolment" 
+            }, 
+            verification_document: { 
+                required: " * Please Select Client's Verification Document" ,
+                under18WithID: " National ID is not Applicable for girls under 18 years of age."
+            }, 
+            verification_document_other:{
+                requiredIfOtherSpecify: "* Required field"
+            },
+            marital_status: { 
+                required: " * Please Select Client's Marital Status" 
+            } , 
+            phone_number: { 
+                phoneKE: " * Please enter valid Phone number" 
+            } , 
+            county_of_residence:{
+                required: " * Please Select Client's County of Residence"
+            },
+            sub_county:{
+                required: " * Please Select Client's Sub County"
+            },
+            ward:{
+                required: " * Please Select Client's Ward"
+            },
+            guardian_phone_number: { 
+                phoneKE: " * Please enter Valid Phone number" 
+            } , 
+            guardian_national_id: { 
+                number: " * Please enter valid National ID" 
+            } 
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_demographics .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_demographics').find('.error').removeClass('text-danger')
+         }
+
+    });
+    /* Demographics */
+    $("#form_demographics").validate({
+        groups:{
+            full_name: "id_first_name id_middle_name id_last_name"
+        },
+        rules: { 
+            implementing_partner: { 
+                required: true 
+            }, 
+            age_of_household_head: { 
+                minTwoNames: true 
+            }, 
+            middle_name: { 
+                minTwoNames: true 
+            }, 
+            last_name: { 
+                minTwoNames: true 
+            }, 
+            date_of_birth: { 
+                required: true 
+            }, 
+            date_of_enrollment: { 
+                required: true 
+            }, 
+            verification_document: { 
+                required: true ,
+                number:true,
+                under18WithID: true
+            }, 
+            verification_document_other:{
+                requiredIfOtherSpecify:true
+            },
+            marital_status: { 
+                required: true ,
+                number:true
+            }, 
+            phone_number: { 
+                phoneKE: true
+            },
+            guardian_phone_number:{
+                phoneKE:true
+            },
+            guardian_national_id:{
+                number:true
+            }
+              },
+        messages: { 
+            implementing_partner: { 
+                required: " * Please enter your Client Implementing Partner" 
+            }, 
+            first_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            }, 
+            middle_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            }, 
+            last_name: { 
+                minTwoNames:  " * Please enter at least 2 Names" 
+            }, 
+            date_of_birth: { 
+                required:  " * Please select Client's Date of Birth" 
+            }, 
+            date_of_enrollment: { 
+                required: " * Please select Client's Date of Enrolment" 
+            }, 
+            verification_document: { 
+                required: " * Please Select Client's Verification Document" ,
+                under18WithID: " National ID is not Applicable for girls under 18 years of age."
+            }, 
+            verification_document_other:{
+                requiredIfOtherSpecify: "* Required field"
+            },
+            marital_status: { 
+                required: " * Please Select Client's Marital Status" 
+            } , 
+            phone_number: { 
+                phoneKE: " * Please enter valid Phone number" 
+            } , 
+            guardian_phone_number: { 
+                phoneKE: " * Please enter Valid Phone number" 
+            } , 
+            guardian_national_id: { 
+                number: " * Please enter valid National ID" 
+            } 
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_demographics .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_demographics').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+    /* Individual household information validation
+
+     */
+    $("#form_ind_household").validate({
+        rules: { 
+            head_of_household: { 
+                required: true 
+            }, 
+            age_of_household_head: { 
+                number:true,
+                required: true ,
+                positiveNumberZeroExclusive: true
+            }, 
+            is_father_alive: { 
+                required: true
+            }, 
+            is_mother_alive: { 
+                required: true
+            }, 
+            is_parent_chronically_ill: { 
+                required: true 
+            }, 
+            main_floor_material: { 
+                required: true 
+            }, 
+            main_roof_material: { 
+                required: true 
+            }, 
+            main_wall_material: { 
+                required: true 
+            }, 
+            source_of_drinking_water: { 
+                required: true 
+            },
+            ever_missed_full_day_food_in_4wks: { 
+                required: true 
+            }, 
+            has_disability: { 
+                required: true 
+            }, 
+            no_of_people_in_household: { 
+                required: true ,
+                number: true,
+                positiveNumber: true
+            }, 
+            no_of_females: { 
+                required: true ,
+                number: true,
+                positiveNumber: true
+            }, 
+            no_of_males: { 
+                required: true ,
+                number: true,
+                positiveNumber: true,
+                matchingGenderDisaggregatedCount: true
+            }, 
+            no_of_adults: { 
+                required: true ,
+                number:true,
+                positiveNumber: true
+            }, 
+            no_of_children: { 
+                required: true ,
+                number:true,
+                positiveNumber: true,
+                matchingAgeDisaggregatedCount: true
+            }, 
+            ever_enrolled_in_ct_program: { 
+                required: true 
+            }
+        },
+        messages: { 
+            head_of_household: { 
+                required: " * Please Select Head of Household" 
+            }, 
+            age_of_household_head: { 
+                required:  " * Please enter the age of Head of Household" ,
+                number: " Enter valid age e.g 45"
+            }, 
+            is_father_alive: { 
+                required:  " * Required field" 
+            }, 
+            is_mother_alive: { 
+                required:  " * Required field" 
+            }, 
+            is_parent_chronically_ill: { 
+                required:  " * Required field" 
+            }, 
+            main_floor_material: { 
+                required:  " * Required field" 
+            }, 
+            main_roof_material: { 
+                required:  " * Required field" 
+            }, 
+            main_wall_material: { 
+                required:  " * Required field" 
+            } , 
+            source_of_drinking_water: { 
+                required:  " * Required field" 
+            } ,
+            ever_missed_full_day_food_in_4wks: { 
+                required:  " * Required field"  
+            }, 
+            has_disability: { 
+                required:  " * Required field" 
+            }, 
+            no_of_people_in_household: { 
+                required:  " * Required field" ,
+                number: " Enter valid number e.g 5"
+            }, 
+            no_of_females: { 
+                required:  " * Required field" ,
+                number: " Enter valid number e.g 5"
+            }, 
+            no_of_males: { 
+                required:  " * Required field" ,
+                number: " Enter valid number e.g 5",
+                matchingGenderDisaggregatedCount: " Number of females and males in household do not add up."
+            }, 
+            no_of_adults: { 
+                required:  " * Required field" ,
+                number: " Enter valid number e.g 5"
+            } , 
+            no_of_children: { 
+                required:  " * Required field" ,
+                number: " Enter valid number e.g 5",
+                matchingAgeDisaggregatedCount: " Number of adults and children in household do not add up."
+            } ,
+            ever_enrolled_in_ct_program: { 
+                required:  " * Required field" 
+            } 
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_ind_household .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_ind_household').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+    /* Education and Employment validation
+
+     */
+    $("#form_edu_and_employment").validate({
+        rules: { 
+            currently_in_school: { 
+                required: true 
+            }, 
+            has_savings: { 
+                required: true 
+            }
+        },
+        messages: { 
+            currently_in_school: { 
+                required: " * Please Select Head of Household" 
+            }, 
+            has_savings: { 
+                required:  " * Required field" 
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_edu_and_employment .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_edu_and_employment').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+
+    /* HIV Testing validation
+
+     */
+    $("#form_hiv_testing").validate({
+        rules: { 
+            ever_tested_for_hiv: { 
+                required: true 
+            }
+        },
+        messages: { 
+            ever_tested_for_hiv: { 
+                required: " * Required field" 
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_hiv_testing .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_hiv_testing').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+    /* Sexual activity validation
+
+     */
+    $("#form_sexuality").validate({
+        rules: { 
+            ever_had_sex: { 
+                required: true 
+            },
+            age_at_first_sexual_encounter:{
+                requiredIfEverHadSex: true,
+                positiveNumberZeroExclusive:true
+            },
+            has_sexual_partner:{
+                requiredIfEverHadSex: true
+            },
+            sex_partners_in_last_12months:{
+                requiredIfEverHadSex: true,
+                positiveNumber: true
+            }
+        },
+        messages: { 
+            ever_had_sex: { 
+                required: " * Required field" 
+            },
+            age_at_first_sexual_encounter:{
+                requiredIfEverHadSex: " * Required field",
+                positiveNumberZeroExclusive: "Enter a positive number greater than 0."
+            },
+            has_sexual_partner:{
+                positiveNumber: " Enter positive number e.g 0,1,2...",
+                requiredIfEverHadSex: "* Required field"
+            },
+            sex_partners_in_last_12months:{
+                requiredIfEverHadSex: " * Required field"
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_sexuality .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_sexuality').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+
+    /* Reproductive health validation
+
+     */
+    $("#form_rep_health").validate({
+        rules: { 
+            fp_methods_awareness: { 
+                required: true 
+            },
+            no_of_biological_children:{
+                positiveNumber: true,
+                requiresChildren: true
+            },
+            currently_pregnant:{
+                required:true
+            },
+            known_fp_method:{
+                required: true
+            },
+            currently_use_modern_fp:{
+                required: true
+            }
+
+        },
+        messages: { 
+            fp_methods_awareness: { 
+                required: " * Required field" 
+            },
+            no_of_biological_children:{
+                requiresChildren: "Number of biological children required."
+            },
+            currently_pregnant:{
+                required: "* Required field"
+            },
+            known_fp_method:{
+                required: "* Required field"
+            },
+            currently_use_modern_fp: {
+                required: "* Required field"
+            }
+
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_rep_health .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_rep_health').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+
+    /* GBV validation
+
+     */
+    $("#form_gbv").validate({
+        rules: { 
+            humiliated_ever: { 
+                required: true 
+            }, 
+            threats_to_hurt_ever: { 
+                required: true 
+            }, 
+            insulted_ever: { 
+                required: true
+            }, 
+            economic_threat_ever: { 
+                required: true
+            }, 
+            physical_violence_ever: { 
+                required: true 
+            }, 
+            physically_forced_sex_ever: { 
+                required: true 
+            }, 
+            physically_forced_other_sex_acts_ever: { 
+                required: true 
+            }, 
+            threatened_for_sexual_acts_ever: { 
+                required: true 
+            }
+        },
+        messages: { 
+            humiliated_ever: { 
+                required: " * Required field" 
+            }, 
+            threats_to_hurt_ever: { 
+                required:  " * Required field" 
+            }, 
+            insulted_ever: { 
+                required:  " * Required field" 
+            }, 
+            economic_threat_ever: { 
+                required:  " * Required field" 
+            }, 
+            physical_violence_ever: { 
+                required:  " * Required field" 
+            }, 
+            physically_forced_sex_ever: { 
+                required:  " * Required field" 
+            }, 
+            physically_forced_other_sex_acts_ever: { 
+                required:  " * Required field" 
+            }, 
+            threatened_for_sexual_acts_ever: { 
+                required:  " * Required field" 
+            } 
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_gbv .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_gbv').find('.error').removeClass('text-danger')
+         }
+
+    });
+    
+    
+    /* Drug Use validation
+
+     */
+    $("#form_drug_use").validate({
+        rules: { 
+            used_alcohol_last_12months: { 
+                required: true 
+            }, 
+            drug_abuse_last_12months: { 
+                required: true 
+            }, 
+            produced_alcohol_last_12months: { 
+                required: true
+            }
+        },
+        messages: { 
+            used_alcohol_last_12months: { 
+                required: " * Required field" 
+            }, 
+            drug_abuse_last_12months: { 
+                required:  " * Required field" 
+            }, 
+            produced_alcohol_last_12months: { 
+                required:  " * Required field" 
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_drug_use .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_drug_use').find('.error').removeClass('text-danger')
+         }
+
+    });
+    
+    
+    $('.manual_download').click(function (event) {
+        var item = event.target;
+        var formID = $(item).data("form_id")
+        $(formID).submit()
+    })
+
+    $('.listen-to-change').on('change keyup', function () {
+
+                var val = $(this).val();
+                var show_if_true = $(this).data('show_if_true'); // class to show
+                var hide_if_true = $(this).data('hide_if_true'); // class to show
+                var hide_if_false = $(this).data('hide_if_false'); // class to hide
+                var show_value = $(this).data('show_value'); // value to determine show/hide
+
+                if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != ''){
+                    var hide_classes = hide_if_false.split(" ");
+                    hide_if_false = hide_classes;
+                }
+
+                if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != ''){
+                    var hide_on_show_classes = hide_if_true.split(" ");
+                    hide_if_true = hide_on_show_classes;
+                }
+
+
+
+
+                if(val == show_value || show_value=='any'){
+                    $('.'+show_if_true).removeClass('hidden');
+
+                    if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                        for (var i = 0; i < hide_if_true.length; i++) {
+                            var class_name = hide_if_true[i];
+                            $('.' + class_name).addClass('hidden');
+                            $('.' + class_name).find('input,select').each(function () {
+                                $(this).val('');
+                                $(this).attr('checked', false);
+                            });
+                        }
+                    }
+
+                } else {
+
+                    $('.'+show_if_true).addClass('hidden');
+
+                    $('.'+show_if_true).find('input,select').each(function(){
+                        $(this).val('');
+                        $(this).attr('checked',false);
+                    });
+
+                    if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
+                        for (var i = 0; i < hide_if_false.length; i++) {
+                            var class_name = hide_if_false[i];
+                            $('.' + class_name).addClass('hidden');
+                            $('.' + class_name).find('input,select').each(function () {
+                                $(this).val('');
+                                $(this).attr('checked', false);
+                            });
+
+                        }
+                    }
+
+                    if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                        for (var i = 0; i < hide_if_true.length; i++) {
+                            var class_name = hide_if_true[i];
+                            $('.' + class_name).removeClass('hidden');
+                        }
+                    }
+                }
+            });
+
 });
+
 
 
 

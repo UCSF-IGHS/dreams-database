@@ -47,10 +47,11 @@ html, body{
 
 #dreams-navbar .navbar-nav > li > a:hover,
 #dreams-navbar .navbar-nav > li > a:focus {
-  color: #ffffff;
+    color: #ffffff;
     background-color: #26247B;
 
 }
+
 
 #dreams-navbar .navbar-nav > .active > a,
 #dreams-navbar .navbar-nav > .active > a:hover,
@@ -199,7 +200,7 @@ html, body{
 }
 
 .statusBox .floatRightLinks{
-    margin-bottom: 10px;
+    margin-bottom: 0px;
 }
 
 .statusBox .floatRightLinks .rightItem {
@@ -208,7 +209,7 @@ html, body{
 
 .statusBox .text-info{
     font-size: 12px;
-    margin-top: -0px;
+    margin-top: 10px;
     margin-left: 5px;
 }
 
@@ -216,14 +217,11 @@ html, body{
 
 /* Start Clients List */
 
-#dreams-client-table {
-    background-color: transparent;
-}
 
 #dreams-client-table .actions-col{
     min-width: 150px;
-    width: 150px;
-    max-width: 150px;
+    width: 300px;
+    max-width: 250px;
 }
 
     /* Start Enrollment */
@@ -272,22 +270,22 @@ html, body{
 #dreams-profile-tab-control >.nav-tabs> li > a:focus,
 #dreams-profile-tab-control >.nav-tabs> li > a:active,
 #dreams-profile-tab-control >.nav-tabs> li > a:hover{
-     text-decoration: underline;
      background-color: inherit;
-     border: none;
  }
 
 #dreams-profile-tab-control >.nav-tabs> .active > a,
 #dreams-profile-tab-control >.nav-tabs> .active > a:focus,
 #dreams-profile-tab-control >.nav-tabs> .active > a:active,
 #dreams-profile-tab-control >.nav-tabs> .active > a:hover{
-     background-color: #FFFFFF;
-     border: solid 1px #efc636;
-     border-bottom: solid 3px #FFFFFF;
+    background-color: #FFFFFF;
+    border: solid 1px #efc636;
+    border-bottom: solid 3px #FFFFFF;
     z-index: 300;
     margin-bottom: -5px;
     text-decoration: none ;
  }
+
+
 
 .dp-tab-content{
     background-color: #FFFFFF;
@@ -361,6 +359,47 @@ html, body{
 
 /* End Client Profile Section */
 
+.dreams-enrollment-tab-control {
+    background-color: #F8F1E1;
+    display: inline-block;
+    padding: 1px;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-top: 1px;
+    text-align: left;
+    margin: 0% 0 2% 0;
+    margin-bottom: 4em;
+    width: 100%;
+    border: solid 1px #efc636;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px
+}
+
+#dreams-enrollment-tab-control >.nav-tabs> li > a{
+     color: #333;
+ }
+
+#dreams-enrollment-tab-control >.nav-tabs> li > a:focus,
+#dreams-enrollment-tab-control >.nav-tabs> li > a:active,
+#dreams-enrollment-tab-control >.nav-tabs> li > a:hover{
+     background-color: inherit;
+ }
+
+#dreams-enrollment-tab-control >.nav-tabs> .active > a,
+#dreams-enrollment-tab-control >.nav-tabs> .active > a:focus,
+#dreams-enrollment-tab-control >.nav-tabs> .active > a:active,
+#dreams-enrollment-tab-control >.nav-tabs> .active > a:hover{
+    background-color: #FFFFFF;
+    border: solid 1px #efc636;
+    border-bottom: solid 3px #FFFFFF;
+    z-index: 300;
+    margin-bottom: -5px;
+    text-decoration: none ;
+ }
+
 /* Audit log */
 
 /*audit log table */
@@ -425,6 +464,46 @@ html, body{
     border-color: green;
 }
 
-.date-field{
 
+.enrolment-input{
+    /*width: 450px !important;*/
+}
+
+.enrolment-label{
+    width: 200px;
+    text-align: left;
+}
+
+#household_fieldset .enrolment-input{
+
+}
+
+
+.enrolment-input-question label{
+    /*font-size: 12px;
+    font-weight: bold;*/
+}
+
+.enrolment-input-header-question{
+    margin-bottom: 10px;
+}
+
+
+.pointer-area{
+    cursor: pointer;
+}
+
+
+.ui-datepicker {
+
+ }
+
+.ui-datepicker .ui-datepicker-title{
+
+}
+
+.ui-datepicker .ui-datepicker-title select{
+    background: #FFFFFE;
+    color: #5e5e5e;
+    border-color: #adadad;
 }

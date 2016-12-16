@@ -18,45 +18,51 @@
 
         <div id="bs-example-navbar-collapse-1" class="navbar-collapse collapse" style="">
             <ul class="nav navbar-nav navbar-right" style="margin-bottom: 0px;">
-            {% if user.is_anonymous %}
-                <!--<li><a>Please log below</a></li>-->
-                <li><a href="/help" onclick="return false;">Help</a></li>
-            {% else %}
-                {% if user.is_authenticated %}
-                    {% if perms.auth.can_manage_client %}
-                        <li class="{% if page == 'clients' or page == 'interventions' %}active{% endif %}" ><a class="" href="/clients" style="">Clients &amp; Interventions</a> </li>
+                {% if user.is_anonymous %}
+                    <!--<li><a>Please log below</a></li>-->
+                    <!--<li><a href="/help" onclick="return false;">Help</a></li> -->
+                {% else %}
+                    {% if user.is_authenticated %}
+                        {% if perms.auth.can_manage_client %}
+                            <li class="{% if page == 'clients' or page == 'interventions' %}active{% endif %}" ><a class="" href="/clients" style="">Clients &amp; Interventions</a> </li>
+                        {% endif %}
+                        {% if perms.auth.can_manage_audit %}
+                            <li class="{% if page == 'logs' %}active{% endif %}"><a href="/logs" >Logs </a> </li>
+                        {% endif %}
+                        {% if perms.auth.can_manage_user %}
+                            <li class="{% if page == 'users' %}active{% endif %}"><a href="/admin/users" >Users </a> </li>
+                        {% endif %}
                     {% endif %}
-                    {% if perms.auth.can_manage_audit %}
-                        <li class="{% if page == 'logs' %}active{% endif %}"><a href="/logs" >Logs </a> </li>
+                    <!--
+                    {% if perms.auth.add_grievance %}
+                        <li class="{% if page == 'cash_transfer' %}active{% endif %}"><a href="/grievances" >Grievances </a> </li>
                     {% endif %}
-                    {% if perms.auth.can_manage_user %}
-                        <li class="{% if page == 'users' %}active{% endif %}"><a href="/admin/users" >Users </a> </li>
-                    {% endif %}
-                {% endif %}
-                {% if perms.auth.add_grievance %}
-                    <li class="{% if page == 'cash_transfer' %}active{% endif %}"><a href="/grievances" >Grievances </a> </li>
-                {% endif %}
+                    -->
 
-                {% if user.is_authenticated %}
-                    <li class="dropdown {% if page == 'export' %}active{% endif %}" >
-                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
-                      <ul class="dropdown-menu">
-                          <li><a href="/export-page" class="text-danger">Raw Export</a></li>
-                      </ul>
-                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="dropdown {% if page == 'export' %}active{% endif %}" >
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
+                          {% if perms.DreamsApp.can_export_raw_data %}
+                              <ul class="dropdown-menu">
+                                  <li><a href="/export-page" class="text-danger">Raw Export</a></li>
+                              </ul>
+                          {% endif %}
+                        </li>
+                    {% endif %}
+
+                    {% if user.is_authenticated %}
+                        <li class="dropdown {% if page == 'account' %}active{% endif %}" >
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
+                          <ul class="dropdown-menu">
+                              <li><a href="/admin/users/change_cred" class="text-danger">Change password</a></li>
+                              <li><a href="/logout" class="text-danger">Logout: {{ user.username }}</a></li>
+                          </ul>
+                        </li>
+                    {% endif %}
+                    <li class="{% if page == 'help' %}active{% endif %}" ><a href="/help">Help &nbsp;</a></li>
                 {% endif %}
-                <li class="{% if page == 'help' %}active{% endif %} hidden" ><a href="/help" onclick="return false;">Help</a></li>
-                {% if user.is_authenticated %}
-                    <li class="dropdown {% if page == 'account' %}active{% endif %}" >
-                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
-                      <ul class="dropdown-menu">
-                          <li><a href="/admin/users/change_cred" class="text-danger">Change password</a></li>
-                          <li><a href="/logout" class="text-danger">Logout: {{ user.username }}</a></li>
-                      </ul>
-                    </li>
-                {% endif %}
-            {% endif %}
             </ul>
+
         </div>
     </div>
 </nav>

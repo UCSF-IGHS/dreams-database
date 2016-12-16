@@ -39,7 +39,7 @@
 
                         <div class="form-group hidden" id="other_specify_section">
                             <label for="other_specify" class="control-label">Specify Intervention</label>
-                            <input type="text" class="form-control validate-intervention-form-field" id="other_specify" name="other_specify"></input>
+                            <input type="text" class="form-control validate-intervention-form-field" id="other_specify" name="other_specify">
                         </div>
 
                          <div class="form-group has-feedback hidden" id="intervention_date_section">
@@ -51,6 +51,7 @@
                               $(function() {
                                 $( "#date-of-completion" ).datepicker({
                                       maxDate: '0y 0m 0d',
+                                      minDate:  (new Date(2015, 9 , 1)),
                                       changeMonth: true,
                                       changeYear: true
                                 });
@@ -86,7 +87,7 @@
 
                          <div class="form-group hidden" id="no_of_sessions_section">
                             <label for="number-of-ss-sessions-attended" class="control-label">Number of SS Sessions Attended</label>
-                            <input type="number" class="form-control validate-intervention-form-field" id="number-of-ss-sessions-attended" min="1" name="no_of_sessions_attended"></input>
+                            <input type="number" class="form-control validate-intervention-form-field" id="number-of-ss-sessions-attended" value="1" min="1" name="no_of_sessions_attended">
                         </div>
 
                          <div class="form-group hidden" id="notes_section">
@@ -142,34 +143,40 @@
 
     <!-- Start of Client profile section -->
 <div class="wrapper-container">
-    <div class="row statusBox">
-        <div class="col-xs-12 col-sm-5">
+    <div class=" statusBox">
+        <div>
+            <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-5">
             <p><strong>Client: </strong> {{ client.get_full_name }} </p>
-            <p><strong>DREAMS Id: </strong> {{ client.dreams_id }}</p>
-            <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }}</p>
+            <p><strong>DREAMS ID: </strong> {{ client.dreams_id }}</p>
+            <p><strong>Date Birth: </strong> {{ client.date_of_birth }} (Age {{ client.get_age_at_enrollment }})</p>
+
         </div><!--/col-->
-        <div class="col-xs-12 col-sm-4">
-             <p><strong>Phone Number: </strong>
-                <span>{{ client.phone_number }} {% if client.phone_number == None and client.guardian_phone_number != None and client.guardian_phone_number != '' %}(Guardian){{ client.guardian_phone_number }}{% endif %}</span>
-            </p>
-            <p><strong>Age: </strong> {{ client.get_age_at_enrollment }}</p>
-            <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
-        </div><!--/col-->
-        <div class="col-xs-12 col-sm-3">
-            <p><strong>Actions: </strong> <br>
-                <p class="underline_hover" data-view_mode="view"  data-toggle="modal" data-target="#enrollment-modal" data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="tooltip" title="View Enrollment"><span class="glyphicon glyphicon-eye-open"></span> View Enrollment</p>
-                {% if user.is_superuser %}
-                <p class="underline_hover" data-toggle="modal" data-target="#enrollment-modal" data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-pencil"></span> Edit Enrollment</p>
-                {% endif %}
-            </p>
-        </div><!--/col-->
-        <div class="col-xs-12 col-sm-2 hidden">
-            <p><strong> </strong> <br>
-                {% if perms.change_clientcashtransferdetails %}
-                <p class="underline_hover" data-toggle="modal" data-target="#cash-transfer-details-modal" data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="tooltip" title="Edit cash transfer details"><span class="glyphicon glyphicon-pencil"></span> Cash Transfer Details</p>
-                {% endif %}
-            </p>
-        </div><!--/col-->
+            <div class="col-xs-12 col-sm-4">
+                <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }}</p>
+                 <p><strong>Phone Number: </strong>
+                    <span>{% if client.phone_number != None%}{{ client.phone_number }}{% endif %} {% if client.phone_number == None and client.guardian_phone_number != None and client.guardian_phone_number != '' %}(Guardian){{ client.guardian_phone_number }}{% endif %}</span>
+                </p>
+                <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
+            </div><!--/col-->
+            <div class="col-xs-12 col-sm-3">
+                <p><strong>Actions: </strong> <br>
+                    {% if user.is_superuser %}
+                    <p class="underline_hover"  data-client_id='{{ client.id }}' style="cursor:pointer;" onclick="window.location='/client_baseline_info?client_id={{ client.id }}&search_client_term={{ search_client_term }}'" data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-pencil"></span> Edit Enrollment Data</p>
+                    {% endif %}
+                </p>
+            </div><!--/col-->
+            <!--<div class="col-xs-12 col-sm-2 hidden">
+                <p><strong> </strong> <br>
+                    {% if perms.DreamsApp.change_clientcashtransferdetails %}
+                    <p class="underline_hover" data-toggle="modal" data-target="#cash-transfer-details-modal" data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="tooltip" title="Edit cash transfer details"><span class="glyphicon glyphicon-pencil"></span> Cash Transfer Details</p>
+                    {% endif %}
+                </p>
+            </div><!--/col-->
+        </div>
+
     </div>
 
     <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert"></div>
@@ -181,7 +188,7 @@
             <li role="presentation"><a href="#post-gbv-care" aria-controls="post-gbv-care" role="tab" data-toggle="tab" data-intervention_category_code="3001" data-tab_intervention_table_id="#interventions_3001_table">Post-GVB Care</a></li>
             <li role="presentation"><a href="#social-protection" aria-controls="social-protection" role="tab" data-toggle="tab" data-intervention_category_code="4001" data-tab_intervention_table_id="#interventions_4001_table">Social protection</a></li>
             <li role="presentation"><a href="#other-interventions" aria-controls="other-interventions" role="tab" data-toggle="tab" data-intervention_category_code="5001" data-tab_intervention_table_id="#interventions_5001_table">Other</a></li>
-            <li style="float: right;"><a class="no-hover" href="/clients"><span class="glyphicon glyphicon-triangle-left"> </span> Back to Clients</a> </li>
+            <li style="float: right;"><a class="no-hover" href="/clients?search_client_term={{ search_client_term }}"><span class="glyphicon glyphicon-triangle-left"> </span> Back to Clients</a> </li>
         </ul>
 
         <div class="tab-content dp-tab-content">
@@ -196,7 +203,7 @@
                                    <input id="filter_1001" type="text" class="form-control filter"  data-target_tbody="#interventions_1001_tbody" data-intervention_category_code="1001" data-tab_intervention_table_id="#interventions_1001_table" placeholder="Type to search...">
                               </div>
                           </th>
-                          <th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="1001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
+                          {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="1001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>{% endif %}
                       </tr>
                   </thead>
                </table>
@@ -237,9 +244,8 @@
                                        <input id="filter_2001" type="text" class="form-control filter" data-target_tbody="#interventions_2001_tbody" data-intervention_category_code="2001" data-tab_intervention_table_id="#interventions_2001_table" placeholder="Type to search...">
                                    </div>
                               </th>
-                              <th width="130">
-                                  <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="2001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button>
-                              </th>
+                              {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="2001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
+                              {% endif %}
                           </tr>
                       </thead>
                   </table>
@@ -280,7 +286,7 @@
                                        <input id="filter_3001" type="text" class="form-control filter" data-target_tbody="#interventions_3001_tbody" data-intervention_category_code="3001" data-tab_intervention_table_id="#interventions_3001_table" placeholder="Type to search...">
                                    </div>
                               </th>
-                              <th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="3001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
+                              {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="3001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>{% endif %}
                           </tr>
                       </thead>
                   </table>
@@ -320,7 +326,7 @@
                                        <input id="filter_4001" type="text" class="form-control filter" data-target_tbody="#interventions_4001_tbody" data-intervention_category_code="4001" data-tab_intervention_table_id="#interventions_4001_table" placeholder="Type to search...">
                                   </div>
                               </th>
-                              <th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="4001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
+                              {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="4001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>{% endif %}
                           </tr>
                       </thead>
                   </table>
@@ -361,7 +367,7 @@
                                        <input id="filter_5001" type="text" class="form-control filter" data-target_tbody="#interventions_5001_tbody" data-intervention_category_code="5001" data-tab_intervention_table_id="#interventions_5001_table" placeholder="Type to search...">
                                   </div>
                               </th>
-                              <th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="5001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
+                              {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="5001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>{% endif %}
                           </tr>
                       </thead>
                   </table>

@@ -111,3 +111,6 @@ bower_components
 # Add idea related files
 .idea/*
 
+# ignore settings file
+settings.py
+

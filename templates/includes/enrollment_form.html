@@ -18,38 +18,39 @@
                 <div class="modal-body">
                     <div style="margin: auto 15px;">
                         <!-- Permanently hidden Fields -->
+
                         <input class="hidden clear_value" name="client_id" id="client_id"/>
-                        <input class="hidden clear_value" type="text" name="implementing_partner" value="{{ implementing_partner_user.implementing_partner.code }}">
+                        <input class="hidden clear_value" type="text" name="implementing_partner" value="{{ current_ip }}">
                         <!-- End of permanently hidden fields -->
 
                         <div class="form-group">
-                             <label for="middle_name" class="control-label">First Name</label>
-                             <input type="text" class="form-control required_field clear_value" id="first_name" name="first_name" >
+                             <label for="first_name" class="control-label">First Name</label>
+                             <input type="text" class="form-control clear_value" id="id_first_name" name="first_name" >
                              <span id="spn_first_name" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">
                              <label for="middle_name" class="control-label">Middle Name</label>
-                             <input type="text" class="form-control clear_value" id="middle_name" name="middle_name" >
+                             <input type="text" class="form-control clear_value" id="id_middle_name" name="middle_name" >
                              <span id="spn_middle_name" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">
                              <label for="last_name" class="control-label">Last Name</label>
-                             <input type="text" class="form-control validate_field clear_value" id="last_name" name="last_name" >
+                             <input type="text" class="form-control clear_value" id="id_last_name" name="last_name" >
                              <span id="spn_last_name" class="clear_span"></span>
                          </div>
 
                          <div class="form-group has-feedback">
                              <label for="date_of_birth" class="control-label">Date of Birth:</label>
-                             <input type="text" class="form-control required_field clear_value" id="date_of_birth" name="date_of_birth" placeholder="Select date of birth" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                             <input type="text" class="form-control clear_value" id="id_date_of_birth" name="date_of_birth" placeholder="Select date of birth" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                              <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                              <script>
                                 $(function() {
-                                  $( "#date_of_birth" ).datepicker({
+                                  $( "#id_date_of_birth" ).datepicker({
+                                      minDate: (new Date(1991, 10 , 1)),
+                                      maxDate:  (new Date(2007, 9 , 1)),
                                       dateFormat: 'yy-mm-dd',
-                                      minDate: '-24y',
-                                      maxDate: '-10y',
                                       changeMonth: true,
                                       changeYear: true
                                   });
@@ -61,37 +62,43 @@
                             </script>
                              <span id="spn_date_of_birth" class="clear_span"></span>
                             <label>
-                              <input type="checkbox" class="clear_true" id="is_date_of_birth_estimated" name="is_date_of_birth_estimated"> Is Date of Birth Estimated?
+                              <input type="checkbox" class="clear_true" id="id_is_date_of_birth_estimated" name="is_date_of_birth_estimated"> Is Date of Birth Estimated?
                             </label>
                          </div>
 
                         <div class="form-group">
                             <label for="verification_document">Verification Document</label>
-                            <select id="verification_document" name="verification_document" class="form-control validate_field clear_value required_field" >
+                            <select id="id_verification_document" name="verification_document" class="form-control  enrolment-input listen-to-change" data-show_value="96" data-show_if_true="verification-doc-other" >
                                 <option value="">Select Option</option>
-                                {% for verification_document in config_data.verification_documents %}
+                                {% for verification_document in verification_documents %}
                                 <option data-verification_document_id="{{ verification_document.id }}" value="{{ verification_document.code }}">{{ verification_document.name }}</option>
                                 {% endfor %}
                             </select>
                              <span id="spn_verification_document" class="clear_span"></span>
                         </div>
 
+                        <div class="form-group verification-doc-other hidden">
+                             <label for="verification-doc-other" class="control-label">Verification Doc. Other</label>
+                             <input type="text" class="form-control  clear_value" id="id_verification-doc-other" name="verification-doc-other" >
+                             <span id="spn_verification-doc-other" class="clear_span"></span>
+                         </div>
+
                          <div class="form-group">
                              <label for="verification_doc_no" class="control-label">Verification Doc. No.</label>
-                             <input type="text" class="form-control validate_field required_field clear_value" id="verification_doc_no" name="verification_doc_no" >
+                             <input type="text" class="form-control validate_field clear_value" id="id_verification_doc_no" name="verification_doc_no" >
                              <span id="spn_verification_doc_no" class="clear_span"></span>
                          </div>
 
                          <div class="form-group has-feedback">
                              <label for="date_of_enrollment" class="control-label">Date of Enrollment:</label>
-                             <input type="text" class="form-control format_date_event required_field clear_value" name="date_of_enrollment" id="date_of_enrollment" placeholder="Select date of Enrollment" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                             <input type="text" class="form-control clear_value" name="date_of_enrollment" id="id_date_of_enrollment" placeholder="Select date of Enrollment" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                              <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                              <script>
                                 $(function() {
-                                  $( "#date_of_enrollment").datepicker({
+                                  $( "#id_date_of_enrollment").datepicker({
+                                      maxDate: '0y 0m 0d',
+                                      minDate:  (new Date(2015, 9 , 1)),
                                       dateFormat: 'yy-mm-dd',
-                                      maxDate: '+0m +0d +0y',
-                                      minDate:'-2y',
                                       changeMonth: true,
                                       changeYear: true
                                   });
@@ -110,17 +117,17 @@
                              <span id="spn_date_of_enrollment" class="clear_span"></span>
                          </div>
 
-                         <div class="form-group">
+                         <div class="form-group hidden">
                              <label for="aget_at_enrollment" class="control-label">Age at Enrollment</label>
-                             <input type="text" class="form-control validate_field required_field clear_value" id="age_at_enrollment" name="age_at_enrollment" >
+                             <input type="text" class="form-control validate_field clear_value" id="id_age_at_enrollment" name="age_at_enrollment" >
                              <span id="spn_age_at_enrollment" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">
                             <label for="marital_status">Marital Status</label>
-                            <select id="marital_status" name="marital_status" class="form-control validate_field required_field clear_value" >
+                            <select id="id_marital_status" name="marital_status" class="form-control clear_value" >
                                 <option value="">Select Option</option>
-                                {% for ms in config_data.marital_status %}
+                                {% for ms in marital_status %}
                                 <option data-marital_status_id="{{ ms.id }}" value="{{ ms.code }}" >{{ ms.name }}</option>
                                 {% endfor %}
                             </select>
@@ -129,21 +136,21 @@
 
                          <div class="form-group">
                              <label for="phone_number" class="control-label">Phone Number</label>
-                             <input type="text" class="form-control validate_field phone_number_field clear_value" id="phone_number" name="phone_number">
+                             <input type="text" class="form-control clear_value" id="id_phone_number" name="phone_number">
                              <span id="spn_phone_number" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">
                              <label for="dss_id_number" class="control-label">DSS ID Number (If applicable)</label>
-                             <input type="text" class="form-control" id="dss_id_number" name="dss_id_number">
+                             <input type="text" class="form-control" id="id_dss_id_number" name="dss_id_number">
                              <span id="spn_dss_id_number" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">
                             <label for="county_of_residence">County of Residence</label>
-                            <select id="county_of_residence" name="county_of_residence" class="form-control validate_field required_field clear_value">
+                            <select id="id_county_of_residence" name="county_of_residence" class="form-control clear_value">
                                 <option value="">Select County</option>
-                                {% for county in config_data.counties %}
+                                {% for county in counties %}
                                     <option data-county_of_residence_id="{{ county.id }}" value="{{ county.code }}">{{ county.name }}</option>
                                 {% endfor %}
                             </select>
@@ -152,9 +159,9 @@
 
                          <div class="form-group">
                             <label for="sub_county">Sub-County</label>
-                            <select id="sub_county" name="sub_county" class="form-control validate_field required_field clear_value" >
+                            <select id="id_sub_county" name="sub_county" class="form-control clear_value" >
                                 <option value="">Select Sub-County</option>
-                                {% for sub_county in config_data.sub_counties %}
+                                {% for sub_county in sub_counties %}
                                 <option value="{{ sub_county.code }}" data-sub_county_id="{{ sub_county.id }}" data-county_code="{{ sub_county.county.code }}">{{ sub_county.name }}</option>
                                 {% endfor %}
                             </select>
@@ -163,9 +170,9 @@
 
                          <div class="form-group">
                             <label for="ward">Ward</label>
-                            <select id="ward" name="ward" class="form-control validate_field required_field clear_value" >
+                            <select id="id_ward" name="ward" class="form-control clear_value" >
                                 <option value="">Select Ward</option>
-                                {% for ward in config_data.wards %}
+                                {% for ward in wards %}
                                 <option value="{{ ward.code }}">{{ ward.name }}</option>
                                 {% endfor %}
 
@@ -175,49 +182,49 @@
 
                          <div class="form-group">
                              <label for="informal_settlement" class="control-label">Informal Settlement</label>
-                             <input type="text" class="form-control clear_value" id="informal_settlement" name="informal_settlement" >
+                             <input type="text" class="form-control clear_value" id="id_informal_settlement" name="informal_settlement" >
                              <span id="spn_informal_settlement" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">
                              <label for="village" class="control-label">Village</label>
-                             <input type="text" class="form-control clear_value" id="village" name="village" >
+                             <input type="text" class="form-control clear_value" id="id_village" name="village" >
                              <span id="spn_village" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">
                              <label for="landmark" class="control-label">Land mark near residence</label>
-                             <input type="text" class="form-control clear_value" id="landmark" name="landmark">
+                             <input type="text" class="form-control clear_value" id="id_landmark" name="landmark">
                              <span id="spn_landmark" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">
                              <label for="dreams_id" class="control-label">DREAMS ID Number</label>
-                             <input type="text" class="form-control validate_field required_field clear_value" id="dreams_id" name="dreams_id">
+                             <input type="text" class="form-control clear_value" id="id_dreams_id" name="dreams_id">
                              <span id="spn_dreams_id" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">
                              <label for="guardian_name" class="control-label">Primary care giver /Guardian’s Name</label>
-                             <input type="text" class="form-control clear_value" id="guardian_name" name="guardian_name">
+                             <input type="text" class="form-control clear_value" id="id_guardian_name" name="guardian_name">
                              <span id="spn_guardian_name" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">
                              <label for="relationship_with_guardian" class="control-label">Relationship</label>
-                             <input type="text" class="form-control clear_value" id="relationship_with_guardian" name="relationship_with_guardian" >
+                             <input type="text" class="form-control clear_value" id="id_relationship_with_guardian" name="relationship_with_guardian" >
                              <span id="spn_relationship_with_guardian" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">
                              <label for="guardian_phone_number" class="control-label">Phone number (Care giver /Guardian)</label>
-                             <input type="text" class="form-control validate_field phone_number_field clear_value" id="guardian_phone_number" name="guardian_phone_number">
+                             <input type="text" class="form-control clear_value" id="id_guardian_phone_number" name="guardian_phone_number">
                              <span id="spn_guardian_phone_number" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">
                              <label for="guardian_national_id" class="control-label">National ID (Care giver/Guardian)</label>
-                             <input type="text" class="form-control clear_value" id="guardian_national_id" name="guardian_national_id">
+                             <input type="text" class="form-control clear_value" id="id_guardian_national_id" name="guardian_national_id">
                              <span id="spn_guardian_national_id" class="clear_span"></span>
                          </div>
                     </div>

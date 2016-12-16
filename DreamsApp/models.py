@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from datetime import datetime
 from django.utils import timezone
 
+
 class MaritalStatus(models.Model):
     code = models.CharField(verbose_name='Marital Status Code', max_length=10, null=False, blank=False)
     name = models.CharField(max_length=100, null=False)
@@ -93,37 +94,43 @@ class ImplementingPartnerUser(models.Model):
 
 
 class Client(models.Model):
-    first_name = models.CharField(verbose_name='First Name', max_length=100, null=True)
-    middle_name = models.CharField(verbose_name='Middle Name', max_length=100, null=True)
-    last_name = models.CharField(verbose_name='Last Name', max_length=100, null=True)
-    date_of_birth = models.DateField(verbose_name='Date of Birth', null=True)
-    is_date_of_birth_estimated = models.NullBooleanField(verbose_name='Date of Birth Estimated', default=False, null=True)
+    first_name = models.CharField(verbose_name='First Name', max_length=100, null=True, blank=True)
+    middle_name = models.CharField(verbose_name='Middle Name', max_length=100, null=True, blank=True)
+    last_name = models.CharField(verbose_name='Last Name', max_length=100, null=True, blank=True)
+    date_of_birth = models.DateField(verbose_name='Date of Birth', null=True, blank=True)
+    is_date_of_birth_estimated = models.NullBooleanField(verbose_name='Date of Birth Estimated', default=False, blank=True)
     verification_document = models.ForeignKey(VerificationDocument, null=True, blank=True, verbose_name='Verification Document')  # New
-    verification_doc_no = models.CharField(verbose_name='Verification Doc No', max_length=50, null=True)
-    date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True)
-    age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=10, null=True)
-    marital_status = models.ForeignKey(MaritalStatus, verbose_name='Marital Status', null=True)
+    verification_document_other = models.CharField(max_length=50, verbose_name="Verification Document(Other)", blank=True, null=True)
+    verification_doc_no = models.CharField(verbose_name='Verification Doc No', max_length=50, null=True, blank=True)
+    date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True, blank=True)
+    age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=10, null=True, blank=True)
+    marital_status = models.ForeignKey(MaritalStatus, verbose_name='Marital Status', null=True, blank=True)
 
     implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True, verbose_name='Implementing Partner')  # New
 
-    phone_number = models.CharField(verbose_name='Phone Number', max_length=13, null=True)
-    dss_id_number = models.CharField(verbose_name='DSS ID Number', max_length=50, null=True)
-    county_of_residence = models.ForeignKey(County, verbose_name='County of Residence', null=True)
-    sub_county = models.ForeignKey(SubCounty, verbose_name='Sub County', null=True)
-    ward = models.ForeignKey(Ward, verbose_name='Ward', null=True)
-    informal_settlement = models.CharField(verbose_name='Informal Settlement', max_length=250, null=True)
-    village = models.CharField(verbose_name='Village', max_length=250, null=True)
-    landmark = models.CharField(verbose_name='Land Mark near Residence', max_length=250, null=True)
-    dreams_id = models.CharField(verbose_name='DREAMS ID', max_length=50, null=True)
-    guardian_name = models.CharField(verbose_name='Primary Care Giver/Guardian\' Name', max_length=250, null=True)
-    relationship_with_guardian = models.CharField(verbose_name='Relationship with Guardian', max_length=50, null=True)
-    guardian_phone_number = models.CharField(verbose_name='Phone Number(Care giver/Guardian)', max_length=13, null=True)
-    guardian_national_id = models.CharField(verbose_name='National ID (Care giver/Guardian)', max_length=10, null=True)
+    phone_number = models.CharField(verbose_name='Phone Number', max_length=13, null=True, blank=True)
+    dss_id_number = models.CharField(verbose_name='DSS ID Number', max_length=50, null=True, blank=True)
+    county_of_residence = models.ForeignKey(County, verbose_name='County of Residence', null=True, blank=True)
+    sub_county = models.ForeignKey(SubCounty, verbose_name='Sub County', null=True, blank=True)
+    ward = models.ForeignKey(Ward, verbose_name='Ward', null=True, blank=True)
+    informal_settlement = models.CharField(verbose_name='Informal Settlement', max_length=250, null=True, blank=True)
+    village = models.CharField(verbose_name='Village', max_length=250, null=True, blank=True)
+    landmark = models.CharField(verbose_name='Land Mark near Residence', max_length=250, null=True, blank=True)
+    dreams_id = models.CharField(verbose_name='DREAMS ID', max_length=50, null=True, blank=True)
+    guardian_name = models.CharField(verbose_name='Primary Care Giver/Guardian\' Name', max_length=250, null=True, blank=True)
+    relationship_with_guardian = models.CharField(verbose_name='Relationship with Guardian', max_length=50, null=True, blank=True)
+    guardian_phone_number = models.CharField(verbose_name='Phone Number(Care giver/Guardian)', max_length=13, null=True, blank=True)
+    guardian_national_id = models.CharField(verbose_name='National ID (Care giver/Guardian)', max_length=10, null=True, blank=True)
 
-    enrolled_by = models.ForeignKey(User, null=True)
+    enrolled_by = models.ForeignKey(User, null=True, blank=True)
     odk_enrollment_uuid = models.CharField(max_length=50, null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    voided = models.NullBooleanField(blank=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
@@ -245,6 +252,10 @@ class Intervention(models.Model):
     changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
     implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True,
                                              related_name='implementing_partner')
+    voided = models.NullBooleanField(blank=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='voided_by')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
     def get_name_specified(self):
         return self.name_specified if self.name_specified else ''
@@ -276,7 +287,7 @@ class Audit(models.Model):
     search_text = models.CharField(max_length=250, blank=True, null=True)
 
     def __str__(self):
-        return '{} by user id {} at {}'.format(self.action, self.user_id, self.timestamp)
+        return '{} by user id {} at {} value {}'.format(self.action, self.user_id, self.timestamp, self.search_text)
 
     class Meta(object):
         verbose_name = 'Audit'
@@ -411,11 +422,6 @@ class ClientCashTransferDetails(models.Model):
     class Meta(object):
         verbose_name = 'Cash Transfer Detail'
         verbose_name_plural = 'Cash Transfer Details'
-
-
-
-
-
 
 """ Models for Responses to questions on enrollment form"""
 
@@ -776,6 +782,10 @@ class ClientIndividualAndHouseholdData(models.Model):
     current_ct_program = models.CharField(verbose_name='Cash Transfer Programme currently enrolled in', max_length=50, null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.NullBooleanField(blank=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientEducationAndEmploymentData(models.Model):
@@ -791,43 +801,51 @@ class ClientEducationAndEmploymentData(models.Model):
     current_education_supporter_other = models.CharField(max_length=25, null=True, blank=True, verbose_name='Supporter towards current Education(other)')
     reason_not_in_school = models.ForeignKey(ReasonNotInSchool, null=True, verbose_name='Reason for not going to School', related_name='+', blank=True)
     reason_not_in_school_other = models.CharField(verbose_name='Reason for not going to school(other)', max_length=50, null=True, blank=True)
-    last_time_in_school = models.ForeignKey(PeriodResponse, null=True, verbose_name='Last time in School', related_name='+')
+    last_time_in_school = models.ForeignKey(PeriodResponse, null=True, verbose_name='Last time in School', related_name='+', blank=True)
     dropout_school_level = models.ForeignKey(SchoolLevel, related_name='+', null=True, blank=True)
     dropout_class = models.CharField(max_length=50, verbose_name='Drop out Class', null=True, blank=True)
-    life_wish = models.ForeignKey(LifeWish, verbose_name='Wish in Life', null=True, related_name='+')
+    life_wish = models.ForeignKey(LifeWish, verbose_name='Wish in Life', null=True, related_name='+', blank=True)
     life_wish_other = models.CharField(verbose_name='Wish in life(other)', max_length=50, blank=True, null=True)
-    current_income_source = models.ForeignKey(SourceOfIncome, null=True, verbose_name='Current source of Income', related_name='+')
+    current_income_source = models.ForeignKey(SourceOfIncome, null=True, verbose_name='Current source of Income', related_name='+', blank=True)
     current_income_source_other = models.CharField(verbose_name='Source of income(other)', max_length=30, null=True, blank=True)
-    has_savings = models.ForeignKey(CategoricalResponse, null=True, verbose_name='Do you have savings?', related_name='+')
+    has_savings = models.ForeignKey(CategoricalResponse, null=True, verbose_name='Do you have savings?', related_name='+', blank=True)
     banking_place = models.ForeignKey(BankingPlace, verbose_name='Where do you keep your savings?', blank=True, null=True, related_name='+')
     banking_place_other = models.CharField(max_length=20, verbose_name='Other place for savings', null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.NullBooleanField(blank=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientHIVTestingData(models.Model):
     """ Holds HIV testing information about a client"""
     client = models.ForeignKey(Client, db_index=True)
-    ever_tested_for_hiv = models.ForeignKey(CategoricalResponse, verbose_name='Ever Tested for HIV', blank=False, null=True, related_name='+')
+    ever_tested_for_hiv = models.ForeignKey(CategoricalResponse, verbose_name='Ever Tested for HIV', blank=True, null=True, related_name='+')
     period_last_tested = models.ForeignKey(PeriodResponse, verbose_name='Period last Tested', blank=True, null=True, related_name='+')
     last_test_result = models.ForeignKey(HivTestResultResponse, verbose_name='Last Test Result', blank=True, null=True, related_name='+')
     enrolled_in_hiv_care = models.ForeignKey(CategoricalResponse, verbose_name='Enrolled in HIV Care?', blank=True, null=True, related_name='+')
     care_facility_enrolled = models.CharField(max_length=50, verbose_name='Name of Facility', blank=True, null=True)
     reason_not_in_hiv_care = models.ForeignKey(ReasonNotInHIVCare, verbose_name='Reason not in Care', blank=True, null=True, related_name='+')
     reason_not_in_hiv_care_other = models.CharField(max_length=50, verbose_name='Reason not in HIV Care(Other)', blank=True, null=True)
-    knowledge_of_hiv_test_centres = models.ForeignKey(CategoricalResponse, verbose_name='Know places where people get tested for HIV?', null=True, related_name='+')
+    knowledge_of_hiv_test_centres = models.ForeignKey(CategoricalResponse, verbose_name='Know places where people get tested for HIV?', null=True, related_name='+', blank=True)
     reason_never_tested_for_hiv = models.ManyToManyField(ReasonNotTestedForHIV, verbose_name='Reason never tested for HIV', blank=True)
     reason_never_tested_for_hiv_other = models.CharField(max_length=50, verbose_name='Reason never tested for HIV(Other)', blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.NullBooleanField(blank=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientSexualActivityData(models.Model):
     """ Holds Sexual activity information about a client"""
     client = models.ForeignKey(Client, db_index=True)
-    ever_had_sex = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+')
+    ever_had_sex = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
     age_at_first_sexual_encounter = models.IntegerField(verbose_name='Age at first sexual encounter', null=True, blank=True)
-    has_sexual_partner = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
+    has_sexual_partner = models.ForeignKey(CategoricalResponse, verbose_name='Has current sexual partner', blank=True, null=True, related_name='+')
     sex_partners_in_last_12months = models.IntegerField(verbose_name='Sexual partners in the last 12 months', null=True, blank=True)
     age_of_last_partner = models.ForeignKey(AgeOfSexualPartner, null=True, blank=True, related_name='+')
     age_of_second_last_partner = models.ForeignKey(AgeOfSexualPartner, null=True, blank=True, related_name='+')
@@ -844,20 +862,24 @@ class ClientSexualActivityData(models.Model):
     received_money_gift_for_sex = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.NullBooleanField(blank=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientReproductiveHealthData(models.Model):
     """ Holds information about client's reproductive health """
     client = models.ForeignKey(Client, db_index=True)
-    has_biological_children = models.ForeignKey(CategoricalResponse,verbose_name='Do you have biological children?', blank=False, null=True, related_name='+')
+    has_biological_children = models.ForeignKey(CategoricalResponse,verbose_name='Do you have biological children?', blank=True, null=True, related_name='+')
     no_of_biological_children = models.IntegerField(blank=True, null=True, verbose_name='How many biological children do you have?')
-    currently_pregnant = models.ForeignKey(CategoricalResponse, null=True, related_name='+', verbose_name='Are you currently pregnant?')
+    currently_pregnant = models.ForeignKey(CategoricalResponse, null=True, related_name='+', verbose_name='Are you currently pregnant?', blank=True)
     current_anc_enrollment = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+', verbose_name='Are you attending ANC Clinic for this pregnancy')
     anc_facility_name = models.CharField(max_length=50, blank=True, null=True, verbose_name='Which clinic/facility are you currently seeking ANC services')
-    fp_methods_awareness = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+', verbose_name='Are you aware of any family planning methods?')
+    fp_methods_awareness = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+', verbose_name='Are you aware of any family planning methods?')
     known_fp_method = models.ManyToManyField(FamilyPlanningMethod, blank=True, related_name='+', verbose_name='Which family planning methods do you know of?')
     known_fp_method_other = models.CharField(max_length=50, null=True, blank=True, verbose_name='Family planning method(Other)')
-    currently_use_modern_fp = models.ForeignKey(CategoricalResponse, blank=False, null=True, related_name='+', verbose_name='Are you currently using any modern family planning method?')
+    currently_use_modern_fp = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+', verbose_name='Are you currently using any modern family planning method?')
     current_fp_method = models.ForeignKey(FamilyPlanningMethod, blank=True, null=True, related_name='+', verbose_name='Which family planning method are you currently using?')
     current_fp_method_other = models.CharField(max_length=50, verbose_name='Other Modern FP method used',
                                                        blank=True, null=True)
@@ -865,6 +887,10 @@ class ClientReproductiveHealthData(models.Model):
     reason_not_using_fp_other = models.CharField(max_length=50, blank=True, null=True, verbose_name="Reason not using modern family planning method(Other)")
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.NullBooleanField(blank=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientGenderBasedViolenceData(models.Model):
@@ -894,6 +920,10 @@ class ClientGenderBasedViolenceData(models.Model):
     preferred_gbv_help_provider_other = models.CharField(max_length=50, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.NullBooleanField(blank=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientDrugUseData(models.Model):
@@ -908,6 +938,10 @@ class ClientDrugUseData(models.Model):
     produced_alcohol_last_12months = models.ForeignKey(CategoricalResponse, null=True, related_name='+')
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.NullBooleanField(blank=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class ClientParticipationInDreams(models.Model):
@@ -917,6 +951,10 @@ class ClientParticipationInDreams(models.Model):
     dreams_program = models.ManyToManyField(DreamsProgramme, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
+    voided = models.NullBooleanField(blank=True, default=False)
+    reason_voided = models.CharField(blank=True, null=True, max_length=100)
+    voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_voided = models.DateTimeField(null=True, blank=True)
 
 
 class AgeBracket(models.Model):

@@ -7,12 +7,13 @@
 
     <div class="wrapper-container">
         <div class="statusBox" >
-            <div class="gen-font">
-                <h4>DREAMS Grievances List</h4>
+            <div>
+                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+                <h6>DREAMS Grievances List</h6>
             </div>
-            <div class="floatRightLinks">
+            <div class="floatRightLinks" style="margin-top: -10px;">
                 <div class="rightItem">
-                    <form id="user_search_form" class="form-inline" method="post" action="/grievances">
+                    <form class="form-inline" method="post" action="/grievances">
                         {% csrf_token %}
                           <div class="form-group has-feedback" >
                                <input id="search-term-default" type="text" name="filter-user-text" class="form-control filter-enrollment" value="{{ filter_text }}" placeholder="Enter search text" style="width: 400px;">
