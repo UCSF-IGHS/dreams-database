@@ -189,24 +189,27 @@ $(document).ready(function () {
          // check the mode... Can be new or edit
         var button = $(event.relatedTarget) // Button that triggered the modal
         var currentClientId = $('#current_client_id').val();
+
         var interventionCategoryCode = $("#dreams-profile-tab-control ul li.active a").data('intervention_category_code')
         if(currentClientId == null || interventionCategoryCode == null)
             return
-         if ((typeof $(button).data('whatever') != 'undefined' &&  $(button).data('whatever')  != null)){
-              modalMode = "new";
-             fetchRelatedInterventions(interventionCategoryCode, currentClientId)
-         }
-         else{
+        fetchRelatedInterventions(interventionCategoryCode, currentClientId)
+         if ((typeof $(button).data('whatever') != 'undefined' &&  $(button).data('whatever')  != null))
+             modalMode = "new";
+         else
              modalMode = "edit"
-         }
 
     })
 
     $('#intervention-modal').on('shown.bs.modal', function (event) {
          if(modalMode == "edit"){
+             alert('Editing!!');
+             console.log(intervention);
+             console.log(interventionTypes)
              $('#intervention_id').val(intervention.pk) // This is the intervention id
              $('#intervention-modal #intervention-type-select').val(currentInterventionType.fields.code).change();
              prePopulateInterventionModal(intervention, currentInterventionType)
+
          }
         else {
              $('#intervention-modal #intervention-type-select').val('').change();
@@ -337,6 +340,7 @@ $(document).ready(function () {
             url : "/ivgetTypes", // the endpoint
             type : "POST", // http method
             dataType: 'json',
+            async: false,
             data : {
                 csrfmiddlewaretoken : csrftoken,
                 category_code : interventionCategoryCode,   //$('#i_types').val()
@@ -521,12 +525,10 @@ $(document).ready(function () {
     function setInterventionActionHandler(iv, iv_type, intervention_category_code) {
         $('#intervention_' + iv.pk + ' .edit_intervention_click').click(function (event) {
             modalMode = 'edit'
-            $('#intervention-modal').modal('show'); // this is to show the modal
-            fetchRelatedInterventions(intervention_category_code, $('#current_client_id').val())
             currentInterventionCategoryCode_Global = intervention_category_code // this will be needed during update!
             currentInterventionType = iv_type;
             intervention = iv
-            //prePopulateInterventionModal(iv, iv_type)
+            $('#intervention-modal').modal('show'); // this is to show the modal
         })
 
         $('#intervention_' + iv.pk + ' .delete_intervention_click').click(function (event) {
