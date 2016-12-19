@@ -266,19 +266,45 @@ VALUES """
 
         return
 
-    def get_export_rows(self, ip_list_str):
+    def get_export_rows(self, ip_list_str, sub_county, ward):
         cursor = connection.cursor()
+        multiple_ip_sub_county_query = "SELECT * FROM flat_dreams_enrollment WHERE sub_county_code = %s AND  implementing_partner_id IN %s "
+        multiple_ip_ward_query = "SELECT * FROM flat_dreams_enrollment WHERE ward_id = %s AND  implementing_partner_id IN %s "
+        multiple_ip_default_query = "SELECT * FROM flat_dreams_enrollment WHERE  implementing_partner_id IN %s "
+
+        single_ip_sub_county_query = "SELECT * FROM flat_dreams_enrollment WHERE sub_county_code = %s AND implementing_partner_id = %s "
+        single_ip_ward_query = "SELECT * FROM flat_dreams_enrollment WHERE ward_id = %s AND implementing_partner_id = %s "
+        single_ip_default_query = "SELECT * FROM flat_dreams_enrollment WHERE implementing_partner_id = %s "
+
         #ip_list = (1, 2)
         try:
 
             ip_tuple_l = ip_list_str.split(",")
+            if sub_county is not None and sub_county:
+                sub_county = int(sub_county)
+
+            if ward is not None and ward:
+                ward = int(ward)
+
             if len(ip_tuple_l) > 1:
                 eval_listt = eval(ip_list_str)
                 ip_list = tuple(eval_listt)
-                cursor.execute("SELECT * FROM flat_dreams_enrollment WHERE  implementing_partner_id IN %s ", [ip_list])
+
+                if ward is not None and ward:
+                    cursor.execute(multiple_ip_ward_query, [ward, ip_list])
+                elif sub_county is not None and sub_county:
+                    cursor.execute(
+                        multiple_ip_sub_county_query, [sub_county, ip_list])
+                else:
+                    cursor.execute(multiple_ip_default_query, [ip_list])
             else:
                 ip_list = int(ip_list_str)
-                cursor.execute("SELECT * FROM flat_dreams_enrollment WHERE implementing_partner_id = %s ", [ip_list])
+                if ward is not None and ward:
+                    cursor.execute(single_ip_ward_query, [ward, ip_list])
+                elif sub_county is not None and sub_county:
+                    cursor.execute(single_ip_sub_county_query, [sub_county, ip_list])
+                else:
+                    cursor.execute(single_ip_default_query, [ip_list])
 
             print "Query was successful"
             columns = [col[0] for col in cursor.description]
@@ -300,14 +326,14 @@ VALUES """
         except InvalidFileException as e:
             traceback.format_exc()
 
-    def prepare_excel_doc(self, ip_list_str):
+    def prepare_excel_doc(self, ip_list_str, sub_county, ward):
 
         try:
 
             wb = self.load_workbook()
             refined_sheet = wb.get_sheet_by_name('dreams_enrollment_data')
             print "Starting DB Query! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            db_data = self.get_export_rows(ip_list_str)
+            db_data = self.get_export_rows(ip_list_str, sub_county, ward)
             print "Finished DB Query. Rendering Now. ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             i = 1
             for row in db_data:
