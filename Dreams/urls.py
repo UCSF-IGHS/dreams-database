@@ -68,6 +68,7 @@ urlpatterns = [
     url(r'^update-gbv', views.update_gbv_data),
     url(r'^update-drug-use', views.update_drug_use_data),
     url(r'^update-programme-participation', views.update_programme_participation_data),
+    url(r'^client/exit$', views.client_exit_status_toggle),
     #url(r'^$', views.user_login, name='login'),
     url(r'^', views.error_404, name='error_404'),
 ]

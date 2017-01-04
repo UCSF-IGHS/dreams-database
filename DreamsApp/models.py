@@ -132,6 +132,11 @@ class Client(models.Model):
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_voided = models.DateTimeField(null=True, blank=True)
 
+    exited = models.NullBooleanField(blank=True, default=False)
+    reason_exited = models.CharField(blank=True, null=True, max_length=100)
+    exited_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    date_exited = models.DateTimeField(null=True, blank=True)
+
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
         if user_id is None:
@@ -155,6 +160,26 @@ class Client(models.Model):
             return f_name + ' ' + m_name + ' ' + l_name
         except:
             return "Invalid Client Name"
+
+    def get_client_status(self):
+        status = ''
+        try:
+            if self.voided:
+                status += ' Voided'
+            if self.exited:
+                if status != '':
+                    status += ' & '
+                status += 'Exited'
+            if status != '':
+                status = status[:0] + '( ' + status[0:]
+                last_index = len(status)
+                status = status[:last_index] + ' ) ' + status[last_index:]
+            return status
+        except Exception as e:
+            return 'Invalid Status'
+
+    def get_client_status_action_text(self):
+        return 'Undo Exit' if self.exited else 'Exit Client'
 
     def get_age_at_enrollment(self):
         try:
