@@ -1628,7 +1628,7 @@ def export_page(request):
                 ips = None
 
             print "IPs", ips
-            context = {'page': 'export','page_title': 'DREAMS Data Export', 'ips': ips}
+            context = {'page': 'export','page_title': 'DREAMS Data Export', 'ips': ips, 'counties': County.objects.all()}
             return render(request, 'dataExport.html', context)
         except ImplementingPartnerUser.DoesNotExist:
             traceback.format_exc()
@@ -1642,11 +1642,15 @@ def downloadEXCEL(request):
 
     try:
         ip_list_str = request.POST.get('ips')
-        print "List: ", ip_list_str
+        sub_county = request.POST.get('sub_county')
+        ward = request.POST.get('ward')
+        # print "List: ", ip_list_str
+        # print "sub_county", sub_county
+        # print "ward: ", ward
         response = HttpResponse(content_type='application/ms-excel')
         response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
-        wb = export_doc.prepare_excel_doc(ip_list_str)
+        wb = export_doc.prepare_excel_doc(ip_list_str, sub_county, ward)
         wb.save(response)
         return response
     except Exception as e:

@@ -38,6 +38,7 @@ middle_name VARCHAR(100),
 last_name VARCHAR(100),
 date_of_birth DATE,
 verification_document_id INT(11),
+verification_document VARCHAR(50),
 verification_document_other VARCHAR(100),
 verification_doc_no VARCHAR(50),
 date_of_enrollment DATE,
@@ -53,8 +54,11 @@ guardian_phone_number VARCHAR(15),
 guardian_national_id VARCHAR(20),
 date_created DATE,
 county_of_residence_id INT(11),
+county_of_residence VARCHAR(50),
 implementing_partner_id INT(11),
+implementing_partner VARCHAR(50),
 marital_status_id INT(11),
+marital_status VARCHAR(50),
 sub_county_id INT(11),
 ward_id INT(11),
 ward_name VARCHAR(50),
@@ -63,90 +67,147 @@ sub_county_name VARCHAR(100),
 county_code INT(11),
 county_name VARCHAR(30),
 head_of_household_id INT(11),
+head_of_household VARCHAR(50),
 head_of_household_other VARCHAR(50),
 age_of_household_head INT(11),
 is_father_alive INT(11),
+father_alive VARCHAR(50),
 is_mother_alive INT(11),
+mother_alive VARCHAR(50),
 is_parent_chronically_ill INT(11),
+parent_chronically_ill VARCHAR(50),
 main_floor_material_id INT(11),
+main_floor_material VARCHAR(50),
 main_floor_material_other VARCHAR(50),
 main_roof_material_id INT(11),
+main_roof_material VARCHAR(50),
 main_roof_material_other VARCHAR(50),
 main_wall_material_id INT(11),
+main_wall_material VARCHAR(50),
 main_wall_material_other VARCHAR(50),
 source_of_drinking_water_id INT(11),
+source_of_drinking_water VARCHAR(50),
 source_of_drinking_water_other VARCHAR(50),
 no_of_adults INT(11),
 no_of_females INT(11),
 no_of_males INT(11),
 no_of_children INT(11),
 currently_in_ct_program_id INT(11),
+currently_in_ct_program VARCHAR(50),
 current_ct_program VARCHAR(50),
 ever_enrolled_in_ct_program_id INT(11),
+ever_enrolled_in_ct_program VARCHAR(50),
 ever_missed_full_day_food_in_4wks_id INT(11),
+ever_missed_full_day_food_in_4wks VARCHAR(50),
 has_disability_id INT(11),
+has_disability VARCHAR(20),
 no_of_days_missed_food_in_4wks_id INT(11),
+no_of_days_missed_food_in_4wks VARCHAR(50),
 disability_types VARCHAR(20),
 no_of_people_in_household INT(11),
 age_at_first_sexual_encounter INT(11),
 sex_partners_in_last_12months INT(11),
 age_of_last_partner_id INT(11),
+age_of_last_partner VARCHAR(50),
 age_of_second_last_partner_id INT(11),
+age_of_second_last_partner VARCHAR(50),
 age_of_third_last_partner_id INT(11),
+age_of_third_last_partner VARCHAR(50),
 ever_had_sex_id INT(11),
+ever_had_sex VARCHAR(50),
 has_sexual_partner_id INT(11),
+has_sexual_partner VARCHAR(50),
 know_last_partner_hiv_status_id INT(11),
+know_last_partner_hiv_status VARCHAR(50),
 know_second_last_partner_hiv_status_id INT(11),
+know_second_last_partner_hiv_status VARCHAR(50),
 know_third_last_partner_hiv_status_id INT(11),
+know_third_last_partner_hiv_status VARCHAR(50),
 last_partner_circumcised_id INT(11),
+last_partner_circumcised VARCHAR(50),
 received_money_gift_for_sex_id INT(11),
+received_money_gift_for_sex VARCHAR(50),
 second_last_partner_circumcised_id INT(11),
+second_last_partner_circumcised VARCHAR(50),
 third_last_partner_circumcised_id INT(11),
+third_last_partner_circumcised VARCHAR(50),
 used_condom_with_last_partner_id INT(11),
+used_condom_with_last_partner VARCHAR(50),
 used_condom_with_second_last_partner_id INT(11),
+used_condom_with_second_last_partner VARCHAR(50),
 used_condom_with_third_last_partner_id INT(11),
+used_condom_with_third_last_partner VARCHAR(50),
 no_of_biological_children INT(11),
 anc_facility_name VARCHAR(50),
 known_fp_method_other VARCHAR(50),
 current_fp_method_other VARCHAR(50),
 reason_not_using_fp_other VARCHAR(50),
 current_anc_enrollment_id INT(11),
+current_anc_enrollment VARCHAR(50),
 current_fp_method_id INT(11),
+current_fp_method VARCHAR(50),
 currently_pregnant_id INT(11),
+currently_pregnant VARCHAR(50),
 currently_use_modern_fp_id INT(11),
+currently_use_modern_fp VARCHAR(50),
 fp_methods_awareness_id INT(11),
+fp_methods_awareness VARCHAR(50),
 has_biological_children_id INT(11),
+has_biological_children VARCHAR(50),
 reason_not_using_fp_id INT(11),
+reason_not_using_fp VARCHAR(50),
 known_fp_methods VARCHAR(20),
 drug_abuse_last_12months_other VARCHAR(50),
 drug_used_last_12months_other VARCHAR(50),
 drug_abuse_last_12months_id INT(11),
+drug_abuse_last_12months VARCHAR(50),
 frequency_of_alcohol_last_12months_id INT(11),
+frequency_of_alcohol_last_12months VARCHAR(50),
 produced_alcohol_last_12months_id INT(11),
+produced_alcohol_last_12months VARCHAR(50),
 used_alcohol_last_12months_id INT(11),
+used_alcohol_last_12months VARCHAR(50),
 drugs_used_in_last_12_months VARCHAR(20),
 dreams_program_other VARCHAR(50),
 programmes_enrolled VARCHAR(20),
 gbv_help_provider_other VARCHAR(50),
 preferred_gbv_help_provider_other VARCHAR(50),
 economic_threat_ever_id INT(11),
+economic_threat_ever VARCHAR(50),
 economic_threat_last_3months_id INT(11),
+economic_threat_last_3months VARCHAR(50),
 humiliated_ever_id INT(11),
+humiliated_ever VARCHAR(50),
 humiliated_last_3months_id INT(11),
+humiliated_last_3months VARCHAR(50),
 insulted_ever_id INT(11),
+insulted_ever VARCHAR(50),
 insulted_last_3months_id INT(11),
+insulted_last_3months VARCHAR(50),
 knowledge_of_gbv_help_centres_id INT(11),
+knowledge_of_gbv_help_centres VARCHAR(50),
 physical_violence_ever_id INT(11),
+physical_violence_ever VARCHAR(50),
 physical_violence_last_3months_id INT(11),
+physical_violence_last_3months VARCHAR(50),
 physically_forced_other_sex_acts_ever_id INT(11),
+physically_forced_other_sex_acts_ever VARCHAR(50),
 physically_forced_other_sex_acts_last_3months_id INT(11),
+physically_forced_other_sex_acts_last_3months VARCHAR(50),
 physically_forced_sex_ever_id INT(11),
+physically_forced_sex_ever VARCHAR(50),
 physically_forced_sex_last_3months_id INT(11),
+physically_forced_sex_last_3months VARCHAR(50),
 seek_help_after_gbv_id INT(11),
+seek_help_after_gbv VARCHAR(50),
 threatened_for_sexual_acts_ever_id INT(11),
+threatened_for_sexual_acts_ever VARCHAR(50),
 threatened_for_sexual_acts_last_3months_id INT(11),
+threatened_for_sexual_acts_last_3months VARCHAR(50),
 threats_to_hurt_ever_id INT(11),
+threats_to_hurt_ever VARCHAR(50),
 threats_to_hurt_last_3months_id INT(11),
+threats_to_hurt_last_3months VARCHAR(50),
 providers_sought VARCHAR(20),
 preferred_providers VARCHAR(20),
 current_school_name VARCHAR(50),
@@ -159,25 +220,41 @@ life_wish_other VARCHAR(50),
 current_income_source_other VARCHAR(50),
 banking_place_other VARCHAR(50),
 banking_place_id INT(11),
+banking_place VARCHAR(50),
 current_income_source_id INT(11),
+current_income_source VARCHAR(50),
 current_school_level_id INT(11),
+current_school_level VARCHAR(50),
 current_school_type_id INT(11),
+current_school_type VARCHAR(50),
 currently_in_school_id INT(11),
+currently_in_school VARCHAR(50),
 dropout_school_level_id INT(11),
+dropout_school_level VARCHAR(50),
 has_savings_id INT(11),
+has_savings VARCHAR(50),
 last_time_in_school_id INT(11),
+last_time_in_school VARCHAR(50),
 life_wish_id INT(11),
+life_wish VARCHAR(50),
 reason_not_in_school_id INT(11),
+reason_not_in_school VARCHAR(50),
 current_edu_supporter_list VARCHAR(20),
 care_facility_enrolled VARCHAR(50),
 reason_not_in_hiv_care_other VARCHAR(50),
 reason_never_tested_for_hiv_other VARCHAR(50),
 enrolled_in_hiv_care_id INT(11),
+enrolled_in_hiv_care VARCHAR(50),
 ever_tested_for_hiv_id INT(11),
+ever_tested_for_hiv VARCHAR(100),
 knowledge_of_hiv_test_centres_id INT(11),
+knowledge_of_hiv_test_centres VARCHAR(50),
 last_test_result_id INT(11),
+last_test_result VARCHAR(50),
 period_last_tested_id INT(11),
+period_last_tested VARCHAR(50),
 reason_not_in_hiv_care_id INT(11),
+reason_not_in_hiv_care VARCHAR(50),
 reason_not_tested_for_hiv VARCHAR(20)
 );
 
@@ -197,6 +274,7 @@ ALTER TABLE odk_aggregate.DREAMS_ENROLMENT_FORM_MODULE_8_Q801 CONVERT TO CHARACT
 
 CALL sp_update_demographics_location();
 CALL sp_populate_flat_enrollment_table();
+CALL sp_initial_update_enrollment_staging_table();
 
 END;
 $$
@@ -212,6 +290,8 @@ BEGIN
 CALL sp_sync_odk_dreams_data();
 CALL sp_update_demographics_location();
 CALL sp_update_flat_enrollment_table();
+CALL sp_update_enrollment_table_derived_columns();
+
 END;
 $$
 DELIMITER ;
@@ -1004,6 +1084,1174 @@ CREATE PROCEDURE sp_update_demographics_location()
   END $$
 DELIMITER ;
 
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_initial_update_enrollment_staging_table$$
+CREATE PROCEDURE sp_initial_update_enrollment_staging_table()
+  BEGIN
+    /*Update implementing partner*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_implementingpartner
+    ) ip ON ip.code = cl.implementing_partner_id
+    SET cl.implementing_partner = ip.name
+    WHERE cl.implementing_partner is NULL;
+
+    /*Update verification document*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_verificationdocument
+    ) v ON v.code = cl.verification_document_id
+    SET cl.verification_document = v.name
+    WHERE cl.verification_document is NULL;
+
+    /*Update marital status*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_maritalstatus
+    ) m ON m.code = cl.marital_status_id
+    SET cl.marital_status = m.name
+    WHERE cl.marital_status is NULL;
+
+
+    /*Update head of household*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_householdhead
+    ) m ON m.code = cl.head_of_household_id
+    SET cl.head_of_household = m.name
+    WHERE cl.head_of_household is NULL;
+
+    /*Update parent status*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.is_father_alive
+    SET cl.father_alive = m.name
+    WHERE cl.father_alive is NULL;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.is_mother_alive
+    SET cl.mother_alive = m.name
+    WHERE cl.mother_alive is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.is_parent_chronically_ill
+    SET cl.parent_chronically_ill = m.name
+    WHERE cl.parent_chronically_ill is NULL;
+
+    /* Wall, floor, roof, drinking water */
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_floormaterial
+    ) m ON m.code = cl.main_floor_material_id
+    SET cl.main_floor_material = m.name
+    WHERE cl.main_floor_material is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_roofingmaterial
+    ) m ON m.code = cl.main_roof_material_id
+    SET cl.main_roof_material = m.name
+    WHERE cl.main_roof_material is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_wallmaterial
+    ) m ON m.code = cl.main_wall_material_id
+    SET cl.main_wall_material = m.name
+    WHERE cl.main_wall_material is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_drinkingwater
+    ) m ON m.code = cl.source_of_drinking_water_id
+    SET cl.source_of_drinking_water = m.name
+    WHERE cl.source_of_drinking_water is NULL;
+
+    /* ct enrollment, disability, hunger*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.currently_in_ct_program_id
+    SET cl.currently_in_ct_program = m.name
+    WHERE cl.currently_in_ct_program is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.ever_enrolled_in_ct_program_id
+    SET cl.ever_enrolled_in_ct_program = m.name
+    WHERE cl.ever_enrolled_in_ct_program is NULL;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.ever_missed_full_day_food_in_4wks_id
+    SET cl.ever_missed_full_day_food_in_4wks = m.name
+    WHERE cl.ever_missed_full_day_food_in_4wks is NULL;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.has_disability_id
+    SET cl.has_disability = m.name
+    WHERE cl.has_disability is NULL;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.no_of_days_missed_food_in_4wks_id
+    SET cl.no_of_days_missed_food_in_4wks = m.name
+    WHERE cl.no_of_days_missed_food_in_4wks is NULL;
+
+    /* ------------------------------------------ sexuality -------------------------------------------------*/
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_ageofsexualpartner
+    ) m ON m.code = cl.age_of_last_partner_id
+    SET cl.age_of_last_partner = m.name
+    WHERE cl.age_of_last_partner is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_ageofsexualpartner
+    ) m ON m.code = cl.age_of_second_last_partner_id
+    SET cl.age_of_second_last_partner = m.name
+    WHERE cl.age_of_second_last_partner is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_ageofsexualpartner
+    ) m ON m.code = cl.age_of_third_last_partner_id
+    SET cl.age_of_third_last_partner = m.name
+    WHERE cl.age_of_third_last_partner is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.ever_had_sex_id
+    SET cl.ever_had_sex = m.name
+    WHERE cl.ever_had_sex is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.has_sexual_partner_id
+    SET cl.has_sexual_partner = m.name
+    WHERE cl.has_sexual_partner is NULL;
+
+  /* partner hiv status*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.know_last_partner_hiv_status_id
+    SET cl.know_last_partner_hiv_status = m.name
+    WHERE cl.know_last_partner_hiv_status is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.know_second_last_partner_hiv_status_id
+    SET cl.know_second_last_partner_hiv_status = m.name
+    WHERE cl.know_second_last_partner_hiv_status is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.know_third_last_partner_hiv_status_id
+    SET cl.know_third_last_partner_hiv_status = m.name
+    WHERE cl.know_third_last_partner_hiv_status is NULL;
+
+    /* ------------partner circumcision-------------*/
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.last_partner_circumcised_id
+    SET cl.last_partner_circumcised = m.name
+    WHERE cl.last_partner_circumcised is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.second_last_partner_circumcised_id
+    SET cl.second_last_partner_circumcised = m.name
+    WHERE cl.second_last_partner_circumcised is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.third_last_partner_circumcised_id
+    SET cl.third_last_partner_circumcised = m.name
+    WHERE cl.third_last_partner_circumcised is NULL;
+
+    /*------------ condom use --------------------*/
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.used_condom_with_last_partner_id
+    SET cl.used_condom_with_last_partner = m.name
+    WHERE cl.used_condom_with_last_partner is NULL;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.used_condom_with_second_last_partner_id
+    SET cl.used_condom_with_second_last_partner = m.name
+    WHERE cl.used_condom_with_second_last_partner is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.used_condom_with_third_last_partner_id
+    SET cl.used_condom_with_third_last_partner = m.name
+    WHERE cl.used_condom_with_third_last_partner is NULL;
+
+/*--------------- Reproductive Health ---------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.current_anc_enrollment_id
+    SET cl.current_anc_enrollment = m.name
+    WHERE cl.current_anc_enrollment is NULL;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_familyplanningmethod
+    ) m ON m.code = cl.current_fp_method_id
+    SET cl.current_fp_method = m.name
+    WHERE cl.current_fp_method is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.currently_pregnant_id
+    SET cl.currently_pregnant = m.name
+    WHERE cl.currently_pregnant is NULL;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.currently_use_modern_fp_id
+    SET cl.currently_use_modern_fp = m.name
+    WHERE cl.currently_use_modern_fp is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.fp_methods_awareness_id
+    SET cl.fp_methods_awareness = m.name
+    WHERE cl.fp_methods_awareness is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.has_biological_children_id
+    SET cl.has_biological_children = m.name
+    WHERE cl.has_biological_children is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_reasonnotusingfamilyplanning
+    ) m ON m.code = cl.reason_not_using_fp_id
+    SET cl.reason_not_using_fp = m.name
+    WHERE cl.reason_not_using_fp is NULL;
+
+/*------------------------------- Drug Use ---------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.drug_abuse_last_12months_id
+    SET cl.drug_abuse_last_12months = m.name
+    WHERE cl.drug_abuse_last_12months is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.frequency_of_alcohol_last_12months_id
+    SET cl.frequency_of_alcohol_last_12months = m.name
+    WHERE cl.frequency_of_alcohol_last_12months is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.produced_alcohol_last_12months_id
+    SET cl.produced_alcohol_last_12months = m.name
+    WHERE cl.produced_alcohol_last_12months is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.used_alcohol_last_12months_id
+    SET cl.used_alcohol_last_12months = m.name
+    WHERE cl.used_alcohol_last_12months is NULL;
+
+/*------------------------------- GBV ---------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.economic_threat_ever_id
+    SET cl.economic_threat_ever = m.name
+    WHERE cl.economic_threat_ever is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.economic_threat_last_3months_id
+    SET cl.economic_threat_last_3months = m.name
+    WHERE cl.economic_threat_last_3months is NULL;
+/*-------------------------------------------------------------*/
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.humiliated_ever_id
+    SET cl.humiliated_ever = m.name
+    WHERE cl.humiliated_ever is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.humiliated_last_3months_id
+    SET cl.humiliated_last_3months = m.name
+    WHERE cl.humiliated_last_3months is NULL;
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.insulted_ever_id
+    SET cl.insulted_ever = m.name
+    WHERE cl.insulted_ever is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.insulted_last_3months_id
+    SET cl.insulted_last_3months = m.name
+    WHERE cl.insulted_last_3months is NULL;
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.knowledge_of_gbv_help_centres_id
+    SET cl.knowledge_of_gbv_help_centres = m.name
+    WHERE cl.knowledge_of_gbv_help_centres is NULL;
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.physical_violence_ever_id
+    SET cl.physical_violence_ever = m.name
+    WHERE cl.physical_violence_ever is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.physical_violence_last_3months_id
+    SET cl.physical_violence_last_3months = m.name
+    WHERE cl.physical_violence_last_3months is NULL;
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.physically_forced_other_sex_acts_ever_id
+    SET cl.physically_forced_other_sex_acts_ever = m.name
+    WHERE cl.physically_forced_other_sex_acts_ever is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.physically_forced_other_sex_acts_last_3months_id
+    SET cl.physically_forced_other_sex_acts_last_3months = m.name
+    WHERE cl.physically_forced_other_sex_acts_last_3months is NULL;
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.physically_forced_sex_ever_id
+    SET cl.physically_forced_sex_ever = m.name
+    WHERE cl.physically_forced_sex_ever is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.physically_forced_sex_last_3months_id
+    SET cl.physically_forced_sex_last_3months = m.name
+    WHERE cl.physically_forced_sex_last_3months is NULL;
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.seek_help_after_gbv_id
+    SET cl.seek_help_after_gbv = m.name
+    WHERE cl.seek_help_after_gbv_id is NULL;
+
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.threatened_for_sexual_acts_ever_id
+    SET cl.threatened_for_sexual_acts_ever = m.name
+    WHERE cl.threatened_for_sexual_acts_ever is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.threatened_for_sexual_acts_last_3months_id
+    SET cl.threatened_for_sexual_acts_last_3months = m.name
+    WHERE cl.threatened_for_sexual_acts_last_3months is NULL;
+
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.threatened_for_sexual_acts_ever_id
+    SET cl.threatened_for_sexual_acts_ever = m.name
+    WHERE cl.threatened_for_sexual_acts_ever is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.threatened_for_sexual_acts_last_3months_id
+    SET cl.threatened_for_sexual_acts_last_3months = m.name
+    WHERE cl.threatened_for_sexual_acts_last_3months is NULL;
+
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.threats_to_hurt_ever_id
+    SET cl.threats_to_hurt_ever = m.name
+    WHERE cl.threats_to_hurt_ever is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.threats_to_hurt_last_3months_id
+    SET cl.threats_to_hurt_last_3months = m.name
+    WHERE cl.threats_to_hurt_last_3months is NULL;
+
+    /*------------------------------- Education and Employment ---------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_bankingplace
+    ) m ON m.code = cl.banking_place_id
+    SET cl.banking_place = m.name
+    WHERE cl.banking_place is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_sourceofincome
+    ) m ON m.code = cl.current_income_source_id
+    SET cl.current_income_source = m.name
+    WHERE cl.current_income_source is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_schoollevel
+    ) m ON m.code = cl.current_school_level_id
+    SET cl.current_school_level = m.name
+    WHERE cl.current_school_level is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_schooltype
+    ) m ON m.code = cl.current_school_type_id
+    SET cl.current_school_type = m.name
+    WHERE cl.current_school_type is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.currently_in_school_id
+    SET cl.currently_in_school = m.name
+    WHERE cl.currently_in_school is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_schoollevel
+    ) m ON m.code = cl.dropout_school_level_id
+    SET cl.dropout_school_level = m.name
+    WHERE cl.dropout_school_level is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.has_savings_id
+    SET cl.has_savings = m.name
+    WHERE cl.has_savings is NULL;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_periodresponse
+    ) m ON m.code = cl.last_time_in_school_id
+    SET cl.last_time_in_school = m.name
+    WHERE cl.last_time_in_school is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_lifewish
+    ) m ON m.code = cl.life_wish_id
+    SET cl.life_wish = m.name
+    WHERE cl.life_wish is NULL;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_reasonnotinschool
+    ) m ON m.code = cl.reason_not_in_school_id
+    SET cl.reason_not_in_school = m.name
+    WHERE cl.reason_not_in_school is NULL;
+
+    /*------------------------------- HIV Testing ---------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.enrolled_in_hiv_care_id
+    SET cl.enrolled_in_hiv_care = m.name
+    WHERE cl.enrolled_in_hiv_care is NULL;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.ever_tested_for_hiv_id
+    SET cl.ever_tested_for_hiv = m.name
+    WHERE cl.ever_tested_for_hiv is NULL;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.knowledge_of_hiv_test_centres_id
+    SET cl.knowledge_of_hiv_test_centres = m.name
+    WHERE cl.knowledge_of_hiv_test_centres is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_hivtestresultresponse
+    ) m ON m.code = cl.last_test_result_id
+    SET cl.last_test_result = m.name
+    WHERE cl.last_test_result is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_periodresponse
+    ) m ON m.code = cl.period_last_tested_id
+    SET cl.period_last_tested = m.name
+    WHERE cl.period_last_tested is NULL;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_reasonnotinhivcare
+    ) m ON m.code = cl.reason_not_in_hiv_care_id
+    SET cl.reason_not_in_hiv_care = m.name
+    WHERE cl.reason_not_in_hiv_care is NULL;
+
+  END $$
+DELIMITER ;
+
+
+-- ---------------------------------------------- update flat table derived columns -------------------
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_update_enrollment_table_derived_columns$$
+CREATE PROCEDURE sp_update_enrollment_table_derived_columns()
+  BEGIN
+
+  DECLARE last_update_time DATETIME;
+  SELECT max(date_started) into last_update_time from dreams_dev.DreamsApp_flatenrollmenttablelog;
+    /*Update implementing partner*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_implementingpartner
+    ) ip ON ip.code = cl.implementing_partner_id
+    INNER JOIN (SELECT id from DreamsApp_client d where (d.date_created > last_update_time or d.date_changed > last_update_time)) client on client.id = cl.client_id
+    SET cl.implementing_partner = ip.name;
+
+    /*Update verification document*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_verificationdocument
+    ) v ON v.code = cl.verification_document_id
+    INNER JOIN (SELECT id from DreamsApp_client d where (d.date_created > last_update_time or d.date_changed > last_update_time)) client on client.id = cl.client_id
+    SET cl.verification_document = v.name;
+
+    /*Update marital status*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_maritalstatus
+    ) m ON m.code = cl.marital_status_id
+    INNER JOIN (SELECT id from DreamsApp_client d where (d.date_created > last_update_time or d.date_changed > last_update_time)) client on client.id = cl.client_id
+    SET cl.marital_status = m.name;
+
+-- -------------------------------------- individual and household ----------------------------------------------------
+    /*Update head of household*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_householdhead
+    ) m ON m.code = cl.head_of_household_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.head_of_household = m.name;
+
+    /*Update parent status*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.is_father_alive
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.father_alive = m.name;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.is_mother_alive
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.mother_alive = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.is_parent_chronically_ill
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.parent_chronically_ill = m.name;
+
+    /* Wall, floor, roof, drinking water */
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_floormaterial
+    ) m ON m.code = cl.main_floor_material_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.main_floor_material = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_roofingmaterial
+    ) m ON m.code = cl.main_roof_material_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.main_roof_material = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_wallmaterial
+    ) m ON m.code = cl.main_wall_material_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.main_wall_material = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_drinkingwater
+    ) m ON m.code = cl.source_of_drinking_water_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.source_of_drinking_water = m.name;
+
+    /* ct enrollment, disability, hunger*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.currently_in_ct_program_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.currently_in_ct_program = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.ever_enrolled_in_ct_program_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.ever_enrolled_in_ct_program = m.name;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.ever_missed_full_day_food_in_4wks_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.ever_missed_full_day_food_in_4wks = m.name;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.has_disability_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.has_disability = m.name;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.no_of_days_missed_food_in_4wks_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientindividualandhouseholddata i  where (i.date_created > last_update_time or i.date_changed > last_update_time)) i on i.client_id = cl.client_id
+    SET cl.no_of_days_missed_food_in_4wks = m.name;
+
+    /* ------------------------------------------ sexuality -------------------------------------------------*/
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_ageofsexualpartner
+    ) m ON m.code = cl.age_of_last_partner_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.age_of_last_partner = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_ageofsexualpartner
+    ) m ON m.code = cl.age_of_second_last_partner_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.age_of_second_last_partner = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_ageofsexualpartner
+    ) m ON m.code = cl.age_of_third_last_partner_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.age_of_third_last_partner = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.ever_had_sex_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.ever_had_sex = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.has_sexual_partner_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.has_sexual_partner = m.name;
+
+  /* partner hiv status*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.know_last_partner_hiv_status_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.know_last_partner_hiv_status = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.know_second_last_partner_hiv_status_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.know_second_last_partner_hiv_status = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.know_third_last_partner_hiv_status_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.know_third_last_partner_hiv_status = m.name;
+
+    /* ------------partner circumcision-------------*/
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.last_partner_circumcised_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.last_partner_circumcised = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.second_last_partner_circumcised_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.second_last_partner_circumcised = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.third_last_partner_circumcised_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.third_last_partner_circumcised = m.name;
+
+    /*------------ condom use --------------------*/
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.used_condom_with_last_partner_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.used_condom_with_last_partner = m.name;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.used_condom_with_second_last_partner_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.used_condom_with_second_last_partner = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.used_condom_with_third_last_partner_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientsexualactivitydata s   where (s.date_created > last_update_time or s.date_changed > last_update_time)) s on s.client_id = cl.client_id
+    SET cl.used_condom_with_third_last_partner = m.name;
+
+/*--------------- Reproductive Health ---------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.current_anc_enrollment_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientreproductivehealthdata rh  where (rh.date_created > last_update_time or rh.date_changed > last_update_time)) rh on rh.client_id = cl.client_id
+    SET cl.current_anc_enrollment = m.name;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_familyplanningmethod
+    ) m ON m.code = cl.current_fp_method_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientreproductivehealthdata rh  where (rh.date_created > last_update_time or rh.date_changed > last_update_time)) rh on rh.client_id = cl.client_id
+    SET cl.current_fp_method = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.currently_pregnant_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientreproductivehealthdata rh  where (rh.date_created > last_update_time or rh.date_changed > last_update_time)) rh on rh.client_id = cl.client_id
+    SET cl.currently_pregnant = m.name;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.currently_use_modern_fp_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientreproductivehealthdata rh  where (rh.date_created > last_update_time or rh.date_changed > last_update_time)) rh on rh.client_id = cl.client_id
+    SET cl.currently_use_modern_fp = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.fp_methods_awareness_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientreproductivehealthdata rh  where (rh.date_created > last_update_time or rh.date_changed > last_update_time)) rh on rh.client_id = cl.client_id
+    SET cl.fp_methods_awareness = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.has_biological_children_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientreproductivehealthdata rh  where (rh.date_created > last_update_time or rh.date_changed > last_update_time)) rh on rh.client_id = cl.client_id
+    SET cl.has_biological_children = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_reasonnotusingfamilyplanning
+    ) m ON m.code = cl.reason_not_using_fp_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientreproductivehealthdata rh  where (rh.date_created > last_update_time or rh.date_changed > last_update_time)) rh on rh.client_id = cl.client_id
+    SET cl.reason_not_using_fp = m.name;
+
+/*------------------------------- Drug Use ---------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.drug_abuse_last_12months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientdrugusedata dr  where (dr.date_created > last_update_time or dr.date_changed > last_update_time)) dr on dr.client_id = cl.client_id
+    SET cl.drug_abuse_last_12months = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.frequency_of_alcohol_last_12months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientdrugusedata dr  where (dr.date_created > last_update_time or dr.date_changed > last_update_time)) dr on dr.client_id = cl.client_id
+    SET cl.frequency_of_alcohol_last_12months = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.produced_alcohol_last_12months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientdrugusedata dr  where (dr.date_created > last_update_time or dr.date_changed > last_update_time)) dr on dr.client_id = cl.client_id
+    SET cl.produced_alcohol_last_12months = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.used_alcohol_last_12months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientdrugusedata dr  where (dr.date_created > last_update_time or dr.date_changed > last_update_time)) dr on dr.client_id = cl.client_id
+    SET cl.used_alcohol_last_12months = m.name;
+
+/*------------------------------- GBV ---------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.economic_threat_ever_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.economic_threat_ever = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.economic_threat_last_3months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.economic_threat_last_3months = m.name;
+/*-------------------------------------------------------------*/
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.humiliated_ever_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.humiliated_ever = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.humiliated_last_3months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.humiliated_last_3months = m.name;
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.insulted_ever_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.insulted_ever = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.insulted_last_3months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.insulted_last_3months = m.name;
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.knowledge_of_gbv_help_centres_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.knowledge_of_gbv_help_centres = m.name;
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.physical_violence_ever_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.physical_violence_ever = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.physical_violence_last_3months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.physical_violence_last_3months = m.name;
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.physically_forced_other_sex_acts_ever_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.physically_forced_other_sex_acts_ever = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.physically_forced_other_sex_acts_last_3months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.physically_forced_other_sex_acts_last_3months = m.name;
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.physically_forced_sex_ever_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.physically_forced_sex_ever = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.physically_forced_sex_last_3months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.physically_forced_sex_last_3months = m.name;
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.seek_help_after_gbv_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.seek_help_after_gbv = m.name;
+
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.threatened_for_sexual_acts_ever_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.threatened_for_sexual_acts_ever = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.threatened_for_sexual_acts_last_3months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.threatened_for_sexual_acts_last_3months = m.name;
+
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.threatened_for_sexual_acts_ever_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.threatened_for_sexual_acts_ever = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.threatened_for_sexual_acts_last_3months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.threatened_for_sexual_acts_last_3months = m.name;
+
+/*-------------------------------------------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.threats_to_hurt_ever_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.threats_to_hurt_ever = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_frequencyresponse
+    ) m ON m.code = cl.threats_to_hurt_last_3months_id
+    INNER JOIN (SELECT client_id from DreamsApp_clientgenderbasedviolencedata gbv  where (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)) gbv on gbv.client_id = cl.client_id
+    SET cl.threats_to_hurt_last_3months = m.name;
+
+    /*------------------------------- Education and Employment ---------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_bankingplace
+    ) m ON m.code = cl.banking_place_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienteducationandemploymentdata edu  where (edu.date_created > last_update_time or edu.date_changed > last_update_time)) edu on edu.client_id = cl.client_id
+    SET cl.banking_place = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_sourceofincome
+    ) m ON m.code = cl.current_income_source_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienteducationandemploymentdata edu  where (edu.date_created > last_update_time or edu.date_changed > last_update_time)) edu on edu.client_id = cl.client_id
+    SET cl.current_income_source = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_schoollevel
+    ) m ON m.code = cl.current_school_level_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienteducationandemploymentdata edu  where (edu.date_created > last_update_time or edu.date_changed > last_update_time)) edu on edu.client_id = cl.client_id
+    SET cl.current_school_level = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_schooltype
+    ) m ON m.code = cl.current_school_type_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienteducationandemploymentdata edu  where (edu.date_created > last_update_time or edu.date_changed > last_update_time)) edu on edu.client_id = cl.client_id
+    SET cl.current_school_type = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.currently_in_school_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienteducationandemploymentdata edu  where (edu.date_created > last_update_time or edu.date_changed > last_update_time)) edu on edu.client_id = cl.client_id
+    SET cl.currently_in_school = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_schoollevel
+    ) m ON m.code = cl.dropout_school_level_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienteducationandemploymentdata edu  where (edu.date_created > last_update_time or edu.date_changed > last_update_time)) edu on edu.client_id = cl.client_id
+    SET cl.dropout_school_level = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.has_savings_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienteducationandemploymentdata edu  where (edu.date_created > last_update_time or edu.date_changed > last_update_time)) edu on edu.client_id = cl.client_id
+    SET cl.has_savings = m.name;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_periodresponse
+    ) m ON m.code = cl.last_time_in_school_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienteducationandemploymentdata edu  where (edu.date_created > last_update_time or edu.date_changed > last_update_time)) edu on edu.client_id = cl.client_id
+    SET cl.last_time_in_school = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_lifewish
+    ) m ON m.code = cl.life_wish_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienteducationandemploymentdata edu  where (edu.date_created > last_update_time or edu.date_changed > last_update_time)) edu on edu.client_id = cl.client_id
+    SET cl.life_wish = m.name;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_reasonnotinschool
+    ) m ON m.code = cl.reason_not_in_school_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienteducationandemploymentdata edu  where (edu.date_created > last_update_time or edu.date_changed > last_update_time)) edu on edu.client_id = cl.client_id
+    SET cl.reason_not_in_school = m.name;
+
+    /*------------------------------- HIV Testing ---------------------------*/
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.enrolled_in_hiv_care_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienthivtestingdata hiv  where (hiv.date_created > last_update_time or hiv.date_changed > last_update_time)) hiv on hiv.client_id = cl.client_id
+    SET cl.enrolled_in_hiv_care = m.name;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.ever_tested_for_hiv_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienthivtestingdata hiv  where (hiv.date_created > last_update_time or hiv.date_changed > last_update_time)) hiv on hiv.client_id = cl.client_id
+    SET cl.ever_tested_for_hiv = m.name;
+
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_categoricalresponse
+    ) m ON m.code = cl.knowledge_of_hiv_test_centres_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienthivtestingdata hiv  where (hiv.date_created > last_update_time or hiv.date_changed > last_update_time)) hiv on hiv.client_id = cl.client_id
+    SET cl.knowledge_of_hiv_test_centres = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_hivtestresultresponse
+    ) m ON m.code = cl.last_test_result_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienthivtestingdata hiv  where (hiv.date_created > last_update_time or hiv.date_changed > last_update_time)) hiv on hiv.client_id = cl.client_id
+    SET cl.last_test_result = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_periodresponse
+    ) m ON m.code = cl.period_last_tested_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienthivtestingdata hiv  where (hiv.date_created > last_update_time or hiv.date_changed > last_update_time)) hiv on hiv.client_id = cl.client_id
+    SET cl.period_last_tested = m.name;
+
+    UPDATE dreams_dev.flat_dreams_enrollment cl
+    INNER JOIN (
+      select code, name from DreamsApp_reasonnotinhivcare
+    ) m ON m.code = cl.reason_not_in_hiv_care_id
+    INNER JOIN (SELECT client_id from DreamsApp_clienthivtestingdata hiv  where (hiv.date_created > last_update_time or hiv.date_changed > last_update_time)) hiv on hiv.client_id = cl.client_id
+    SET cl.reason_not_in_hiv_care = m.name;
+
+
+  END $$
+DELIMITER ;
 
 -- ------------------------------------- insert into flat table ---------
 
@@ -1333,7 +2581,7 @@ BEGIN
 
 DECLARE record_id INT(11);
 DECLARE last_update_time DATETIME;
-SELECT max(date_completed) into last_update_time from dreams_dev.DreamsApp_flatenrollmenttablelog;
+SELECT max(date_started) into last_update_time from dreams_dev.DreamsApp_flatenrollmenttablelog;
 INSERT INTO dreams_dev.DreamsApp_flatenrollmenttablelog(date_started, activity) VALUES(NOW(), 'Table Updates');
 SET record_id = LAST_INSERT_ID();
 
