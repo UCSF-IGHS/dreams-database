@@ -65,13 +65,17 @@
              var i_frame = document.getElementById('download_excel');
              var csrftoken = getCookie('csrftoken');
              var ips = $('#i_p').val();
+             var sub_county = $('#id_sub_county').val();
+             var ward = $('#id_ward').val();
             $.ajax({
                 url : "/download-excel/", // the endpoint
                 type : "POST", // http method
                 dataType: 'json',
                 data : {
                     csrfmiddlewaretoken : csrftoken,
-                    ips : ips
+                    ips : ips,
+                    sub_county: sub_county,
+                    ward: ward
                 },
                 success : function(data) {
                     alert(data);
@@ -127,6 +131,40 @@
                         {% endfor %}
                     </select>
                 </div>
+
+
+            <div class="form-group">
+                            <label for="county_of_residence">County</label>
+                            <select id="id_county_of_residence" name="county_of_residence" class="form-control clear_value">
+                                <option value="">Select County</option>
+                                {% for county in counties %}
+                                    <option data-county_of_residence_id="{{ county.id }}" value="{{ county.id }}">{{ county.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                         <div class="form-group">
+                            <label for="sub_county">Sub-County</label>
+                            <select id="id_sub_county" name="sub_county" class="form-control clear_value" >
+                                <option value="">Select Sub-County</option>
+                                {% for sub_county in sub_counties %}
+                                <option value="{{ sub_county.id }}" data-sub_county_id="{{ sub_county.id }}" data-county_id="{{ sub_county.county.id }}">{{ sub_county.name }}</option>
+                                {% endfor %}
+                            </select>
+                         </div>
+
+                         <div class="form-group">
+                            <label for="ward">Ward</label>
+                            <select id="id_ward" name="ward" class="form-control clear_value" >
+                                <option value="">Select Ward</option>
+                                {% for ward in wards %}
+                                <option value="{{ ward.code }}">{{ ward.name }}</option>
+                                {% endfor %}
+
+                            </select>
+                         </div>
+
+
                 <div class="form-group">
                     <input class="btn btn-sm btn-primary" type="button" id="btn_download_enrollment_excel" value="Download EXCEL">
                 </div>
