@@ -44,7 +44,8 @@
                           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
                           {% if perms.DreamsApp.can_export_raw_data %}
                               <ul class="dropdown-menu">
-                                  <li><a href="/export-page" class="text-danger">Raw Export</a></li>
+                                  <li><a href="/export-page" class="text-danger">Raw Enrollment Export</a></li>
+                                  <li><a href="/intervention-export-page" class="text-danger">Raw Interventions Export</a></li>
                               </ul>
                           {% endif %}
                         </li>
