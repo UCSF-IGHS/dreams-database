@@ -979,8 +979,93 @@ $(document).ready(function () {
         $('#enrollment-modal').modal('toggle');
     })
 
+    $('#county_filter').change(function (event) {
+        getSubCountiesFilter(false, null, null, null);
+
+    })
+
+    function getSubCountiesFilter(setSelected, c_code, sub_county_id, ward_id) {
+        var county_id = setSelected == true ? c_code : $('#county_filter').val();
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url: "/getSubCounties", // the endpoint
+            type: "GET", // http method
+            dataType: 'json',
+            data: {
+                county_id: county_id,
+            },
+            success: function (data) {
+                var sub_counties = $.parseJSON(data.sub_counties);
+                $("#sub_county_filter option").remove();
+                $("#sub_county_filter").append("<option value=''>Select Sub-County</option>");
+                $.each(sub_counties, function (index, field) {
+                    $("#sub_county_filter").append("<option data-sub_county_id='" + field.pk + "' value='" + field.pk + "'>" + field.fields.name + "</option>");
+                })
+
+                // setting sub-county when necessary
+                if (setSelected) {    // set selected sub county
+                    $('#sub_county_filter option').each(function () {
+                        if (sub_county_id != null && $(this).data('sub_county_id') == sub_county_id) {
+                            $(this).prop("selected", true);
+                            // Load wards since a subcounty has been selected
+                            getWardsFilter(true, $(this).val(), ward_id)
+                        }
+                    });
+                }
+            },
+
+            // handle a non-successful response
+            error: function (xhr, errmsg, err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    }
+
+    $('#sub_county_filter').change(function (event) {
+        getWardsFilter(false, null, null);
+    })
+
+    function getWardsFilter(setSelected, sc_id, ward_id) {
+        var sc_id = setSelected ? sc_id : $('#sub_county_filter').val();
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : "/getWards", // the endpoint
+            type : "GET", // http method
+            dataType: 'json',
+            data : {
+                sub_county_id : sc_id,
+            },
+            success : function(data) {
+                var wards = $.parseJSON(data.wards);
+                $("#ward_filter option").remove();
+                $("#ward_filter").append("<option value=''>Select Ward</option>");
+                $.each(wards, function (index, field) {
+                    $("#ward_filter").append("<option data-ward_id='" + field.pk + "' value='" + field.pk + "'>" + field.fields.name + "</option>");
+                })
+
+                if(setSelected){
+                    $('#ward_filter option').each(function() {
+                        if(ward_id != null && $(this).data('ward_id') ==  ward_id ) {
+                            $(this).prop("selected", true);
+                        }
+                    });
+                }
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    }
+
     $('#id_county_of_residence').change(function (event) {
         getSubCounties(false, null, null, null);
+
     })
 
     function getSubCounties(setSelected, c_code, sub_county_id, ward_id) {
@@ -1022,6 +1107,10 @@ $(document).ready(function () {
         });
     }
 
+    $('#id_sub_county').change(function (event) {
+        getWards(false, null, null);
+    })
+
     function getWards(setSelected, sc_id, ward_id) {
         var sc_id = setSelected ? sc_id : $('#id_sub_county').val();
         var csrftoken = getCookie('csrftoken');
@@ -1057,10 +1146,6 @@ $(document).ready(function () {
             }
         });
     }
-    
-    $('#id_sub_county').change(function (event) {
-        getWards(false, null, null);
-    })
 
     /*
     $('#filter-log-date').change(function (event) {
@@ -2471,7 +2556,6 @@ $(document).ready(function () {
 
     });
     
-    
     /* Drug Use validation
 
      */
@@ -2633,7 +2717,7 @@ $(document).ready(function () {
         if(reasonForExit == '' || dateOfExit == '')
             return
 
-        client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
+        var client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
         if (typeof client_id == undefined || isNaN(client_id) || client_id == ''){
             return;
         }
@@ -2677,6 +2761,20 @@ $(document).ready(function () {
 
 
     })
+
+    $('#collapseOne').on('shown.bs.collapse', function () {
+        $('#search-expand-collapse-glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus')
+        $('#advanced_filter_text_span').html('Hide Advanced Filters')
+        // Set advanced search
+        $('#is_advanced_search').val('True')
+    })
+    $('#collapseOne').on('hidden.bs.collapse', function () {
+        $('#search-expand-collapse-glyphicon').removeClass('glyphicon-minus').addClass('glyphicon-plus')
+        $('#advanced_filter_text_span').html('Show Advanced Filters')
+        // Handle reset of advanced filters
+        $('#is_advanced_search').val('False')
+    })
+
 });
 
 
