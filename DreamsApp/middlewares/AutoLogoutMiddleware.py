@@ -18,7 +18,6 @@ class SessionExpiredMiddleware:
             if not request.is_ajax():
                 return redirect('login')
             else:
-                pass # this is an ajax request with a need to login
                 response_data = {
                     'status': 'fail',
                     'message': "Your session has expired. You need to login to continue",
