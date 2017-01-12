@@ -478,7 +478,6 @@ html, body{
 
 }
 
-
 .enrolment-input-question label{
     /*font-size: 12px;
     font-weight: bold;*/
@@ -506,4 +505,18 @@ html, body{
     background: #FFFFFE;
     color: #5e5e5e;
     border-color: #adadad;
+}
+
+.custom .panel, .panel-group .panel-heading+.panel-collapse>.panel-body{
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+}
+
+.faded-text{
+    opacity: .6;
+}
+
+.text-centered-vertical{
+    text-align: match-parent;
 }

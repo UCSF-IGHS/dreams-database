@@ -5,6 +5,7 @@
     {% include 'includes/enrolment_new.html' %}
     {% include 'includes/confirn_modal.html' %}
     {% include 'includes/error_modal.html' %}
+    {% include 'includes/advanced_search_modal.html' %}
     <div style="min-height: 40em;">
         <div class="statusBox">
             <div>
@@ -13,19 +14,100 @@
             </div>
             <div class="floatRightLinks">
                 <div class="rightItem">
-                    <form id="clients_search_form" class="form-inline" action="/clients" method="post">
+                    <form id="clients_search_form" class="" action="/clients" method="post">
                         {% csrf_token %}
-                        <div class="form-group has-feedback">
+                        <!-- Hidden fields -->
+                        <input class="hidden" name="is_advanced_search" id="is_advanced_search" value="{% if is_advanced_search == 'False' %}False{% else %}True{% endif %}">
+
+                        <div class="form-group form-inline has-feedback">
                             <input id="search-client" type="text" name="search_client_term"
                                    class="form-control filter-enrollment" value="{{ search_client_term }}"
                                    placeholder="Enter DREAMS ID or Client's Full Name" style="width: 400px;">
                             <button type="submit" class="btn btn-primary btn-sm" style="margin-top: 2px;"><span
                                     class="glyphicon glyphicon-search"></span> Search
                             </button>
-                            <!--<span id="client_search_errors" class=" text-danger"></span>-->
+                        </div>
+                        <!--
+                        <div class="form-group">
+                            <span id="advanced_filter_text_span" role="button" data-toggle="modal" data-target="#advanced-search-modal">Advanced Filters</span>
+                        </div>
+                        -->
+                        <span id="search-expand-collapse-glyphicon" class="has-feedback glyphicon glyphicon-plus" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne"></span>
+                        <span id="advanced_filter_text_span" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne" style="font-weight: bold;">Show Advanced Filters</span>
+                        <div class="custom">
+                            <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true" >
+                                <div class="panel">
+                                    <div id="collapseOne" class="panel-collapse {% if is_advanced_search == 'False' %}collapse{% endif %}" role="tabpanel" aria-labelledby="headingOne">
+                                      <div class="panel-body">
+                                          <div class="form-group form-inline ">
+                                              <label for="basic-url" class="col-sm-2" style="margin-top: 8px;text-align: right;"> Enrollment Date From:</label>
+                                              <input type="text" class="form-control input-sm col-sm-4 clear_value" name="doe_start_filter" id="doe_start_filter" value="{{ start_date_filter }}" placeholder="Date" style="cursor: pointer;">
+                                                 <script>
+                                                    $(function() {
+                                                      $( "#doe_start_filter").datepicker({
+                                                          maxDate: '0y 0m 0d',
+                                                          minDate:  (new Date(2015, 9 , 1)),
+                                                          dateFormat: 'yy-mm-dd',
+                                                          changeMonth: true,
+                                                          changeYear: true
+                                                      });
+                                                    });
+                                                </script>
+                                              <label for="basic-url" class="col-sm-1" style="margin-top: 8px;text-align: center;">To</label>
+                                              <input type="text" class="form-control input-sm col-sm-4 clear_value" name="doe_end_filter" id="doe_end_filter" value="{{ end_date_filter }}" placeholder="Date" style="cursor: pointer;">
+                                                 <script>
+                                                    $(function() {
+                                                      $( "#doe_end_filter").datepicker({
+                                                          maxDate: '0y 0m 0d',
+                                                          minDate:  (new Date(2015, 9 , 1)),
+                                                          dateFormat: 'yy-mm-dd',
+                                                          changeMonth: true,
+                                                          changeYear: true
+                                                      });
+                                                    });
+                                                </script>
+                                          </div><br><br>
+                                          <div class="form-group form-inline">
+                                              <label for="county_filter" class="col-sm-2" style="margin-top: 8px;text-align: right;"> County:</label>
+                                              <select id="county_filter" name="county" class="form-control clear_value id_county_of_residence">
+                                                    <option value="">Select County</option>
+                                                    {% for county in counties %}
+                                                        <option data-county_of_residence_id="{{ county.id }}" value="{{ county.id }}" {% if county.id|stringformat:"s" == county_filter %}selected="selected"{% endif %}>{{ county.name }}</option>
+                                                    {% endfor %}
+                                              </select>
+                                          </div>
+                                          <div class="form-group form-inline">
+                                              <label for="sub_county_filter" class="col-sm-2" style="margin-top: 8px;text-align: right;"> Sub county:</label>
+                                              <select id="sub_county_filter" name="sub_county" class="form-control clear_value" >
+                                                    <option value="">Select Sub-County</option>
+                                                    {% for sub_county in sub_counties %}
+                                                    <option value="{{ sub_county.id }}" data-sub_county_id="{{ sub_county.id }}" {% if sub_county.id|stringformat:"s" == sub_county_filter %}selected="selected"{% endif %}>{{ sub_county.name }}</option>
+                                                    {% endfor %}
+                                              </select>
+                                          </div>
+                                          <div class="form-group form-inline">
+                                              <label for="ward_filter" class="col-sm-2" style="margin-top: 8px;text-align: right;" > Ward:</label>
+                                              <select id="ward_filter" name="ward" class="form-control clear_value" >
+                                                    <option value="">Select Ward</option>
+                                                    {% for ward in wards %}
+                                                    <option value="{{ ward.id }}" {% if ward.id|stringformat:"s" == ward_filter %}selected="selected"{% endif %}>{{ ward.name }}</option>
+                                                    {% endfor %}
+
+                                              </select>
+                                          </div>
+                                        <div class="form-group form-inline">
+                                            <label for="ward_filter" class="col-sm-2" style="margin-top: 8px;text-align: right;"> </label>
+                                            <button type="submit" class=" form-control btn btn-primary btn-sm" style="margin-top: 2px;"><span
+                                                    class="glyphicon glyphicon-search"></span> Advanced Search
+                                            </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </form>
-                    <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for clients by entering DREAMS ID or the Client's Full Name in the input field above.</span>
+
                 </div>
             </div>
         </div>
@@ -99,5 +181,22 @@
         </div>
 
         <br/><br/><br/><br/><br/><br/><br/><br/>
+        {% if page == 'clients' %}
+            <script type="text/javascript">
+                if(!$('#collapseOne').hasClass('collapse')){
+                    // Not collapsed
+                    $('#search-expand-collapse-glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus')
+                    $('#advanced_filter_text_span').html('Hide Advanced Filters')
+                    // Set advanced search
+                    $('#is_advanced_search').val('True')
+                }
+                else{
+                   $('#search-expand-collapse-glyphicon').removeClass('glyphicon-minus').addClass('glyphicon-plus')
+                    $('#advanced_filter_text_span').html('Show Advanced Filters')
+                    // Handle reset of advanced filters
+                    $('#is_advanced_search').val('False')
+                }
+            </script>
+        {% endif %}
     </div>
 {% endblock %}
