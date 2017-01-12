@@ -337,9 +337,10 @@ def save_client(request):
                             cursor.execute(
                                 """
                                 SELECT (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1)
-                                from DreamsApp_client WHERE dreams_id is not null
-                                AND DreamsApp_client.implementing_partner_id=%s group by implementing_partner_id;""",
-                                (ip_code,))
+                                from DreamsApp_client WHERE dreams_id is not null and ward_id is not null
+                                AND DreamsApp_client.implementing_partner_id=%s
+                                AND DreamsApp_client.ward_id=%s group by implementing_partner_id, ward_id;""",
+                                (ip_code, client.ward.id))
                             next_serial = cursor.fetchone()[0]
                             client.dreams_id = str(ip_code) + '/' + str(client.ward.code if client.ward != None else '') \
                                                + '/' + str(next_serial)
@@ -1638,19 +1639,62 @@ def export_page(request):
         raise PermissionDenied
 
 
+def intervention_export_page(request):
+    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+            'DreamsApp.can_export_raw_data'):
+
+        try:
+
+            if request.user.is_superuser or request.user.has_perm('auth.can_view_cross_ip'):
+                ips = ImplementingPartner.objects.all()
+            elif request.user.implementingpartneruser is not None:
+                ips = ImplementingPartner.objects.filter(
+                    id=request.user.implementingpartneruser.implementing_partner.id)
+
+            else:
+                ips = None
+
+            print "IPs", ips
+            context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
+                       'counties': County.objects.all()}
+            return render(request, 'interventionDataExport.html', context)
+        except ImplementingPartnerUser.DoesNotExist:
+            traceback.format_exc()
+        except ImplementingPartner.DoesNotExist:
+            traceback.format_exc()
+    else:
+        raise PermissionDenied
+
+
 def downloadEXCEL(request):
 
     try:
-        ip_list_str = request.POST.get('ips')
+        ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
-        # print "List: ", ip_list_str
-        # print "sub_county", sub_county
-        # print "ward: ", ward
+        county = request.POST.get('county_of_residence')
         response = HttpResponse(content_type='application/ms-excel')
         response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
         wb = export_doc.prepare_excel_doc(ip_list_str, sub_county, ward)
+        wb.save(response)
+        return response
+    except Exception as e:
+        traceback.format_exc()
+        return
+
+
+def downloadRawInterventionEXCEL(request):
+
+    try:
+        ip_list_str = request.POST.getlist('ips')
+        sub_county = request.POST.get('sub_county')
+        ward = request.POST.get('ward')
+        county = request.POST.get('county_of_residence')
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=dreams_interventions.xlsx'
+        export_doc = DreamsEnrollmentExcelTemplateRenderer()
+        wb = export_doc.get_intervention_excel_doc(ip_list_str, sub_county, ward)
         wb.save(response)
         return response
     except Exception as e:

@@ -388,7 +388,7 @@ BEGIN
 	DECLARE new_serial INT(11);
 	SELECT
   (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1) INTO new_serial
-from DreamsApp_client WHERE dreams_id is not null AND DreamsApp_client.implementing_partner_id=implementing_partner_id group by implementing_partner_id;
+from DreamsApp_client WHERE dreams_id is not null AND ward_id is not null AND DreamsApp_client.implementing_partner_id=implementing_partner_id and DreamsApp_client.ward_id=ward group by implementing_partner_id, ward_id;
 
   IF new_serial is NULL THEN
     SET new_serial = 1;
@@ -440,7 +440,7 @@ CREATE PROCEDURE sp_demographic_data(IN recordUUID VARCHAR(100))
       d.DEMOGRAPHIC_MARITAL as marital_status,
       d.DEMOGRAPHIC_PHONENO as client_phone_no,
       d.DEMOGRAPHIC_DSSNO as dss_no,
-      COALESCE(d.DEMOGRAPHIC_DREAMSID, nextDreamsSerial(d.IPNAME, d.DEMOGRAPHIC_WARD)) as Dreams_id,
+      nextDreamsSerial(d.IPNAME, d.DEMOGRAPHIC_WARD) as Dreams_id,
       d.DEMOGRAPHIC_CAREGIVER AS caregiver_name,
       d.DEMOGRAPHIC_RELATIONSHIP as caregiver_relationship,
       d.DEMOGRAPHIC_PHONENUMBER as caregiver_phone_no,
@@ -3073,7 +3073,161 @@ UPDATE dreams_production.DreamsApp_flatenrollmenttablelog SET date_completed = N
 END$$
 DELIMITER ;
 
+-- ------------------------ procedures for cleaning dreams ids --------------------------------------
 
+DELIMITER $$
+DROP FUNCTION IF EXISTS cleanDreamsSerial$$
+CREATE FUNCTION cleanDreamsSerial(implementing_partner_id INT, ward INT) RETURNS VARCHAR(200)
+DETERMINISTIC
+BEGIN
+DECLARE new_serial INT(11);
+SELECT
+  (max(CONVERT(SUBSTRING_INDEX(clean.dreams_id, '/', -1), UNSIGNED INTEGER )) + 1) INTO new_serial
+from stag_clean_dreams_id clean
+WHERE clean.implementing_partner_id=implementing_partner_id and clean.ward_id=ward and clean.dreams_id  is not null  group by implementing_partner_id, ward_id;
+
+IF new_serial is NULL THEN
+SET new_serial = 1;
+END IF;
+return CONCAT(implementing_partner_id, '/', ward, '/',new_serial);
+END$$
+DELIMITER ;
+
+
+-- -------------------------------- creates a temporary table to hold clean dreams ID
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_dreams_id_staging_tables$$
+CREATE PROCEDURE sp_dreams_id_staging_tables()
+BEGIN
+drop table if EXISTS stag_clean_dreams_id;
+
+  DROP TABLE IF EXISTS stag_clean_dreams_id;
+CREATE TABLE `stag_clean_dreams_id` (
+  `client_id` int(11)  ,
+  `dreams_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
+  `implementing_partner_id` int(11) DEFAULT NULL,
+  `ward_id` int(11) DEFAULT NULL,
+  `err` varchar(50) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
+  INDEX (client_id),
+  INDEX (dreams_id),
+  INDEX(implementing_partner_id),
+  INDEX(ward_id),
+  INDEX (implementing_partner_id, ward_id)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+insert into stag_clean_dreams_id (client_id, dreams_id, implementing_partner_id, ward_id, err)
+  SELECT c.id, c.dreams_id, c.implementing_partner_id, c.ward_id, x.dreams_id as err
+  FROM dreams_production.DreamsApp_client c
+  left JOIN (
+SELECT
+  id,
+  implementing_partner_id,
+  dreams_id,
+  dreams_id as assigned_dreams_id,
+  county_of_residence_id,
+  sub_county_id,
+  ward_id,
+  ROUND (
+        (
+            LENGTH(dreams_id)
+            - LENGTH( REPLACE ( dreams_id, "/", "") )
+        ) / LENGTH("/")
+    ) AS slash_count ,
+  SUBSTRING_INDEX(dreams_id, '/', 1)  AS IP_CODE,
+  SUBSTRING_INDEX(SUBSTRING_INDEX(dreams_id, '/', 2), '/', -1)   AS WARD_CODE,
+  SUBSTRING_INDEX(dreams_id, '/', -1) AS dreams_serial
+FROM DreamsApp_client
+-- GROUP BY dreams_id
+HAVING ward_id is not null and DreamsApp_client.implementing_partner_id is not null and (dreams_id in (NULL, 'NONE', 'n/a', 'N/A', 'None', '') or dreams_serial > 20000 or slash_count < 2)
+      ) x on c.dreams_id = x.dreams_id and c.id=x.id where x.dreams_id is null;
+
+drop table if EXISTS stag_dreams_ids_with_errors;
+create table stag_dreams_ids_with_errors as
+      SELECT
+  id,
+  implementing_partner_id,
+  dreams_id,
+  dreams_id as assigned_dreams_id,
+  county_of_residence_id,
+  sub_county_id,
+  ward_id,
+  ROUND (
+        (
+            LENGTH(dreams_id)
+            - LENGTH( REPLACE ( dreams_id, "/", "") )
+        ) / LENGTH("/")
+    ) AS slash_count ,
+  SUBSTRING_INDEX(dreams_id, '/', 1)  AS IP_CODE,
+  SUBSTRING_INDEX(SUBSTRING_INDEX(dreams_id, '/', 2), '/', -1)   AS WARD_CODE,
+  SUBSTRING_INDEX(dreams_id, '/', -1) AS dreams_serial
+FROM DreamsApp_client
+-- GROUP BY dreams_id
+HAVING ward_id is not null and DreamsApp_client.implementing_partner_id is not null and (dreams_id in (NULL, 'NONE', 'n/a', 'N/A', 'None', '') or dreams_serial > 20000 or slash_count < 2);
+END;
+  $$
+DELIMITER ;
+
+-- ----------------------    cursor to hold and correct dreams_id ------------
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_fetch_erroneous_dreams_id$$
+CREATE PROCEDURE sp_fetch_erroneous_dreams_id()
+BEGIN
+
+  DECLARE no_more_rows BOOLEAN;
+  DECLARE implementing_partner INT(11);
+  DECLARE clientID INT(11);
+  DECLARE dreamsID VARCHAR(50);
+  DECLARE wardID INT(11);
+  DECLARE v_row_count INT(11);
+
+  DECLARE erroneous_records CURSOR FOR
+    SELECT id, implementing_partner_id, dreams_id, ward_id FROM stag_dreams_ids_with_errors;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND
+    SET no_more_rows = TRUE;
+
+  OPEN erroneous_records;
+  SET v_row_count = FOUND_ROWS();
+
+  IF v_row_count > 0 THEN
+    dreams_ids: LOOP
+    FETCH erroneous_records INTO clientID, implementing_partner, dreamsID, wardID;
+
+    IF no_more_rows THEN
+      CLOSE erroneous_records;
+      LEAVE dreams_ids;
+    END IF;
+    CALL sp_update_erroneous_dreams_id(clientID, dreamsID, implementing_partner, wardID);
+
+    END LOOP dreams_ids;
+  ELSE
+    SELECT "NO ROWS WERE FOUND";
+  END IF;
+
+END
+$$
+DELIMITER ;
+
+-- ------------------------------ procedure to update erroneous ids ------------
+
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_update_erroneous_dreams_id$$
+CREATE PROCEDURE sp_update_erroneous_dreams_id(IN clientID INT(11), IN dreamsID VARCHAR(100), IN implementingPartnerID INT(11), IN ward INT(11))
+BEGIN
+
+  DECLARE new_dreams_id VARCHAR(100);
+  SELECT cleanDreamsSerial(implementingPartnerID, ward) INTO new_dreams_id;
+  UPDATE DreamsApp_client c
+    SET c.dreams_id = new_dreams_id, c.date_changed = NOW() WHERE c.id=clientID;
+
+  UPDATE stag_dreams_ids_with_errors
+    SET assigned_dreams_id = new_dreams_id WHERE id=clientID;
+
+  INSERT INTO stag_clean_dreams_id(client_id, dreams_id, implementing_partner_id, ward_id) VALUES (clientID, new_dreams_id, implementingPartnerID,ward );
+END
+$$
+DELIMITER ;
 
 
 

@@ -276,10 +276,9 @@ VALUES """
         single_ip_ward_query = "SELECT * FROM flat_dreams_enrollment WHERE ward_id = %s AND implementing_partner_id = %s "
         single_ip_default_query = "SELECT * FROM flat_dreams_enrollment WHERE implementing_partner_id = %s "
 
-        #ip_list = (1, 2)
         try:
 
-            ip_tuple_l = ip_list_str.split(",")
+            ip_tuple_l = ip_list_str
             if sub_county is not None and sub_county:
                 sub_county = int(sub_county)
 
@@ -287,8 +286,7 @@ VALUES """
                 ward = int(ward)
 
             if len(ip_tuple_l) > 1:
-                eval_listt = eval(ip_list_str)
-                ip_list = tuple(eval_listt)
+                ip_list = tuple(ip_tuple_l)
 
                 if ward is not None and ward:
                     cursor.execute(multiple_ip_ward_query, [ward, ip_list])
@@ -298,7 +296,98 @@ VALUES """
                 else:
                     cursor.execute(multiple_ip_default_query, [ip_list])
             else:
-                ip_list = int(ip_list_str)
+                ip_list = ip_list_str[0]
+                if ward is not None and ward:
+                    cursor.execute(single_ip_ward_query, [ward, ip_list])
+                elif sub_county is not None and sub_county:
+                    cursor.execute(single_ip_sub_county_query, [sub_county, ip_list])
+                else:
+                    cursor.execute(single_ip_default_query, [ip_list])
+
+            print "Query was successful"
+            columns = [col[0] for col in cursor.description]
+            return [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+                ]
+        except Exception as e:
+            print 'There was an Error running the query\n'
+            traceback.format_exc()
+
+        return
+
+    def fetch_intervention_rows(self, ip_list_str, sub_county, ward):
+        cursor = connection.cursor()
+
+        multiple_ip_sub_county_query = """select
+  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.implementing_partner, i.implementing_partner_id, i.county_of_residence,i.sub_county,
+  i.ward, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
+  i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
+  i.no_of_sessions_attended, i.comment
+from stag_client_intervention i WHERE i.sub_county_id = %s AND  i.implementing_partner_id IN %s """
+
+        multiple_ip_ward_query = """select
+  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
+  i.ward, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
+  i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
+  i.no_of_sessions_attended, i.comment
+from stag_client_intervention i WHERE i.ward_id = %s AND  i.implementing_partner_id IN %s """
+
+
+        multiple_ip_default_query = """select
+  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
+  i.ward, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
+  i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
+  i.no_of_sessions_attended, i.comment
+from stag_client_intervention i WHERE  i.implementing_partner_id IN %s """
+
+        single_ip_sub_county_query = """select
+  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
+  i.ward, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
+  i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
+  i.no_of_sessions_attended, i.comment
+from stag_client_intervention i WHERE i.sub_county_id = %s AND i.implementing_partner_id = %s """
+
+
+        single_ip_ward_query = """select
+  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
+  i.ward, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
+  i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
+  i.no_of_sessions_attended, i.comment
+from stag_client_intervention i WHERE i.ward_id = %s AND i.implementing_partner_id = %s """
+
+
+        single_ip_default_query = """select
+  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
+  i.ward, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
+  i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
+  i.no_of_sessions_attended, i.comment
+from stag_client_intervention i
+WHERE i.implementing_partner_id = %s
+;
+ """
+
+        try:
+
+            ip_tuple_l = ip_list_str
+            if sub_county is not None and sub_county:
+                sub_county = int(sub_county)
+
+            if ward is not None and ward:
+                ward = int(ward)
+
+            if len(ip_tuple_l) > 1:
+                ip_list = tuple(ip_tuple_l)
+
+                if ward is not None and ward:
+                    cursor.execute(multiple_ip_ward_query, [ward, ip_list])
+                elif sub_county is not None and sub_county:
+                    cursor.execute(
+                        multiple_ip_sub_county_query, [sub_county, ip_list])
+                else:
+                    cursor.execute(multiple_ip_default_query, [ip_list])
+            else:
+                ip_list = ip_list_str[0]
                 if ward is not None and ward:
                     cursor.execute(single_ip_ward_query, [ward, ip_list])
                 elif sub_county is not None and sub_county:
@@ -322,6 +411,14 @@ VALUES """
         DREAMS_TEMPLATE_PLAIN = os.path.join(settings.BASE_DIR, 'templates/excel_template/dreams_export.xlsx')
         try:
             wb = xl.load_workbook(DREAMS_TEMPLATE_PLAIN)
+            return wb
+        except InvalidFileException as e:
+            traceback.format_exc()
+
+    def load_intervention_workbook(self):
+        DREAMS_INTERVENTION_TEMPLATE = os.path.join(settings.BASE_DIR, 'templates/excel_template/service_uptake_template.xlsx')
+        try:
+            wb = xl.load_workbook(DREAMS_INTERVENTION_TEMPLATE)
             return wb
         except InvalidFileException as e:
             traceback.format_exc()
@@ -359,6 +456,56 @@ VALUES """
         except SheetTitleException as e:
             traceback.format_exc()
         return
+
+    def get_intervention_excel_doc(self, ip_list_str, sub_county, ward):
+
+        try:
+
+            wb = self.load_intervention_workbook()
+            interventions_sheet = wb.get_sheet_by_name('DREAMS_Services')
+            print "Starting Intervention DB Query! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            db_data = self.fetch_intervention_rows(ip_list_str, sub_county, ward)
+            print "Finished Intervention DB Query. Rendering Now. ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            i = 1
+            for row in db_data:
+                i += 1
+                self.map_interventions(interventions_sheet, i, row)
+
+            wb.save('dreams_interventions.xlsx')
+            print "Completed rendering excel ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            return wb
+        except InvalidFileException as e:
+            traceback.format_exc()
+        except ReadOnlyWorkbookException as e:
+            traceback.format_exc()
+
+        except SheetTitleException as e:
+            traceback.format_exc()
+        return
+
+    def map_interventions(self, ws, i, row):
+        cols = {
+            'client_id': 1,
+            'dreams_id': 2,
+            'client_name': 3,
+            'implementing_partner': 4,
+            'implementing_partner_id': 5,
+            'county_of_residence': 6,
+            'sub_county': 7,
+            'ward': 8,
+            'date_of_intervention': 9,
+            'intervention_type': 10,
+            'intervention_category': 11,
+            'hts_result': 12,
+            'pregnancy_test_result': 13,
+            'client_ccc_number': 14,
+            'date_linked_to_ccc': 15,
+            'no_of_sessions_attended': 16,
+            'comment': 17,
+        }
+
+        for k, v in cols.items():
+            ws.cell(row=i, column=v, value=row.get(k))
 
     def map_demographics(self, ws, i, row):
         cols = {
