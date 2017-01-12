@@ -514,6 +514,60 @@ def delete_client(request):
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
 
+def get_client_status(client):
+    status = ''
+    try:
+        if client.voided:
+            status += ' Voided'
+        if client.exited:
+            if status != '':
+                status += ' & '
+            status += 'Exited'
+        if status != '':
+            status = status[:0] + '( ' + status[0:]
+            last_index = len(status)
+            status = status[:last_index] + ' ) ' + status[last_index:]
+        return status
+    except Exception as e:
+        return 'Invalid Status'
+
+def get_client_status_action_text(client):
+    return 'Undo Exit' if client.exited else 'Exit Client'
+
+def client_exit_status_toggle(request):
+    """Exit or undo Exit depending on client's current status"""
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm('DreamsApp.can_exit_client'):
+        try:
+            client_id = int(str(request.POST.get('client_id','0')))
+            reason_for_exit = str(request.POST.get('reason_for_exit', ''))
+            date_of_exit = request.POST.get('date_of_exit', datetime.datetime.now())
+            client = Client.objects.filter(id=client_id).first()
+            client.exited = not client.exited
+            client.reason_exited = reason_for_exit
+            client.exited_by = request.user
+            client.date_exited = date_of_exit
+            client.save()
+            response_data = {
+                'status': 'success',
+                'message': 'Client' + ' Exited' if client.exited else 'Client Activated',
+                'client_id': client.id,
+                'client_status': get_client_status(client),
+                'get_client_status_action_text': get_client_status_action_text(client)
+            }
+            return JsonResponse(response_data, status=200)
+        except Exception as e:
+            response_data = {
+                'status': 'failed',
+                'message': 'Invalid client Id: ' + e.message
+            }
+            return JsonResponse(response_data, status=500)
+    else:
+        response_data = {
+            'status': 'failed',
+            'message': 'Permission Denied. Please contact System Administrator for help.'
+        }
+        return JsonResponse(response_data, status=500)
+
 
 def testajax(request):
     return render(request, 'testAjax.html')
@@ -567,7 +621,30 @@ def save_intervention(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() \
                 and request.user.is_active and request.user.has_perm('DreamsApp.add_intervention'):
-
+            try:
+                client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                status = True
+                if client.voided:
+                    message = 'Error: You cannot Add Sevices to a voided Client. ' \
+                              'Please contact System Administrator for help.'
+                    status = False
+                if client.exited:
+                    message = 'Error: You cannot Add Sevices to a Client Exited from DREAMS. ' \
+                              'Please contact System Administrator for help.'
+                    status = False
+                if not status:
+                    response_data = {
+                        'status': 'fail',
+                        'message': message
+                    }
+                    return JsonResponse(response_data)
+            except:
+                response_data = {
+                    'status': 'fail',
+                    'message': "Error: Client with given ID Cannot be found. "
+                               "Please contact System Administrator for help."
+                }
+                return JsonResponse(response_data)
             # check
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
@@ -591,7 +668,7 @@ def save_intervention(request):
 
                 if intervention_type_code is not None and type(intervention_type_code) is int:
                     intervention = Intervention()
-                    intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                    intervention.client = client
                     intervention.intervention_type = intervention_type
                     intervention.name_specified = request.POST.get('other_specify', '') if intervention_type.is_specified else ''
                     intervention.intervention_date = request.POST.get('intervention_date')

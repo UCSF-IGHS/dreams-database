@@ -2580,6 +2580,103 @@ $(document).ready(function () {
                 }
             });
 
+
+    // Get client details on exit dialog show event
+    $('#client-exit-modal').on('show.bs.modal', function (e) {
+        // get relevant client details
+        // Nothing important should happen here
+        $('#client-exit-modal #id_reason_for_exit').val('');
+        $("#client-exit-modal #id_date_of_exit").datepicker("setDate", new Date());
+    })
+
+    // Exit form validation
+    $("#form_client_exit").validate({
+        rules: { 
+            reason_for_exit: { 
+                required: true 
+            },
+            date_of_exit:{
+                required:true
+            }
+        },
+        messages: { 
+            reason_for_exit: { 
+                required: " * Required field" 
+            },
+            date_of_exit:{
+                required: " * Required field"
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_client_exit .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_client_exit').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+
+    $('#form_client_exit').on('submit',function (event) {
+        event.preventDefault()
+        if(!$(event.target).valid())
+            return false;
+        var reasonForExit = $('#form_client_exit #id_reason_for_exit').val();
+        var dateOfExit = $('#form_client_exit #id_date_of_exit').val();
+        if(reasonForExit == ''){
+            $('#id_reason_for_exit_error').html('* Required field')
+        }
+        if(dateOfExit == ''){
+            $('#id_reason_for_exit_error').html('* Required field')
+        }
+        if(reasonForExit == '' || dateOfExit == '')
+            return
+
+        client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
+        if (typeof client_id == undefined || isNaN(client_id) || client_id == ''){
+            return;
+        }
+
+        // Everything is fine. Do an ajax call to Exit client
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : "/client/exit", // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data : {
+                csrfmiddlewaretoken : csrftoken,
+                client_id : client_id,
+                reason_for_exit: reasonForExit,
+                date_of_exit: dateOfExit
+            },
+            success: function (data) {
+                if(data.status == 'success'){
+                    var client_status = data.client_status;
+                    //$('#demo_replacement').replaceWith(data);
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                   .text(data.message + ' Successfully')
+                   .trigger('madeVisible')
+                    $('.client_exit_voided_status').html(client_status);
+                    $('.client_status_action_text').html(data.get_client_status_action_text);
+                }
+                else {
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                   .text(data.message)
+                   .trigger('madeVisible')
+                }
+                $('#client-exit-modal').modal('hide');
+            },
+            error: function (xhr, errmsg, err) {
+                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+               .text('Could not save changes')
+               .trigger('madeVisible')
+
+            }
+        });
+
+
+    })
 });
 
 
