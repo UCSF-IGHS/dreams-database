@@ -1592,12 +1592,10 @@ def intervention_export_page(request):
 def downloadEXCEL(request):
 
     try:
-        ip_list_str = request.POST.get('ips')
+        ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
-        # print "List: ", ip_list_str
-        # print "sub_county", sub_county
-        # print "ward: ", ward
+        county = request.POST.get('county_of_residence')
         response = HttpResponse(content_type='application/ms-excel')
         response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
@@ -1612,12 +1610,10 @@ def downloadEXCEL(request):
 def downloadRawInterventionEXCEL(request):
 
     try:
-        ip_list_str = request.POST.get('ips')
+        ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
-        # print "List: ", ip_list_str
-        # print "sub_county", sub_county
-        # print "ward: ", ward
+        county = request.POST.get('county_of_residence')
         response = HttpResponse(content_type='application/ms-excel')
         response['Content-Disposition'] = 'attachment; filename=dreams_interventions.xlsx'
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
