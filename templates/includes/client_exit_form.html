@@ -18,7 +18,7 @@
                 <div class="modal-body">
                         <div style="margin: auto 15px;">
                             <div class="form-group">
-                                 <label for="first_name" class="control-label">Reason to {{ client.get_client_status_action_text }}</label>
+                                 <label id="lbl_client_exit_activation_label" for="first_name" class="control-label">Reason to {{ client.get_client_status_action_text }}</label>
                                  <textarea class="form-control" id="id_reason_for_exit" name="reason_for_exit" ></textarea>
                              </div>
                             <div class="form-group has-feedback">
@@ -45,7 +45,7 @@
                     </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" aria-hidden="true"> Cancel </button>
-                    <button type="submit" class="btn btn-sm btn-primary" > Exit Client </button>
+                    <button type="submit" id="btn_submit_exit_client_form" class="btn btn-sm btn-primary" > Exit Client </button>
                   </div>
             </div>
           </div>
