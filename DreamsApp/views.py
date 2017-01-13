@@ -136,7 +136,7 @@ def build_filter_client_queryset(turple_1, turple_2, turple_3, turple_4, turple_
         return Client.objects.all()[0]
 
 
-def filter_clients(search_client_term):
+def filter_clients(search_client_term, is_advanced_search, request):
     search_client_term_parts = search_client_term.split()
     # check number of parts
     parts_count = len(search_client_term_parts)
@@ -159,8 +159,24 @@ def filter_clients(search_client_term):
                                      (filter_text_3, filter_text_2, filter_text_1),
                                      (filter_text_3, filter_text_1, filter_text_2),
                                      (filter_text_1, filter_text_3, filter_text_2))
-
-    return search_result
+    if is_advanced_search == 'True':
+        county_filter = str(request.GET.get('county', '') if request.method == 'GET' else request.POST.get('county', ''))
+        if county_filter != '':
+            search_result = search_result.filter(county_of_residence_id=int(county_filter))
+        sub_county_filter = str(request.GET.get('sub_county', '') if request.method == 'GET' else request.POST.get('sub_county', ''))
+        if sub_county_filter != '':
+            search_result = search_result.filter(sub_county_id=int(sub_county_filter))
+        ward_filter = str(request.GET.get('ward', '') if request.method == 'GET' else request.POST.get('ward', ''))
+        if ward_filter != '':
+            search_result = search_result.filter(ward_id=int(ward_filter))
+        start_date_filter_original = request.GET.get('doe_start_filter', '') if request.method == 'GET' else request.POST.get('doe_start_filter', '')
+        start_date_filter = '2015-10-01' if start_date_filter_original == '' else start_date_filter_original
+        end_date_filter_original = request.GET.get('doe_end_filter', dt.today()) if request.method == 'GET' else request.POST.get('doe_end_filter', dt.today())
+        end_date_filter = dt.today() if end_date_filter_original == '' else end_date_filter_original
+        search_result = search_result.filter(date_of_enrollment__range=[start_date_filter, end_date_filter]) #
+        return [search_result, is_advanced_search, county_filter, sub_county_filter, ward_filter, start_date_filter_original,
+                end_date_filter_original]
+    return [search_result, is_advanced_search, '', '', '', '', '']
 
 
 def clients(request):
@@ -168,10 +184,12 @@ def clients(request):
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             # get search details -- search_client_term
             page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
+            is_advanced_search = request.GET.get('is_advanced_search', 'False') if request.method == 'GET' else request.POST.get('is_advanced_search', 'False')
             search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get('search_client_term', '')
             search_client_term = search_client_term.strip()
             if search_client_term != "":
-                search_result = filter_clients(search_client_term)
+                search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
+                search_result = search_result_tuple[0]
                 # check for permissions
                 if not request.user.has_perm("auth.can_view_cross_ip_data"):
                     try:
@@ -181,6 +199,7 @@ def clients(request):
                         search_result = Client.objects.all()[:0] # Return empty list.
             else:
                 search_result = Client.objects.all()[:0]
+                search_result_tuple = [search_result, 'False', '', '', '', '', '']
             log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_client_term)
             try:
                 current_ip = request.user.implementingpartneruser.implementing_partner.code
@@ -211,6 +230,12 @@ def clients(request):
                     client_paginator = paginator.page(1)  # Deliver the first page is page is not an integer
                 except EmptyPage:
                     client_paginator = paginator.page(paginator.num_pages)  # Deliver the last page if page is out of scope
+
+                county_filter = search_result_tuple[2] if search_result_tuple[2] != '' else '0'
+                sub_county_filter = search_result_tuple[3] if search_result_tuple[3] != '' else '0'
+                sub_counties = SubCounty.objects.filter(county_id=int(county_filter))
+                ward_filter = search_result_tuple[4] if search_result_tuple[4] != '' else '0'
+                wards = Ward.objects.filter(sub_county_id=int(sub_county_filter))
                 response_data = {
                     'page': 'clients',
                     'page_title': 'DREAMS Client List',
@@ -222,8 +247,17 @@ def clients(request):
                     'marital_status': MaritalStatus.objects.all(),
                     'counties': County.objects.all(),
                     'current_ip': current_ip,
-                    'demo_form': DemographicsForm()
+                    'demo_form': DemographicsForm(),
+                    'is_advanced_search': search_result_tuple[1],
+                    'county_filter': county_filter,
+                    'sub_county_filter': sub_county_filter,
+                    'sub_counties': sub_counties,
+                    'ward_filter': ward_filter,
+                    'wards': wards,
+                    'start_date_filter': search_result_tuple[5],
+                    'end_date_filter': search_result_tuple[6]
                 }
+                #county_filter, sub_county_filter, ward_filter, start_date_filter, end_date_filter
                 return render(request, 'clients.html', response_data)
         else:
             return redirect('login')
@@ -297,6 +331,7 @@ def save_client(request):
                 client_form = DemographicsForm(request.POST)
                 if client_form.is_valid():
                     client = client_form.save()
+                    ward_id = client.ward.id
                     # client = Client.objects.create(
                     #     implementing_partner=request.user.implementingpartneruser.implementing_partner,
                     #     first_name=request.POST.get('first_name', ''),
