@@ -33,7 +33,7 @@
                         </div>
                         -->
                         <span id="search-expand-collapse-glyphicon" class="has-feedback glyphicon glyphicon-plus" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne"></span>
-                        <span id="advanced_filter_text_span" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne" style="font-weight: bold;">Show Advanced Filters</span>
+                        <span id="advanced_filter_text_span" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne" style="font-weight: bold;">Show Advanced Search Filters</span>
                         <div class="custom">
                             <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true" >
                                 <div class="panel">
@@ -99,6 +99,9 @@
                                             <label for="ward_filter" class="col-sm-2" style="margin-top: 8px;text-align: right;"> </label>
                                             <button type="submit" class=" form-control btn btn-primary btn-sm" style="margin-top: 2px;"><span
                                                     class="glyphicon glyphicon-search"></span> Advanced Search
+                                            </button>
+                                            <button type="button" id="btn_reset_advanced_search" class=" form-control btn btn-default btn-sm"  style="margin-top: 2px;">
+                                                Reset Advanced Search Filters
                                             </button>
                                         </div>
                                       </div>
@@ -186,13 +189,13 @@
                 if(!$('#collapseOne').hasClass('collapse')){
                     // Not collapsed
                     $('#search-expand-collapse-glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus')
-                    $('#advanced_filter_text_span').html('Hide Advanced Filters')
+                    $('#advanced_filter_text_span').html('Hide Advanced Search Filters')
                     // Set advanced search
                     $('#is_advanced_search').val('True')
                 }
                 else{
                    $('#search-expand-collapse-glyphicon').removeClass('glyphicon-minus').addClass('glyphicon-plus')
-                    $('#advanced_filter_text_span').html('Show Advanced Filters')
+                    $('#advanced_filter_text_span').html('Show Advanced Search Filters')
                     // Handle reset of advanced filters
                     $('#is_advanced_search').val('False')
                 }
