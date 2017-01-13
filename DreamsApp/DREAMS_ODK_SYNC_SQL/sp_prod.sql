@@ -7,25 +7,25 @@ CREATE PROCEDURE sp_dreamsTablesSetup()
 BEGIN
 
 -- defining table to be populated by odk enrollment trigger
-DROP TABLE IF EXISTS dreams_production.odk_dreams_sync;
-CREATE TABLE dreams_production.odk_dreams_sync (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uuid` varchar(100) NOT NULL DEFAULT '',
-  `synced` int(11) NOT NULL DEFAULT '0',
-  `form` varchar(100) NOT NULL DEFAULT '',
-  date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-);
-
-
--- defining table for sync log
-DROP TABLE IF EXISTS dreams_production.odk_dreams_sync_log;
-CREATE TABLE dreams_production.odk_dreams_sync_log (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `action` varchar(100) NOT NULL DEFAULT 'Scheduled Update',
-  `last_update` DATETIME,
-  PRIMARY KEY (`id`)
-);
+# DROP TABLE IF EXISTS dreams_production.odk_dreams_sync;
+# CREATE TABLE dreams_production.odk_dreams_sync (
+#   `id` int(11) NOT NULL AUTO_INCREMENT,
+#   `uuid` varchar(100) NOT NULL DEFAULT '',
+#   `synced` int(11) NOT NULL DEFAULT '0',
+#   `form` varchar(100) NOT NULL DEFAULT '',
+#   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+#   PRIMARY KEY (`id`)
+# );
+#
+#
+# -- defining table for sync log
+# DROP TABLE IF EXISTS dreams_production.odk_dreams_sync_log;
+# CREATE TABLE dreams_production.odk_dreams_sync_log (
+#   `id` int(11) NOT NULL AUTO_INCREMENT,
+#   `action` varchar(100) NOT NULL DEFAULT 'Scheduled Update',
+#   `last_update` DATETIME,
+#   PRIMARY KEY (`id`)
+# );
 
 -- create flat table for reporting
 
@@ -45,7 +45,7 @@ date_of_enrollment DATE,
 phone_number VARCHAR(15),
 dss_id_number VARCHAR(20),
 informal_settlement VARCHAR(50),
-village VARCHAR(50),
+village VARCHAR(100),
 landmark VARCHAR(255),
 dreams_id VARCHAR(20),
 guardian_name VARCHAR(50),
@@ -258,7 +258,7 @@ reason_not_in_hiv_care VARCHAR(50),
 reason_not_tested_for_hiv VARCHAR(20),
 voided INT(11),
 date_voided DATETIME,
-exit_status INT(11),
+exit_status VARCHAR(10),
 exit_date DATETIME,
 exit_reason VARCHAR(200)
 );
@@ -2482,8 +2482,8 @@ hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_re
 hiv.reason_not_in_hiv_care_id,
 d.voided,
 d.date_voided,
-d.exited,
-d.date_exited,
+(CASE d.exited WHEN 1 THEN "Yes" ELSE "" END) AS exited ,
+DATE(d.date_exited) AS date_exited,
 d.reason_exited
 from
 dreams_production.DreamsApp_client AS d
@@ -2815,8 +2815,8 @@ hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_re
 hiv.reason_not_in_hiv_care_id,
 d.voided,
 d.date_voided,
-d.exited,
-d.date_exited,
+(CASE d.exited WHEN 1 THEN "Yes" ELSE "" END) AS exited ,
+DATE(d.date_exited) AS date_exited,
 d.reason_exited
 from
 dreams_production.DreamsApp_client AS d
