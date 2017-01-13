@@ -979,8 +979,93 @@ $(document).ready(function () {
         $('#enrollment-modal').modal('toggle');
     })
 
+    $('#county_filter').change(function (event) {
+        getSubCountiesFilter(false, null, null, null);
+
+    })
+
+    function getSubCountiesFilter(setSelected, c_code, sub_county_id, ward_id) {
+        var county_id = setSelected == true ? c_code : $('#county_filter').val();
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url: "/getSubCounties", // the endpoint
+            type: "GET", // http method
+            dataType: 'json',
+            data: {
+                county_id: county_id,
+            },
+            success: function (data) {
+                var sub_counties = $.parseJSON(data.sub_counties);
+                $("#sub_county_filter option").remove();
+                $("#sub_county_filter").append("<option value=''>Select Sub-County</option>");
+                $.each(sub_counties, function (index, field) {
+                    $("#sub_county_filter").append("<option data-sub_county_id='" + field.pk + "' value='" + field.pk + "'>" + field.fields.name + "</option>");
+                })
+
+                // setting sub-county when necessary
+                if (setSelected) {    // set selected sub county
+                    $('#sub_county_filter option').each(function () {
+                        if (sub_county_id != null && $(this).data('sub_county_id') == sub_county_id) {
+                            $(this).prop("selected", true);
+                            // Load wards since a subcounty has been selected
+                            getWardsFilter(true, $(this).val(), ward_id)
+                        }
+                    });
+                }
+            },
+
+            // handle a non-successful response
+            error: function (xhr, errmsg, err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    }
+
+    $('#sub_county_filter').change(function (event) {
+        getWardsFilter(false, null, null);
+    })
+
+    function getWardsFilter(setSelected, sc_id, ward_id) {
+        var sc_id = setSelected ? sc_id : $('#sub_county_filter').val();
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : "/getWards", // the endpoint
+            type : "GET", // http method
+            dataType: 'json',
+            data : {
+                sub_county_id : sc_id,
+            },
+            success : function(data) {
+                var wards = $.parseJSON(data.wards);
+                $("#ward_filter option").remove();
+                $("#ward_filter").append("<option value=''>Select Ward</option>");
+                $.each(wards, function (index, field) {
+                    $("#ward_filter").append("<option data-ward_id='" + field.pk + "' value='" + field.pk + "'>" + field.fields.name + "</option>");
+                })
+
+                if(setSelected){
+                    $('#ward_filter option').each(function() {
+                        if(ward_id != null && $(this).data('ward_id') ==  ward_id ) {
+                            $(this).prop("selected", true);
+                        }
+                    });
+                }
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    }
+
     $('#id_county_of_residence').change(function (event) {
         getSubCounties(false, null, null, null);
+
     })
 
     function getSubCounties(setSelected, c_code, sub_county_id, ward_id) {
@@ -1022,6 +1107,10 @@ $(document).ready(function () {
         });
     }
 
+    $('#id_sub_county').change(function (event) {
+        getWards(false, null, null);
+    })
+
     function getWards(setSelected, sc_id, ward_id) {
         var sc_id = setSelected ? sc_id : $('#id_sub_county').val();
         var csrftoken = getCookie('csrftoken');
@@ -1057,10 +1146,6 @@ $(document).ready(function () {
             }
         });
     }
-    
-    $('#id_sub_county').change(function (event) {
-        getWards(false, null, null);
-    })
 
     /*
     $('#filter-log-date').change(function (event) {
@@ -2471,7 +2556,6 @@ $(document).ready(function () {
 
     });
     
-    
     /* Drug Use validation
 
      */
@@ -2507,7 +2591,6 @@ $(document).ready(function () {
          }
 
     });
-    
     
     $('.manual_download').click(function (event) {
         var item = event.target;
@@ -2579,6 +2662,137 @@ $(document).ready(function () {
                     }
                 }
             });
+
+    // Get client details on exit dialog show event
+    $('#client-exit-modal').on('show.bs.modal', function (e) {
+        // get relevant client details
+        // Nothing important should happen here
+        $('#client-exit-modal #id_reason_for_exit').val('');
+        $("#client-exit-modal #id_date_of_exit").datepicker("setDate", new Date());
+        // Action wording
+        var clientStatus = $('.client_status_action_text').html()
+        if($.trim(clientStatus) == 'Exit Client'){
+            // Client is actively in the program.
+            $('#lbl_client_exit_activation_label').html('Reason to Exit Client');
+            $('#btn_submit_exit_client_form').val('Exit Client');
+        }
+        else{
+            $('#lbl_client_exit_activation_label').html('Reason to Activate Client');
+            $('#btn_submit_exit_client_form').html('Activate Client');
+        }
+        console.log(clientStatus)
+    })
+
+    // Exit form validation
+    $("#form_client_exit").validate({
+        rules: { 
+            reason_for_exit: { 
+                required: true 
+            },
+            date_of_exit:{
+                required:true
+            }
+        },
+        messages: { 
+            reason_for_exit: { 
+                required: " * Required field" 
+            },
+            date_of_exit:{
+                required: " * Required field"
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_client_exit .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_client_exit').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+
+    $('#form_client_exit').on('submit',function (event) {
+        event.preventDefault()
+        if(!$(event.target).valid())
+            return false;
+        var reasonForExit = $('#form_client_exit #id_reason_for_exit').val();
+        var dateOfExit = $('#form_client_exit #id_date_of_exit').val();
+        if(reasonForExit == ''){
+            $('#id_reason_for_exit_error').html('* Required field')
+        }
+        if(dateOfExit == ''){
+            $('#id_reason_for_exit_error').html('* Required field')
+        }
+        if(reasonForExit == '' || dateOfExit == '')
+            return
+
+        var client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
+        if (typeof client_id == undefined || isNaN(client_id) || client_id == ''){
+            return;
+        }
+
+        // Everything is fine. Do an ajax call to Exit client
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : "/client/exit", // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data : {
+                csrfmiddlewaretoken : csrftoken,
+                client_id : client_id,
+                reason_for_exit: reasonForExit,
+                date_of_exit: dateOfExit
+            },
+            success: function (data) {
+                if(data.status == 'success'){
+                    var client_status = data.client_status;
+                    //$('#demo_replacement').replaceWith(data);
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                   .text(data.message + ' Successfully')
+                   .trigger('madeVisible')
+                    $('.client_exit_voided_status').html(client_status);
+                    $('.client_status_action_text').html(data.get_client_status_action_text);
+                }
+                else {
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                   .text(data.message)
+                   .trigger('madeVisible')
+                }
+                $('#client-exit-modal').modal('hide');
+            },
+            error: function (xhr, errmsg, err) {
+                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+               .text('Could not save changes')
+               .trigger('madeVisible')
+
+            }
+        });
+
+
+    })
+
+    $('#collapseOne').on('shown.bs.collapse', function () {
+        $('#search-expand-collapse-glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus')
+        $('#advanced_filter_text_span').html('Hide Advanced Search Filters')
+        // Set advanced search
+        $('#is_advanced_search').val('True')
+    })
+
+    $('#collapseOne').on('hidden.bs.collapse', function () {
+        $('#search-expand-collapse-glyphicon').removeClass('glyphicon-minus').addClass('glyphicon-plus')
+        $('#advanced_filter_text_span').html('Show Search Advanced Filters')
+        // Handle reset of advanced filters
+        $('#is_advanced_search').val('False')
+    })
+
+    $('#btn_reset_advanced_search').click(function (e) {
+        $('#doe_start_filter').val('')
+        $('#doe_end_filter').val('')
+        $('#county_filter').val('')
+        $('#sub_county_filter').val('')
+        $('#ward_filter').val('')
+    })
 
 });
 

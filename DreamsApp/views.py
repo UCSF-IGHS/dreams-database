@@ -136,7 +136,7 @@ def build_filter_client_queryset(turple_1, turple_2, turple_3, turple_4, turple_
         return Client.objects.all()[0]
 
 
-def filter_clients(search_client_term):
+def filter_clients(search_client_term, is_advanced_search, request):
     search_client_term_parts = search_client_term.split()
     # check number of parts
     parts_count = len(search_client_term_parts)
@@ -159,8 +159,24 @@ def filter_clients(search_client_term):
                                      (filter_text_3, filter_text_2, filter_text_1),
                                      (filter_text_3, filter_text_1, filter_text_2),
                                      (filter_text_1, filter_text_3, filter_text_2))
-
-    return search_result
+    if is_advanced_search == 'True':
+        county_filter = str(request.GET.get('county', '') if request.method == 'GET' else request.POST.get('county', ''))
+        if county_filter != '':
+            search_result = search_result.filter(county_of_residence_id=int(county_filter))
+        sub_county_filter = str(request.GET.get('sub_county', '') if request.method == 'GET' else request.POST.get('sub_county', ''))
+        if sub_county_filter != '':
+            search_result = search_result.filter(sub_county_id=int(sub_county_filter))
+        ward_filter = str(request.GET.get('ward', '') if request.method == 'GET' else request.POST.get('ward', ''))
+        if ward_filter != '':
+            search_result = search_result.filter(ward_id=int(ward_filter))
+        start_date_filter_original = request.GET.get('doe_start_filter', '') if request.method == 'GET' else request.POST.get('doe_start_filter', '')
+        start_date_filter = '2015-10-01' if start_date_filter_original == '' else start_date_filter_original
+        end_date_filter_original = request.GET.get('doe_end_filter', dt.today()) if request.method == 'GET' else request.POST.get('doe_end_filter', dt.today())
+        end_date_filter = dt.today() if end_date_filter_original == '' else end_date_filter_original
+        search_result = search_result.filter(date_of_enrollment__range=[start_date_filter, end_date_filter]) #
+        return [search_result, is_advanced_search, county_filter, sub_county_filter, ward_filter, start_date_filter_original,
+                end_date_filter_original]
+    return [search_result, is_advanced_search, '', '', '', '', '']
 
 
 def clients(request):
@@ -168,10 +184,12 @@ def clients(request):
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             # get search details -- search_client_term
             page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
+            is_advanced_search = request.GET.get('is_advanced_search', 'False') if request.method == 'GET' else request.POST.get('is_advanced_search', 'False')
             search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get('search_client_term', '')
             search_client_term = search_client_term.strip()
             if search_client_term != "":
-                search_result = filter_clients(search_client_term)
+                search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
+                search_result = search_result_tuple[0]
                 # check for permissions
                 if not request.user.has_perm("auth.can_view_cross_ip_data"):
                     try:
@@ -181,6 +199,7 @@ def clients(request):
                         search_result = Client.objects.all()[:0] # Return empty list.
             else:
                 search_result = Client.objects.all()[:0]
+                search_result_tuple = [search_result, 'False', '', '', '', '', '']
             log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_client_term)
             try:
                 current_ip = request.user.implementingpartneruser.implementing_partner.code
@@ -211,6 +230,12 @@ def clients(request):
                     client_paginator = paginator.page(1)  # Deliver the first page is page is not an integer
                 except EmptyPage:
                     client_paginator = paginator.page(paginator.num_pages)  # Deliver the last page if page is out of scope
+
+                county_filter = search_result_tuple[2] if search_result_tuple[2] != '' else '0'
+                sub_county_filter = search_result_tuple[3] if search_result_tuple[3] != '' else '0'
+                sub_counties = SubCounty.objects.filter(county_id=int(county_filter))
+                ward_filter = search_result_tuple[4] if search_result_tuple[4] != '' else '0'
+                wards = Ward.objects.filter(sub_county_id=int(sub_county_filter))
                 response_data = {
                     'page': 'clients',
                     'page_title': 'DREAMS Client List',
@@ -222,8 +247,17 @@ def clients(request):
                     'marital_status': MaritalStatus.objects.all(),
                     'counties': County.objects.all(),
                     'current_ip': current_ip,
-                    'demo_form': DemographicsForm()
+                    'demo_form': DemographicsForm(),
+                    'is_advanced_search': search_result_tuple[1],
+                    'county_filter': county_filter,
+                    'sub_county_filter': sub_county_filter,
+                    'sub_counties': sub_counties,
+                    'ward_filter': ward_filter,
+                    'wards': wards,
+                    'start_date_filter': search_result_tuple[5],
+                    'end_date_filter': search_result_tuple[6]
                 }
+                #county_filter, sub_county_filter, ward_filter, start_date_filter, end_date_filter
                 return render(request, 'clients.html', response_data)
         else:
             return redirect('login')
@@ -297,6 +331,7 @@ def save_client(request):
                 client_form = DemographicsForm(request.POST)
                 if client_form.is_valid():
                     client = client_form.save()
+                    ward_id = client.ward.id
                     # client = Client.objects.create(
                     #     implementing_partner=request.user.implementingpartneruser.implementing_partner,
                     #     first_name=request.POST.get('first_name', ''),
@@ -514,6 +549,60 @@ def delete_client(request):
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
 
+def get_client_status(client):
+    status = ''
+    try:
+        if client.voided:
+            status += ' Voided'
+        if client.exited:
+            if status != '':
+                status += ' & '
+            status += 'Exited'
+        if status != '':
+            status = status[:0] + '( ' + status[0:]
+            last_index = len(status)
+            status = status[:last_index] + ' ) ' + status[last_index:]
+        return status
+    except Exception as e:
+        return 'Invalid Status'
+
+def get_client_status_action_text(client):
+    return 'Undo Exit' if client.exited else 'Exit Client'
+
+def client_exit_status_toggle(request):
+    """Exit or undo Exit depending on client's current status"""
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm('DreamsApp.can_exit_client'):
+        try:
+            client_id = int(str(request.POST.get('client_id','0')))
+            reason_for_exit = str(request.POST.get('reason_for_exit', ''))
+            date_of_exit = request.POST.get('date_of_exit', datetime.datetime.now())
+            client = Client.objects.filter(id=client_id).first()
+            client.exited = not client.exited
+            client.reason_exited = reason_for_exit
+            client.exited_by = request.user
+            client.date_exited = date_of_exit
+            client.save()
+            response_data = {
+                'status': 'success',
+                'message': 'Client' + ' Exited' if client.exited else 'Client Activated',
+                'client_id': client.id,
+                'client_status': get_client_status(client),
+                'get_client_status_action_text': get_client_status_action_text(client)
+            }
+            return JsonResponse(response_data, status=200)
+        except Exception as e:
+            response_data = {
+                'status': 'failed',
+                'message': 'Invalid client Id: ' + e.message
+            }
+            return JsonResponse(response_data, status=500)
+    else:
+        response_data = {
+            'status': 'failed',
+            'message': 'Permission Denied. Please contact System Administrator for help.'
+        }
+        return JsonResponse(response_data, status=500)
+
 
 def testajax(request):
     return render(request, 'testAjax.html')
@@ -567,7 +656,30 @@ def save_intervention(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() \
                 and request.user.is_active and request.user.has_perm('DreamsApp.add_intervention'):
-
+            try:
+                client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                status = True
+                if client.voided:
+                    message = 'Error: You cannot Add Sevices to a voided Client. ' \
+                              'Please contact System Administrator for help.'
+                    status = False
+                if client.exited:
+                    message = 'Error: You cannot Add Sevices to a Client Exited from DREAMS. ' \
+                              'Please contact System Administrator for help.'
+                    status = False
+                if not status:
+                    response_data = {
+                        'status': 'fail',
+                        'message': message
+                    }
+                    return JsonResponse(response_data)
+            except:
+                response_data = {
+                    'status': 'fail',
+                    'message': "Error: Client with given ID Cannot be found. "
+                               "Please contact System Administrator for help."
+                }
+                return JsonResponse(response_data)
             # check
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
@@ -591,7 +703,7 @@ def save_intervention(request):
 
                 if intervention_type_code is not None and type(intervention_type_code) is int:
                     intervention = Intervention()
-                    intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                    intervention.client = client
                     intervention.intervention_type = intervention_type
                     intervention.name_specified = request.POST.get('other_specify', '') if intervention_type.is_specified else ''
                     intervention.intervention_date = request.POST.get('intervention_date')
@@ -1562,19 +1674,62 @@ def export_page(request):
         raise PermissionDenied
 
 
+def intervention_export_page(request):
+    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+            'DreamsApp.can_export_raw_data'):
+
+        try:
+
+            if request.user.is_superuser or request.user.has_perm('auth.can_view_cross_ip'):
+                ips = ImplementingPartner.objects.all()
+            elif request.user.implementingpartneruser is not None:
+                ips = ImplementingPartner.objects.filter(
+                    id=request.user.implementingpartneruser.implementing_partner.id)
+
+            else:
+                ips = None
+
+            print "IPs", ips
+            context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
+                       'counties': County.objects.all()}
+            return render(request, 'interventionDataExport.html', context)
+        except ImplementingPartnerUser.DoesNotExist:
+            traceback.format_exc()
+        except ImplementingPartner.DoesNotExist:
+            traceback.format_exc()
+    else:
+        raise PermissionDenied
+
+
 def downloadEXCEL(request):
 
     try:
-        ip_list_str = request.POST.get('ips')
+        ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
-        # print "List: ", ip_list_str
-        # print "sub_county", sub_county
-        # print "ward: ", ward
+        county = request.POST.get('county_of_residence')
         response = HttpResponse(content_type='application/ms-excel')
         response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
         wb = export_doc.prepare_excel_doc(ip_list_str, sub_county, ward)
+        wb.save(response)
+        return response
+    except Exception as e:
+        traceback.format_exc()
+        return
+
+
+def downloadRawInterventionEXCEL(request):
+
+    try:
+        ip_list_str = request.POST.getlist('ips')
+        sub_county = request.POST.get('sub_county')
+        ward = request.POST.get('ward')
+        county = request.POST.get('county_of_residence')
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=dreams_interventions.xlsx'
+        export_doc = DreamsEnrollmentExcelTemplateRenderer()
+        wb = export_doc.get_intervention_excel_doc(ip_list_str, sub_county, ward)
         wb.save(response)
         return response
     except Exception as e:

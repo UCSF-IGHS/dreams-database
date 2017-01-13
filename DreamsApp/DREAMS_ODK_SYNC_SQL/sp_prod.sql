@@ -7,25 +7,25 @@ CREATE PROCEDURE sp_dreamsTablesSetup()
 BEGIN
 
 -- defining table to be populated by odk enrollment trigger
-DROP TABLE IF EXISTS dreams_production.odk_dreams_sync;
-CREATE TABLE dreams_production.odk_dreams_sync (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uuid` varchar(100) NOT NULL DEFAULT '',
-  `synced` int(11) NOT NULL DEFAULT '0',
-  `form` varchar(100) NOT NULL DEFAULT '',
-  date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-);
-
-
--- defining table for sync log
-DROP TABLE IF EXISTS dreams_production.odk_dreams_sync_log;
-CREATE TABLE dreams_production.odk_dreams_sync_log (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `action` varchar(100) NOT NULL DEFAULT 'Scheduled Update',
-  `last_update` DATETIME,
-  PRIMARY KEY (`id`)
-);
+# DROP TABLE IF EXISTS dreams_production.odk_dreams_sync;
+# CREATE TABLE dreams_production.odk_dreams_sync (
+#   `id` int(11) NOT NULL AUTO_INCREMENT,
+#   `uuid` varchar(100) NOT NULL DEFAULT '',
+#   `synced` int(11) NOT NULL DEFAULT '0',
+#   `form` varchar(100) NOT NULL DEFAULT '',
+#   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+#   PRIMARY KEY (`id`)
+# );
+#
+#
+# -- defining table for sync log
+# DROP TABLE IF EXISTS dreams_production.odk_dreams_sync_log;
+# CREATE TABLE dreams_production.odk_dreams_sync_log (
+#   `id` int(11) NOT NULL AUTO_INCREMENT,
+#   `action` varchar(100) NOT NULL DEFAULT 'Scheduled Update',
+#   `last_update` DATETIME,
+#   PRIMARY KEY (`id`)
+# );
 
 -- create flat table for reporting
 
@@ -45,7 +45,7 @@ date_of_enrollment DATE,
 phone_number VARCHAR(15),
 dss_id_number VARCHAR(20),
 informal_settlement VARCHAR(50),
-village VARCHAR(50),
+village VARCHAR(100),
 landmark VARCHAR(255),
 dreams_id VARCHAR(20),
 guardian_name VARCHAR(50),
@@ -255,7 +255,12 @@ period_last_tested_id INT(11),
 period_last_tested VARCHAR(50),
 reason_not_in_hiv_care_id INT(11),
 reason_not_in_hiv_care VARCHAR(50),
-reason_not_tested_for_hiv VARCHAR(20)
+reason_not_tested_for_hiv VARCHAR(20),
+voided INT(11),
+date_voided DATETIME,
+exit_status VARCHAR(10),
+exit_date DATETIME,
+exit_reason VARCHAR(200)
 );
 
 
@@ -2424,7 +2429,12 @@ ever_tested_for_hiv_id,
 knowledge_of_hiv_test_centres_id,
 last_test_result_id,
 period_last_tested_id,
-reason_not_in_hiv_care_id
+reason_not_in_hiv_care_id,
+voided,
+date_voided,
+exit_status,
+exit_date,
+exit_reason
 )
 select
 d.id,
@@ -2469,7 +2479,12 @@ edu.current_school_type_id,edu.currently_in_school_id,edu.dropout_school_level_i
 edu.life_wish_id,edu.reason_not_in_school_id,
 hiv.care_facility_enrolled,hiv.reason_not_in_hiv_care_other,hiv.reason_never_tested_for_hiv_other,hiv.enrolled_in_hiv_care_id,
 hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_result_id,hiv.period_last_tested_id,
-hiv.reason_not_in_hiv_care_id
+hiv.reason_not_in_hiv_care_id,
+d.voided,
+d.date_voided,
+(CASE d.exited WHEN 1 THEN "Yes" ELSE "" END) AS exited ,
+DATE(d.date_exited) AS date_exited,
+d.reason_exited
 from
 dreams_production.DreamsApp_client AS d
 LEFT OUTER JOIN dreams_production.DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
@@ -2747,7 +2762,12 @@ ever_tested_for_hiv_id,
 knowledge_of_hiv_test_centres_id,
 last_test_result_id,
 period_last_tested_id,
-reason_not_in_hiv_care_id
+reason_not_in_hiv_care_id,
+voided,
+date_voided,
+exit_status,
+exit_date,
+exit_reason
 )
 select
 d.id,
@@ -2792,7 +2812,12 @@ edu.current_school_type_id,edu.currently_in_school_id,edu.dropout_school_level_i
 edu.life_wish_id,edu.reason_not_in_school_id,
 hiv.care_facility_enrolled,hiv.reason_not_in_hiv_care_other,hiv.reason_never_tested_for_hiv_other,hiv.enrolled_in_hiv_care_id,
 hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_result_id,hiv.period_last_tested_id,
-hiv.reason_not_in_hiv_care_id
+hiv.reason_not_in_hiv_care_id,
+d.voided,
+d.date_voided,
+(CASE d.exited WHEN 1 THEN "Yes" ELSE "" END) AS exited ,
+DATE(d.date_exited) AS date_exited,
+d.reason_exited
 from
 dreams_production.DreamsApp_client AS d
 LEFT OUTER JOIN dreams_production.DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
@@ -2962,8 +2987,12 @@ ever_tested_for_hiv_id=VALUES(ever_tested_for_hiv_id),
 knowledge_of_hiv_test_centres_id=VALUES(knowledge_of_hiv_test_centres_id),
 last_test_result_id=VALUES(last_test_result_id),
 period_last_tested_id=VALUES(period_last_tested_id),
-reason_not_in_hiv_care_id=VALUES(reason_not_in_hiv_care_id)
-
+reason_not_in_hiv_care_id=VALUES(reason_not_in_hiv_care_id),
+voided=VALUES(voided),
+date_voided=VALUES(date_voided),
+exit_status=VALUES(exit_status),
+exit_date=VALUES(exit_date),
+exit_reason=VALUES(exit_reason)
 ;
 -- update many to many fields
 UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (

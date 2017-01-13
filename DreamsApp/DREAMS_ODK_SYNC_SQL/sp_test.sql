@@ -7,25 +7,25 @@ CREATE PROCEDURE sp_dreamsTablesSetup()
 BEGIN
 
 -- defining table to be populated by odk enrollment trigger
-DROP TABLE IF EXISTS dreams_test.odk_dreams_sync;
-CREATE TABLE dreams_test.odk_dreams_sync (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uuid` varchar(100) NOT NULL DEFAULT '',
-  `synced` int(11) NOT NULL DEFAULT '0',
-  `form` varchar(100) NOT NULL DEFAULT '',
-  date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-);
-
-
--- defining table for sync log
-DROP TABLE IF EXISTS dreams_test.odk_dreams_sync_log;
-CREATE TABLE dreams_test.odk_dreams_sync_log (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `action` varchar(100) NOT NULL DEFAULT 'Scheduled Update',
-  `last_update` DATETIME,
-  PRIMARY KEY (`id`)
-);
+# DROP TABLE IF EXISTS dreams_test.odk_dreams_sync;
+# CREATE TABLE dreams_test.odk_dreams_sync (
+#   `id` int(11) NOT NULL AUTO_INCREMENT,
+#   `uuid` varchar(100) NOT NULL DEFAULT '',
+#   `synced` int(11) NOT NULL DEFAULT '0',
+#   `form` varchar(100) NOT NULL DEFAULT '',
+#   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+#   PRIMARY KEY (`id`)
+# );
+#
+#
+# -- defining table for sync log
+# DROP TABLE IF EXISTS dreams_test.odk_dreams_sync_log;
+# CREATE TABLE dreams_test.odk_dreams_sync_log (
+#   `id` int(11) NOT NULL AUTO_INCREMENT,
+#   `action` varchar(100) NOT NULL DEFAULT 'Scheduled Update',
+#   `last_update` DATETIME,
+#   PRIMARY KEY (`id`)
+# );
 
 -- create flat table for reporting
 
@@ -45,7 +45,7 @@ date_of_enrollment DATE,
 phone_number VARCHAR(15),
 dss_id_number VARCHAR(20),
 informal_settlement VARCHAR(50),
-village VARCHAR(50),
+village VARCHAR(100),
 landmark VARCHAR(255),
 dreams_id VARCHAR(20),
 guardian_name VARCHAR(50),
@@ -255,8 +255,14 @@ period_last_tested_id INT(11),
 period_last_tested VARCHAR(50),
 reason_not_in_hiv_care_id INT(11),
 reason_not_in_hiv_care VARCHAR(50),
-reason_not_tested_for_hiv VARCHAR(20)
+reason_not_tested_for_hiv VARCHAR(20),
+voided INT(11),
+date_voided DATETIME,
+exit_status VARCHAR(10),
+exit_date DATETIME,
+exit_reason VARCHAR(200)
 );
+
 
 ALTER DATABASE odk_aggregate CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 ALTER TABLE odk_aggregate.DREAMS_ENROLMENT_FORM_CORE CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';
@@ -382,18 +388,18 @@ DELIMITER ;
 DELIMITER $$
 DROP FUNCTION IF EXISTS nextDreamsSerial$$
 CREATE FUNCTION nextDreamsSerial(implementing_partner_id INT, ward INT) RETURNS VARCHAR(200)
-	DETERMINISTIC
+  DETERMINISTIC
 BEGIN
-	DECLARE new_serial INT(11);
-	SELECT
+  DECLARE new_serial INT(11);
+  SELECT
   (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1) INTO new_serial
-from DreamsApp_client WHERE dreams_id is not null AND DreamsApp_client.implementing_partner_id=implementing_partner_id group by implementing_partner_id;
+from DreamsApp_client WHERE dreams_id is not null AND ward_id is not null AND DreamsApp_client.implementing_partner_id=implementing_partner_id and DreamsApp_client.ward_id=ward group by implementing_partner_id, ward_id;
 
   IF new_serial is NULL THEN
     SET new_serial = 1;
   END IF;
 
-	return CONCAT(implementing_partner_id, '/', ward, '/',new_serial);
+  return CONCAT(implementing_partner_id, '/', ward, '/',new_serial);
 END$$
 DELIMITER ;
 
@@ -401,7 +407,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_demographic_data$$
 CREATE PROCEDURE sp_demographic_data(IN recordUUID VARCHAR(100))
-	BEGIN
+  BEGIN
 
     INSERT INTO dreams_test.DreamsApp_client
     (
@@ -420,13 +426,15 @@ CREATE PROCEDURE sp_demographic_data(IN recordUUID VARCHAR(100))
       guardian_national_id,
       informal_settlement,
       landmark,
+      village,
       verification_document_id,
       verification_document_other,
       verification_doc_no,
       implementing_partner_id,
       ward_id,
       odk_enrollment_uuid,
-      date_created
+      date_created,
+      voided
     )
     select
       d.DEMOGRAPHIC_FIRSTNAME_1 as f_name,
@@ -437,31 +445,33 @@ CREATE PROCEDURE sp_demographic_data(IN recordUUID VARCHAR(100))
       d.DEMOGRAPHIC_MARITAL as marital_status,
       d.DEMOGRAPHIC_PHONENO as client_phone_no,
       d.DEMOGRAPHIC_DSSNO as dss_no,
-      COALESCE(d.DEMOGRAPHIC_DREAMSID, nextDreamsSerial(d.IPNAME, d.DEMOGRAPHIC_WARD)) as Dreams_id,
+      nextDreamsSerial(d.IPNAME, d.DEMOGRAPHIC_WARD) as Dreams_id,
       d.DEMOGRAPHIC_CAREGIVER AS caregiver_name,
       d.DEMOGRAPHIC_RELATIONSHIP as caregiver_relationship,
       d.DEMOGRAPHIC_PHONENUMBER as caregiver_phone_no,
       d.DEMOGRAPHIC_NATIONAL_ID as caregiver_ID_no,
       d.DEMOGRAPHIC_INFORMALSTTLEMENTT as informal_settlement,
       d.DEMOGRAPHIC_LANDMARK as landmark,
+      d.DEMOGRAPHIC_VILLAGE as village,
       d.VERIFICATIONDOC as verification_doc,
       d.VERIFICATIONDOCSPECIFY as verification_doc_other,
       COALESCE(d.VERIFICATION_1, d.VERIFICATION_2, d.VERIFICATION_3) as verification_doc_no,
       d.IPNAME as ip_name,
       d.DEMOGRAPHIC_WARD,
       d._URI as uuid,
-      now()
+      now(),
+      0
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE d
     where d.ENROLNOTENROLED = 1 and _URI=recordUUID ;
   END
-		$$
+    $$
 DELIMITER ;
 
 -- Getting individual and household data
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_individual_and_household_data$$
 CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE individualRecordID INT(11);
 
     INSERT INTO dreams_test.DreamsApp_clientindividualandhouseholddata
@@ -529,7 +539,7 @@ CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100), IN
     SET individualRecordID = LAST_INSERT_ID();
     CALL sp_client_disability_type(individualRecordID, recordUUID);
   END
-		$$
+    $$
 DELIMITER ;
 
 -- django many to many relationship: Individual and household data - disability types
@@ -548,7 +558,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_sexuality_data$$
 CREATE PROCEDURE sp_sexuality_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     -- SELECT concat('UUID: ',recordUUID, ', clientID: ', clientID);
     INSERT INTO dreams_test.DreamsApp_clientsexualactivitydata
     (
@@ -593,7 +603,7 @@ CREATE PROCEDURE sp_sexuality_data(IN recordUUID VARCHAR(100), IN clientID INT(1
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE2 d
     where d._PARENT_AURI = recordUUID;
   END
-		$$
+    $$
 DELIMITER ;
 
 
@@ -601,7 +611,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_reproductive_health_data$$
 CREATE PROCEDURE sp_reproductive_health_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE repHealthRecordID INT(11);
 
     INSERT INTO dreams_test.DreamsApp_clientreproductivehealthdata
@@ -642,7 +652,7 @@ CREATE PROCEDURE sp_reproductive_health_data(IN recordUUID VARCHAR(100), IN clie
     CALL sp_client_rep_health_known_fp_method(repHealthRecordID, recordUUID);
 
   END
-		$$
+    $$
 DELIMITER ;
 
 -- django many to many relationship: reproductive health - known family planning methods
@@ -663,7 +673,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_drug_use_data$$
 CREATE PROCEDURE sp_drug_use_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE drugUseRecordID INT(11);
 
     INSERT INTO dreams_test.DreamsApp_clientdrugusedata
@@ -690,7 +700,7 @@ CREATE PROCEDURE sp_drug_use_data(IN recordUUID VARCHAR(100), IN clientID INT(11
     CALL sp_client_drug_used_in_last_12_months(drugUseRecordID, recordUUID);
 
   END
-		$$
+    $$
 DELIMITER ;
 
 -- django many to many relationship: Drugs used in the last 12 months
@@ -711,7 +721,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_program_participation_data$$
 CREATE PROCEDURE sp_program_participation_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE programParticipationRecordID INT(11);
 
     INSERT INTO dreams_test.DreamsApp_clientparticipationindreams
@@ -729,7 +739,7 @@ CREATE PROCEDURE sp_program_participation_data(IN recordUUID VARCHAR(100), IN cl
     SET programParticipationRecordID = LAST_INSERT_ID();
     CALL sp_client_programs_enrolled(programParticipationRecordID, recordUUID);
   END
-		$$
+    $$
 DELIMITER ;
 
 -- django many to many relationship: Dreams programs enrolled in
@@ -751,7 +761,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_gbv_data$$
 CREATE PROCEDURE sp_gbv_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE gbvRecordID INT(11);
 
     INSERT INTO dreams_test.DreamsApp_clientgenderbasedviolencedata
@@ -810,7 +820,7 @@ CREATE PROCEDURE sp_gbv_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
     CALL sp_client_gbv_preferred_provider(gbvRecordID, recordUUID);
 
   END
-		$$
+    $$
 DELIMITER ;
 
 -- django many to many relationship: provider where client sought help after GBV
@@ -844,7 +854,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_education_and_employment$$
 CREATE PROCEDURE sp_education_and_employment(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE eduRecordID INT(11);
 
     INSERT INTO dreams_test.DreamsApp_clienteducationandemploymentdata
@@ -901,7 +911,7 @@ CREATE PROCEDURE sp_education_and_employment(IN recordUUID VARCHAR(100), IN clie
     CALL sp_client_current_education_supporter(eduRecordID, recordUUID);
 
   END
-		$$
+    $$
 DELIMITER ;
 -- education and employment many to many relationship: current education supporter
 DELIMITER $$
@@ -921,7 +931,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_hiv_testing$$
 CREATE PROCEDURE sp_hiv_testing(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE hivtestingRecordID INT(11);
 
     INSERT INTO dreams_test.DreamsApp_clienthivtestingdata
@@ -956,7 +966,7 @@ CREATE PROCEDURE sp_hiv_testing(IN recordUUID VARCHAR(100), IN clientID INT(11))
     CALL sp_client_hiv_reason_never_tested(hivtestingRecordID, recordUUID);
 
   END
-		$$
+    $$
 DELIMITER ;
 
 -- get reason one has never tested for hiv: django many to many relationship
@@ -980,7 +990,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_ct_home_visit_verification_data$$
 CREATE PROCEDURE sp_ct_home_visit_verification_data(IN recordUUID VARCHAR(100))
-	BEGIN
+  BEGIN
     DECLARE ct_home_visit_recordID INT(11);
 
     INSERT INTO dreams_test.DreamsApp_homevisitverification
@@ -1045,7 +1055,7 @@ CREATE PROCEDURE sp_ct_home_visit_verification_data(IN recordUUID VARCHAR(100))
     SET ct_home_visit_recordID = LAST_INSERT_ID();
     CALL sp_ct_source_of_livelihood(ct_home_visit_recordID, recordUUID);
   END
-		$$
+    $$
 DELIMITER ;
 
 -- get reason one has never tested for hiv: django many to many relationship
@@ -1078,6 +1088,23 @@ CREATE PROCEDURE sp_update_demographics_location()
     ) location ON location.ward_code = cl.ward_id
     SET cl.sub_county_id = location.subcounty_id, cl.county_of_residence_id = location.county_id
     WHERE (cl.sub_county_id is NULL OR cl.county_of_residence_id is NULL)
+
+;
+  END $$
+DELIMITER ;
+
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_update_enrollment_staging_table$$
+CREATE PROCEDURE sp_update_enrollment_staging_table()
+  BEGIN
+    /*Update implementing partner*/
+    UPDATE dreams_test.DreamsApp_client cl
+    INNER JOIN (
+      select code, name from DreamsApp_implementingpartner
+    ) ip ON ip.code = cl.implementing_partner_id
+    SET cl.implementing_partner = ip.name
+    WHERE cl.implementing_partner is NULL
 
 ;
   END $$
@@ -2253,7 +2280,6 @@ CREATE PROCEDURE sp_update_enrollment_table_derived_columns()
   END $$
 DELIMITER ;
 
-
 -- ------------------------------------- insert into flat table ---------
 
 DELIMITER $$
@@ -2403,7 +2429,12 @@ ever_tested_for_hiv_id,
 knowledge_of_hiv_test_centres_id,
 last_test_result_id,
 period_last_tested_id,
-reason_not_in_hiv_care_id
+reason_not_in_hiv_care_id,
+voided,
+date_voided,
+exit_status,
+exit_date,
+exit_reason
 )
 select
 d.id,
@@ -2448,7 +2479,12 @@ edu.current_school_type_id,edu.currently_in_school_id,edu.dropout_school_level_i
 edu.life_wish_id,edu.reason_not_in_school_id,
 hiv.care_facility_enrolled,hiv.reason_not_in_hiv_care_other,hiv.reason_never_tested_for_hiv_other,hiv.enrolled_in_hiv_care_id,
 hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_result_id,hiv.period_last_tested_id,
-hiv.reason_not_in_hiv_care_id
+hiv.reason_not_in_hiv_care_id,
+d.voided,
+d.date_voided,
+(CASE d.exited WHEN 1 THEN "Yes" ELSE "" END) AS exited ,
+DATE(d.date_exited) AS date_exited,
+d.reason_exited
 from
 dreams_test.DreamsApp_client AS d
 LEFT OUTER JOIN dreams_test.DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
@@ -2584,7 +2620,7 @@ BEGIN
 
 DECLARE record_id INT(11);
 DECLARE last_update_time DATETIME;
-SELECT max(date_completed) into last_update_time from dreams_test.DreamsApp_flatenrollmenttablelog;
+SELECT max(date_started) into last_update_time from dreams_test.DreamsApp_flatenrollmenttablelog;
 INSERT INTO dreams_test.DreamsApp_flatenrollmenttablelog(date_started, activity) VALUES(NOW(), 'Table Updates');
 SET record_id = LAST_INSERT_ID();
 
@@ -2726,7 +2762,12 @@ ever_tested_for_hiv_id,
 knowledge_of_hiv_test_centres_id,
 last_test_result_id,
 period_last_tested_id,
-reason_not_in_hiv_care_id
+reason_not_in_hiv_care_id,
+voided,
+date_voided,
+exit_status,
+exit_date,
+exit_reason
 )
 select
 d.id,
@@ -2771,7 +2812,12 @@ edu.current_school_type_id,edu.currently_in_school_id,edu.dropout_school_level_i
 edu.life_wish_id,edu.reason_not_in_school_id,
 hiv.care_facility_enrolled,hiv.reason_not_in_hiv_care_other,hiv.reason_never_tested_for_hiv_other,hiv.enrolled_in_hiv_care_id,
 hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_result_id,hiv.period_last_tested_id,
-hiv.reason_not_in_hiv_care_id
+hiv.reason_not_in_hiv_care_id,
+d.voided,
+d.date_voided,
+(CASE d.exited WHEN 1 THEN "Yes" ELSE "" END) AS exited ,
+DATE(d.date_exited) AS date_exited,
+d.reason_exited
 from
 dreams_test.DreamsApp_client AS d
 LEFT OUTER JOIN dreams_test.DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
@@ -2794,15 +2840,15 @@ from dreams_test.DreamsApp_ward w
 INNER JOIN dreams_test.DreamsApp_subcounty s ON s.id = w.sub_county_id
 INNER JOIN dreams_test.DreamsApp_county c ON s.county_id = c.id
 ) l ON l.ward_code = d.ward_id
-where (d.date_created > last_update_time or d.date_changed > last_update_time)
-  or (i.date_created > last_update_time or i.date_changed > last_update_time)
-  or (s.date_created > last_update_time or s.date_changed > last_update_time)
-  or (rh.date_created > last_update_time or rh.date_changed > last_update_time)
-  or (dr.date_created > last_update_time or dr.date_changed > last_update_time)
-  or (p.date_created > last_update_time or p.date_changed > last_update_time)
-  or (gbv.date_created > last_update_time or gbv.date_changed > last_update_time)
-  or (edu.date_created > last_update_time or edu.date_changed > last_update_time)
-  or (hiv.date_created > last_update_time or hiv.date_changed > last_update_time)
+where (d.date_created >= last_update_time or d.date_changed >= last_update_time)
+  or (i.date_created >= last_update_time or i.date_changed >= last_update_time)
+  or (s.date_created >= last_update_time or s.date_changed >= last_update_time)
+  or (rh.date_created >= last_update_time or rh.date_changed >= last_update_time)
+  or (dr.date_created >= last_update_time or dr.date_changed >= last_update_time)
+  or (p.date_created >= last_update_time or p.date_changed >= last_update_time)
+  or (gbv.date_created >= last_update_time or gbv.date_changed >= last_update_time)
+  or (edu.date_created >= last_update_time or edu.date_changed >= last_update_time)
+  or (hiv.date_created >= last_update_time or hiv.date_changed >= last_update_time)
 group by d.id
 ON DUPLICATE KEY UPDATE
 first_name=VALUES(first_name),
@@ -2941,8 +2987,12 @@ ever_tested_for_hiv_id=VALUES(ever_tested_for_hiv_id),
 knowledge_of_hiv_test_centres_id=VALUES(knowledge_of_hiv_test_centres_id),
 last_test_result_id=VALUES(last_test_result_id),
 period_last_tested_id=VALUES(period_last_tested_id),
-reason_not_in_hiv_care_id=VALUES(reason_not_in_hiv_care_id)
-
+reason_not_in_hiv_care_id=VALUES(reason_not_in_hiv_care_id),
+voided=VALUES(voided),
+date_voided=VALUES(date_voided),
+exit_status=VALUES(exit_status),
+exit_date=VALUES(exit_date),
+exit_reason=VALUES(exit_reason)
 ;
 -- update many to many fields
 UPDATE dreams_test.flat_dreams_enrollment e INNER JOIN (
