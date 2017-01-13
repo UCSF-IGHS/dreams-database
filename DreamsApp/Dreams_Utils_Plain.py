@@ -268,13 +268,13 @@ VALUES """
 
     def get_export_rows(self, ip_list_str, sub_county, ward):
         cursor = connection.cursor()
-        multiple_ip_sub_county_query = "SELECT * FROM flat_dreams_enrollment WHERE sub_county_code = %s AND  implementing_partner_id IN %s "
-        multiple_ip_ward_query = "SELECT * FROM flat_dreams_enrollment WHERE ward_id = %s AND  implementing_partner_id IN %s "
-        multiple_ip_default_query = "SELECT * FROM flat_dreams_enrollment WHERE  implementing_partner_id IN %s "
+        multiple_ip_sub_county_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND  implementing_partner_id IN %s "
+        multiple_ip_ward_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND  implementing_partner_id IN %s "
+        multiple_ip_default_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id IN %s "
 
-        single_ip_sub_county_query = "SELECT * FROM flat_dreams_enrollment WHERE sub_county_code = %s AND implementing_partner_id = %s "
-        single_ip_ward_query = "SELECT * FROM flat_dreams_enrollment WHERE ward_id = %s AND implementing_partner_id = %s "
-        single_ip_default_query = "SELECT * FROM flat_dreams_enrollment WHERE implementing_partner_id = %s "
+        single_ip_sub_county_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND implementing_partner_id = %s "
+        single_ip_ward_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND implementing_partner_id = %s "
+        single_ip_default_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id = %s "
 
         try:
 
@@ -537,6 +537,9 @@ WHERE i.implementing_partner_id = %s
             'caregiver_relationship_other': 31,
             'guardian_phone_number': 32,
             'guardian_national_id': 33,
+            'exit_status': 204,
+            'exit_date': 205,
+            'exit_reason': 206
         }
 
         for k, v in cols.items():
