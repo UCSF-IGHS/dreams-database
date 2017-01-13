@@ -57,7 +57,9 @@ urlpatterns = [
     url(r'^cashTransfer/save', views.cash_transfer_details_save, name='cash_transfer_details_save'),
     url(r'^excel-output', views.download_excel, name='excel_template'),
     url(r'^download-excel/$', views.downloadEXCEL),
+    url(r'^download-intervention-excel/$', views.downloadRawInterventionEXCEL),
     url(r'^export-page', views.export_page),
+    url(r'^intervention-export-page', views.intervention_export_page),
     url(r'^client_baseline_info', views.viewBaselineData),
     url(r'^update-demographics', views.update_demographics_data),
     url(r'^update-individual-household', views.update_individual_and_household_data),
@@ -68,6 +70,7 @@ urlpatterns = [
     url(r'^update-gbv', views.update_gbv_data),
     url(r'^update-drug-use', views.update_drug_use_data),
     url(r'^update-programme-participation', views.update_programme_participation_data),
+    url(r'^client/exit$', views.client_exit_status_toggle),
     #url(r'^$', views.user_login, name='login'),
     url(r'^', views.error_404, name='error_404'),
 ]
