@@ -2592,7 +2592,6 @@ $(document).ready(function () {
 
     });
     
-    
     $('.manual_download').click(function (event) {
         var item = event.target;
         var formID = $(item).data("form_id")
@@ -2664,13 +2663,24 @@ $(document).ready(function () {
                 }
             });
 
-
     // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
         // get relevant client details
         // Nothing important should happen here
         $('#client-exit-modal #id_reason_for_exit').val('');
         $("#client-exit-modal #id_date_of_exit").datepicker("setDate", new Date());
+        // Action wording
+        var clientStatus = $('.client_status_action_text').html()
+        if($.trim(clientStatus) == 'Exit Client'){
+            // Client is actively in the program.
+            $('#lbl_client_exit_activation_label').html('Reason to Exit Client');
+            $('#btn_submit_exit_client_form').val('Exit Client');
+        }
+        else{
+            $('#lbl_client_exit_activation_label').html('Reason to Activate Client');
+            $('#btn_submit_exit_client_form').html('Activate Client');
+        }
+        console.log(clientStatus)
     })
 
     // Exit form validation
@@ -2764,15 +2774,24 @@ $(document).ready(function () {
 
     $('#collapseOne').on('shown.bs.collapse', function () {
         $('#search-expand-collapse-glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus')
-        $('#advanced_filter_text_span').html('Hide Advanced Filters')
+        $('#advanced_filter_text_span').html('Hide Advanced Search Filters')
         // Set advanced search
         $('#is_advanced_search').val('True')
     })
+
     $('#collapseOne').on('hidden.bs.collapse', function () {
         $('#search-expand-collapse-glyphicon').removeClass('glyphicon-minus').addClass('glyphicon-plus')
-        $('#advanced_filter_text_span').html('Show Advanced Filters')
+        $('#advanced_filter_text_span').html('Show Search Advanced Filters')
         // Handle reset of advanced filters
         $('#is_advanced_search').val('False')
+    })
+
+    $('#btn_reset_advanced_search').click(function (e) {
+        $('#doe_start_filter').val('')
+        $('#doe_end_filter').val('')
+        $('#county_filter').val('')
+        $('#sub_county_filter').val('')
+        $('#ward_filter').val('')
     })
 
 });
