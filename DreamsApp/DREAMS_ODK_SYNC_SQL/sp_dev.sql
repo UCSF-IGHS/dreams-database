@@ -45,7 +45,7 @@ date_of_enrollment DATE,
 phone_number VARCHAR(15),
 dss_id_number VARCHAR(20),
 informal_settlement VARCHAR(50),
-village VARCHAR(50),
+village VARCHAR(100),
 landmark VARCHAR(255),
 dreams_id VARCHAR(20),
 guardian_name VARCHAR(50),
@@ -258,7 +258,7 @@ reason_not_in_hiv_care VARCHAR(50),
 reason_not_tested_for_hiv VARCHAR(20),
 voided INT(11),
 date_voided DATETIME,
-exit_status INT(11),
+exit_status VARCHAR(10),
 exit_date DATETIME,
 exit_reason VARCHAR(200)
 );
@@ -388,10 +388,10 @@ DELIMITER ;
 DELIMITER $$
 DROP FUNCTION IF EXISTS nextDreamsSerial$$
 CREATE FUNCTION nextDreamsSerial(implementing_partner_id INT, ward INT) RETURNS VARCHAR(200)
-	DETERMINISTIC
+  DETERMINISTIC
 BEGIN
-	DECLARE new_serial INT(11);
-	SELECT
+  DECLARE new_serial INT(11);
+  SELECT
   (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1) INTO new_serial
 from DreamsApp_client WHERE dreams_id is not null AND ward_id is not null AND DreamsApp_client.implementing_partner_id=implementing_partner_id and DreamsApp_client.ward_id=ward group by implementing_partner_id, ward_id;
 
@@ -399,7 +399,7 @@ from DreamsApp_client WHERE dreams_id is not null AND ward_id is not null AND Dr
     SET new_serial = 1;
   END IF;
 
-	return CONCAT(implementing_partner_id, '/', ward, '/',new_serial);
+  return CONCAT(implementing_partner_id, '/', ward, '/',new_serial);
 END$$
 DELIMITER ;
 
@@ -407,7 +407,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_demographic_data$$
 CREATE PROCEDURE sp_demographic_data(IN recordUUID VARCHAR(100))
-	BEGIN
+  BEGIN
 
     INSERT INTO dreams_dev.DreamsApp_client
     (
@@ -464,14 +464,14 @@ CREATE PROCEDURE sp_demographic_data(IN recordUUID VARCHAR(100))
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE d
     where d.ENROLNOTENROLED = 1 and _URI=recordUUID ;
   END
-		$$
+    $$
 DELIMITER ;
 
 -- Getting individual and household data
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_individual_and_household_data$$
 CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE individualRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clientindividualandhouseholddata
@@ -539,7 +539,7 @@ CREATE PROCEDURE sp_individual_and_household_data(IN recordUUID VARCHAR(100), IN
     SET individualRecordID = LAST_INSERT_ID();
     CALL sp_client_disability_type(individualRecordID, recordUUID);
   END
-		$$
+    $$
 DELIMITER ;
 
 -- django many to many relationship: Individual and household data - disability types
@@ -558,7 +558,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_sexuality_data$$
 CREATE PROCEDURE sp_sexuality_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     -- SELECT concat('UUID: ',recordUUID, ', clientID: ', clientID);
     INSERT INTO dreams_dev.DreamsApp_clientsexualactivitydata
     (
@@ -603,7 +603,7 @@ CREATE PROCEDURE sp_sexuality_data(IN recordUUID VARCHAR(100), IN clientID INT(1
     from odk_aggregate.DREAMS_ENROLMENT_FORM_CORE2 d
     where d._PARENT_AURI = recordUUID;
   END
-		$$
+    $$
 DELIMITER ;
 
 
@@ -611,7 +611,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_reproductive_health_data$$
 CREATE PROCEDURE sp_reproductive_health_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE repHealthRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clientreproductivehealthdata
@@ -652,7 +652,7 @@ CREATE PROCEDURE sp_reproductive_health_data(IN recordUUID VARCHAR(100), IN clie
     CALL sp_client_rep_health_known_fp_method(repHealthRecordID, recordUUID);
 
   END
-		$$
+    $$
 DELIMITER ;
 
 -- django many to many relationship: reproductive health - known family planning methods
@@ -673,7 +673,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_drug_use_data$$
 CREATE PROCEDURE sp_drug_use_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE drugUseRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clientdrugusedata
@@ -700,7 +700,7 @@ CREATE PROCEDURE sp_drug_use_data(IN recordUUID VARCHAR(100), IN clientID INT(11
     CALL sp_client_drug_used_in_last_12_months(drugUseRecordID, recordUUID);
 
   END
-		$$
+    $$
 DELIMITER ;
 
 -- django many to many relationship: Drugs used in the last 12 months
@@ -721,7 +721,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_program_participation_data$$
 CREATE PROCEDURE sp_program_participation_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE programParticipationRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clientparticipationindreams
@@ -739,7 +739,7 @@ CREATE PROCEDURE sp_program_participation_data(IN recordUUID VARCHAR(100), IN cl
     SET programParticipationRecordID = LAST_INSERT_ID();
     CALL sp_client_programs_enrolled(programParticipationRecordID, recordUUID);
   END
-		$$
+    $$
 DELIMITER ;
 
 -- django many to many relationship: Dreams programs enrolled in
@@ -761,7 +761,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_gbv_data$$
 CREATE PROCEDURE sp_gbv_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE gbvRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clientgenderbasedviolencedata
@@ -820,7 +820,7 @@ CREATE PROCEDURE sp_gbv_data(IN recordUUID VARCHAR(100), IN clientID INT(11))
     CALL sp_client_gbv_preferred_provider(gbvRecordID, recordUUID);
 
   END
-		$$
+    $$
 DELIMITER ;
 
 -- django many to many relationship: provider where client sought help after GBV
@@ -854,7 +854,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_education_and_employment$$
 CREATE PROCEDURE sp_education_and_employment(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE eduRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clienteducationandemploymentdata
@@ -911,7 +911,7 @@ CREATE PROCEDURE sp_education_and_employment(IN recordUUID VARCHAR(100), IN clie
     CALL sp_client_current_education_supporter(eduRecordID, recordUUID);
 
   END
-		$$
+    $$
 DELIMITER ;
 -- education and employment many to many relationship: current education supporter
 DELIMITER $$
@@ -931,7 +931,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_hiv_testing$$
 CREATE PROCEDURE sp_hiv_testing(IN recordUUID VARCHAR(100), IN clientID INT(11))
-	BEGIN
+  BEGIN
     DECLARE hivtestingRecordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_clienthivtestingdata
@@ -966,7 +966,7 @@ CREATE PROCEDURE sp_hiv_testing(IN recordUUID VARCHAR(100), IN clientID INT(11))
     CALL sp_client_hiv_reason_never_tested(hivtestingRecordID, recordUUID);
 
   END
-		$$
+    $$
 DELIMITER ;
 
 -- get reason one has never tested for hiv: django many to many relationship
@@ -990,7 +990,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_ct_home_visit_verification_data$$
 CREATE PROCEDURE sp_ct_home_visit_verification_data(IN recordUUID VARCHAR(100))
-	BEGIN
+  BEGIN
     DECLARE ct_home_visit_recordID INT(11);
 
     INSERT INTO dreams_dev.DreamsApp_homevisitverification
@@ -1055,7 +1055,7 @@ CREATE PROCEDURE sp_ct_home_visit_verification_data(IN recordUUID VARCHAR(100))
     SET ct_home_visit_recordID = LAST_INSERT_ID();
     CALL sp_ct_source_of_livelihood(ct_home_visit_recordID, recordUUID);
   END
-		$$
+    $$
 DELIMITER ;
 
 -- get reason one has never tested for hiv: django many to many relationship
@@ -2482,8 +2482,8 @@ hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_re
 hiv.reason_not_in_hiv_care_id,
 d.voided,
 d.date_voided,
-d.exited,
-d.date_exited,
+(CASE d.exited WHEN 1 THEN "Yes" ELSE "" END) AS exited ,
+DATE(d.date_exited) AS date_exited,
 d.reason_exited
 from
 dreams_dev.DreamsApp_client AS d
@@ -2815,8 +2815,8 @@ hiv.ever_tested_for_hiv_id,hiv.knowledge_of_hiv_test_centres_id,hiv.last_test_re
 hiv.reason_not_in_hiv_care_id,
 d.voided,
 d.date_voided,
-d.exited,
-d.date_exited,
+(CASE d.exited WHEN 1 THEN "Yes" ELSE "" END) AS exited ,
+DATE(d.date_exited) AS date_exited,
 d.reason_exited
 from
 dreams_dev.DreamsApp_client AS d
@@ -3102,161 +3102,7 @@ UPDATE dreams_dev.DreamsApp_flatenrollmenttablelog SET date_completed = NOW() WH
 END$$
 DELIMITER ;
 
--- ------------------------ procedures for cleaning dreams ids --------------------------------------
 
-DELIMITER $$
-DROP FUNCTION IF EXISTS cleanDreamsSerial$$
-CREATE FUNCTION cleanDreamsSerial(implementing_partner_id INT, ward INT) RETURNS VARCHAR(200)
-DETERMINISTIC
-BEGIN
-DECLARE new_serial INT(11);
-SELECT
-  (max(CONVERT(SUBSTRING_INDEX(clean.dreams_id, '/', -1), UNSIGNED INTEGER )) + 1) INTO new_serial
-from stag_clean_dreams_id clean
-WHERE clean.implementing_partner_id=implementing_partner_id and clean.ward_id=ward and clean.dreams_id  is not null  group by implementing_partner_id, ward_id;
-
-IF new_serial is NULL THEN
-SET new_serial = 1;
-END IF;
-return CONCAT(implementing_partner_id, '/', ward, '/',new_serial);
-END$$
-DELIMITER ;
-
-
--- -------------------------------- creates a temporary table to hold clean dreams ID
-DELIMITER $$
-DROP PROCEDURE IF EXISTS sp_dreams_id_staging_tables$$
-CREATE PROCEDURE sp_dreams_id_staging_tables()
-BEGIN
-drop table if EXISTS stag_clean_dreams_id;
-
-  DROP TABLE IF EXISTS stag_clean_dreams_id;
-CREATE TABLE `stag_clean_dreams_id` (
-  `client_id` int(11)  ,
-  `dreams_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  `implementing_partner_id` int(11) DEFAULT NULL,
-  `ward_id` int(11) DEFAULT NULL,
-  `err` varchar(50) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  INDEX (client_id),
-  INDEX (dreams_id),
-  INDEX(implementing_partner_id),
-  INDEX(ward_id),
-  INDEX (implementing_partner_id, ward_id)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-insert into stag_clean_dreams_id (client_id, dreams_id, implementing_partner_id, ward_id, err)
-  SELECT c.id, c.dreams_id, c.implementing_partner_id, c.ward_id, x.dreams_id as err
-  FROM dreams_dev.DreamsApp_client c
-  left JOIN (
-SELECT
-  id,
-  implementing_partner_id,
-  dreams_id,
-  dreams_id as assigned_dreams_id,
-  county_of_residence_id,
-  sub_county_id,
-  ward_id,
-  ROUND (
-        (
-            LENGTH(dreams_id)
-            - LENGTH( REPLACE ( dreams_id, "/", "") )
-        ) / LENGTH("/")
-    ) AS slash_count ,
-  SUBSTRING_INDEX(dreams_id, '/', 1)  AS IP_CODE,
-  SUBSTRING_INDEX(SUBSTRING_INDEX(dreams_id, '/', 2), '/', -1)   AS WARD_CODE,
-  SUBSTRING_INDEX(dreams_id, '/', -1) AS dreams_serial
-FROM DreamsApp_client
--- GROUP BY dreams_id
-HAVING ward_id is not null and DreamsApp_client.implementing_partner_id is not null and (dreams_id in (NULL, 'NONE', 'n/a', 'N/A', 'None', '') or dreams_serial > 20000 or slash_count < 2)
-      ) x on c.dreams_id = x.dreams_id and c.id=x.id where x.dreams_id is null;
-
-drop table if EXISTS stag_dreams_ids_with_errors;
-create table stag_dreams_ids_with_errors as
-      SELECT
-  id,
-  implementing_partner_id,
-  dreams_id,
-  dreams_id as assigned_dreams_id,
-  county_of_residence_id,
-  sub_county_id,
-  ward_id,
-  ROUND (
-        (
-            LENGTH(dreams_id)
-            - LENGTH( REPLACE ( dreams_id, "/", "") )
-        ) / LENGTH("/")
-    ) AS slash_count ,
-  SUBSTRING_INDEX(dreams_id, '/', 1)  AS IP_CODE,
-  SUBSTRING_INDEX(SUBSTRING_INDEX(dreams_id, '/', 2), '/', -1)   AS WARD_CODE,
-  SUBSTRING_INDEX(dreams_id, '/', -1) AS dreams_serial
-FROM DreamsApp_client
--- GROUP BY dreams_id
-HAVING ward_id is not null and DreamsApp_client.implementing_partner_id is not null and (dreams_id in (NULL, 'NONE', 'n/a', 'N/A', 'None', '') or dreams_serial > 20000 or slash_count < 2);
-END;
-  $$
-DELIMITER ;
-
--- ----------------------    cursor to hold and correct dreams_id ------------
-
-DELIMITER $$
-DROP PROCEDURE IF EXISTS sp_fetch_erroneous_dreams_id$$
-CREATE PROCEDURE sp_fetch_erroneous_dreams_id()
-BEGIN
-
-  DECLARE no_more_rows BOOLEAN;
-  DECLARE implementing_partner INT(11);
-  DECLARE clientID INT(11);
-  DECLARE dreamsID VARCHAR(50);
-  DECLARE wardID INT(11);
-  DECLARE v_row_count INT(11);
-
-  DECLARE erroneous_records CURSOR FOR
-    SELECT id, implementing_partner_id, dreams_id, ward_id FROM stag_dreams_ids_with_errors;
-  DECLARE CONTINUE HANDLER FOR NOT FOUND
-    SET no_more_rows = TRUE;
-
-  OPEN erroneous_records;
-  SET v_row_count = FOUND_ROWS();
-
-  IF v_row_count > 0 THEN
-    dreams_ids: LOOP
-    FETCH erroneous_records INTO clientID, implementing_partner, dreamsID, wardID;
-
-    IF no_more_rows THEN
-      CLOSE erroneous_records;
-      LEAVE dreams_ids;
-    END IF;
-    CALL sp_update_erroneous_dreams_id(clientID, dreamsID, implementing_partner, wardID);
-
-    END LOOP dreams_ids;
-  ELSE
-    SELECT "NO ROWS WERE FOUND";
-  END IF;
-
-END
-$$
-DELIMITER ;
-
--- ------------------------------ procedure to update erroneous ids ------------
-
-
-DELIMITER $$
-DROP PROCEDURE IF EXISTS sp_update_erroneous_dreams_id$$
-CREATE PROCEDURE sp_update_erroneous_dreams_id(IN clientID INT(11), IN dreamsID VARCHAR(100), IN implementingPartnerID INT(11), IN ward INT(11))
-BEGIN
-
-  DECLARE new_dreams_id VARCHAR(100);
-  SELECT cleanDreamsSerial(implementingPartnerID, ward) INTO new_dreams_id;
-  UPDATE DreamsApp_client c
-    SET c.dreams_id = new_dreams_id, c.date_changed = NOW() WHERE c.id=clientID;
-
-  UPDATE stag_dreams_ids_with_errors
-    SET assigned_dreams_id = new_dreams_id WHERE id=clientID;
-
-  INSERT INTO stag_clean_dreams_id(client_id, dreams_id, implementing_partner_id, ward_id) VALUES (clientID, new_dreams_id, implementingPartnerID,ward );
-END
-$$
-DELIMITER ;
 
 
 
