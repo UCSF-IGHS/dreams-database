@@ -612,7 +612,6 @@ def testajax(request):
 # Handles post request for intervention types.
 # Receives category_code from request and searches for types in the database
 
-
 def get_intervention_types(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
