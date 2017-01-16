@@ -320,50 +320,50 @@ VALUES """
         cursor = connection.cursor()
 
         multiple_ip_sub_county_query = """select
-  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.implementing_partner, i.implementing_partner_id, i.county_of_residence,i.sub_county,
+  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner, i.implementing_partner_id, i.county_of_residence,i.sub_county,
   i.ward, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment
-from stag_client_intervention i WHERE i.sub_county_id = %s AND  i.implementing_partner_id IN %s """
+from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND  i.implementing_partner_id IN %s """
 
         multiple_ip_ward_query = """select
-  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
+  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment
-from stag_client_intervention i WHERE i.ward_id = %s AND  i.implementing_partner_id IN %s """
+from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND  i.implementing_partner_id IN %s """
 
 
         multiple_ip_default_query = """select
-  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
+  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment
-from stag_client_intervention i WHERE  i.implementing_partner_id IN %s """
+from stag_client_intervention i WHERE voided=0 AND  i.implementing_partner_id IN %s """
 
         single_ip_sub_county_query = """select
-  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
+  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment
-from stag_client_intervention i WHERE i.sub_county_id = %s AND i.implementing_partner_id = %s """
+from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id = %s """
 
 
         single_ip_ward_query = """select
-  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
+  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment
-from stag_client_intervention i WHERE i.ward_id = %s AND i.implementing_partner_id = %s """
+from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id = %s """
 
 
         single_ip_default_query = """select
-  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
+  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment
 from stag_client_intervention i
-WHERE i.implementing_partner_id = %s
+WHERE voided=0 AND i.implementing_partner_id = %s
 ;
  """
 
@@ -485,11 +485,11 @@ WHERE i.implementing_partner_id = %s
 
     def map_interventions(self, ws, i, row):
         cols = {
-            'client_id': 1,
+            #'client_id': 1,
             'dreams_id': 2,
             'client_name': 3,
             'implementing_partner': 4,
-            'implementing_partner_id': 5,
+            'date_of_birth': 5,
             'county_of_residence': 6,
             'sub_county': 7,
             'ward': 8,
