@@ -1427,7 +1427,7 @@ def grievances_list(request):
         except:
             user_ip = None
         """ IP level permission check """
-        grievance_list = Grievance.objects.all() if request.user.has_perm('auth.can_view_cross_ip') else \
+        grievance_list = Grievance.objects.all() if request.user.has_perm('auth.can_view_cross_ip_data') else \
             Grievance.objects.filter(implementing_partner=user_ip)
         """Date filter """
         if filter_date is not None and filter_date is not u'':
@@ -1654,7 +1654,7 @@ def export_page(request):
 
         try:
 
-            if request.user.is_superuser or request.user.has_perm('auth.can_view_cross_ip'):
+            if request.user.is_superuser or request.user.has_perm('auth.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(id=request.user.implementingpartneruser.implementing_partner.id)
@@ -1679,7 +1679,7 @@ def intervention_export_page(request):
 
         try:
 
-            if request.user.is_superuser or request.user.has_perm('auth.can_view_cross_ip'):
+            if request.user.is_superuser or request.user.has_perm('auth.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
