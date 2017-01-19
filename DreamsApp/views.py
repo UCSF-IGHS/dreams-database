@@ -191,7 +191,7 @@ def clients(request):
                 search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
                 search_result = search_result_tuple[0]
                 # check for permissions
-                if not request.user.has_perm("auth.can_view_cross_ip_data"):
+                if not request.user.has_perm("DreamsApp.can_view_cross_ip_data"):
                     try:
                         ip = request.user.implementingpartneruser.implementing_partner
                         search_result = search_result.filter(implementing_partner_id=ip.id)
@@ -793,7 +793,7 @@ def get_intervention_list(request):
                                                                                       intervention_type__in=iv_type_ids,
                                                                                       voided=False)\
                 .order_by('-intervention_date', '-date_created', '-date_changed')
-            if not request.user.has_perm('auth.can_view_cross_ip_data'):
+            if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 list_of_interventions = list_of_interventions.filter(
                     implementing_partner_id=request.user.implementingpartneruser.implementing_partner.id)
 
@@ -1190,7 +1190,7 @@ def users(request):
                 current_user_ip = None
             except ImplementingPartner.DoesNotExist:
                 current_user_ip = None
-            if not request.user.has_perm('auth.can_view_cross_ip_data'):
+            if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 if current_user_ip is not None:
                     ip_user_list = ip_user_list.filter(implementing_partner=current_user_ip)
                 else:
@@ -1427,7 +1427,7 @@ def grievances_list(request):
         except:
             user_ip = None
         """ IP level permission check """
-        grievance_list = Grievance.objects.all() if request.user.has_perm('auth.can_view_cross_ip_data') else \
+        grievance_list = Grievance.objects.all() if request.user.has_perm('DreamsApp.can_view_cross_ip_data') else \
             Grievance.objects.filter(implementing_partner=user_ip)
         """Date filter """
         if filter_date is not None and filter_date is not u'':
@@ -1654,7 +1654,7 @@ def export_page(request):
 
         try:
 
-            if request.user.is_superuser or request.user.has_perm('auth.can_view_cross_ip_data'):
+            if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(id=request.user.implementingpartneruser.implementing_partner.id)
@@ -1679,7 +1679,7 @@ def intervention_export_page(request):
 
         try:
 
-            if request.user.is_superuser or request.user.has_perm('auth.can_view_cross_ip_data'):
+            if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
