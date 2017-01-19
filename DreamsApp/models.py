@@ -191,9 +191,7 @@ class Client(models.Model):
 
     def get_current_age(self):
         try:
-            return datetime.now().year - self.date_of_birth.year - (
-                (datetime.now().month, datetime.now().day) < (
-                    self.date_of_birth.month, self.date_of_birth.day))
+            return datetime.now().year - self.date_of_birth.year - ((datetime.now().month, datetime.now().day) < (self.date_of_birth.month, self.date_of_birth.day))
         except:
             return 10
 
