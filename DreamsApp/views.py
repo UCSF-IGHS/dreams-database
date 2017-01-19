@@ -684,9 +684,12 @@ def save_intervention(request):
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_type_code = int(request.POST.get('intervention_type_code'))
                 intervention_type = InterventionType.objects.get(code__exact=intervention_type_code)
-                """Check that this is not a one time intervention that has already been given"""
+                """Check that this is not a one time intervention that has already been given to the client"""
                 try:
-                    if intervention_type.is_given_once and (Intervention.objects.filter(intervention_type=intervention_type).first() is not None):
+                    """Get client intervention filtered by intervention types"""
+                    client_interventions = Intervention.objects.filter(intervention_type=intervention_type,client=client).exclude(voided=True)
+                    client_interventions_count = client_interventions.count()
+                    if intervention_type.is_given_once and client_interventions.count() > 0:
                         """An intervention has been found. This is an error
                             Return error message to user
                         """
