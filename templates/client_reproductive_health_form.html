@@ -3,7 +3,8 @@
     {% csrf_token %}
     <div id="rh_replacement">
         <fieldset {% if not perms.DreamsApp.change_client %}disabled{% endif %}>
-            <div class="form-group form-inline">
+        <div id="sex-related" class=" form-group {% if sexuality_form.ever_had_sex.value != 1 %} hidden {% endif %}">
+            <div class="form-group form-inline ">
                 {{ rh_form.has_biological_children.errors }}
                 <label class="control-label enrolment-label">{{ rh_form.has_biological_children.label_tag }}</label>
                 {{ rh_form.has_biological_children|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:no-of-children"  }}
@@ -13,7 +14,7 @@
                 <label class="control-label enrolment-label">No of Children</label>
                 {{ rh_form.no_of_biological_children|attr:"min_value:1"|add_class:"input-sm form-control enrolment-input"  }}
             </div>
-            <div class="form-group form-inline">
+            <div class="form-group form-inline ">
                 {{ rh_form.currently_pregnant.errors }}
                 <label class="control-label enrolment-label">{{ rh_form.currently_pregnant.label_tag }}</label>
                 {{ rh_form.currently_pregnant|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:client-pregnant"|set_data:"hide_if_false:anc-facility" }}
@@ -29,7 +30,7 @@
                 <label class="control-label enrolment-label">Facility Enrolled</label>
                 {{ rh_form.anc_facility_name|add_class:"input-sm form-control enrolment-input"  }}
             </div>
-
+        </div>
             <div class="form-group form-inline">
                 {{ rh_form.fp_methods_awareness.errors }}
                 <label class="control-label enrolment-label">{{ rh_form.fp_methods_awareness.label_tag }}</label>
@@ -48,7 +49,7 @@
                     {{ rh_form.known_fp_method_other|add_class:"input-sm form-control enrolment-input"  }}
                 </div>
             </div>
-            <div class="form-group form-inline known-fp-methods know-fp ">
+            <div class="form-group form-inline known-fp-methods know-fp {% if rh_form.currently_use_modern_fp.value != 1 %} hidden {% endif %} ">
                 {{ rh_form.currently_use_modern_fp.errors }}
                 <label class="control-label enrolment-label">{{ rh_form.currently_use_modern_fp.label_tag }}</label>
                 {{ rh_form.currently_use_modern_fp|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:client-current-fp"|set_data:"hide_if_true:reason-not-using-fp"  }}
