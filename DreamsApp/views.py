@@ -1748,19 +1748,18 @@ def error_404(request):
 def viewBaselineData(request):
     """ Returns client profile """
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-
         if request.method == 'GET':
             try:
                 client_id = int(request.GET['client_id'])
-                client_demographics = Client.objects.get(id=client_id)
-                client_household = ClientIndividualAndHouseholdData.objects.get(client=client_id)
-                client_edu = ClientEducationAndEmploymentData.objects.get(client=client_id)
-                client_sexual_data = ClientSexualActivityData.objects.get(client=client_id)
-                client_gbv_data = ClientGenderBasedViolenceData.objects.get(client=client_id)
-                client_hiv_data = ClientHIVTestingData.objects.get(client=client_id)
-                client_rh_data = ClientReproductiveHealthData.objects.get(client=client_id)
-                client_drug_data = ClientDrugUseData.objects.get(client=client_id)
-                client_prog_part_data = ClientParticipationInDreams.objects.get(client=client_id)
+                client_demographics = Client.objects.filter(id=client_id).exclude(voided=True).first()
+                client_household = ClientIndividualAndHouseholdData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_edu = ClientEducationAndEmploymentData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_sexual_data = ClientSexualActivityData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_gbv_data = ClientGenderBasedViolenceData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_hiv_data = ClientHIVTestingData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_rh_data = ClientReproductiveHealthData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_drug_data = ClientDrugUseData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_prog_part_data = ClientParticipationInDreams.objects.filter(client=client_id).exclude(voided=True).first()
 
                 demographics_form = DemographicsForm(instance=client_demographics)
                 household_form = IndividualAndHouseholdForm(instance=client_household)
@@ -1775,7 +1774,6 @@ def viewBaselineData(request):
                 search_client_term = request.GET.get('search_client_term', '')
             except Client.DoesNotExist:
                 traceback.format_exc()
-                # raise PermissionDenied
         else:
             print 'POST not allowed'
 
