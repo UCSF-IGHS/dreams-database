@@ -2796,6 +2796,18 @@ $(document).ready(function () {
 
 });
 
+// Handling cross module validation for sexuality and reproductive health modules in enrollment
+// if ever had sex question is answered yes, to question 506
+
+    $('.girl-ever-had-sex').change(function () {
+        var value = $(this).val();
+        if (value == 2) {
+            $('#sex-related').addClass("hidden")
+        }
+        else {
+            $('#sex-related').removeClass("hidden")
+        }
+    })
 
 
 
