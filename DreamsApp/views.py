@@ -191,7 +191,7 @@ def clients(request):
                 search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
                 search_result = search_result_tuple[0]
                 # check for permissions
-                if not request.user.has_perm("auth.can_view_cross_ip_data"):
+                if not request.user.has_perm("DreamsApp.can_view_cross_ip_data"):
                     try:
                         ip = request.user.implementingpartneruser.implementing_partner
                         search_result = search_result.filter(implementing_partner_id=ip.id)
@@ -796,7 +796,7 @@ def get_intervention_list(request):
                                                                                       intervention_type__in=iv_type_ids,
                                                                                       voided=False)\
                 .order_by('-intervention_date', '-date_created', '-date_changed')
-            if not request.user.has_perm('auth.can_view_cross_ip_data'):
+            if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 list_of_interventions = list_of_interventions.filter(
                     implementing_partner_id=request.user.implementingpartneruser.implementing_partner.id)
 
@@ -1193,7 +1193,7 @@ def users(request):
                 current_user_ip = None
             except ImplementingPartner.DoesNotExist:
                 current_user_ip = None
-            if not request.user.has_perm('auth.can_view_cross_ip_data'):
+            if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 if current_user_ip is not None:
                     ip_user_list = ip_user_list.filter(implementing_partner=current_user_ip)
                 else:
@@ -1430,7 +1430,7 @@ def grievances_list(request):
         except:
             user_ip = None
         """ IP level permission check """
-        grievance_list = Grievance.objects.all() if request.user.has_perm('auth.can_view_cross_ip_data') else \
+        grievance_list = Grievance.objects.all() if request.user.has_perm('DreamsApp.can_view_cross_ip_data') else \
             Grievance.objects.filter(implementing_partner=user_ip)
         """Date filter """
         if filter_date is not None and filter_date is not u'':
@@ -1657,7 +1657,7 @@ def export_page(request):
 
         try:
 
-            if request.user.is_superuser or request.user.has_perm('auth.can_view_cross_ip_data'):
+            if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(id=request.user.implementingpartneruser.implementing_partner.id)
@@ -1682,7 +1682,7 @@ def intervention_export_page(request):
 
         try:
 
-            if request.user.is_superuser or request.user.has_perm('auth.can_view_cross_ip_data'):
+            if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
@@ -1748,19 +1748,18 @@ def error_404(request):
 def viewBaselineData(request):
     """ Returns client profile """
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-
         if request.method == 'GET':
             try:
                 client_id = int(request.GET['client_id'])
-                client_demographics = Client.objects.get(id=client_id)
-                client_household = ClientIndividualAndHouseholdData.objects.get(client=client_id)
-                client_edu = ClientEducationAndEmploymentData.objects.get(client=client_id)
-                client_sexual_data = ClientSexualActivityData.objects.get(client=client_id)
-                client_gbv_data = ClientGenderBasedViolenceData.objects.get(client=client_id)
-                client_hiv_data = ClientHIVTestingData.objects.get(client=client_id)
-                client_rh_data = ClientReproductiveHealthData.objects.get(client=client_id)
-                client_drug_data = ClientDrugUseData.objects.get(client=client_id)
-                client_prog_part_data = ClientParticipationInDreams.objects.get(client=client_id)
+                client_demographics = Client.objects.filter(id=client_id).exclude(voided=True).first()
+                client_household = ClientIndividualAndHouseholdData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_edu = ClientEducationAndEmploymentData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_sexual_data = ClientSexualActivityData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_gbv_data = ClientGenderBasedViolenceData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_hiv_data = ClientHIVTestingData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_rh_data = ClientReproductiveHealthData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_drug_data = ClientDrugUseData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_prog_part_data = ClientParticipationInDreams.objects.filter(client=client_id).exclude(voided=True).first()
 
                 demographics_form = DemographicsForm(instance=client_demographics)
                 household_form = IndividualAndHouseholdForm(instance=client_household)
@@ -1775,7 +1774,6 @@ def viewBaselineData(request):
                 search_client_term = request.GET.get('search_client_term', '')
             except Client.DoesNotExist:
                 traceback.format_exc()
-                # raise PermissionDenied
         else:
             print 'POST not allowed'
 

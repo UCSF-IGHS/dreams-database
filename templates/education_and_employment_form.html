@@ -6,7 +6,7 @@
             <div class="form-group form-inline">
                 {{ edu_form.currently_in_school.errors }}
                 <label class="control-label enrolment-label">{{ edu_form.currently_in_school.label_tag }}</label>
-                {{ edu_form.currently_in_school|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:in-school"|set_data:"hide_if_true:not-in-school" }}
+                {{ edu_form.currently_in_school|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:in-school"|set_data:"hide_if_true:not-in-school life-wish" }}
             </div>
             <div class="in-school {% if edu_form.currently_in_school.value != 1 %} hidden {% endif %} ">
                 <div id="current_school_name" class="form-group  form-inline">
@@ -85,19 +85,20 @@
                     </div>
                 </div>
             </div>
-            <div class="form-group form-inline">
-                {{ edu_form.life_wish.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.life_wish.label_tag }}</label>
-                {{ edu_form.life_wish|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:life_wish_other"  }}
+            <div id="life-wish" class="life-wish {% if edu_form.currently_in_school.value != 1 %} hidden {% endif %}">
+                <div class="form-group form-inline">
+                    {{ edu_form.life_wish.errors }}
+                    <label class="control-label enrolment-label">{{ edu_form.life_wish.label_tag }}</label>
+                    {{ edu_form.life_wish|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:life_wish_other"  }}
+                </div>
+
+                <div id="life_wish_other" class="form-group form-inline life_wish_other {% if not edu_form.life_wish_other.value %} hidden {% endif %}">
+
+                    {{ edu_form.life_wish_other.errors }}
+                    <label class="control-label enrolment-label">{{ edu_form.life_wish_other.label_tag }}</label>
+                    {{ edu_form.life_wish_other|add_class:"input-sm form-control enrolment-input"  }}
+                </div>
             </div>
-
-            <div id="life_wish_other" class="form-group form-inline life_wish_other {% if not edu_form.life_wish_other.value %} hidden {% endif %}">
-
-                {{ edu_form.life_wish_other.errors }}
-                <label class="control-label enrolment-label">{{ edu_form.life_wish_other.label_tag }}</label>
-                {{ edu_form.life_wish_other|add_class:"input-sm form-control enrolment-input"  }}
-            </div>
-
             <div class="form-group form-inline">
                 {{ edu_form.current_income_source.errors }}
                 <label class="control-label enrolment-label">{{ edu_form.current_income_source.label_tag }}</label>
