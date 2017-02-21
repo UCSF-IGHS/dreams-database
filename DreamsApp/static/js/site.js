@@ -2601,9 +2601,9 @@ $(document).ready(function () {
     $('.listen-to-change').on('change keyup', function () {
 
                 var val = $(this).val();
-                var show_if_true = $(this).data('show_if_true'); // class to show
-                var hide_if_true = $(this).data('hide_if_true'); // class to show
-                var hide_if_false = $(this).data('hide_if_false'); // class to hide
+                var show_if_true = $(this).data('show_if_true'); // class to show if true
+                var hide_if_true = $(this).data('hide_if_true'); // class to hide if true
+                var hide_if_false = $(this).data('hide_if_false'); // class to hide if fasle
                 var show_value = $(this).data('show_value'); // value to determine show/hide
 
                 if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != ''){
@@ -2662,6 +2662,74 @@ $(document).ready(function () {
                     }
                 }
             });
+
+    $('.listen-to-change-listvalues').on('change keyup', function () {
+
+                var val = $(this).val();
+                var show_if_true_cascade = $(this).data('show_if_true_cascade'); // class to show if true
+                var hide_if_true_cascade = $(this).data('hide_if_true_cascade'); // class to hide if true
+                var hide_if_false_cascade = $(this).data('hide_if_false_cascade'); // class to hide if fasle
+                var show_value_cascade = $(this).data('show_value_cascade'); // value to determine show/hide
+
+
+                 if (!(typeof show_value_cascade == undefined) && show_value_cascade != null && show_value_cascade != ''){
+                    var show_value_cascade = show_value_cascade.split(" ");
+                }
+
+                if (!(typeof hide_if_false_cascade == undefined) && hide_if_false_cascade != null && hide_if_false_cascade != ''){
+                    var hide_classes = hide_if_false_cascade.split(" ");
+                    hide_if_false_cascade = hide_classes;
+                }
+
+                if (!(typeof hide_if_true_cascade == undefined) && hide_if_true_cascade != null && hide_if_true_cascade != ''){
+                    var hide_on_show_classes = hide_if_true_cascade.split(" ");
+                    hide_if_true_cascade = hide_on_show_classes;
+                }
+        
+                if($.inArray(val,show_value_cascade) >=0 ){
+                    $('.'+show_if_true_cascade).removeClass('hidden');
+
+                    if (!(typeof hide_if_true_cascade == undefined) && hide_if_true_cascade != null && hide_if_true_cascade != '') {
+                        for (var i = 0; i < hide_if_true_cascade.length; i++) {
+                            var class_name = hide_if_true_cascade[i];
+                            $('.' + class_name).addClass('hidden');
+                            $('.' + class_name).find('input,select').each(function () {
+                                $(this).val('');
+                                $(this).attr('checked', false);
+                            });
+                        }
+                    }
+
+                } else {
+
+                    $('.'+show_if_true_cascade).addClass('hidden');
+
+                    $('.'+show_if_true_cascade).find('input,select').each(function(){
+                        $(this).val('');
+                        $(this).attr('checked',false);
+                    });
+
+                    if (!(typeof hide_if_false_cascade == undefined) && hide_if_false_cascade != null && hide_if_false_cascade != '') {
+                        for (var i = 0; i < hide_if_false_cascade.length; i++) {
+                            var class_name = hide_if_false_cascade[i];
+                            $('.' + class_name).addClass('hidden');
+                            $('.' + class_name).find('input,select').each(function () {
+                                $(this).val('');
+                                $(this).attr('checked', false);
+                            });
+
+                        }
+                    }
+
+                    if (!(typeof show_if_true_cascade == undefined) && show_if_true_cascade != null && show_if_true_cascade != '') {
+                        for (var i = 0; i < show_if_true_cascade.length; i++) {
+                            var class_name = show_if_true_cascade[i];
+                            $('.' + class_name).removeClass('hidden');
+                        }
+                    }
+                }
+            });
+
 
     // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
