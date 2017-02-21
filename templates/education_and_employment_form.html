@@ -22,7 +22,7 @@
                 <div id="current_school_level" class="form-group  form-inline">
                     {{ edu_form.current_school_level.errors }}
                     <label class="control-label enrolment-label">{{ edu_form.current_school_level.label_tag }}</label>
-                    {{ edu_form.current_school_level|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:current_school_level_other"  }}
+                    {{ edu_form.current_school_level|add_class:"input-sm form-control enrolment-input listen-to-change listen-to-change-listvalues"|set_data:"show_value:96"|set_data:"show_if_true:current_school_level_other"|set_data:"show_value_cascade:2 3"|set_data:"show_if_true_cascade:current-class"  }}
                     <div class="form-group current_school_level_other {% if not edu_form.current_school_level_other.value %} hidden {% endif %}">
                         {{ edu_form.current_school_level_other.errors }}
                         <label class="control-label enrolment-label">{{ edu_form.current_school_level_other.label_tag }}</label>
@@ -31,7 +31,7 @@
 
                 </div>
 
-                <div id="current_class" class="form-group  form-inline {% if not edu_form.current_class.value  %} hidden {% endif %}">
+                <div id="current_class" class="form-group current-class  form-inline {% if not edu_form.current_class.value  %} hidden {% endif %}">
                     {{ edu_form.current_class.errors }}
                     <label class="control-label enrolment-label">{{ edu_form.current_class.label_tag }}</label>
                     {{ edu_form.current_class|add_class:"input-sm form-control enrolment-input"  }}
