@@ -521,6 +521,8 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             'verification_document_other': 9,
             'verification_doc_no': 10,
             'date_of_enrollment': 11,
+            'current_age': 13,
+            'age_at_enrollment': 14,
             'marital_status': 16,
             'phone_number': 17,
             'county_name': 18,

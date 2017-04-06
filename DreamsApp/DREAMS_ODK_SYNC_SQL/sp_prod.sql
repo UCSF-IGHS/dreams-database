@@ -260,7 +260,9 @@ voided INT(11),
 date_voided DATETIME,
 exit_status VARCHAR(10),
 exit_date DATETIME,
-exit_reason VARCHAR(200)
+exit_reason VARCHAR(200),
+age_at_enrollment INT(11),
+current_age INT(11)
 );
 
 
@@ -2447,7 +2449,9 @@ voided,
 date_voided,
 exit_status,
 exit_date,
-exit_reason
+exit_reason,
+age_at_enrollment,
+current_age
 )
 select
 d.id,
@@ -2497,7 +2501,9 @@ d.voided,
 d.date_voided,
 (CASE d.exited WHEN 1 THEN "Yes" ELSE "" END) AS exited ,
 DATE(d.date_exited) AS date_exited,
-d.reason_exited
+d.reason_exited,
+DATEDIFF(d.date_of_enrollment, d.date_of_birth) DIV 365.25 as age_at_enrollment,
+DATEDIFF(CURDATE(), d.date_of_birth) DIV 365.25 as current_age
 from
 dreams_production.DreamsApp_client AS d
 LEFT OUTER JOIN dreams_production.DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
@@ -4507,6 +4513,16 @@ BEGIN
 END
 $$
 DELIMITER ;
+
+
+-- zero services
+
+select x.dreams_id, i.client_id, x.first_name, x.middle_name, x.last_name, x.implementing_partner, x.county_of_residence, x.sub_county, x.ward, x.date_of_enrollment_quarter
+from stag_client_ex x
+left outer join DreamsApp_intervention i on x.id=i.client_id
+where x.implementing_partner_id=6 and x.exited=0 and x.voided != 1
+having i.client_id is null;
+
 
 
 
