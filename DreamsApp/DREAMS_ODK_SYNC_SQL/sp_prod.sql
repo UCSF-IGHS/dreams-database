@@ -2786,7 +2786,9 @@ voided,
 date_voided,
 exit_status,
 exit_date,
-exit_reason
+exit_reason,
+age_at_enrollment,
+current_age
 )
 select
 d.id,
@@ -2836,7 +2838,9 @@ d.voided,
 d.date_voided,
 (CASE d.exited WHEN 1 THEN "Yes" ELSE "" END) AS exited ,
 DATE(d.date_exited) AS date_exited,
-d.reason_exited
+d.reason_exited,
+DATEDIFF(d.date_of_enrollment, d.date_of_birth) DIV 365.25 as age_at_enrollment,
+DATEDIFF(CURDATE(), d.date_of_birth) DIV 365.25 as current_age
 from
 dreams_production.DreamsApp_client AS d
 LEFT OUTER JOIN dreams_production.DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
@@ -3011,8 +3015,14 @@ voided=VALUES(voided),
 date_voided=VALUES(date_voided),
 exit_status=VALUES(exit_status),
 exit_date=VALUES(exit_date),
-exit_reason=VALUES(exit_reason)
+exit_reason=VALUES(exit_reason),
+age_at_enrollment=VALUES(age_at_enrollment),
+current_age=VALUES(current_age)
 ;
+
+-- update current age
+UPDATE dreams_production.flat_dreams_enrollment set current_age = DATEDIFF(CURDATE(), d.date_of_birth) DIV 365.25 where current_age != DATEDIFF(CURDATE(), d.date_of_birth) DIV 365.25 ;
+
 -- update many to many fields
 UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
