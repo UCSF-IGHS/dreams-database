@@ -7,13 +7,13 @@
             <div class="form-group form-inline">
                 {{ household_form.head_of_household.errors }}
                 <label class="control-label enrolment-label">{{ household_form.head_of_household.label_tag }}</label>
-                {{ household_form.head_of_household|add_class:"input-sm form-control enrolment-input" }}
+                {{ household_form.head_of_household|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:household_head_other" }}
             </div>
             <div class="form-group form-inline">
                 {% if household_form.head_of_household.value == 96 %}
-                    <span id="household_head_other">
+                    <span id="household_head_other" class="household_head_other">
                 {% else %}
-                    <span id="household_head_other" class="hidden">
+                    <span id="household_head_other" class="hidden household_head_other">
                 {% endif %}
                 {{ household_form.head_of_household_other.errors }}
                 <label class="control-label enrolment-label">{{ household_form.head_of_household_other.label_tag }}</label>
