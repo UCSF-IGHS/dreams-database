@@ -1627,6 +1627,8 @@ $(document).ready(function () {
     }, ' Enter a positive number.');
 
     $.validator.addMethod('positiveNumberZeroExclusive', function (value) {
+        if(value == "")
+            return true
         return Number(value) > 0;
     }, ' Enter a positive number greater than 0.');
 
@@ -1673,7 +1675,7 @@ $(document).ready(function () {
     //positiveNumberZeroExclusive
     $.validator.addMethod('requiredIfEverHadSex', function (value) {
         var isEntered = false;
-        if(value != "" && value.toString() != "0")
+        if(value != "")
             isEntered = true;
         var ever_had_sex = parseInt($('#id_ever_had_sex').val(), 10) || 0
 
@@ -2108,7 +2110,7 @@ $(document).ready(function () {
             implementing_partner: { 
                 required: true 
             }, 
-            age_of_household_head: { 
+            first_name: { 
                 minTwoNames: true 
             }, 
             middle_name: { 
@@ -2204,7 +2206,6 @@ $(document).ready(function () {
             }, 
             age_of_household_head: { 
                 number:true,
-                required: true ,
                 positiveNumberZeroExclusive: true
             }, 
             is_father_alive: { 
@@ -2270,7 +2271,6 @@ $(document).ready(function () {
                 required: " * Please Select Head of Household" 
             }, 
             age_of_household_head: { 
-                required:  " * Please enter the age of Head of Household" ,
                 number: " Enter valid age e.g 45"
             }, 
             is_father_alive: { 
@@ -2424,7 +2424,8 @@ $(document).ready(function () {
                 requiredIfEverHadSex: "* Required field"
             },
             sex_partners_in_last_12months:{
-                requiredIfEverHadSex: " * Required field"
+                requiredIfEverHadSex: " * Required field",
+                positiveNumber: "NUmber of sex partners can only be 0 and above.s"
             }
         }, 
         highlight: function (element) { 
