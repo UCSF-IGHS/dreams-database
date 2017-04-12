@@ -3021,7 +3021,7 @@ current_age=VALUES(current_age)
 ;
 
 -- update current age
-UPDATE dreams_production.flat_dreams_enrollment set current_age = DATEDIFF(CURDATE(), d.date_of_birth) DIV 365.25 where current_age != DATEDIFF(CURDATE(), d.date_of_birth) DIV 365.25 ;
+UPDATE dreams_production.flat_dreams_enrollment set current_age = DATEDIFF(CURDATE(), date_of_birth) DIV 365.25 where current_age != DATEDIFF(CURDATE(), date_of_birth) DIV 365.25 ;
 
 -- update many to many fields
 UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
