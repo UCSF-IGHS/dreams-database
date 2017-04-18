@@ -260,7 +260,9 @@ voided INT(11),
 date_voided DATETIME,
 exit_status VARCHAR(10),
 exit_date DATETIME,
-exit_reason VARCHAR(200)
+exit_reason VARCHAR(200),
+age_at_enrollment INT(11),
+current_age INT(11)
 );
 
 
@@ -2447,7 +2449,9 @@ voided,
 date_voided,
 exit_status,
 exit_date,
-exit_reason
+exit_reason,
+age_at_enrollment,
+current_age
 )
 select
 d.id,
@@ -2497,7 +2501,9 @@ d.voided,
 d.date_voided,
 (CASE d.exited WHEN 1 THEN "Yes" ELSE "" END) AS exited ,
 DATE(d.date_exited) AS date_exited,
-d.reason_exited
+d.reason_exited,
+DATEDIFF(d.date_of_enrollment, d.date_of_birth) DIV 365.25 as age_at_enrollment,
+DATEDIFF(CURDATE(), d.date_of_birth) DIV 365.25 as current_age
 from
 dreams_production.DreamsApp_client AS d
 LEFT OUTER JOIN dreams_production.DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
@@ -2780,7 +2786,9 @@ voided,
 date_voided,
 exit_status,
 exit_date,
-exit_reason
+exit_reason,
+age_at_enrollment,
+current_age
 )
 select
 d.id,
@@ -2830,7 +2838,9 @@ d.voided,
 d.date_voided,
 (CASE d.exited WHEN 1 THEN "Yes" ELSE "" END) AS exited ,
 DATE(d.date_exited) AS date_exited,
-d.reason_exited
+d.reason_exited,
+DATEDIFF(d.date_of_enrollment, d.date_of_birth) DIV 365.25 as age_at_enrollment,
+DATEDIFF(CURDATE(), d.date_of_birth) DIV 365.25 as current_age
 from
 dreams_production.DreamsApp_client AS d
 LEFT OUTER JOIN dreams_production.DreamsApp_clientindividualandhouseholddata i on i.client_id=d.id
@@ -3005,8 +3015,14 @@ voided=VALUES(voided),
 date_voided=VALUES(date_voided),
 exit_status=VALUES(exit_status),
 exit_date=VALUES(exit_date),
-exit_reason=VALUES(exit_reason)
+exit_reason=VALUES(exit_reason),
+age_at_enrollment=VALUES(age_at_enrollment),
+current_age=VALUES(current_age)
 ;
+
+-- update current age
+UPDATE dreams_production.flat_dreams_enrollment set current_age = DATEDIFF(CURDATE(), date_of_birth) DIV 365.25 where current_age != DATEDIFF(CURDATE(), date_of_birth) DIV 365.25 ;
+
 -- update many to many fields
 UPDATE dreams_production.flat_dreams_enrollment e INNER JOIN (
     SELECT
@@ -4239,7 +4255,7 @@ BEGIN
   DECLARE v_row_count INT(11);
 
   DECLARE erroneous_records CURSOR FOR
-    SELECT dreams_id FROM duplicate_dreams_id_corrections WHERE action=correction;
+    SELECT dreams_id FROM duplicate_dreams_id_corrections WHERE action=correction and status=0;
 
   DECLARE CONTINUE HANDLER FOR NOT FOUND
     SET no_more_rows = TRUE;
@@ -4460,6 +4476,64 @@ BEGIN
 END
 $$
 DELIMITER ;
+
+-- voiding services
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS void_services$$
+CREATE PROCEDURE sp_delete_dreams_id(IN dreamsID VARCHAR(50), clientID INT(11))
+BEGIN
+
+  DECLARE client_id_dreams_id_match INT(11);
+  DECLARE exec_status INT(11) DEFAULT 1;
+
+  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+      SET exec_status = -1;
+      ROLLBACK;
+    END;
+  -- perform all procedure calls within a transaction
+  START TRANSACTION;
+
+
+  SELECT IF(dreams_id=dreamsID, 1, 0) from DreamsApp_client where id = clientID INTO client_id_dreams_id_match; -- 1 if same, 0 if not same
+
+  UPDATE duplicate_dreams_id_corrections SET client_dreams_id_match=client_id_dreams_id_match WHERE client_id = clientID;
+
+  IF client_id_dreams_id_match = 0 THEN
+    SET exec_status = 4; -- no matching client dreams id
+  ELSEIF client_id_dreams_id_match = 1 THEN
+    -- void all modules
+    UPDATE DreamsApp_clientdrugusedata set date_voided=NOW(), date_changed=NOW(), reason_voided="Marked for deletion by IP", voided=1, voided_by_id=1 where client_id=clientID;
+    UPDATE DreamsApp_clienteducationandemploymentdata set date_voided=NOW(), date_changed=NOW(), reason_voided="Marked for deletion by IP", voided=1, voided_by_id=1 where client_id=clientID;
+    UPDATE DreamsApp_clientgenderbasedviolencedata set date_voided=NOW(), date_changed=NOW(), reason_voided="Marked for deletion by IP", voided=1, voided_by_id=1 where client_id=clientID;
+    UPDATE DreamsApp_clienthivtestingdata set date_voided=NOW(), date_changed=NOW(), reason_voided="Marked for deletion by IP", voided=1, voided_by_id=1 where client_id=clientID;
+    UPDATE DreamsApp_clientindividualandhouseholddata set date_voided=NOW(), date_changed=NOW(), reason_voided="Marked for deletion by IP", voided=1, voided_by_id=1 where client_id=clientID;
+    UPDATE DreamsApp_clientparticipationindreams set date_voided=NOW(), date_changed=NOW(), reason_voided="Marked for deletion by IP", voided=1, voided_by_id=1 where client_id=clientID;
+    UPDATE DreamsApp_clientreproductivehealthdata set date_voided=NOW(), date_changed=NOW(), reason_voided="Marked for deletion by IP", voided=1, voided_by_id=1 where client_id=clientID;
+    UPDATE DreamsApp_clientsexualactivitydata set date_voided=NOW(), date_changed=NOW(), reason_voided="Marked for deletion by IP", voided=1, voided_by_id=1 where client_id=clientID;
+    UPDATE DreamsApp_intervention set date_voided=NOW(), date_changed=NOW(), reason_voided="Marked for deletion by IP", voided=1, voided_by_id=1 where client_id=clientID;
+
+  END IF;
+
+  COMMIT;
+
+  UPDATE duplicate_dreams_id_corrections SET status=exec_status WHERE client_id = clientID;
+
+END
+$$
+DELIMITER ;
+
+
+-- zero services
+
+select x.dreams_id, i.client_id, x.first_name, x.middle_name, x.last_name, x.implementing_partner, x.county_of_residence, x.sub_county, x.ward, x.date_of_enrollment_quarter
+from stag_client_ex x
+left outer join DreamsApp_intervention i on x.id=i.client_id
+where x.implementing_partner_id=6 and x.exited=0 and x.voided != 1
+having i.client_id is null;
+
+
 
 
 select id, client_id, voided, reason_voided, date_voided, date_changed  from DreamsApp_clientdrugusedata where client_id=31927;
