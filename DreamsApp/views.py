@@ -1713,7 +1713,13 @@ def downloadEXCEL(request):
         response = HttpResponse(content_type='application/ms-excel')
         response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
-        wb = export_doc.prepare_excel_doc(ip_list_str, sub_county, ward)
+
+        if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data'):
+            show_PHI = True;
+        else:
+            show_PHI = False;
+
+        wb = export_doc.prepare_excel_doc(ip_list_str, sub_county, ward, show_PHI)
         wb.save(response)
         return response
     except Exception as e:
@@ -1731,7 +1737,13 @@ def downloadRawInterventionEXCEL(request):
         response = HttpResponse(content_type='application/ms-excel')
         response['Content-Disposition'] = 'attachment; filename=dreams_interventions.xlsx'
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
-        wb = export_doc.get_intervention_excel_doc(ip_list_str, sub_county, ward)
+
+        if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data'):
+            show_PHI = True;
+        else:
+            show_PHI = False;
+
+        wb = export_doc.get_intervention_excel_doc(ip_list_str, sub_county, ward, show_PHI)
         wb.save(response)
         return response
     except Exception as e:
