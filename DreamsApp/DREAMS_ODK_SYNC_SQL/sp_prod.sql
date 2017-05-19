@@ -3732,7 +3732,7 @@ i.client_ccc_number,
 i.date_linked_to_ccc,
 i.no_of_sessions_attended,
 i.comment
-from stag_client_intervention i WHERE voided=0
+from stag_client_intervention i WHERE voided=0;
 
 
 -- ------------------------ procedures for cleaning dreams ids --------------------------------------
@@ -4244,7 +4244,7 @@ ALTER TABLE duplicate_dreams_id_corrections
 INSERT INTO duplicate_dreams_id_corrections (dreams_id, action) VALUES
   ();
 
--- Voiding records of provided DREAMS ID
+-- Voiding records of provided DREAMS ID and DREAMS ID not shared
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_dreams_id_corrections$$
 CREATE PROCEDURE sp_dreams_id_corrections(IN correction VARCHAR(50))
@@ -4337,7 +4337,7 @@ DELIMITER ;
 
 
 
--- -------------------------------------------- DELETE/RETAIN/REASSIGN DREAMS ID Based on IP markings ---------------------------------
+-- -------------------------------------------- DELETE/RETAIN/REASSIGN DREAMS ID Based on IP actions ---------------------------------
 
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_reassign_or_delete_shared_dreams_id$$
