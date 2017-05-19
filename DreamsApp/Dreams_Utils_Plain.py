@@ -423,7 +423,7 @@ WHERE voided=0 AND i.implementing_partner_id = %s
         except InvalidFileException as e:
             traceback.format_exc()
 
-    def prepare_excel_doc(self, ip_list_str, sub_county, ward):
+    def prepare_excel_doc(self, ip_list_str, sub_county, ward, show_PHI):
 
         try:
 
@@ -435,7 +435,7 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             i = 1
             for row in db_data:
                 i += 1
-                self.map_demographics(refined_sheet, i, row)
+                self.map_demographics(refined_sheet, i, row, show_PHI)
                 self.map_individual_and_household(refined_sheet, i, row)
                 self.map_sexuality(refined_sheet, i, row)
                 self.map_reproductive_health(refined_sheet, i, row)
@@ -483,6 +483,16 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             traceback.format_exc()
         return
 
+    def merge_dicts(*dict_args):
+        """
+        Given any number of dicts, shallow copy and merge into a new dict,
+        precedence goes to key value pairs in latter dicts.
+        """
+        result = {}
+        for dictionary in dict_args:
+            result.update(dictionary)
+        return result
+
     def map_interventions(self, ws, i, row):
         cols = {
             #'client_id': 1,
@@ -509,13 +519,22 @@ WHERE voided=0 AND i.implementing_partner_id = %s
         for k, v in cols.items():
             ws.cell(row=i, column=v, value=row.get(k))
 
-    def map_demographics(self, ws, i, row):
-        cols = {
-            'implementing_partner': 2,
-            'IP_Code': 3,
+    def map_demographics(self, ws, i, row, show_PHI):
+
+        # These are columns that contain identifiers. They should be
+        phi_cols = {
             'first_name': 4,
             'middle_name': 5,
             'last_name': 6,
+            'dss_id_number': 26,
+            'guardian_name': 27,
+            'guardian_phone_number': 32,
+            'guardian_national_id': 33
+        }
+
+        open_access_cols = {
+            'implementing_partner': 2,
+            'IP_Code': 3,
             'date_of_birth': 7,
             'verification_document': 8,
             'verification_document_other': 9,
@@ -533,18 +552,56 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             'village': 23,
             'land_mark': 24,
             'dreams_id': 25,
-            'dss_id_number': 26,
-            'guardian_name': 27,
-            #'caregiver_middle_name': 28,
-            #'caregiver_last_name': 29,
             'relationship_with_guardian': 30,
             'caregiver_relationship_other': 31,
-            'guardian_phone_number': 32,
-            'guardian_national_id': 33,
             'exit_status': 204,
             'exit_date': 205,
             'exit_reason': 206
         }
+
+        # merge PIH and open access columns based on permissions
+
+        if show_PHI:
+            cols = open_access_cols.copy()
+            cols.update(phi_cols)
+        else:
+            cols = open_access_cols
+
+        # cols = {
+        #     'implementing_partner': 2,
+        #     'IP_Code': 3,
+        #     'first_name': 4,
+        #     'middle_name': 5,
+        #     'last_name': 6,
+        #     'date_of_birth': 7,
+        #     'verification_document': 8,
+        #     'verification_document_other': 9,
+        #     'verification_doc_no': 10,
+        #     'date_of_enrollment': 11,
+        #     'current_age': 13,
+        #     'age_at_enrollment': 14,
+        #     'marital_status': 16,
+        #     'phone_number': 17,
+        #     'county_name': 18,
+        #     'sub_county_name': 19,
+        #     'ward_id': 21,
+        #     'ward_name': 20,
+        #     'informal_settlement': 22,
+        #     'village': 23,
+        #     'land_mark': 24,
+        #     'dreams_id': 25,
+        #     'dss_id_number': 26,
+        #     'guardian_name': 27,
+        #     #'caregiver_middle_name': 28,
+        #     #'caregiver_last_name': 29,
+        #     'relationship_with_guardian': 30,
+        #     'caregiver_relationship_other': 31,
+        #     'guardian_phone_number': 32,
+        #     'guardian_national_id': 33,
+        #     'exit_status': 204,
+        #     'exit_date': 205,
+        #     'exit_reason': 206
+        # }
 
         for k, v in cols.items():
             if k == 'IP_Code':
