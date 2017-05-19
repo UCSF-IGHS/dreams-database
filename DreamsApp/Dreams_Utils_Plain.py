@@ -323,14 +323,14 @@ VALUES """
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner, i.implementing_partner_id, i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment
+  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND  i.implementing_partner_id IN %s """
 
         multiple_ip_ward_query = """select
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment
+  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND  i.implementing_partner_id IN %s """
 
 
@@ -338,14 +338,14 @@ from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND  i.impleme
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment
+  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i WHERE voided=0 AND  i.implementing_partner_id IN %s """
 
         single_ip_sub_county_query = """select
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment
+  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id = %s """
 
 
@@ -353,7 +353,7 @@ from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.im
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment
+  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id = %s """
 
 
@@ -361,7 +361,7 @@ from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implemen
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment
+  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i
 WHERE voided=0 AND i.implementing_partner_id = %s
 ;
@@ -457,7 +457,7 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             traceback.format_exc()
         return
 
-    def get_intervention_excel_doc(self, ip_list_str, sub_county, ward):
+    def get_intervention_excel_doc(self, ip_list_str, sub_county, ward, show_PHI):
 
         try:
 
@@ -469,7 +469,7 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             i = 1
             for row in db_data:
                 i += 1
-                self.map_interventions(interventions_sheet, i, row)
+                self.map_interventions(interventions_sheet, i, row, show_PHI)
 
             wb.save('dreams_interventions.xlsx')
             print "Completed rendering excel ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -493,11 +493,14 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             result.update(dictionary)
         return result
 
-    def map_interventions(self, ws, i, row):
-        cols = {
-            #'client_id': 1,
+    def map_interventions(self, ws, i, row, show_PHI):
+
+        phi_cols = {
+            'client_name': 3
+        }
+
+        open_access_cols = {
             'dreams_id': 2,
-            'client_name': 3,
             'implementing_partner': 4,
             'date_of_birth': 5,
             'date_of_enrollment': 6,
@@ -506,15 +509,25 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             'ward': 9,
             'village': 10,
             'date_of_intervention': 11,
-            'intervention_type': 12,
-            'intervention_category': 13,
-            'hts_result': 14,
-            'pregnancy_test_result': 15,
-            'client_ccc_number': 16,
-            'date_linked_to_ccc': 17,
-            'no_of_sessions_attended': 18,
-            'comment': 19,
+            'age_at_intervention': 12,
+            'current_age': 13,
+            'intervention_type': 14,
+            'intervention_category': 15,
+            'hts_result': 16,
+            'pregnancy_test_result': 17,
+            'client_ccc_number': 18,
+            'date_linked_to_ccc': 19,
+            'no_of_sessions_attended': 20,
+            'comment': 21,
         }
+
+        # Hide PHI column values where necessary
+
+        if show_PHI:
+            cols = open_access_cols.copy()
+            cols.update(phi_cols)
+        else:
+            cols = open_access_cols
 
         for k, v in cols.items():
             ws.cell(row=i, column=v, value=row.get(k))
