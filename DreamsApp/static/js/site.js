@@ -603,7 +603,6 @@ $(document).ready(function () {
         event.preventDefault()
         $('#btn_save_intervention').attr("disabled","disabled");
         $('#intervention-entry-form .processing-indicator').removeClass('hidden')
-        alert("Wait see if the indicator is showing");
         var intervention_category_code = currentInterventionCategoryCode_Global;
         var table_id = "#interventions_" + intervention_category_code + "_table";
 
