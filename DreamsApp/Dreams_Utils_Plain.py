@@ -440,7 +440,7 @@ WHERE voided=0 AND i.implementing_partner_id = %s
                 self.map_sexuality(refined_sheet, i, row)
                 self.map_reproductive_health(refined_sheet, i, row)
                 self.map_drug_use(refined_sheet, i, row)
-                self.map_education_and_employment(refined_sheet, i, row)
+                self.map_education_and_employment(refined_sheet, i, row, show_PHI)
                 self.map_gbv(refined_sheet, i, row)
                 self.map_program_participation(refined_sheet, i, row)
                 self.map_hiv_testing(refined_sheet, i, row)
@@ -539,6 +539,8 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             'first_name': 4,
             'middle_name': 5,
             'last_name': 6,
+            'verification_doc_no': 10,
+            'phone_number': 17,
             'dss_id_number': 26,
             'guardian_name': 27,
             'guardian_phone_number': 32,
@@ -551,12 +553,10 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             'date_of_birth': 7,
             'verification_document': 8,
             'verification_document_other': 9,
-            'verification_doc_no': 10,
             'date_of_enrollment': 11,
             'current_age': 13,
             'age_at_enrollment': 14,
             'marital_status': 16,
-            'phone_number': 17,
             'county_name': 18,
             'sub_county_name': 19,
             'ward_id': 21,
@@ -579,42 +579,6 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             cols.update(phi_cols)
         else:
             cols = open_access_cols
-
-        # cols = {
-        #     'implementing_partner': 2,
-        #     'IP_Code': 3,
-        #     'first_name': 4,
-        #     'middle_name': 5,
-        #     'last_name': 6,
-        #     'date_of_birth': 7,
-        #     'verification_document': 8,
-        #     'verification_document_other': 9,
-        #     'verification_doc_no': 10,
-        #     'date_of_enrollment': 11,
-        #     'current_age': 13,
-        #     'age_at_enrollment': 14,
-        #     'marital_status': 16,
-        #     'phone_number': 17,
-        #     'county_name': 18,
-        #     'sub_county_name': 19,
-        #     'ward_id': 21,
-        #     'ward_name': 20,
-        #     'informal_settlement': 22,
-        #     'village': 23,
-        #     'land_mark': 24,
-        #     'dreams_id': 25,
-        #     'dss_id_number': 26,
-        #     'guardian_name': 27,
-        #     #'caregiver_middle_name': 28,
-        #     #'caregiver_last_name': 29,
-        #     'relationship_with_guardian': 30,
-        #     'caregiver_relationship_other': 31,
-        #     'guardian_phone_number': 32,
-        #     'guardian_national_id': 33,
-        #     'exit_status': 204,
-        #     'exit_date': 205,
-        #     'exit_reason': 206
-        # }
 
         for k, v in cols.items():
             if k == 'IP_Code':
@@ -806,9 +770,14 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             else:
                 ws.cell(row=i, column=v, value=row.get(k))
 
-    def map_education_and_employment(self, ws, i, row):
-        cols = {
-            'current_school_name': 66,
+    def map_education_and_employment(self, ws, i, row, show_PHI):
+
+        # These are columns that contain identifiers. They should be
+        phi_cols = {
+            'current_school_name': 66
+        }
+
+        open_access_cols = {
             'current_class': 70,
             'current_school_level_other': 69,
             'current_edu_supporter_list': 71,
@@ -829,6 +798,15 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             'life_wish': 82,
             'reason_not_in_school': 77
         }
+
+        # merge data base on privileges
+
+        if show_PHI:
+            cols = open_access_cols.copy()
+            cols.update(phi_cols)
+        else:
+            cols = open_access_cols
+
         for k, v in cols.items():
             if k == 'current_edu_supporter_list':
                 val = row.get(k)

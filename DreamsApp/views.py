@@ -6,7 +6,7 @@ from django.core.mail import EmailMessage
 from django.core.exceptions import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
@@ -1714,6 +1714,7 @@ def downloadEXCEL(request):
         response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
 
+        # Ensure can_view_phi_data has been created on Client contentType
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data'):
             show_PHI = True;
         else:
@@ -1738,7 +1739,9 @@ def downloadRawInterventionEXCEL(request):
         response['Content-Disposition'] = 'attachment; filename=dreams_interventions.xlsx'
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
 
-        if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data'):
+        # Ensure can_view_phi_data has been created on Client contentType
+        if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
+                or Permission.objects.filter(group__user=request.user).filter(codename='DreamsApp.can_view_phi_data').exists():
             show_PHI = True;
         else:
             show_PHI = False;
