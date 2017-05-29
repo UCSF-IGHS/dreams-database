@@ -662,8 +662,14 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             'parent_program_fmp2': 79,
             'bio_medical_other': 81,
             'social_protection_other': 82,
-            'exited_from_program': 83,
-            'date_exited': 84
+            'received_behavioral_interventions': 83,
+            'received_biomedical_interventions': 84,
+            'received_post_gbv_interventions': 85,
+            'received_social_protection_interventions': 86,
+            'received_other_interventions': 87,
+            'duration_in_dreams_program': 88,
+            'exited_from_program': 89,
+            'date_exited': 90
         }
 
         # Hide PHI column values where necessary
