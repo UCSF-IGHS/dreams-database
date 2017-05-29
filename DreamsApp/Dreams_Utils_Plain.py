@@ -407,6 +407,60 @@ WHERE voided=0 AND i.implementing_partner_id = %s
 
         return
 
+    # add code to fetch line list of girls service layering
+
+    def extract_service_layering_for_all_girls(self, ip_list_str, sub_county, ward):
+
+        cursor = connection.cursor()
+        multiple_ip_sub_county_query = "SELECT * FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND  implementing_partner_id IN %s "
+        multiple_ip_ward_query = "SELECT * FROM stag_individual_client_service_layering WHERE ward_id = %s AND  implementing_partner_id IN %s "
+        multiple_ip_default_query = "SELECT * FROM stag_individual_client_service_layering WHERE implementing_partner_id IN %s "
+
+        single_ip_sub_county_query = "SELECT * FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND implementing_partner_id = %s "
+        single_ip_ward_query = "SELECT * FROM stag_individual_client_service_layering WHERE ward_id = %s AND implementing_partner_id = %s "
+        single_ip_default_query = "SELECT * FROM stag_individual_client_service_layering WHERE implementing_partner_id = %s "
+
+        try:
+
+            ip_tuple_l = ip_list_str
+            if sub_county is not None and sub_county:
+                sub_county = int(sub_county)
+
+            if ward is not None and ward:
+                ward = int(ward)
+
+            if len(ip_tuple_l) > 1:
+                ip_list = tuple(ip_tuple_l)
+
+                if ward is not None and ward:
+                    cursor.execute(multiple_ip_ward_query, [ward, ip_list])
+                elif sub_county is not None and sub_county:
+                    cursor.execute(
+                        multiple_ip_sub_county_query, [sub_county, ip_list])
+                else:
+                    cursor.execute(multiple_ip_default_query, [ip_list])
+            else:
+                ip_list = ip_list_str[0]
+                if ward is not None and ward:
+                    cursor.execute(single_ip_ward_query, [ward, ip_list])
+                elif sub_county is not None and sub_county:
+                    cursor.execute(single_ip_sub_county_query, [sub_county, ip_list])
+                else:
+                    cursor.execute(single_ip_default_query, [ip_list])
+
+            print "Query for individual service layering data was successful"
+            columns = [col[0] for col in cursor.description]
+            return [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+                ]
+        except Exception as e:
+            print 'There was an Error running query for individual service layering data\n'
+            traceback.format_exc()
+
+        return
+
+
     def load_workbook(self):
         DREAMS_TEMPLATE_PLAIN = os.path.join(settings.BASE_DIR, 'templates/excel_template/dreams_export.xlsx')
         try:
@@ -419,6 +473,14 @@ WHERE voided=0 AND i.implementing_partner_id = %s
         DREAMS_INTERVENTION_TEMPLATE = os.path.join(settings.BASE_DIR, 'templates/excel_template/service_uptake_template.xlsx')
         try:
             wb = xl.load_workbook(DREAMS_INTERVENTION_TEMPLATE)
+            return wb
+        except InvalidFileException as e:
+            traceback.format_exc()
+
+    def load_service_layering_workbook(self):
+        DREAMS_SERVICE_LAYERING_TEMPLATE = os.path.join(settings.BASE_DIR, 'templates/excel_template/individual_service_layering_template.xlsx')
+        try:
+            wb = xl.load_workbook(DREAMS_SERVICE_LAYERING_TEMPLATE)
             return wb
         except InvalidFileException as e:
             traceback.format_exc()
@@ -483,15 +545,137 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             traceback.format_exc()
         return
 
-    def merge_dicts(*dict_args):
-        """
-        Given any number of dicts, shallow copy and merge into a new dict,
-        precedence goes to key value pairs in latter dicts.
-        """
-        result = {}
-        for dictionary in dict_args:
-            result.update(dictionary)
-        return result
+    # procedure for handling individual service layering report
+    def get_individual_layering_report(self, ip_list_str, sub_county, ward, show_PHI):
+
+        try:
+
+            wb = self.load_service_layering_workbook()
+            main_sheet = wb.get_sheet_by_name('Individual_Layering')
+            print "Starting Query for individual service layering report! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            db_data = self.extract_service_layering_for_all_girls(ip_list_str, sub_county, ward)
+            print "Finished Query for individual service layering report!. Rendering Now. ", datetime.datetime.now().strftime(
+                '%Y-%m-%d %H:%M:%S')
+            i = 1
+            for row in db_data:
+                i += 1
+                self.map_individual_service_layering_report(main_sheet, i, row, show_PHI)
+
+            wb.save('Dreams_individual_service_layering_report.xlsx')
+            print "Completed rendering Individual Service Layering Report ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            return wb
+        except InvalidFileException as e:
+            traceback.format_exc()
+        except ReadOnlyWorkbookException as e:
+            traceback.format_exc()
+
+        except SheetTitleException as e:
+            traceback.format_exc()
+        return
+
+    # Mapping for individual service layering report
+    def map_individual_service_layering_report(self, ws, i, row, show_PHI):
+
+        phi_cols = {
+            'first_name': 2,
+            'middle_name': 3,
+            'last_name': 4
+        }
+
+        open_access_cols = {
+            'dreams_id': 1,
+            'date_of_birth': 5,
+            'date_of_enrollment': 6,
+            'age_at_enrollment': 7,
+            'current_age': 8,
+            'implementing_partner': 9,
+            'county_of_residence': 10,
+            'sub_county': 11,
+            'ward': 12,
+            'village': 13,
+            'shuga_II': 14,
+            'respect_k': 15,
+            'hcbf': 16,
+            'mhmc': 17,
+            'sister_to_sister_k': 18,
+            'mlrc': 19,
+            'behavioral_other': 20,
+            'hts_client': 21,
+            'hts_partner': 22,
+            'linkage_to_ccc': 25,
+            'pregnancy_test': 27,
+            'anc_pmtct': 29,
+            'sti_screening': 30,
+            'sti_treatment': 31,
+            'sti_linkage': 32,
+            'tb_screening': 33,
+            'linked_for_tb_treatment': 34,
+            'condom_education_and_demo': 35,
+            'condom_provided': 36,
+            'partner_vmmc': 37,
+            'contraception_education': 38,
+            'contraception_ind_counseling': 39,
+            'contraception_pills_oral': 40,
+            'contraception_injectable': 41,
+            'contraception_implant': 42,
+            'contraception_iud_coil': 43,
+            'prep': 44,
+            'sexual_violence_pep': 45,
+            'sexual_violence_pss': 46,
+            'sexual_violence_rescue_shelter': 47,
+            'sexual_violence_police': 48,
+            'sexual_violence_trauma_counseling': 49,
+            'sexual_violence_emergency_contraception': 50,
+            'sexual_violence_exam_treatment': 51,
+            'education_school_fees': 61,
+            'education_stationery': 62,
+            'education_uniform': 63,
+            'education_other_support': 64,
+            'parent_program_fmp': 78,
+            'economic_strengthening_fc_training': 65,
+            'economic_strengthening_voc_training': 66,
+            'economic_strengthening_microfinance': 67,
+            'economic_strengthening_internship': 68,
+            'economic_strengthening_startups': 69,
+            'cash_transfer': 73,
+            'ovc_for_children_sibling_other': 74,
+            'nutritional_support': 75,
+            'drug_addiction_counseling': 76,
+            'sab': 77,
+            'hts_client_linked_to_hts': 23,
+            'pregnancy_test_confirmed_linkage': 28,
+            'hts_partner_linked_to_hts': 24,
+            'positive_partner_linked_to_ccc': 26,
+            'tube_ligation': 80,
+            'sexual_violence_legal_support': 52,
+            'economic_strengthening_employment': 70,
+            'economic_strengthening_entrep_training': 71,
+            'economic_strengthening_entrep_support': 72,
+            'sexual_violence_other': 53,
+            'physical_violence_pss': 54,
+            'physical_violence_rescue_shelter': 55,
+            'physical_violence_police': 56,
+            'physical_violence_trauma_counseling': 57,
+            'physical_violence_exam_treatment': 58,
+            'physical_violence_legal_support': 59,
+            'physical_violence_other': 60,
+            'parent_program_fmp2': 79,
+            'bio_medical_other': 81,
+            'social_protection_other': 82,
+            'exited_from_program': 83,
+            'date_exited': 84
+        }
+
+        # Hide PHI column values where necessary
+
+        if show_PHI:
+            cols = open_access_cols.copy()
+            cols.update(phi_cols)
+        else:
+            cols = open_access_cols
+
+        for k, v in cols.items():
+            ws.cell(row=i, column=v, value=row.get(k))
 
     def map_interventions(self, ws, i, row, show_PHI):
 
