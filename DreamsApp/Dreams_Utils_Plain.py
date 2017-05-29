@@ -551,7 +551,7 @@ WHERE voided=0 AND i.implementing_partner_id = %s
         try:
 
             wb = self.load_service_layering_workbook()
-            main_sheet = wb.get_sheet_by_name('Individual_Layering')
+            main_sheet = wb.get_sheet_by_name('Services_Received')
             print "Starting Query for individual service layering report! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             db_data = self.extract_service_layering_for_all_girls(ip_list_str, sub_county, ward)
             print "Finished Query for individual service layering report!. Rendering Now. ", datetime.datetime.now().strftime(
