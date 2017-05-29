@@ -4630,8 +4630,8 @@ sum(if(intervention_type_id=69, 1, 0)) as parent_program_fmp_2
 
 from stag_client_ex x
 left outer join stag_client_intervention i on x.id=i.client_id
-where i.voided = 0 and
-x.voided != 1 and x.dreams_id is not null
+where (i.voided = 0 or isnull(i.voided)) and
+      (x.voided = 0 or isnull(x.voided)) and (x.dreams_id is not null and x.dreams_id != '')
 group by x.dreams_id;
 
 

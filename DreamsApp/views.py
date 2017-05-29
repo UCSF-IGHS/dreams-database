@@ -1791,7 +1791,7 @@ def downloadIndividualLayeringReport(request):
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
         response = HttpResponse(content_type='application/ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=Dreams_Service_Layering_Export.xlsx'
+        response['Content-Disposition'] = 'attachment; filename=Dreams_Services_Received_Export.xlsx'
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
 
         # Ensure can_view_phi_data has been created on Client contentType
