@@ -1715,10 +1715,12 @@ def downloadEXCEL(request):
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
 
         # Ensure can_view_phi_data has been created on Client contentType
-        if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data'):
-            show_PHI = True;
+        if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
+                or Permission.objects.filter(group__user=request.user).filter(
+                    codename='DreamsApp.can_view_phi_data').exists():
+            show_PHI = True
         else:
-            show_PHI = False;
+            show_PHI = False
 
         wb = export_doc.prepare_excel_doc(ip_list_str, sub_county, ward, show_PHI)
         wb.save(response)
@@ -1742,11 +1744,65 @@ def downloadRawInterventionEXCEL(request):
         # Ensure can_view_phi_data has been created on Client contentType
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(codename='DreamsApp.can_view_phi_data').exists():
-            show_PHI = True;
+            show_PHI = True
         else:
-            show_PHI = False;
+            show_PHI = False
 
         wb = export_doc.get_intervention_excel_doc(ip_list_str, sub_county, ward, show_PHI)
+        wb.save(response)
+        return response
+    except Exception as e:
+        traceback.format_exc()
+        return
+
+
+def individual_service_layering_export_page(request):
+    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+            'DreamsApp.can_export_raw_data'):
+
+        try:
+
+            if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
+                ips = ImplementingPartner.objects.all()
+            elif request.user.implementingpartneruser is not None:
+                ips = ImplementingPartner.objects.filter(
+                    id=request.user.implementingpartneruser.implementing_partner.id)
+
+            else:
+                ips = None
+
+            print "IPs", ips
+            context = {'page': 'export', 'page_title': 'Service Layering Report Export', 'ips': ips,
+                       'counties': County.objects.all()}
+            return render(request, 'individualServiceLayeringDataExport.html', context)
+        except ImplementingPartnerUser.DoesNotExist:
+            traceback.format_exc()
+        except ImplementingPartner.DoesNotExist:
+            traceback.format_exc()
+    else:
+        raise PermissionDenied
+
+
+def downloadIndividualLayeringReport(request):
+
+    try:
+        ip_list_str = request.POST.getlist('ips')
+        sub_county = request.POST.get('sub_county')
+        ward = request.POST.get('ward')
+        county = request.POST.get('county_of_residence')
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=Dreams_Service_Layering_Export.xlsx'
+        export_doc = DreamsEnrollmentExcelTemplateRenderer()
+
+        # Ensure can_view_phi_data has been created on Client contentType
+        if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
+                or Permission.objects.filter(group__user=request.user).filter(
+                    codename='DreamsApp.can_view_phi_data').exists():
+            show_PHI = True
+        else:
+            show_PHI = False
+
+        wb = export_doc.get_individual_layering_report(ip_list_str, sub_county, ward, show_PHI)
         wb.save(response)
         return response
     except Exception as e:

@@ -60,6 +60,8 @@ urlpatterns = [
     url(r'^download-intervention-excel/$', views.downloadRawInterventionEXCEL),
     url(r'^export-page', views.export_page),
     url(r'^intervention-export-page', views.intervention_export_page),
+    url(r'^service-layering-export-page', views.individual_service_layering_export_page),
+    url(r'^download-service-layering-excel/$', views.downloadIndividualLayeringReport),
     url(r'^client_baseline_info', views.viewBaselineData),
     url(r'^update-demographics', views.update_demographics_data),
     url(r'^update-individual-household', views.update_individual_and_household_data),
