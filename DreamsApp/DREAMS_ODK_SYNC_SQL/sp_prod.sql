@@ -3732,7 +3732,7 @@ i.client_ccc_number,
 i.date_linked_to_ccc,
 i.no_of_sessions_attended,
 i.comment
-from stag_client_intervention i WHERE voided=0
+from stag_client_intervention i WHERE voided=0;
 
 
 -- ------------------------ procedures for cleaning dreams ids --------------------------------------
@@ -4244,7 +4244,7 @@ ALTER TABLE duplicate_dreams_id_corrections
 INSERT INTO duplicate_dreams_id_corrections (dreams_id, action) VALUES
   ();
 
--- Voiding records of provided DREAMS ID
+-- Voiding records of provided DREAMS ID and DREAMS ID not shared
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_dreams_id_corrections$$
 CREATE PROCEDURE sp_dreams_id_corrections(IN correction VARCHAR(50))
@@ -4337,7 +4337,7 @@ DELIMITER ;
 
 
 
--- -------------------------------------------- DELETE/RETAIN/REASSIGN DREAMS ID Based on IP markings ---------------------------------
+-- -------------------------------------------- DELETE/RETAIN/REASSIGN DREAMS ID Based on IP actions ---------------------------------
 
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_reassign_or_delete_shared_dreams_id$$
@@ -4532,6 +4532,107 @@ from stag_client_ex x
 left outer join DreamsApp_intervention i on x.id=i.client_id
 where x.implementing_partner_id=6 and x.exited=0 and x.voided != 1
 having i.client_id is null;
+
+
+-- create staging table for individual_client_service_layering : stag_individual_client_service_layering
+drop table if EXISTS  stag_individual_client_service_layering;
+create table stag_individual_client_service_layering AS
+select
+x.dreams_id,
+i.client_id,
+x.first_name,
+x.middle_name,
+x.last_name,
+x.date_of_birth,
+x.date_of_enrollment,
+x.age_at_enrollment,
+timestampdiff(YEAR,x.`date_of_birth`,CURDATE()) as current_age,
+x.implementing_partner,
+x.implementing_partner_id,
+x.county_of_residence,
+x.county_of_residence_id,
+x.sub_county,
+x.sub_county_id,
+x.ward,
+x.ward_id,
+x.village,
+IF(x.exited=1, "Yes", "") as exited_from_program,
+x.date_exited as date_exited,
+sum(if(intervention_type_id=1, 1, 0)) as shuga_II,
+sum(if(intervention_type_id=2, 1, 0)) as respect_k,
+sum(if(intervention_type_id=3, 1, 0)) as hcbf,
+sum(if(intervention_type_id=4, 1, 0)) as mhmc,
+sum(if(intervention_type_id=5, 1, 0)) as sister_to_sister_k,
+sum(if(intervention_type_id=6, 1, 0)) as mlrc,
+sum(if(intervention_type_id=7, 1, 0)) as behavioral_other,
+sum(if(intervention_type_id=8, 1, 0)) as hts_client,
+sum(if(intervention_type_id=9, 1, 0)) as hts_partner,
+sum(if(intervention_type_id=10, 1, 0)) as linkage_to_ccc,
+sum(if(intervention_type_id=11, 1, 0)) as pregnancy_test,
+sum(if(intervention_type_id=12, 1, 0)) as anc_pmtct,
+sum(if(intervention_type_id=13, 1, 0)) as sti_screening,
+sum(if(intervention_type_id=14, 1, 0)) as sti_treatment,
+sum(if(intervention_type_id=15, 1, 0)) as sti_linkage,
+sum(if(intervention_type_id=16, 1, 0)) as tb_screening,
+sum(if(intervention_type_id=17, 1, 0)) as linked_for_tb_treatment,
+sum(if(intervention_type_id=18, 1, 0)) as condom_education_and_demo,
+sum(if(intervention_type_id=19, 1, 0)) as condom_provided,
+sum(if(intervention_type_id=20, 1, 0)) as partner_vmmc,
+sum(if(intervention_type_id=21, 1, 0)) as contraception_education,
+sum(if(intervention_type_id=22, 1, 0)) as contraception_ind_counseling,
+sum(if(intervention_type_id=23, 1, 0)) as contraception_pills_oral,
+sum(if(intervention_type_id=24, 1, 0)) as contraception_injectable,
+sum(if(intervention_type_id=25, 1, 0)) as contraception_implant,
+sum(if(intervention_type_id=26, 1, 0)) as contraception_iud_coil,
+sum(if(intervention_type_id=27, 1, 0)) as prep,
+sum(if(intervention_type_id=28, 1, 0)) as sexual_violence_pep,
+sum(if(intervention_type_id=29, 1, 0)) as sexual_violence_pss,
+sum(if(intervention_type_id=30, 1, 0)) as sexual_violence_rescue_shelter,
+sum(if(intervention_type_id=31, 1, 0)) as sexual_violence_police,
+sum(if(intervention_type_id=32, 1, 0)) as sexual_violence_trauma_counseling,
+sum(if(intervention_type_id=33, 1, 0)) as sexual_violence_emergency_contraception,
+sum(if(intervention_type_id=34, 1, 0)) as sexual_violence_exam_treatment,
+sum(if(intervention_type_id=35, 1, 0)) as education_school_fees,
+sum(if(intervention_type_id=36, 1, 0)) as education_stationery,
+sum(if(intervention_type_id=37, 1, 0)) as education_uniform,
+sum(if(intervention_type_id=38, 1, 0)) as education_other_support,
+sum(if(intervention_type_id=39, 1, 0)) as parent_program_fmp,
+sum(if(intervention_type_id=40, 1, 0)) as economic_strengthening_fc_training,
+sum(if(intervention_type_id=41, 1, 0)) as economic_strengthening_voc_training,
+sum(if(intervention_type_id=42, 1, 0)) as economic_strengthening_microfinance,
+sum(if(intervention_type_id=43, 1, 0)) as economic_strengthening_internship,
+sum(if(intervention_type_id=44, 1, 0)) as economic_strengthening_startups,
+sum(if(intervention_type_id=45, 1, 0)) as cash_transfer,
+sum(if(intervention_type_id=46, 1, 0)) as ovc_for_children_sibling_other,
+sum(if(intervention_type_id=47, 1, 0)) as nutritional_support,
+sum(if(intervention_type_id=48, 1, 0)) as drug_addiction_counseling,
+sum(if(intervention_type_id=49, 1, 0)) as sab,
+sum(if(intervention_type_id=50, 1, 0)) as hts_client_linked_to_hts,
+sum(if(intervention_type_id=51, 1, 0)) as pregnancy_test_confirmed_linkage,
+sum(if(intervention_type_id=52, 1, 0)) as hts_partner_linked_to_hts,
+sum(if(intervention_type_id=53, 1, 0)) as positive_partner_linked_to_ccc,
+sum(if(intervention_type_id=54, 1, 0)) as tube_ligation,
+sum(if(intervention_type_id=55, 1, 0)) as sexual_violence_legal_support,
+sum(if(intervention_type_id=56, 1, 0)) as economic_strengthening_employment,
+sum(if(intervention_type_id=57, 1, 0)) as economic_strengthening_entrep_training,
+sum(if(intervention_type_id=58, 1, 0)) as economic_strengthening_entrep_support,
+sum(if(intervention_type_id=59, 1, 0)) as sexual_violence_other,
+sum(if(intervention_type_id=60, 1, 0)) as physical_violence_pss,
+sum(if(intervention_type_id=61, 1, 0)) as physical_violence_rescue_shelter,
+sum(if(intervention_type_id=62, 1, 0)) as physical_violence_police,
+sum(if(intervention_type_id=63, 1, 0)) as physical_violence_trauma_counseling,
+sum(if(intervention_type_id=64, 1, 0)) as physical_violence_exam_treatment,
+sum(if(intervention_type_id=65, 1, 0)) as physical_violence_legal_support,
+sum(if(intervention_type_id=66, 1, 0)) as physical_violence_other,
+sum(if(intervention_type_id=67, 1, 0)) as bio_medical_other,
+sum(if(intervention_type_id=68, 1, 0)) as social_protection_other,
+sum(if(intervention_type_id=69, 1, 0)) as parent_program_fmp_2
+
+from stag_client_ex x
+left outer join stag_client_intervention i on x.id=i.client_id
+where (i.voided = 0 or isnull(i.voided)) and
+      (x.voided = 0 or isnull(x.voided)) and (x.dreams_id is not null and x.dreams_id != '')
+group by x.dreams_id;
 
 
 

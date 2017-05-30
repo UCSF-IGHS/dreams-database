@@ -98,14 +98,19 @@
                          <div class="form-group" id="notes_section">
                             <span id="error-space" class="label" style="color: red;"></span>
                         </div>
-
                          Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
 
                   </div>
                   <div class="modal-footer">
-                    <button id="btn_cancel_intervention" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
-                    <button id="btn_save_intervention" type="submit" class="btn btn-sm btn-primary" > Save Intervention </button>
+
+                      <button id="btn_cancel_intervention" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
+                      <button id="btn_save_intervention" type="submit" class="btn btn-sm btn-primary" > Save Intervention </button>
+                      <span class="processing-indicator hidden">
+                          <br/><br/>
+                          <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving intervention... </span>
+                      </span>
                   </div>
+
                 </form>
             </div>
           </div>

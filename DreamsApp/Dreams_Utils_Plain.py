@@ -323,14 +323,14 @@ VALUES """
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner, i.implementing_partner_id, i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment
+  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND  i.implementing_partner_id IN %s """
 
         multiple_ip_ward_query = """select
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment
+  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND  i.implementing_partner_id IN %s """
 
 
@@ -338,14 +338,14 @@ from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND  i.impleme
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment
+  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i WHERE voided=0 AND  i.implementing_partner_id IN %s """
 
         single_ip_sub_county_query = """select
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment
+  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id = %s """
 
 
@@ -353,7 +353,7 @@ from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.im
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment
+  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id = %s """
 
 
@@ -361,7 +361,7 @@ from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implemen
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment
+  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i
 WHERE voided=0 AND i.implementing_partner_id = %s
 ;
@@ -407,6 +407,60 @@ WHERE voided=0 AND i.implementing_partner_id = %s
 
         return
 
+    # add code to fetch line list of girls service layering
+
+    def extract_service_layering_for_all_girls(self, ip_list_str, sub_county, ward):
+
+        cursor = connection.cursor()
+        multiple_ip_sub_county_query = "SELECT * FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND  implementing_partner_id IN %s "
+        multiple_ip_ward_query = "SELECT * FROM stag_individual_client_service_layering WHERE ward_id = %s AND  implementing_partner_id IN %s "
+        multiple_ip_default_query = "SELECT * FROM stag_individual_client_service_layering WHERE implementing_partner_id IN %s "
+
+        single_ip_sub_county_query = "SELECT * FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND implementing_partner_id = %s "
+        single_ip_ward_query = "SELECT * FROM stag_individual_client_service_layering WHERE ward_id = %s AND implementing_partner_id = %s "
+        single_ip_default_query = "SELECT * FROM stag_individual_client_service_layering WHERE implementing_partner_id = %s "
+
+        try:
+
+            ip_tuple_l = ip_list_str
+            if sub_county is not None and sub_county:
+                sub_county = int(sub_county)
+
+            if ward is not None and ward:
+                ward = int(ward)
+
+            if len(ip_tuple_l) > 1:
+                ip_list = tuple(ip_tuple_l)
+
+                if ward is not None and ward:
+                    cursor.execute(multiple_ip_ward_query, [ward, ip_list])
+                elif sub_county is not None and sub_county:
+                    cursor.execute(
+                        multiple_ip_sub_county_query, [sub_county, ip_list])
+                else:
+                    cursor.execute(multiple_ip_default_query, [ip_list])
+            else:
+                ip_list = ip_list_str[0]
+                if ward is not None and ward:
+                    cursor.execute(single_ip_ward_query, [ward, ip_list])
+                elif sub_county is not None and sub_county:
+                    cursor.execute(single_ip_sub_county_query, [sub_county, ip_list])
+                else:
+                    cursor.execute(single_ip_default_query, [ip_list])
+
+            print "Query for individual service layering data was successful"
+            columns = [col[0] for col in cursor.description]
+            return [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+                ]
+        except Exception as e:
+            print 'There was an Error running query for individual service layering data\n'
+            traceback.format_exc()
+
+        return
+
+
     def load_workbook(self):
         DREAMS_TEMPLATE_PLAIN = os.path.join(settings.BASE_DIR, 'templates/excel_template/dreams_export.xlsx')
         try:
@@ -423,7 +477,15 @@ WHERE voided=0 AND i.implementing_partner_id = %s
         except InvalidFileException as e:
             traceback.format_exc()
 
-    def prepare_excel_doc(self, ip_list_str, sub_county, ward):
+    def load_service_layering_workbook(self):
+        DREAMS_SERVICE_LAYERING_TEMPLATE = os.path.join(settings.BASE_DIR, 'templates/excel_template/individual_service_layering_template.xlsx')
+        try:
+            wb = xl.load_workbook(DREAMS_SERVICE_LAYERING_TEMPLATE)
+            return wb
+        except InvalidFileException as e:
+            traceback.format_exc()
+
+    def prepare_excel_doc(self, ip_list_str, sub_county, ward, show_PHI):
 
         try:
 
@@ -435,12 +497,12 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             i = 1
             for row in db_data:
                 i += 1
-                self.map_demographics(refined_sheet, i, row)
+                self.map_demographics(refined_sheet, i, row, show_PHI)
                 self.map_individual_and_household(refined_sheet, i, row)
                 self.map_sexuality(refined_sheet, i, row)
                 self.map_reproductive_health(refined_sheet, i, row)
                 self.map_drug_use(refined_sheet, i, row)
-                self.map_education_and_employment(refined_sheet, i, row)
+                self.map_education_and_employment(refined_sheet, i, row, show_PHI)
                 self.map_gbv(refined_sheet, i, row)
                 self.map_program_participation(refined_sheet, i, row)
                 self.map_hiv_testing(refined_sheet, i, row)
@@ -457,7 +519,7 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             traceback.format_exc()
         return
 
-    def get_intervention_excel_doc(self, ip_list_str, sub_county, ward):
+    def get_intervention_excel_doc(self, ip_list_str, sub_county, ward, show_PHI):
 
         try:
 
@@ -469,7 +531,7 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             i = 1
             for row in db_data:
                 i += 1
-                self.map_interventions(interventions_sheet, i, row)
+                self.map_interventions(interventions_sheet, i, row, show_PHI)
 
             wb.save('dreams_interventions.xlsx')
             print "Completed rendering excel ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -483,11 +545,152 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             traceback.format_exc()
         return
 
-    def map_interventions(self, ws, i, row):
-        cols = {
-            #'client_id': 1,
+    # procedure for handling individual service layering report
+    def get_individual_layering_report(self, ip_list_str, sub_county, ward, show_PHI):
+
+        try:
+
+            wb = self.load_service_layering_workbook()
+            main_sheet = wb.get_sheet_by_name('Services_Received')
+            print "Starting Query for individual service layering report! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            db_data = self.extract_service_layering_for_all_girls(ip_list_str, sub_county, ward)
+            print "Finished Query for individual service layering report!. Rendering Now. ", datetime.datetime.now().strftime(
+                '%Y-%m-%d %H:%M:%S')
+            i = 1
+            for row in db_data:
+                i += 1
+                self.map_individual_service_layering_report(main_sheet, i, row, show_PHI)
+
+            wb.save('Dreams_individual_service_layering_report.xlsx')
+            print "Completed rendering Individual Service Layering Report ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            return wb
+        except InvalidFileException as e:
+            traceback.format_exc()
+        except ReadOnlyWorkbookException as e:
+            traceback.format_exc()
+
+        except SheetTitleException as e:
+            traceback.format_exc()
+        return
+
+    # Mapping for individual service layering report
+    def map_individual_service_layering_report(self, ws, i, row, show_PHI):
+
+        phi_cols = {
+            'first_name': 2,
+            'middle_name': 3,
+            'last_name': 4
+        }
+
+        open_access_cols = {
+            'dreams_id': 1,
+            'date_of_birth': 5,
+            'date_of_enrollment': 6,
+            'age_at_enrollment': 7,
+            'current_age': 8,
+            'implementing_partner': 9,
+            'county_of_residence': 10,
+            'sub_county': 11,
+            'ward': 12,
+            'village': 13,
+            'shuga_II': 14,
+            'respect_k': 15,
+            'hcbf': 16,
+            'mhmc': 17,
+            'sister_to_sister_k': 18,
+            'mlrc': 19,
+            'behavioral_other': 20,
+            'hts_client': 21,
+            'hts_partner': 22,
+            'linkage_to_ccc': 25,
+            'pregnancy_test': 27,
+            'anc_pmtct': 29,
+            'sti_screening': 30,
+            'sti_treatment': 31,
+            'sti_linkage': 32,
+            'tb_screening': 33,
+            'linked_for_tb_treatment': 34,
+            'condom_education_and_demo': 35,
+            'condom_provided': 36,
+            'partner_vmmc': 37,
+            'contraception_education': 38,
+            'contraception_ind_counseling': 39,
+            'contraception_pills_oral': 40,
+            'contraception_injectable': 41,
+            'contraception_implant': 42,
+            'contraception_iud_coil': 43,
+            'prep': 44,
+            'sexual_violence_pep': 45,
+            'sexual_violence_pss': 46,
+            'sexual_violence_rescue_shelter': 47,
+            'sexual_violence_police': 48,
+            'sexual_violence_trauma_counseling': 49,
+            'sexual_violence_emergency_contraception': 50,
+            'sexual_violence_exam_treatment': 51,
+            'education_school_fees': 61,
+            'education_stationery': 62,
+            'education_uniform': 63,
+            'education_other_support': 64,
+            'parent_program_fmp': 78,
+            'economic_strengthening_fc_training': 65,
+            'economic_strengthening_voc_training': 66,
+            'economic_strengthening_microfinance': 67,
+            'economic_strengthening_internship': 68,
+            'economic_strengthening_startups': 69,
+            'cash_transfer': 73,
+            'ovc_for_children_sibling_other': 74,
+            'nutritional_support': 75,
+            'drug_addiction_counseling': 76,
+            'sab': 77,
+            'hts_client_linked_to_hts': 23,
+            'pregnancy_test_confirmed_linkage': 28,
+            'hts_partner_linked_to_hts': 24,
+            'positive_partner_linked_to_ccc': 26,
+            'tube_ligation': 80,
+            'sexual_violence_legal_support': 52,
+            'economic_strengthening_employment': 70,
+            'economic_strengthening_entrep_training': 71,
+            'economic_strengthening_entrep_support': 72,
+            'sexual_violence_other': 53,
+            'physical_violence_pss': 54,
+            'physical_violence_rescue_shelter': 55,
+            'physical_violence_police': 56,
+            'physical_violence_trauma_counseling': 57,
+            'physical_violence_exam_treatment': 58,
+            'physical_violence_legal_support': 59,
+            'physical_violence_other': 60,
+            'parent_program_fmp2': 79,
+            'bio_medical_other': 81,
+            'social_protection_other': 82,
+            'received_behavioral_interventions': 83,
+            'received_biomedical_interventions': 84,
+            'received_post_gbv_interventions': 85,
+            'received_social_protection_interventions': 86,
+            'received_other_interventions': 87,
+            'duration_in_dreams_program': 88,
+            'exited_from_program': 89,
+            'date_exited': 90
+        }
+
+        # Hide PHI column values where necessary
+
+        if show_PHI:
+            cols = open_access_cols.copy()
+            cols.update(phi_cols)
+        else:
+            cols = open_access_cols
+
+        for k, v in cols.items():
+            ws.cell(row=i, column=v, value=row.get(k))
+
+    def map_interventions(self, ws, i, row, show_PHI):
+
+        phi_cols = {
+            'client_name': 3
+        }
+
+        open_access_cols = {
             'dreams_id': 2,
-            'client_name': 3,
             'implementing_partner': 4,
             'date_of_birth': 5,
             'date_of_enrollment': 6,
@@ -496,35 +699,54 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             'ward': 9,
             'village': 10,
             'date_of_intervention': 11,
-            'intervention_type': 12,
-            'intervention_category': 13,
-            'hts_result': 14,
-            'pregnancy_test_result': 15,
-            'client_ccc_number': 16,
-            'date_linked_to_ccc': 17,
-            'no_of_sessions_attended': 18,
-            'comment': 19,
+            'age_at_intervention': 12,
+            'current_age': 13,
+            'intervention_type': 14,
+            'intervention_category': 15,
+            'hts_result': 16,
+            'pregnancy_test_result': 17,
+            'client_ccc_number': 18,
+            'date_linked_to_ccc': 19,
+            'no_of_sessions_attended': 20,
+            'comment': 21,
         }
+
+        # Hide PHI column values where necessary
+
+        if show_PHI:
+            cols = open_access_cols.copy()
+            cols.update(phi_cols)
+        else:
+            cols = open_access_cols
 
         for k, v in cols.items():
             ws.cell(row=i, column=v, value=row.get(k))
 
-    def map_demographics(self, ws, i, row):
-        cols = {
-            'implementing_partner': 2,
-            'IP_Code': 3,
+    def map_demographics(self, ws, i, row, show_PHI):
+
+        # These are columns that contain identifiers. They should be
+        phi_cols = {
             'first_name': 4,
             'middle_name': 5,
             'last_name': 6,
+            'verification_doc_no': 10,
+            'phone_number': 17,
+            'dss_id_number': 26,
+            'guardian_name': 27,
+            'guardian_phone_number': 32,
+            'guardian_national_id': 33
+        }
+
+        open_access_cols = {
+            'implementing_partner': 2,
+            'IP_Code': 3,
             'date_of_birth': 7,
             'verification_document': 8,
             'verification_document_other': 9,
-            'verification_doc_no': 10,
             'date_of_enrollment': 11,
             'current_age': 13,
             'age_at_enrollment': 14,
             'marital_status': 16,
-            'phone_number': 17,
             'county_name': 18,
             'sub_county_name': 19,
             'ward_id': 21,
@@ -533,18 +755,20 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             'village': 23,
             'land_mark': 24,
             'dreams_id': 25,
-            'dss_id_number': 26,
-            'guardian_name': 27,
-            #'caregiver_middle_name': 28,
-            #'caregiver_last_name': 29,
             'relationship_with_guardian': 30,
             'caregiver_relationship_other': 31,
-            'guardian_phone_number': 32,
-            'guardian_national_id': 33,
             'exit_status': 204,
             'exit_date': 205,
             'exit_reason': 206
         }
+
+        # merge PIH and open access columns based on permissions
+
+        if show_PHI:
+            cols = open_access_cols.copy()
+            cols.update(phi_cols)
+        else:
+            cols = open_access_cols
 
         for k, v in cols.items():
             if k == 'IP_Code':
@@ -736,9 +960,14 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             else:
                 ws.cell(row=i, column=v, value=row.get(k))
 
-    def map_education_and_employment(self, ws, i, row):
-        cols = {
-            'current_school_name': 66,
+    def map_education_and_employment(self, ws, i, row, show_PHI):
+
+        # These are columns that contain identifiers. They should be
+        phi_cols = {
+            'current_school_name': 66
+        }
+
+        open_access_cols = {
             'current_class': 70,
             'current_school_level_other': 69,
             'current_edu_supporter_list': 71,
@@ -759,6 +988,15 @@ WHERE voided=0 AND i.implementing_partner_id = %s
             'life_wish': 82,
             'reason_not_in_school': 77
         }
+
+        # merge data base on privileges
+
+        if show_PHI:
+            cols = open_access_cols.copy()
+            cols.update(phi_cols)
+        else:
+            cols = open_access_cols
+
         for k, v in cols.items():
             if k == 'current_edu_supporter_list':
                 val = row.get(k)

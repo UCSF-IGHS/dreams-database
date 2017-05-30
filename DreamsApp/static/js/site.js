@@ -601,16 +601,22 @@ $(document).ready(function () {
 
     $('#intervention-entry-form').submit(function (event) {
         event.preventDefault()
+        $('#btn_save_intervention').attr("disabled","disabled");
+        $('#intervention-entry-form .processing-indicator').removeClass('hidden')
         var intervention_category_code = currentInterventionCategoryCode_Global;
         var table_id = "#interventions_" + intervention_category_code + "_table";
 
-        if (intervention_category_code == null || intervention_category_code == "" || table_id == null || table_id == "")
+        if (intervention_category_code == null || intervention_category_code == "" || table_id == null || table_id == ""){
+            $('#btn_save_intervention').removeAttr("disabled");
+            $('#intervention-entry-form .processing-indicator').addClass('hidden')
             return false;
-
+        }
         // validate form
-        if(!validateInterventionEntryForm())
+        if(!validateInterventionEntryForm()){
+            $('#btn_save_intervention').removeAttr("disabled");
+            $('#intervention-entry-form .processing-indicator').addClass('hidden')
             return false;
-
+        }
         var postUrl = modalMode == "edit" ? "/ivUpdate" : "/ivSave"; // by default
 
         // do an ajax post
@@ -673,12 +679,15 @@ $(document).ready(function () {
                         $(alert_id).removeClass('hidden').addClass('alert-success').text('Intervention has been Updated successfully!')
                     }
                     $("#intervention-modal").each( function() { this.reset; });
+                    $('#btn_save_intervention').removeAttr("disabled");
+                    $('#intervention-entry-form .processing-indicator').addClass('hidden')
                     $('#intervention-modal').modal('hide');
                 }
             },
             // handle a non-successful response
             error : function(xhr,errmsg,err) {
                 $('#action_alert_' + currentInterventionCategoryCode_Global).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again: ' + errmsg)
+                $('#btn_save_intervention').removeAttr("disabled");
                 console.log(xhr.status + " " +err + ": " + xhr.responseText); // provide a bit more info about the error to the console
             }
         });
@@ -2196,14 +2205,28 @@ $(document).ready(function () {
 
     });
 
-    /* Individual household information validation
-
+    /*
+        Individual household information validation
      */
+    $.validator.addMethod('requiredIfHeadOfHouseholdIsOtherSpecify', function (value) {
+        var isEntered = false;
+        if(value != "")
+            isEntered = true;
+        var head_of_household = parseInt($('#id_head_of_household').val(), 10) || 0
+
+        if(head_of_household == 96 && !isEntered)
+            return false;
+        return true;
+    }, ' ');
+
     $("#form_ind_household").validate({
         rules: { 
             head_of_household: { 
                 required: true 
             }, 
+            head_of_household_other:{
+                requiredIfHeadOfHouseholdIsOtherSpecify:true
+            },
             age_of_household_head: { 
                 number:true,
                 positiveNumberZeroExclusive: true
@@ -2270,6 +2293,9 @@ $(document).ready(function () {
             head_of_household: { 
                 required: " * Please Select Head of Household" 
             }, 
+            head_of_household_other: {
+                requiredIfHeadOfHouseholdIsOtherSpecify: "* Please Specify household head"
+            },
             age_of_household_head: { 
                 number: " Enter valid age e.g 45"
             }, 
@@ -2394,6 +2420,17 @@ $(document).ready(function () {
     /* Sexual activity validation
 
      */
+    $.validator.addMethod('requiredPositiveIfHasCurrentSexualPartnerElseZero', function (value) {
+        var isEntered = false;
+        var sexualPartnersInLast12Months = 0;
+        if(value != "")
+            sexualPartnersInLast12Months = parseInt(value, 10) || 0;
+            isEntered = true;
+        var has_sexual_partner = parseInt($('#id_has_sexual_partner').val(), 10) || 0
+        if(has_sexual_partner == 1 && (!isEntered || (sexualPartnersInLast12Months == 0)))
+            return false;
+        return true;
+    }, ' ');
     $("#form_sexuality").validate({
         rules: { 
             ever_had_sex: { 
@@ -2408,7 +2445,7 @@ $(document).ready(function () {
             },
             sex_partners_in_last_12months:{
                 requiredIfEverHadSex: true,
-                positiveNumber: true
+                requiredPositiveIfHasCurrentSexualPartnerElseZero: true
             }
         },
         messages: { 
@@ -2425,7 +2462,7 @@ $(document).ready(function () {
             },
             sex_partners_in_last_12months:{
                 requiredIfEverHadSex: " * Required field",
-                positiveNumber: "NUmber of sex partners can only be 0 and above.s"
+                requiredPositiveIfHasCurrentSexualPartnerElseZero: " * Number of sex partners should be greater than Zero"
             }
         }, 
         highlight: function (element) { 
