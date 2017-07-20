@@ -1,15 +1,20 @@
 # coding=utf-8
 from django.contrib import admin
 from django.contrib.auth.models import Permission
+from DreamsApp.forms import *
 
 from models import *
 # Register your models here.
+from django.forms import CheckboxSelectMultiple
+from django.core.urlresolvers import reverse
+
 
 class PermissionAdmin(admin.ModelAdmin):
     list_display = ('name', 'codename', 'content_type')
     search_fields = ('name', 'codename', 'content_type')
 
 admin.site.register(Permission, PermissionAdmin)
+
 
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'middle_name', 'last_name', 'date_of_birth')
@@ -150,3 +155,83 @@ class PaymentModeAdmin(admin.ModelAdmin):
     list_per_page = 25
 
 admin.site.register(PaymentMode, PaymentModeAdmin)
+
+
+class ServicePackageInterventionTypeAlternativeInline(admin.TabularInline):
+    model = ServicePackage.intervention_type_alternatives.through
+    extra = 0
+
+
+@admin.register(ServicePackage)
+class ServicePackageAdmin(admin.ModelAdmin):
+    model = ServicePackage
+    inlines = [ServicePackageInterventionTypeAlternativeInline, ]
+    list_display = ('name', 'description', 'lower_age_limit', 'upper_age_limit', 'age_group', 'date_created',
+                    'created_by', 'date_changed', 'changed_by')
+    fieldsets = (
+        ('Service package details', {
+            'fields': ('name', 'description', 'lower_age_limit', 'upper_age_limit',)
+        }),
+        ('Auto-generated info', {
+            'fields': ('age_group', 'created_by', 'date_changed', 'changed_by'),
+            'classes': ['collapse in', ]
+        }),
+    )
+    list_per_page = 25
+    list_filter = ('name', 'description', 'lower_age_limit', 'upper_age_limit', 'age_group')
+    empty_value_display = '-'
+    exclude = ('intervention_type_alternatives',)
+    filter_horizontal = ['intervention_type_alternatives', ]
+
+    def get_readonly_fields(self, request, obj=None):
+        return self.readonly_fields + ('age_group', 'date_created', 'created_by', 'date_changed', 'changed_by')
+
+    def save_model(self, request, obj, form, change):
+        if not obj.id is not None:
+            obj.created_by = request.user
+        else:
+            obj.changed_by = request.user
+        obj.save()
+
+
+@admin.register(InterventionTypeAlternative)
+class ServicePackageInterventionTypeAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        models.ManyToManyField: {'widget': CheckboxSelectMultiple},
+    }
+    empty_value_display = '-'
+    list_display = ('description', 'package_option_category', 'intervention_type_alternatives_text', )
+    list_per_page = 25
+    list_filter = ('intervention_type_alternatives_text', 'package_option_category')
+    fieldsets = (
+        ('', {
+            'fields': ('name', 'description', 'package_option_category', 'intervention_type_alternatives', )
+        }),
+        ('Auto-generated info', {
+            'fields': ('intervention_type_alternatives_text', ),
+            'classes': ['collapse in', ]
+        })
+    )
+
+    def save_model(self, request, obj, form, change):
+        model_form = self.get_form(request, obj)
+        if request.method == 'POST':
+            form = model_form(request.POST, request.FILES, instance=obj)
+        if form.is_valid():
+            intervention_type_alternatives_text = u''
+            for iv_type_alternatives in form.cleaned_data['intervention_type_alternatives'].all().order_by('name'):
+                if intervention_type_alternatives_text.encode('utf8') == '':
+                    intervention_type_alternatives_text = '{}'.format(iv_type_alternatives.name)
+                else:
+                    intervention_type_alternatives_text = u'{}, {}'.format(intervention_type_alternatives_text,
+                                                                           iv_type_alternatives.name)
+            obj.intervention_type_alternatives_text = intervention_type_alternatives_text
+            super(ServicePackageInterventionTypeAdmin, self).save_model(request, obj, form, change)
+            return obj
+        else:
+            raise Exception("An error occurred while processing your request. "
+                            "Please contact system administrator for help")
+
+    def get_readonly_fields(self, request, obj=None):
+        return self.readonly_fields + ('intervention_type_alternatives_text', )
+

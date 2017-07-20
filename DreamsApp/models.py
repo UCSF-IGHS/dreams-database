@@ -5,6 +5,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
 from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.html import format_html
+
 
 
 class MaritalStatus(models.Model):
@@ -1031,5 +1034,69 @@ class FlatEnrollmentTableLog(models.Model):
     activity = models.CharField(max_length=50)
     error = models.CharField(max_length=255, null=True)
 
+
+class InterventionTypeAlternative(models.Model):
+    PACKAGE_OPTION_CATEGORIES = (
+        (1, 'Required Service'),
+        (2, 'Situation Based Service')
+    )
+
+    name = models.CharField(verbose_name='Service name', max_length=250, blank=False, null=False, default='-')
+    description = models.TextField(verbose_name='Service description', default='', blank=True, null=True)
+    package_option_category = models.IntegerField(verbose_name='Package option category', default=1, blank=False,
+                                                  null=False, choices=PACKAGE_OPTION_CATEGORIES)
+    intervention_type_alternatives = models.ManyToManyField(InterventionType,
+                                                            verbose_name='Intervention type alternatives', blank=False)
+    intervention_type_alternatives_text = models.TextField(verbose_name='Intervention type alternatives',
+                                                           blank=True, null=True)
+
+    def display_name(self):
+        return self.name
+
+    display_name.short_description = 'Name'
+    display_name.allow_tags = True
+
+    def __str__(self):
+        package_category = dict(self.PACKAGE_OPTION_CATEGORIES)[self.package_option_category]
+        str(package_category)
+        return '{}: {}'.format(self.name, str(package_category))
+
+    class Meta:
+        verbose_name = 'Service Package Intervention Alternative'
+        verbose_name_plural = 'Service Package Interventions Alternatives'
+
+
+class ServicePackage(models.Model):
+    name = models.CharField(verbose_name='Name', max_length=200, blank=False, null=False, default='')
+    description = models.CharField(verbose_name='Description', max_length=250, blank=True, null=True, default='')
+    lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', default=10,
+                                                  validators=[MinValueValidator(10), MaxValueValidator(24)])
+    upper_age_limit = models.PositiveIntegerField(verbose_name='Upper age limit', default=24,
+                                                  validators=[MinValueValidator(10), MaxValueValidator(24)])
+    age_group = models.CharField(verbose_name='Age group', max_length=5, blank=True, null=True, default='-')
+    intervention_type_alternatives = models.ManyToManyField(InterventionTypeAlternative,
+                                                            verbose_name='Service package intervention types',
+                                                            through='ServicePackageInterventionTypeAlternative')
+    date_created = models.DateTimeField(verbose_name='Date created', auto_now_add=True, blank=True, null=True)
+    created_by = models.ForeignKey(User, verbose_name='Created by',  null=True, related_name='+')
+    date_changed = models.DateTimeField(verbose_name='Date changed',  auto_now=True, null=True, blank=True)
+    changed_by = models.ForeignKey(User, verbose_name='Changed by',  null=True, blank=True, related_name='+')
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta:
+        verbose_name = 'Service Package'
+        verbose_name_plural = 'Service Packages'
+
+    def save(self, *args, **kwargs):
+        self.age_group = '{}-{}'.format(self.lower_age_limit, self.upper_age_limit)
+        super(ServicePackage, self).save(*args, **kwargs)
+
+
+class ServicePackageInterventionTypeAlternative(models.Model):
+    service_package = models.ForeignKey(ServicePackage, null=False)
+    intervention_type_alternative = models.ForeignKey(InterventionTypeAlternative, null=False,
+                                                      verbose_name='Service package intervention alternative')
 
 

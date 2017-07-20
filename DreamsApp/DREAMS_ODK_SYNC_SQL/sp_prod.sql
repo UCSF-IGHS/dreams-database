@@ -1,3 +1,38 @@
+-- Data Quality: Mass update of Wards
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_reassign_wards$$
+CREATE PROCEDURE sp_reassign_wards(OUT rows_updated INT)
+BEGIN
+
+    DECLARE done BOOL DEFAULT FALSE;
+    DECLARE dq_id, dq_implementing_partner_id, dq_old_ward_id, dq_new_ward_id INT;
+    DECLARE dreams_id_cursor CURSOR FOR SELECT id, `implementing partner id`, `Ward id`, new_ward_id FROM dq_agyw_ward_correction WHERE status = 0;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    SET rows_updated = 0;
+    OPEN dreams_id_cursor;
+
+    read_loop: LOOP
+      FETCH dreams_id_cursor INTO dq_id, dq_implementing_partner_id, dq_old_ward_id, dq_new_ward_id;
+      IF done THEN
+
+        LEAVE read_loop;
+
+      ELSE
+
+        UPDATE DreamsApp_client SET ward_id = dq_new_ward_id WHERE id = dq_id AND implementing_partner_id = dq_implementing_partner_id AND ward_id = dq_old_ward_id;
+        UPDATE dq_agyw_ward_correction SET status = 1 WHERE id = dq_id and `Ward id` = dq_old_ward_id;
+        SET rows_updated = rows_updated + 1;
+
+      END IF;
+    END LOOP;
+
+    CLOSE dreams_id_cursor;
+    SELECT @rows_updated;
+END;
+$$
+DELIMITER ;
+-- End of Mass update of Wards
+
 
 -- setup first time setup tables
 
