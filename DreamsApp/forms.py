@@ -1,5 +1,6 @@
 # coding=utf-8
-from django.forms import ModelForm, forms
+from django.forms import ModelForm
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from models import *
 
 # DreamsApp imports
@@ -61,7 +62,6 @@ class IndividualAndHouseholdForm(ModelForm):
         exclude = ['date_changed', 'date_created']
 
 
-
 class EducationAndEmploymentForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(EducationAndEmploymentForm, self).__init__(*args, **kwargs)
@@ -73,8 +73,6 @@ class EducationAndEmploymentForm(ModelForm):
         model = ClientEducationAndEmploymentData
         fields = '__all__'
         exclude = ['date_created', 'date_changed']
-
-
 
 
 class HivTestForm(ModelForm):
@@ -90,7 +88,6 @@ class HivTestForm(ModelForm):
         model = ClientHIVTestingData
         fields = '__all__'
         exclude = ['date_created', 'date_changed']
-
 
 
 class SexualityForm(ModelForm):
@@ -136,7 +133,6 @@ class ReproductiveHealthForm(ModelForm):
         exclude = ['date_created', 'date_changed']
 
 
-
 class GBVForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
@@ -174,7 +170,6 @@ class GBVForm(ModelForm):
         exclude = ['date_created', 'date_changed']
 
 
-
 class DrugUseForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
@@ -190,11 +185,9 @@ class DrugUseForm(ModelForm):
         exclude = ['date_created', 'date_changed']
 
 
-
 class DreamsProgramParticipationForm(ModelForm):
 
     class Meta:
         model = ClientParticipationInDreams
         fields = '__all__'
         exclude = ['date_created', 'date_changed']
-
