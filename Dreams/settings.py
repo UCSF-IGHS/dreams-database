@@ -52,6 +52,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'DreamsApp.middlewares.AutoLogoutMiddleware.SessionExpiredMiddleware',
+    'DreamsApp.middlewares.CurrentUserMiddleware.CurrentUserMiddleware',
 
 ]
 

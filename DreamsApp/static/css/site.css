@@ -520,3 +520,8 @@ html, body{
 .text-centered-vertical{
     text-align: match-parent;
 }
+
+.word-wrap {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
