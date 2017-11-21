@@ -43,7 +43,7 @@ def create_audit_log(sender, instance, created, *args, **kwargs):
 
 
 @receiver(post_delete, )
-def create_delete_audit_log(sender, instance):
+def create_delete_audit_log(sender, instance, *args, **kwargs):
     action = "DELETE"
     user_id = get_current_user().id if get_current_user() is not None else None
 

@@ -12,4 +12,5 @@ class CurrentUserMiddleware(object):
 
 
 def get_current_user():
-    return _user.value
+    #return _user.value if hasattr(_user, 'value') else None
+    return getattr(_user, "value", None)
