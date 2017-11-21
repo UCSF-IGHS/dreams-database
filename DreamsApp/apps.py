@@ -8,5 +8,4 @@ class DreamsappConfig(AppConfig):
     name = 'DreamsApp'
 
     def ready(self):
-        print("at ready")
         import DreamsApp.signals
