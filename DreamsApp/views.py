@@ -374,7 +374,7 @@ def save_client(request):
                                 SELECT (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1)
                                 from DreamsApp_client WHERE dreams_id is not null and ward_id is not null
                                 AND DreamsApp_client.implementing_partner_id=%s
-                                AND DreamsApp_client.ward_id=%s group by implementing_partner_id, ward_id;""",
+                                AND DreamsApp_client.ward_id=%s AND DreamsApp_client.voided=0 group by implementing_partner_id, ward_id;""",
                                 (ip_code, client.ward.id))
                             next_serial = cursor.fetchone()[0]
                             client.dreams_id = str(ip_code) + '/' + str(client.ward.code if client.ward != None else '') \
