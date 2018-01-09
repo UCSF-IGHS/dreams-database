@@ -46,20 +46,20 @@
                              <input type="text" class="form-control clear_value" id="id_date_of_birth" name="date_of_birth" placeholder="Select date of birth" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                              <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                              <script>
-                                $(function() {
-                                  $( "#id_date_of_birth" ).datepicker({
-                                      minDate: (new Date(1991, 10 , 1)),
-                                      maxDate:  (new Date(2007, 9 , 1)),
-                                      dateFormat: 'yy-mm-dd',
-                                      changeMonth: true,
-                                      changeYear: true
-                                  });
-                                });
-                                {% if client != None %}
-                                    setTimeout(function () {
-                                    }, 1000);
-                                {% endif %}
-                            </script>
+                                 $(function () {
+                                     $("#id_date_of_birth").datepicker({
+                                         minDate: ('{{ min_dob }}'),
+                                         maxDate: ('{{ max_dob }}'),
+                                         dateFormat: 'yy-mm-dd',
+                                         changeMonth: true,
+                                         changeYear: true
+                                     });
+                                 });
+                                 {% if client != None %}
+                                     setTimeout(function () {
+                                     }, 1000);
+                                 {% endif %}
+                             </script>
                              <span id="spn_date_of_birth" class="clear_span"></span>
                             <label>
                               <input type="checkbox" class="clear_true" id="id_is_date_of_birth_estimated" name="is_date_of_birth_estimated"> Is Date of Birth Estimated?
