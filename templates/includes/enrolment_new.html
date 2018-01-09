@@ -47,11 +47,11 @@
                                 <script>
                                       $(function() {
                                         $( "#id_date_of_birth" ).datepicker({
-                                              minDate: (new Date(1991, 10 , 1)),
-                                              maxDate:  (new Date(2007, 9 , 1)),
-                                                dateFormat: 'yy-mm-dd',
-                                              changeMonth: true,
-                                              changeYear: true
+                                            minDate: ('{{ min_dob }}'),
+                                            maxDate:  ('{{ max_dob }}'),
+                                            dateFormat: 'yy-mm-dd',
+                                            changeMonth: true,
+                                            changeYear: true
                                         });
                                       });
 

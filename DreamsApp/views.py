@@ -236,6 +236,15 @@ def clients(request):
                 sub_counties = SubCounty.objects.filter(county_id=int(county_filter))
                 ward_filter = search_result_tuple[4] if search_result_tuple[4] != '' else '0'
                 wards = Ward.objects.filter(sub_county_id=int(sub_county_filter))
+                cur_date = datetime.datetime.now()
+                dt_format = "%Y-%m-%d"
+                try:
+                    max_dob = cur_date.replace(year=cur_date.year - 10).strftime(dt_format)
+                    min_dob = cur_date.replace(year=cur_date.year - 24).strftime(dt_format)
+                except ValueError:
+                    max_dob = cur_date.replace(year=cur_date.year - 10, day=cur_date.day - 1).strftime(dt_format)
+                    min_dob = cur_date.replace(year=cur_date.year - 24, day=cur_date.day - 1).strftime(dt_format)
+
                 response_data = {
                     'page': 'clients',
                     'page_title': 'DREAMS Client List',
@@ -255,7 +264,9 @@ def clients(request):
                     'ward_filter': ward_filter,
                     'wards': wards,
                     'start_date_filter': search_result_tuple[5],
-                    'end_date_filter': search_result_tuple[6]
+                    'end_date_filter': search_result_tuple[6],
+                    'max_dob': max_dob,
+                    'min_dob': min_dob
                 }
                 #county_filter, sub_county_filter, ward_filter, start_date_filter, end_date_filter
                 return render(request, 'clients.html', response_data)
