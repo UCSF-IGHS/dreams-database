@@ -939,6 +939,9 @@ $(document).ready(function () {
     $('#enrollment-form').submit(function (event) {
         event.preventDefault();
 
+        $('#btn_hide_enrollment').attr("disabled","disabled");
+        $('#btn_save_enrollment').attr("disabled","disabled");
+
         $('#id_implementing_partner').val($('#temp_current_ip').val())
         // validate
         if (!$('#enrollment-form').valid())
@@ -982,6 +985,8 @@ $(document).ready(function () {
                         .trigger('madeVisible')
             }
         });
+        $('#btn_hide_enrollment').removeAttr("disabled");
+        $('#btn_save_enrollment').removeAttr("disabled");
     })
 
     $('#btn_hide_enrollment').click(function (event) {
