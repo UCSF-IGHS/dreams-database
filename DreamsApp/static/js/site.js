@@ -359,10 +359,27 @@ $(document).ready(function () {
 
     function setInterventionTypesSelect(interventionTypes) {
         var combo = $('#intervention-type-select');
+        var currentClientAge = $('#current_client_age').val();
         combo.empty();
         combo.append($("<option />").attr("value", '').text('Select Intervention').addClass('selected disabled hidden').css({display:'none'}));
         $.each(interventionTypes, function(){
-            combo.append($("<option />").attr("value", this.fields.code).text(this.fields.name));
+            combo.append($("<option />").attr("value", this.fields.code).attr("is_age_restricted", this.fields.is_age_restricted)
+                .attr("min", this.fields.min_age).attr("max", this.fields.max_age).text(this.fields.name));
+        });
+
+        $(combo).change(function () {
+            var it = $(this).find(":selected");
+            var is_age_restricted = it.attr('is_age_restricted');
+            if(eval(is_age_restricted) && (currentClientAge < it.attr("min") || currentClientAge > it.attr("max"))){
+                $('#div_out_of_age_bracket_warning').fadeIn('fast');
+                $('#div_out_of_age_bracket_warning').removeClass('hide');
+            } else {
+                if(!$('#div_out_of_age_bracket_warning').hasClass("hide")){
+                    $('#div_out_of_age_bracket_warning').fadeOut('fast', function () {
+                       $('#div_out_of_age_bracket_warning').addClass('hide');
+                    });
+                }
+            }
         });
     }
 

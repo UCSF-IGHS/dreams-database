@@ -31,6 +31,9 @@
                           <label for="intervention-type-select">Intervention Type</label>
                           <select id="intervention-type-select" name="intervention_type_code" class="form-control validate-intervention-form-field" >
                           </select>
+                            <div id="div_out_of_age_bracket_warning" class="has-warning hide">
+                                <label class="control-label">Warning!, the client's age is outside the selected intervention type's age bracket </label>
+                            </div>
                         </div>
                         <div class="processing-indicator hidden" style="text-align: center; opacity: 0.4;">
                             <i class='fa fa-spinner fa-spin fa-1x'></i>
@@ -413,6 +416,7 @@
     </div>
 
     <input id="current_client_id" class="hidden" type="text" name="client_id" value="{{ client.id }}">
+    <input id="current_client_age" class="hidden" type="text" name="client_age" value="{{ client.get_current_age }}">
 
     <br/>
 </div>

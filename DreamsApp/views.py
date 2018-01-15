@@ -642,8 +642,6 @@ def get_intervention_types(request):
             # compute age at enrollment
             current_age = current_client.get_current_age()
             i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id, ) \
-                .exclude(is_age_restricted=True, min_age__gt=current_age) \
-                .exclude(is_age_restricted=True, max_age__lt=current_age) \
                 .order_by('code')
                 #.exclude(is_given_once=True, id__in=given_intervention_type_ids).order_by('code')
             """This code has been commented out to allow for change of intervention types for one time interventions"""
