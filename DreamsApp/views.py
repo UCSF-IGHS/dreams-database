@@ -772,6 +772,13 @@ def save_intervention(request):
                 'message': "Permission Denied: You don't have permission to Add Intervention"
             }
             return JsonResponse(response_data)
+    except ImplementingPartnerUser.DoesNotExist:
+        response_data = {
+            'status': 'fail',
+            'message': "Error: You do not belong to an Implementing Partner. "
+                       "Please contact your system admin to add you to the relevant Implementing Partner."
+        }
+        return JsonResponse(response_data)
     except Exception as e:
         # Return error with message
         response_data = {
