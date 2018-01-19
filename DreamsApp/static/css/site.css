@@ -520,3 +520,8 @@ html, body{
 .text-centered-vertical{
     text-align: match-parent;
 }
+
+.custom-has-error {
+    margin-top: 5px;
+    color: #ff0000;
+}
