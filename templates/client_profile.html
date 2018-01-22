@@ -160,11 +160,11 @@
             <div class="col-xs-12 col-sm-5">
             <p><strong>Client: </strong> {{ client.get_full_name }} <span class="client_exit_voided_status">{{ client.get_client_status }}</span></p>
             <p><strong>DREAMS ID: </strong> {{ client.dreams_id }}</p>
-            <p><strong>Date Birth: </strong> {{ client.date_of_birth }} (Age {{ client.get_current_age }})</p>
+            <p><strong>Date Birth: </strong> {{ client.date_of_birth }} (Age {{ client.get_age_at_enrollment }})</p>
 
         </div><!--/col-->
             <div class="col-xs-12 col-sm-4">
-                <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }} (Age {{ client.get_age_at_enrollment }})</p>
+                <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }}</p>
                  <p><strong>Phone Number: </strong>
                     <span>{% if client.phone_number != None%}{{ client.phone_number }}{% endif %} {% if client.phone_number == None and client.guardian_phone_number != None and client.guardian_phone_number != '' %}(Guardian){{ client.guardian_phone_number }}{% endif %}</span>
                 </p>
