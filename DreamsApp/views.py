@@ -642,8 +642,6 @@ def get_intervention_types(request):
             # compute age at enrollment
             current_age = current_client.get_current_age()
             i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id, ) \
-                .exclude(is_age_restricted=True, min_age__gt=current_age) \
-                .exclude(is_age_restricted=True, max_age__lt=current_age) \
                 .order_by('code')
                 #.exclude(is_given_once=True, id__in=given_intervention_type_ids).order_by('code')
             """This code has been commented out to allow for change of intervention types for one time interventions"""
@@ -774,6 +772,13 @@ def save_intervention(request):
                 'message': "Permission Denied: You don't have permission to Add Intervention"
             }
             return JsonResponse(response_data)
+    except ImplementingPartnerUser.DoesNotExist:
+        response_data = {
+            'status': 'fail',
+            'message': "Error: You do not belong to an Implementing Partner. "
+                       "Please contact your system admin to add you to the relevant Implementing Partner."
+        }
+        return JsonResponse(response_data)
     except Exception as e:
         # Return error with message
         response_data = {
