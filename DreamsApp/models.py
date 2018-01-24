@@ -293,9 +293,6 @@ class Audit(models.Model):
     user_id = models.IntegerField(blank=False, null=False)
     table = models.CharField(max_length=200, default='', blank=False, null=False)
     row_id = models.IntegerField(blank=True, null=True)
-    column = models.CharField(max_length=50, blank=True, null=True)
-    old_value = models.CharField(max_length=250, blank=True, null=True)
-    new_value = models.CharField(max_length=250, blank=True, null=True)
     action = models.CharField(max_length=100, blank=False, null=False)
     search_text = models.CharField(max_length=250, blank=True, null=True)
 
