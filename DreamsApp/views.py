@@ -240,10 +240,10 @@ def clients(request):
                 dt_format = "%Y-%m-%d"
                 try:
                     max_dob = cur_date.replace(year=cur_date.year - 10).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - 24).strftime(dt_format)
+                    min_dob = cur_date.replace(year=cur_date.year - 25).strftime(dt_format)
                 except ValueError:
                     max_dob = cur_date.replace(year=cur_date.year - 10, day=cur_date.day - 1).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - 24, day=cur_date.day - 1).strftime(dt_format)
+                    min_dob = cur_date.replace(year=cur_date.year - 25, day=cur_date.day - 1).strftime(dt_format)
 
                 response_data = {
                     'page': 'clients',
