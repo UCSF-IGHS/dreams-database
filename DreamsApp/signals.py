@@ -28,17 +28,15 @@ def create_audit_log(sender, instance, created, *args, **kwargs):
     audit.search_text = None
     audit.save()
 
-    if not created:
-        # If not created, it is an update
-        exclude_fields = ["date_changed"]
-        for k, v in instance._original_data.iteritems():
-            if v != instance.__dict__[k] and k not in exclude_fields:
-                audit_trail = AuditTrail()
-                audit_trail.audit = audit
-                audit_trail.column = k
-                audit_trail.old_value = instance._original_data[k]
-                audit_trail.new_value = instance.__dict__[k]
-                audit_trail.save()
+    exclude_fields = ["date_changed", "password"]
+    for k, v in instance._original_data.iteritems():
+        if v != instance.__dict__[k] and k not in exclude_fields:
+            audit_trail = AuditTrail()
+            audit_trail.audit = audit
+            audit_trail.column = k
+            audit_trail.old_value = instance._original_data[k]
+            audit_trail.new_value = instance.__dict__[k]
+            audit_trail.save()
 
 
 @receiver(post_delete, )

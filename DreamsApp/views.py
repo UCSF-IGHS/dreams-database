@@ -1902,22 +1902,19 @@ def update_demographics_data(request):
     if request.is_ajax():
         #template = 'client_demographics_ajax_form.html'
         if request.method == 'POST':
-            implementing_partner = instance.implementing_partner
-            ward = instance.ward
             county_of_residence = instance.county_of_residence
             sub_county = instance.sub_county
             implementing_partner = instance.implementing_partner
             dreams_id = instance.dreams_id
             form = DemographicsForm(request.POST, instance=instance)
             if form.is_valid():
+                form.instance.implementing_partner = implementing_partner
+                form.instance.county_of_residence = county_of_residence
+                form.instance.sub_county = sub_county
+                form.instance.implementing_partner = implementing_partner
+                form.instance.dreams_id = dreams_id
                 form.instance.save(user_id=request.user.id, action="UPDATE")
-                instance.implementing_partner = implementing_partner
-                ward = instance.ward
-                instance.county_of_residence = county_of_residence
-                instance.sub_county = sub_county
-                instance.implementing_partner = implementing_partner
-                instance.dreams_id = dreams_id
-                instance.save(user_id=request.user.id, action="UPDATE")
+
                 response_data = {
                     'status': 'success',
                     'errors': form.errors,
