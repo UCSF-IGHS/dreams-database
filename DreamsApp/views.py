@@ -236,6 +236,15 @@ def clients(request):
                 sub_counties = SubCounty.objects.filter(county_id=int(county_filter))
                 ward_filter = search_result_tuple[4] if search_result_tuple[4] != '' else '0'
                 wards = Ward.objects.filter(sub_county_id=int(sub_county_filter))
+                cur_date = datetime.datetime.now()
+                dt_format = "%Y-%m-%d"
+                try:
+                    max_dob = cur_date.replace(year=cur_date.year - 10).strftime(dt_format)
+                    min_dob = cur_date.replace(year=cur_date.year - 25).strftime(dt_format)
+                except ValueError:
+                    max_dob = cur_date.replace(year=cur_date.year - 10, day=cur_date.day - 1).strftime(dt_format)
+                    min_dob = cur_date.replace(year=cur_date.year - 25, day=cur_date.day - 1).strftime(dt_format)
+
                 response_data = {
                     'page': 'clients',
                     'page_title': 'DREAMS Client List',
@@ -255,7 +264,9 @@ def clients(request):
                     'ward_filter': ward_filter,
                     'wards': wards,
                     'start_date_filter': search_result_tuple[5],
-                    'end_date_filter': search_result_tuple[6]
+                    'end_date_filter': search_result_tuple[6],
+                    'max_dob': max_dob,
+                    'min_dob': min_dob
                 }
                 #county_filter, sub_county_filter, ward_filter, start_date_filter, end_date_filter
                 return render(request, 'clients.html', response_data)
@@ -374,7 +385,7 @@ def save_client(request):
                                 SELECT (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1)
                                 from DreamsApp_client WHERE dreams_id is not null and ward_id is not null
                                 AND DreamsApp_client.implementing_partner_id=%s
-                                AND DreamsApp_client.ward_id=%s group by implementing_partner_id, ward_id;""",
+                                AND DreamsApp_client.ward_id=%s AND DreamsApp_client.voided=0 group by implementing_partner_id, ward_id;""",
                                 (ip_code, client.ward.id))
                             next_serial = cursor.fetchone()[0]
                             client.dreams_id = str(ip_code) + '/' + str(client.ward.code if client.ward != None else '') \
@@ -631,8 +642,6 @@ def get_intervention_types(request):
             # compute age at enrollment
             current_age = current_client.get_current_age()
             i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id, ) \
-                .exclude(is_age_restricted=True, min_age__gt=current_age) \
-                .exclude(is_age_restricted=True, max_age__lt=current_age) \
                 .order_by('code')
                 #.exclude(is_given_once=True, id__in=given_intervention_type_ids).order_by('code')
             """This code has been commented out to allow for change of intervention types for one time interventions"""
@@ -763,6 +772,13 @@ def save_intervention(request):
                 'message': "Permission Denied: You don't have permission to Add Intervention"
             }
             return JsonResponse(response_data)
+    except ImplementingPartnerUser.DoesNotExist:
+        response_data = {
+            'status': 'fail',
+            'message': "Error: You do not belong to an Implementing Partner. "
+                       "Please contact your system admin to add you to the relevant Implementing Partner."
+        }
+        return JsonResponse(response_data)
     except Exception as e:
         # Return error with message
         response_data = {

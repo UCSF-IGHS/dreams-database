@@ -525,3 +525,8 @@ html, body{
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
+
+.custom-has-error {
+    margin-top: 5px;
+    color: #ff0000;
+}
