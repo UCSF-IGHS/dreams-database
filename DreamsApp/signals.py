@@ -15,14 +15,13 @@ def set_original_data(sender, instance, *args, **kwargs):
 @receiver(post_save, )
 def create_audit_log(sender, instance, created, *args, **kwargs):
     action = "CREATE" if created else "UPDATE"
-    user_id = get_current_user().id if get_current_user() is not None else None
+    user = get_current_user()
 
-    if user_id is None or isinstance(instance, Session) or isinstance(instance, Audit) or isinstance(instance,
-                                                                                                     AuditTrail):
+    if user is None or isinstance(instance, (Session, Audit, AuditTrail)):
         return
 
     audit = Audit()
-    audit.user_id = user_id
+    audit.user_id = user.id
     audit.table = instance._meta.db_table
     audit.row_id = instance.pk
     audit.action = action
@@ -45,16 +44,23 @@ def create_audit_log(sender, instance, created, *args, **kwargs):
 @receiver(post_delete, )
 def create_delete_audit_log(sender, instance, *args, **kwargs):
     action = "DELETE"
-    user_id = get_current_user().id if get_current_user() is not None else None
+    user = get_current_user()
 
-    if user_id is None or isinstance(instance, Session) or isinstance(instance, Audit) or isinstance(instance,
-                                                                                                     AuditTrail):
+    if user is None or isinstance(instance, (Session, Audit, AuditTrail)):
         return
 
     audit = Audit()
-    audit.user_id = user_id
+    audit.user_id = user.id
     audit.table = instance._meta.db_table
     audit.row_id = instance.pk
     audit.action = action
     audit.search_text = None
     audit.save()
+
+    for k, v in instance._original_data.iteritems():
+        audit_trail = AuditTrail()
+        audit_trail.audit = audit
+        audit_trail.column = k
+        audit_trail.old_value = instance._original_data[k]
+        audit_trail.new_value = instance.__dict__[k]
+        audit_trail.save()
