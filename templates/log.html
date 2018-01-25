@@ -45,8 +45,15 @@
         <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table" style="margin: 0px;border-radius: 5px;border: #efc636 solid 1px;">
                 <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                     <th>Timestamp</th>
-                    <th>User Id</th>
+                    <th>User</th>
                     <th>Table</th>
+                    <th colspan="3">
+                        <div class="col-md-12">
+                            <div class="col-md-4">Field</div>
+                            <div class="col-md-4">Old Value</div>
+                            <div class="col-md-4">New Value</div>
+                        </div>
+                    </th>
                     <th>Action</th>
                     <th>Text</th>
                 </thead>
@@ -55,8 +62,17 @@
                         {% for log in logs %}
                             <tr style="cursor: pointer; background-color: transparent;">
                                 <td>{{ log.timestamp}}</td>
-                                <td>{{ log.user_id }}</td>
+                                <td>{{ log.get_user_name }}</td>
                                 <td>{{ log.table }}</td>
+                                <td colspan="3">
+                                    {% for trail in log.audittrail_set.all %}
+                                        <div class="col-md-12">
+                                            <div class="col-md-4 word-wrap">{{ trail.column }}</div>
+                                            <div class="col-md-4 word-wrap">{{ trail.old_value }}</div>
+                                            <div class="col-md-4 word-wrap">{{ trail.new_value }}</div>
+                                        </div>
+                                    {% endfor %}
+                                </td>
                                 <td>{{ log.action }}</td>
                                 <td>{% if log.search_text != None %} {{ log.search_text }} {% endif %}</td>
                             </tr>

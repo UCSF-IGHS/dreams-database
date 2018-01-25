@@ -142,15 +142,6 @@ class Client(models.Model):
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
-        if user_id is None:
-            return
-        audit = Audit()
-        audit.user_id = user_id
-        audit.table = "DreamsApp_client"
-        audit.row_id = self.pk
-        audit.action = action
-        audit.search_text = None
-        audit.save()
 
     def __str__(self):
         return '{} {} {}'.format(self.first_name, self.middle_name, self.last_name)
@@ -288,13 +279,6 @@ class Intervention(models.Model):
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Intervention, self).save(*args, **kwargs)
-        audit = Audit()
-        audit.user_id = user_id
-        audit.table = "DreamsApp_intervention"
-        audit.row_id = self.pk
-        audit.action = action
-        audit.search_text = None
-        audit.save()
 
     def __str__(self):
         return '{} {}'.format(self.intervention_type, self.created_by)
@@ -311,6 +295,20 @@ class Audit(models.Model):
     row_id = models.IntegerField(blank=True, null=True)
     action = models.CharField(max_length=100, blank=False, null=False)
     search_text = models.CharField(max_length=250, blank=True, null=True)
+
+    def get_user_name(self):
+        """
+        Returns the first_name plus the last_name, with a space in between.
+        """
+        user = User.objects.get(id__exact=int(self.user_id))
+        if user is None:
+            return ''
+        else:
+            full_name = user.get_full_name()
+            if full_name is None or full_name == '':
+                return user.username
+            else:
+                return full_name
 
     def __str__(self):
         return '{} by user id {} at {} value {}'.format(self.action, self.user_id, self.timestamp, self.search_text)
@@ -1071,7 +1069,7 @@ class ServicePackage(models.Model):
     description = models.CharField(verbose_name='Description', max_length=250, blank=True, null=True, default='')
     lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', default=10,
                                                   validators=[MinValueValidator(10), MaxValueValidator(24)])
-    upper_age_limit = models.PositiveIntegerField(verbose_name='Upper age limit', default=24,
+    upper_age_limit = models.PositiveIntegerField(verbose_name= 'Upper age limit', default=24,
                                                   validators=[MinValueValidator(10), MaxValueValidator(24)])
     age_group = models.CharField(verbose_name='Age group', max_length=5, blank=True, null=True, default='-')
     intervention_type_alternatives = models.ManyToManyField(InterventionTypeAlternative,
@@ -1098,5 +1096,20 @@ class ServicePackageInterventionTypeAlternative(models.Model):
     service_package = models.ForeignKey(ServicePackage, null=False)
     intervention_type_alternative = models.ForeignKey(InterventionTypeAlternative, null=False,
                                                       verbose_name='Service package intervention alternative')
+
+
+class AuditTrail(models.Model):
+    audit = models.ForeignKey(Audit, db_index=True)
+    column = models.CharField(max_length=50, blank=False, null=False)
+    old_value = models.CharField(max_length=250, blank=True, null=True)
+    new_value = models.CharField(max_length=250, blank=True, null=True)
+
+    def __str__(self):
+        return '{} by user id {} at {} value {}'.format(self.audit.action, self.audit.user_id,
+                                                        self.audit.timestamp, self.audit.search_text)
+
+    class Meta(object):
+        verbose_name = 'Audit Trail'
+        verbose_name_plural = 'Audit Trails'
 
 

@@ -1107,7 +1107,9 @@ def logs(request):
                 filter_text = request.GET.get('filter-log-text', '')
                 filter_date = request.GET.get('filter-log-date', '')
                 # getting logs
-                if filter_date == '':
+                if filter_date == '' and filter_text == '':
+                    logs = Audit.objects.all().order_by('-timestamp')
+                elif filter_date == '':
                     logs = Audit.objects.filter(Q(table__in=filter_text.split(" ")) |
                                                 Q(action__in=filter_text.split(" ")) |
                                                 Q(search_text__in=filter_text.split(" "))
@@ -1900,22 +1902,19 @@ def update_demographics_data(request):
     if request.is_ajax():
         #template = 'client_demographics_ajax_form.html'
         if request.method == 'POST':
-            implementing_partner = instance.implementing_partner
-            ward = instance.ward
             county_of_residence = instance.county_of_residence
             sub_county = instance.sub_county
             implementing_partner = instance.implementing_partner
             dreams_id = instance.dreams_id
             form = DemographicsForm(request.POST, instance=instance)
             if form.is_valid():
-                form.save()
-                instance.implementing_partner = implementing_partner
-                ward = instance.ward
-                instance.county_of_residence = county_of_residence
-                instance.sub_county = sub_county
-                instance.implementing_partner = implementing_partner
-                instance.dreams_id = dreams_id
-                instance.save()
+                form.instance.implementing_partner = implementing_partner
+                form.instance.county_of_residence = county_of_residence
+                form.instance.sub_county = sub_county
+                form.instance.implementing_partner = implementing_partner
+                form.instance.dreams_id = dreams_id
+                form.instance.save(user_id=request.user.id, action="UPDATE")
+
                 response_data = {
                     'status': 'success',
                     'errors': form.errors,
