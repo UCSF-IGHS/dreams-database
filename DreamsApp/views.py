@@ -16,7 +16,6 @@ from django.conf import settings
 
 import json
 
-
 from datetime import date, timedelta, datetime as dt
 from DreamsApp.forms import *
 from Dreams_Utils import *
@@ -63,7 +62,7 @@ def user_login(request):
         if request.user.is_authenticated():
             return redirect('clients')
         if request.method == 'GET':
-            return render(request, 'login.html', {'page_title':'Login', 'page':'login'})
+            return render(request, 'login.html', {'page_title': 'Login', 'page': 'login'})
         elif request.method == 'POST':
             user_name = request.POST.get('inputUsername', '')
             pass_word = request.POST.get('inputPassword', '')
@@ -122,15 +121,21 @@ def user_login(request):
 
 def build_filter_client_queryset(turple_1, turple_2, turple_3, turple_4, turple_5, turple_6):
     try:
-        return Client.objects.filter(Q(first_name__icontains=str(turple_1[0]), middle_name__icontains=str(turple_1[1]),last_name__icontains=str(turple_1[2])) |
-                                              Q(first_name__icontains=str(turple_2[0]), middle_name__icontains=str(turple_2[1]),last_name__icontains=str(turple_2[2])) |
-                                              Q(first_name__icontains=str(turple_3[0]), middle_name__icontains=str(turple_3[1]),last_name__icontains=str(turple_3[2])) |
-                                              Q(first_name__icontains=str(turple_4[0]), middle_name__icontains=str(turple_4[1]),last_name__icontains=str(turple_4[2])) |
-                                              Q(first_name__icontains=str(turple_5[0]), middle_name__icontains=str(turple_5[1]),last_name__icontains=str(turple_5[2])) |
-                                              Q(first_name__icontains=str(turple_6[0]), middle_name__icontains=str(turple_6[1]),last_name__icontains=str(turple_6[2])))\
-            .exclude(voided=True)\
-            .order_by('first_name')\
-            .order_by('middle_name')\
+        return Client.objects.filter(Q(first_name__icontains=str(turple_1[0]), middle_name__icontains=str(turple_1[1]),
+                                       last_name__icontains=str(turple_1[2])) |
+                                     Q(first_name__icontains=str(turple_2[0]), middle_name__icontains=str(turple_2[1]),
+                                       last_name__icontains=str(turple_2[2])) |
+                                     Q(first_name__icontains=str(turple_3[0]), middle_name__icontains=str(turple_3[1]),
+                                       last_name__icontains=str(turple_3[2])) |
+                                     Q(first_name__icontains=str(turple_4[0]), middle_name__icontains=str(turple_4[1]),
+                                       last_name__icontains=str(turple_4[2])) |
+                                     Q(first_name__icontains=str(turple_5[0]), middle_name__icontains=str(turple_5[1]),
+                                       last_name__icontains=str(turple_5[2])) |
+                                     Q(first_name__icontains=str(turple_6[0]), middle_name__icontains=str(turple_6[1]),
+                                       last_name__icontains=str(turple_6[2]))) \
+            .exclude(voided=True) \
+            .order_by('first_name') \
+            .order_by('middle_name') \
             .order_by('last_name')
     except Exception as e:
         return Client.objects.all()[0]
@@ -154,27 +159,34 @@ def filter_clients(search_client_term, is_advanced_search, request):
         filter_text_3 = '' if parts_count == 2 else search_client_term_parts[2]
         # first name and middle name
         search_result = build_filter_client_queryset((filter_text_1, filter_text_2, filter_text_3),
-                                     (filter_text_2, filter_text_1, filter_text_3),
-                                     (filter_text_2, filter_text_3, filter_text_1),
-                                     (filter_text_3, filter_text_2, filter_text_1),
-                                     (filter_text_3, filter_text_1, filter_text_2),
-                                     (filter_text_1, filter_text_3, filter_text_2))
+                                                     (filter_text_2, filter_text_1, filter_text_3),
+                                                     (filter_text_2, filter_text_3, filter_text_1),
+                                                     (filter_text_3, filter_text_2, filter_text_1),
+                                                     (filter_text_3, filter_text_1, filter_text_2),
+                                                     (filter_text_1, filter_text_3, filter_text_2))
     if is_advanced_search == 'True':
-        county_filter = str(request.GET.get('county', '') if request.method == 'GET' else request.POST.get('county', ''))
+        county_filter = str(
+            request.GET.get('county', '') if request.method == 'GET' else request.POST.get('county', ''))
         if county_filter != '':
             search_result = search_result.filter(county_of_residence_id=int(county_filter))
-        sub_county_filter = str(request.GET.get('sub_county', '') if request.method == 'GET' else request.POST.get('sub_county', ''))
+        sub_county_filter = str(
+            request.GET.get('sub_county', '') if request.method == 'GET' else request.POST.get('sub_county', ''))
         if sub_county_filter != '':
             search_result = search_result.filter(sub_county_id=int(sub_county_filter))
         ward_filter = str(request.GET.get('ward', '') if request.method == 'GET' else request.POST.get('ward', ''))
         if ward_filter != '':
             search_result = search_result.filter(ward_id=int(ward_filter))
-        start_date_filter_original = request.GET.get('doe_start_filter', '') if request.method == 'GET' else request.POST.get('doe_start_filter', '')
+        start_date_filter_original = request.GET.get('doe_start_filter',
+                                                     '') if request.method == 'GET' else request.POST.get(
+            'doe_start_filter', '')
         start_date_filter = '2015-10-01' if start_date_filter_original == '' else start_date_filter_original
-        end_date_filter_original = request.GET.get('doe_end_filter', dt.today()) if request.method == 'GET' else request.POST.get('doe_end_filter', dt.today())
+        end_date_filter_original = request.GET.get('doe_end_filter',
+                                                   dt.today()) if request.method == 'GET' else request.POST.get(
+            'doe_end_filter', dt.today())
         end_date_filter = dt.today() if end_date_filter_original == '' else end_date_filter_original
-        search_result = search_result.filter(date_of_enrollment__range=[start_date_filter, end_date_filter]) #
-        return [search_result, is_advanced_search, county_filter, sub_county_filter, ward_filter, start_date_filter_original,
+        search_result = search_result.filter(date_of_enrollment__range=[start_date_filter, end_date_filter])  #
+        return [search_result, is_advanced_search, county_filter, sub_county_filter, ward_filter,
+                start_date_filter_original,
                 end_date_filter_original]
     return [search_result, is_advanced_search, '', '', '', '', '']
 
@@ -184,8 +196,12 @@ def clients(request):
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             # get search details -- search_client_term
             page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
-            is_advanced_search = request.GET.get('is_advanced_search', 'False') if request.method == 'GET' else request.POST.get('is_advanced_search', 'False')
-            search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get('search_client_term', '')
+            is_advanced_search = request.GET.get('is_advanced_search',
+                                                 'False') if request.method == 'GET' else request.POST.get(
+                'is_advanced_search', 'False')
+            search_client_term = request.GET.get('search_client_term',
+                                                 '') if request.method == 'GET' else request.POST.get(
+                'search_client_term', '')
             search_client_term = search_client_term.strip()
             if search_client_term != "":
                 search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
@@ -196,7 +212,7 @@ def clients(request):
                         ip = request.user.implementingpartneruser.implementing_partner
                         search_result = search_result.filter(implementing_partner_id=ip.id)
                     except Exception as e:
-                        search_result = Client.objects.all()[:0] # Return empty list.
+                        search_result = Client.objects.all()[:0]  # Return empty list.
             else:
                 search_result = Client.objects.all()[:0]
                 search_result_tuple = [search_result, 'False', '', '', '', '', '']
@@ -229,7 +245,8 @@ def clients(request):
                 except PageNotAnInteger:
                     client_paginator = paginator.page(1)  # Deliver the first page is page is not an integer
                 except EmptyPage:
-                    client_paginator = paginator.page(paginator.num_pages)  # Deliver the last page if page is out of scope
+                    client_paginator = paginator.page(
+                        paginator.num_pages)  # Deliver the last page if page is out of scope
 
                 county_filter = search_result_tuple[2] if search_result_tuple[2] != '' else '0'
                 sub_county_filter = search_result_tuple[3] if search_result_tuple[3] != '' else '0'
@@ -268,7 +285,7 @@ def clients(request):
                     'max_dob': max_dob,
                     'min_dob': min_dob
                 }
-                #county_filter, sub_county_filter, ward_filter, start_date_filter, end_date_filter
+                # county_filter, sub_county_filter, ward_filter, start_date_filter, end_date_filter
                 return render(request, 'clients.html', response_data)
         else:
             return redirect('login')
@@ -560,6 +577,7 @@ def delete_client(request):
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
 
+
 def get_client_status(client):
     status = ''
     try:
@@ -577,14 +595,17 @@ def get_client_status(client):
     except Exception as e:
         return 'Invalid Status'
 
+
 def get_client_status_action_text(client):
     return 'Undo Exit' if client.exited else 'Exit Client'
 
+
 def client_exit_status_toggle(request):
     """Exit or undo Exit depending on client's current status"""
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm('DreamsApp.can_exit_client'):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+            'DreamsApp.can_exit_client'):
         try:
-            client_id = int(str(request.POST.get('client_id','0')))
+            client_id = int(str(request.POST.get('client_id', '0')))
             reason_for_exit = str(request.POST.get('reason_for_exit', ''))
             date_of_exit = request.POST.get('date_of_exit', datetime.datetime.now())
             client = Client.objects.filter(id=client_id).first()
@@ -643,7 +664,7 @@ def get_intervention_types(request):
             current_age = current_client.get_current_age()
             i_types = InterventionType.objects.filter(intervention_category__exact=i_category.id, ) \
                 .order_by('code')
-                #.exclude(is_given_once=True, id__in=given_intervention_type_ids).order_by('code')
+            # .exclude(is_given_once=True, id__in=given_intervention_type_ids).order_by('code')
             """This code has been commented out to allow for change of intervention types for one time interventions"""
             # get id's of interventions that can only be given once and are already given
             i_types = serializers.serialize('json', i_types)
@@ -696,7 +717,8 @@ def save_intervention(request):
                 """Check that this is not a one time intervention that has already been given to the client"""
                 try:
                     """Get client intervention filtered by intervention types"""
-                    client_interventions = Intervention.objects.filter(intervention_type=intervention_type,client=client).exclude(voided=True)
+                    client_interventions = Intervention.objects.filter(intervention_type=intervention_type,
+                                                                       client=client).exclude(voided=True)
                     client_interventions_count = client_interventions.count()
                     if intervention_type.is_given_once and client_interventions.count() > 0:
                         """An intervention has been found. This is an error
@@ -716,7 +738,8 @@ def save_intervention(request):
                     intervention = Intervention()
                     intervention.client = client
                     intervention.intervention_type = intervention_type
-                    intervention.name_specified = request.POST.get('other_specify', '') if intervention_type.is_specified else ''
+                    intervention.name_specified = request.POST.get('other_specify',
+                                                                   '') if intervention_type.is_specified else ''
                     intervention.intervention_date = request.POST.get('intervention_date')
                     created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
                     intervention.created_by = created_by
@@ -739,7 +762,7 @@ def save_intervention(request):
                     # Update implementing Partner
                     intervention.implementing_partner = ImplementingPartner.objects. \
                         get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
-                    intervention.save(user_id=request.user.id, action="INSERT") # Logging
+                    intervention.save(user_id=request.user.id, action="INSERT")  # Logging
                     # using defer() miraculously solved serialization problem of datetime properties.
                     intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created'). \
                         get(id__exact=intervention.id)
@@ -756,14 +779,14 @@ def save_intervention(request):
                     response_data = {
                         'status': 'fail',
                         'message': "Error: Invalid Intervention Type. "
-                                    "Please select a valid Intervention Type to Proceed"
+                                   "Please select a valid Intervention Type to Proceed"
                     }
                 return JsonResponse(response_data)
             else:  # User has no valid IP.
                 response_data = {
                     'status': 'fail',
                     'message': "Error: You do not belong to an Implementing Partner. "
-                                "Please contact your system admin to add you to the relevant Implementing Partner."
+                               "Please contact your system admin to add you to the relevant Implementing Partner."
                 }
                 return JsonResponse(response_data)
         else:
@@ -810,7 +833,7 @@ def get_intervention_list(request):
             list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date',
                                                                'date_created').filter(client__exact=client_id,
                                                                                       intervention_type__in=iv_type_ids,
-                                                                                      voided=False)\
+                                                                                      voided=False) \
                 .order_by('-intervention_date', '-date_created', '-date_changed')
             if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 list_of_interventions = list_of_interventions.filter(
@@ -874,7 +897,8 @@ def update_intervention(request):
                     intervention = Intervention.objects.get(id__exact=intervention_id)
                     # check if intervention belongs to the ip
                     if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
-                        intervention.intervention_type = InterventionType.objects.get(code__exact=int(request.POST.get('intervention_type_code')))
+                        intervention.intervention_type = InterventionType.objects.get(
+                            code__exact=int(request.POST.get('intervention_type_code')))
                         intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
                         intervention.name_specified = request.POST.get('other_specify',
                                                                        '') if intervention.intervention_type.is_specified else ''
@@ -899,7 +923,7 @@ def update_intervention(request):
                         if i_type.has_no_of_sessions:
                             intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
-                        intervention.save(user_id=request.user.id, action="UPDATE") # Logging
+                        intervention.save(user_id=request.user.id, action="UPDATE")  # Logging
                         # using defer() miraculously solved serialization problem of datetime properties.
                         intervention = Intervention.objects.defer('date_changed', 'intervention_date',
                                                                   'date_created').get(id__exact=intervention.id)
@@ -954,8 +978,8 @@ def delete_intervention(request):
                         intervention.voided = True
                         intervention.voided_by = request.user
                         intervention.date_voided = datetime.datetime.now()
-                        intervention.save(user_id=request.user.id, action="UPDATE") # Updating logs
-                        #intervention.delete() # No deletion whatsoever
+                        intervention.save(user_id=request.user.id, action="UPDATE")  # Updating logs
+                        # intervention.delete() # No deletion whatsoever
                         log_custom_actions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", None)
                         response_data = {
                             'status': 'success',
@@ -967,7 +991,7 @@ def delete_intervention(request):
                         response_data = {
                             'status': 'fail',
                             'message': 'You do not have the rights to delete this intervention because it was created by a '
-                                'different Implementing Partner'
+                                       'different Implementing Partner'
                         }
                         return JsonResponse(response_data)
                 else:
@@ -980,7 +1004,7 @@ def delete_intervention(request):
                 response_data = {
                     'status': 'fail',
                     'message': "Error: You do not belong to an Implementing Partner. "
-                                "Please contact your system admin to add you to the relevant Implementing Partner."
+                               "Please contact your system admin to add you to the relevant Implementing Partner."
                 }
                 return JsonResponse(response_data)
         else:
@@ -1041,9 +1065,9 @@ def reporting(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'GET':
-                return render(request, 'reporting.html', {'user': request.user, 'page_title': 'DREAMS Reporting',})
+                return render(request, 'reporting.html', {'user': request.user, 'page_title': 'DREAMS Reporting', })
             elif request.method == 'POST' and request.is_ajax():
-                return render(request, 'reporting.html', {'user': request.user, 'page_title': 'DREAMS Reporting',})
+                return render(request, 'reporting.html', {'user': request.user, 'page_title': 'DREAMS Reporting', })
         else:
             raise PermissionDenied
     except Exception as e:
@@ -1077,8 +1101,9 @@ def user_help_download(request):
     if request.user.is_authenticated() and request.user.is_active:
         try:
             manual_filename = request.POST.get('manual') if request.method == 'POST' else request.GET.get('manual')
-            manual_friendly_name = request.POST.get('manual_friendly_name') if request.method == 'POST' else request.GET.get('manual_friendly_name')
-            fs = FileSystemStorage(location= os.path.join(settings.BASE_DIR, 'templates', 'manuals'))
+            manual_friendly_name = request.POST.get(
+                'manual_friendly_name') if request.method == 'POST' else request.GET.get('manual_friendly_name')
+            fs = FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'templates', 'manuals'))
             com_path = fs.location
             filename = manual_filename + '.pdf'
             if fs.exists(filename):
@@ -1098,32 +1123,52 @@ def user_help_download(request):
 
 def logs(request):
     if request.user.is_authenticated() and request.user.is_active:
-        if not request.user.has_perm('auth.can_manage_audit'):
+        if not request.user.has_perm('DreamsApp.can_manage_audit'):
             raise PermissionDenied('Operation not allowed. [Missing Permission]')
+
+        ip = ''
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner.id
+        except ImplementingPartnerUser.DoesNotExist:
+            pass
+
         # user is allowed to view logs
         if request.method == 'GET':
             try:
                 page = request.GET.get('page', 1)
                 filter_text = request.GET.get('filter-log-text', '')
+                filter_date_from = request.GET.get('filter-log-date-from', '')
                 filter_date = request.GET.get('filter-log-date', '')
+
                 # getting logs
-                if filter_date == '' and filter_text == '':
-                    logs = Audit.objects.all().order_by('-timestamp')
-                elif filter_date == '':
-                    logs = Audit.objects.filter(Q(table__in=filter_text.split(" ")) |
-                                                Q(action__in=filter_text.split(" ")) |
-                                                Q(search_text__in=filter_text.split(" "))
-                                                ).order_by('-timestamp')
+                logs = Audit.objects.filter(Q(table__in=filter_text.split(" ")) |
+                                            Q(action__in=filter_text.split(" ")) |
+                                            Q(search_text__in=filter_text.split(" ")) |
+                                            Q(user__username__contains=filter_text.split(" ")[0]) |
+                                            Q(user__first_name__contains=filter_text.split(" ")[0]) |
+                                            Q(user__last_name__contains=filter_text.split(" ")[0])
+                                            ).order_by('-timestamp')
+                if ip != '':
+                    logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
+
+                if filter_date_from == '' and filter_date == '' and filter_text == '':
+                    pass
+                elif filter_date_from != '' and filter_date == '':
+                    fyr, fmnth, fdt = filter_date_from.split('-')
+                    constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
+                    logs = logs.filter(Q(timestamp__date__gte=constructed_date_from))
+                elif filter_date_from == '' and filter_date != '':
+                    yr, mnth, dat = filter_date.split('-')
+                    constructed_date = date(int(yr), int(mnth), int(dat))
+                    logs = logs.filter(Q(timestamp__date__lte=constructed_date))
                 else:
-                    yr, mnth, dt = filter_date.split('-')
-                    constructed_date = date(int(yr), int(mnth), int(dt))
-                    logs = Audit.objects.filter((Q(table__in=filter_text.split(" ")) |
-                                                 Q(action__in=filter_text.split(" ")) |
-                                                 Q(search_text__in=filter_text.split(" "))) &
-                                                Q(timestamp__year=constructed_date.year,
-                                                  timestamp__month=constructed_date.month,
-                                                  timestamp__day=constructed_date.day)
-                                                ).order_by('-timestamp')
+                    yr, mnth, dat = filter_date.split('-')
+                    constructed_date = date(int(yr), int(mnth), int(dat))
+                    fyr, fmnth, fdt = filter_date_from.split('-')
+                    constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
+                    logs = logs.filter(Q(timestamp__date__gte=constructed_date_from) &
+                                       Q(timestamp__date__lte=constructed_date)).order_by('-timestamp')
+
                 paginator = Paginator(logs, 25)  # Showing 25 contacts per page
                 try:
                     logs_list = paginator.page(page)
@@ -1131,7 +1176,9 @@ def logs(request):
                     logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
                 except EmptyPage:
                     logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
-                return render(request, 'log.html', {'page': 'logs', 'page_title': 'DREAMS Logs','logs': logs_list, 'filter_text': filter_text,
+                return render(request, 'log.html', {'page': 'logs', 'page_title': 'DREAMS Logs', 'logs': logs_list,
+                                                    'filter_text': filter_text,
+                                                    'filter_date_from': filter_date_from,
                                                     'filter_date': filter_date,
                                                     'items_in_page': 0 if logs_list.end_index() == 0 else
                                                     (logs_list.end_index() - logs_list.start_index() + 1)
@@ -1144,21 +1191,34 @@ def logs(request):
             # get the form data
             filter_text = request.POST.get('filter-log-text', '')
             filter_date = request.POST.get('filter-log-date', '')
-            if filter_date == '':
-                logs = Audit.objects.filter(Q(table__contains=filter_text) |
-                                            Q(action__contains=filter_text) |
-                                            Q(search_text__contains=filter_text)
-                                            ).order_by('-timestamp')
+            filter_date_from = request.POST.get('filter-log-date-from', '')
+
+            logs = Audit.objects.filter(Q(table__contains=filter_text) |
+                                        Q(action__contains=filter_text) |
+                                        Q(search_text__contains=filter_text) |
+                                        Q(user__username__contains=filter_text) |
+                                        Q(user__first_name__contains=filter_text) |
+                                        Q(user__last_name__contains=filter_text)).order_by('-timestamp')
+            if ip != '':
+                logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
+
+            if filter_date == '' and filter_date_from == '':
+                pass
+            elif filter_date_from != '' and filter_date == '':
+                fyr, fmnth, fdt = filter_date_from.split('-')
+                constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
+                logs = logs.filter(Q(timestamp__date__gte=constructed_date_from))
+            elif filter_date_from == '' and filter_date != '':
+                yr, mnth, dat = filter_date.split('-')
+                constructed_date = date(int(yr), int(mnth), int(dat))
+                logs = logs.filter(Q(timestamp__date__lte=constructed_date))
             else:
-                yr, mnth, dt = filter_date.split('-')
-                constructed_date = date(int(yr), int(mnth), int(dt))
-                logs = Audit.objects.filter((Q(table__contains=filter_text) |
-                                             Q(action__contains=filter_text) |
-                                             Q(search_text__contains=filter_text)) &
-                                            Q(timestamp__year=constructed_date.year,
-                                              timestamp__month=constructed_date.month,
-                                              timestamp__day=constructed_date.day)
-                                            )
+                yr, mnth, dat = filter_date.split('-')
+                constructed_date = date(int(yr), int(mnth), int(dat))
+                fyr, fmnth, fdt = filter_date_from.split('-')
+                constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
+                logs = logs.filter(Q(timestamp__date__gte=constructed_date_from) &
+                                   Q(timestamp__date__lte=constructed_date))
             paginator = Paginator(logs, 25)
             try:
                 logs_list = paginator.page(1)
@@ -1170,6 +1230,7 @@ def logs(request):
                                                 'page_title': 'DREAMS Logs',
                                                 'logs': logs_list,
                                                 'filter_text': filter_text,
+                                                'filter_date_from': filter_date_from,
                                                 'filter_date': filter_date,
                                                 'items_in_page': 0 if logs_list.end_index() == 0 else
                                                 (logs_list.end_index() - logs_list.start_index() + 1)})
@@ -1225,14 +1286,15 @@ def users(request):
             final_ip_user_list = paginator.page(1)  # Deliver the first page is page is not an integer
         except EmptyPage:
             final_ip_user_list = paginator.page(0)  # Deliver the last page if page is out of scope
-        return render(request, 'users.html', {'page': 'users','page_title': 'DREAMS User List', 'ip_users': final_ip_user_list,
-                                              'filter_text': filter_text,
-                                              'items_in_page': 0 if final_ip_user_list.end_index() == 0 else
-                                              (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1),
-                                              'implementing_partners': ImplementingPartner.objects.all(),
-                                              'current_user_ip': current_user_ip,
-                                              'roles': Group.objects.all()
-                                              })
+        return render(request, 'users.html',
+                      {'page': 'users', 'page_title': 'DREAMS User List', 'ip_users': final_ip_user_list,
+                       'filter_text': filter_text,
+                       'items_in_page': 0 if final_ip_user_list.end_index() == 0 else
+                       (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1),
+                       'implementing_partners': ImplementingPartner.objects.all(),
+                       'current_user_ip': current_user_ip,
+                       'roles': Group.objects.all()
+                       })
     else:
         raise PermissionDenied  # this should be a redirection to the permissions denied page
 
@@ -1242,20 +1304,22 @@ def save_user(request):
             'auth.can_manage_user'):
         try:
             new_user_ip = ImplementingPartner.objects.get(name=
-                request.POST.get('implementing_partner', ''))  # Valid IP for new user
+                                                          request.POST.get('implementing_partner',
+                                                                           ''))  # Valid IP for new user
             # check if user can change cross IP data
             if not request.user.has_perm('auth.can_change_cross_ip_data'):
                 # User must register new user under their IP. Theck if user has a valid IP
                 # check if registering user belongs to an IP
-                if request.user.implementingpartneruser.implementing_partner is None: # Registering user does not belong to an IP. Raise exception
+                if request.user.implementingpartneruser.implementing_partner is None:  # Registering user does not belong to an IP. Raise exception
                     raise Exception("Error: You do not belong to an Implementing Partner. "
                                     "Please contact your system admin to add you to the relevant Implementing Partner.")
 
                 elif new_user_ip != request.user.implementingpartneruser.implementing_partner:
                     # Registering user and user do not belong to same IP. Raise exception
-                    raise Exception("Error: You do not have permission to register a user under a different Implementing"
-                                    " partner other than " + request.user.implementingpartneruser.
-                                    implementing_partner.name)
+                    raise Exception(
+                        "Error: You do not have permission to register a user under a different Implementing"
+                        " partner other than " + request.user.implementingpartneruser.
+                        implementing_partner.name)
 
             # Everything is fine. Proceed to register user
             # Check to see if IP user exists already or not
@@ -1304,7 +1368,7 @@ def save_user(request):
                         response_data = {
                             'status': 'success',
                             'message': 'User registered but could not send login detais to provided email address. '
-                                        'Contact System Admin for help ',
+                                       'Contact System Admin for help ',
                             'ip_users': serializers.serialize('json', [ip_user, ])
                         }
                         return JsonResponse(response_data)
@@ -1371,7 +1435,7 @@ def toggle_status(request):
 def change_cred(request):
     if request.user.is_authenticated() and request.user.is_active:  # user is authenticated
         if request.method == 'GET':
-            context = {'page': 'account','page_title': 'DREAMS Password Change', 'user': request.user,}
+            context = {'page': 'account', 'page_title': 'DREAMS Password Change', 'user': request.user, }
             return render(request, 'change_cred.html', context)
         elif request.method == 'POST':
             ch_username = request.POST.get('ch_username', '')
@@ -1386,7 +1450,7 @@ def change_cred(request):
                 return JsonResponse(response_data)
             else:
                 if request.user.get_username() == ch_username and request.user.check_password(
-                    ch_current_password) and ch_new_password == ch_confirm_new_password:
+                        ch_current_password) and ch_new_password == ch_confirm_new_password:
                     request.user.set_password(ch_new_password)
                     request.user.save()
                     response_data = {
@@ -1441,8 +1505,10 @@ def grievances_list(request):
         if not request.user.is_authenticated():
             raise PermissionDenied
         page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
-        filter_date = request.GET.get('filter_date', None) if request.method == 'GET' else request.POST.get('filter_date', None)
-        filter_text = request.GET.get('filter-user-text', '') if request.method == 'GET' else request.POST.get('filter-user-text', '')
+        filter_date = request.GET.get('filter_date', None) if request.method == 'GET' else request.POST.get(
+            'filter_date', None)
+        filter_text = request.GET.get('filter-user-text', '') if request.method == 'GET' else request.POST.get(
+            'filter-user-text', '')
         try:
             user_ip = request.user.implementingpartneruser.implementing_partner
         except:
@@ -1458,10 +1524,10 @@ def grievances_list(request):
                                                         date__month=constructed_date.month,
                                                         date__day=constructed_date.day))
         """ Text filter """
-        #if filter_text is not u'' and filter_text is not '':
-            #grievance_list = Grievance.objects.filter(Q(reporter_name__contains=filter_text) |
-             #                                         Q(relationship__containts=filter_text) |
-              #                                        Q(reporter_phone__contains=filter_text))
+        # if filter_text is not u'' and filter_text is not '':
+        # grievance_list = Grievance.objects.filter(Q(reporter_name__contains=filter_text) |
+        #                                         Q(relationship__containts=filter_text) |
+        #                                        Q(reporter_phone__contains=filter_text))
         # do pagination
         try:
             paginator = Paginator(grievance_list, 20)
@@ -1471,7 +1537,7 @@ def grievances_list(request):
         except EmptyPage:
             final_grievance_list = paginator.page(0)  # Deliver the last page if page is out of scope
         response_data = {
-            'page': 'cash_transfer','page_title': 'DREAMS Grievance List',
+            'page': 'cash_transfer', 'page_title': 'DREAMS Grievance List',
             'filter_text': filter_text,
             'filter_date': filter_date,
             'items_in_page': 0 if final_grievance_list.end_index() == 0 else
@@ -1599,7 +1665,8 @@ def grievances_get(request):
     try:
         if not request.user.is_authenticated():
             raise PermissionDenied
-        grievance_id = request.GET.get('grievance_id', 0) if request.method == 'GET' else request.POST.get('grievance_id', 0)
+        grievance_id = request.GET.get('grievance_id', 0) if request.method == 'GET' else request.POST.get(
+            'grievance_id', 0)
         try:
             grievance = Grievance.objects.get(id__exact=grievance_id)
             response_data = {
@@ -1662,7 +1729,6 @@ def cash_transfer_details_save(request):
 
 
 def download_excel(request):
-
     enrolment = DreamsEnrollmentExcelDatabase()
     rows = enrolment.get_export_rows()
     for row in rows:
@@ -1671,20 +1737,23 @@ def download_excel(request):
 
 
 def export_page(request):
-    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm('DreamsApp.can_export_raw_data'):
+    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+            'DreamsApp.can_export_raw_data'):
 
         try:
 
             if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
-                ips = ImplementingPartner.objects.filter(id=request.user.implementingpartneruser.implementing_partner.id)
+                ips = ImplementingPartner.objects.filter(
+                    id=request.user.implementingpartneruser.implementing_partner.id)
 
             else:
                 ips = None
 
             print "IPs", ips
-            context = {'page': 'export','page_title': 'DREAMS Data Export', 'ips': ips, 'counties': County.objects.all()}
+            context = {'page': 'export', 'page_title': 'DREAMS Data Export', 'ips': ips,
+                       'counties': County.objects.all()}
             return render(request, 'dataExport.html', context)
         except ImplementingPartnerUser.DoesNotExist:
             traceback.format_exc()
@@ -1722,7 +1791,6 @@ def intervention_export_page(request):
 
 
 def downloadEXCEL(request):
-
     try:
         ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
@@ -1735,7 +1803,7 @@ def downloadEXCEL(request):
         # Ensure can_view_phi_data has been created on Client contentType
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(
-                    codename='DreamsApp.can_view_phi_data').exists():
+            codename='DreamsApp.can_view_phi_data').exists():
             show_PHI = True
         else:
             show_PHI = False
@@ -1749,7 +1817,6 @@ def downloadEXCEL(request):
 
 
 def downloadRawInterventionEXCEL(request):
-
     try:
         ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
@@ -1761,7 +1828,8 @@ def downloadRawInterventionEXCEL(request):
 
         # Ensure can_view_phi_data has been created on Client contentType
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
-                or Permission.objects.filter(group__user=request.user).filter(codename='DreamsApp.can_view_phi_data').exists():
+                or Permission.objects.filter(group__user=request.user).filter(
+            codename='DreamsApp.can_view_phi_data').exists():
             show_PHI = True
         else:
             show_PHI = False
@@ -1802,7 +1870,6 @@ def individual_service_layering_export_page(request):
 
 
 def downloadIndividualLayeringReport(request):
-
     try:
         ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
@@ -1815,7 +1882,7 @@ def downloadIndividualLayeringReport(request):
         # Ensure can_view_phi_data has been created on Client contentType
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(
-                    codename='DreamsApp.can_view_phi_data').exists():
+            codename='DreamsApp.can_view_phi_data').exists():
             show_PHI = True
         else:
             show_PHI = False
@@ -1829,7 +1896,8 @@ def downloadIndividualLayeringReport(request):
 
 
 def error_404(request):
-    context = {'user': request.user, 'error_code': 404,'page_title': 'DREAMS Application Error', 'error_title': 'Page Not Found (Error 404)',
+    context = {'user': request.user, 'error_code': 404, 'page_title': 'DREAMS Application Error',
+               'error_title': 'Page Not Found (Error 404)',
                'error_message': 'The page you are looking for does not exist. Go back to previous page or Home page'}
     return render(request, 'error_page.html', context)
 
@@ -1841,14 +1909,20 @@ def viewBaselineData(request):
             try:
                 client_id = int(request.GET['client_id'])
                 client_demographics = Client.objects.filter(id=client_id).exclude(voided=True).first()
-                client_household = ClientIndividualAndHouseholdData.objects.filter(client=client_id).exclude(voided=True).first()
-                client_edu = ClientEducationAndEmploymentData.objects.filter(client=client_id).exclude(voided=True).first()
-                client_sexual_data = ClientSexualActivityData.objects.filter(client=client_id).exclude(voided=True).first()
-                client_gbv_data = ClientGenderBasedViolenceData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_household = ClientIndividualAndHouseholdData.objects.filter(client=client_id).exclude(
+                    voided=True).first()
+                client_edu = ClientEducationAndEmploymentData.objects.filter(client=client_id).exclude(
+                    voided=True).first()
+                client_sexual_data = ClientSexualActivityData.objects.filter(client=client_id).exclude(
+                    voided=True).first()
+                client_gbv_data = ClientGenderBasedViolenceData.objects.filter(client=client_id).exclude(
+                    voided=True).first()
                 client_hiv_data = ClientHIVTestingData.objects.filter(client=client_id).exclude(voided=True).first()
-                client_rh_data = ClientReproductiveHealthData.objects.filter(client=client_id).exclude(voided=True).first()
+                client_rh_data = ClientReproductiveHealthData.objects.filter(client=client_id).exclude(
+                    voided=True).first()
                 client_drug_data = ClientDrugUseData.objects.filter(client=client_id).exclude(voided=True).first()
-                client_prog_part_data = ClientParticipationInDreams.objects.filter(client=client_id).exclude(voided=True).first()
+                client_prog_part_data = ClientParticipationInDreams.objects.filter(client=client_id).exclude(
+                    voided=True).first()
 
                 demographics_form = DemographicsForm(instance=client_demographics)
                 household_form = IndividualAndHouseholdForm(instance=client_household)
@@ -1870,22 +1944,21 @@ def viewBaselineData(request):
             try:
                 client_found = Client.objects.get(id=client_id)
                 if client_found is not None:
-
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
                                                                          'client': client_found,
-                                                                       'user': request.user,
-                                                                       'demo_form': demographics_form,
-                                                                       'household_form': household_form,
-                                                                        'edu_form': edu_and_emp_form,
-                                                                        'sexuality_form': sexuality_form,
-                                                                        'gbv_form': gbv_form,
-                                                                        'hiv_form': hiv_form,
-                                                                        'rh_form': reproductive_health_form,
-                                                                        'drug_use_form': drug_use_form,
-                                                                        'programe_participation_form': participation_form,
+                                                                         'user': request.user,
+                                                                         'demo_form': demographics_form,
+                                                                         'household_form': household_form,
+                                                                         'edu_form': edu_and_emp_form,
+                                                                         'sexuality_form': sexuality_form,
+                                                                         'gbv_form': gbv_form,
+                                                                         'hiv_form': hiv_form,
+                                                                         'rh_form': reproductive_health_form,
+                                                                         'drug_use_form': drug_use_form,
+                                                                         'programe_participation_form': participation_form,
                                                                          'search_client_term': search_client_term
-                                                               })
+                                                                         })
             except Client.DoesNotExist:
                 traceback.format_exc()
                 return redirect('clients')
@@ -1900,7 +1973,7 @@ def update_demographics_data(request):
     client_id = int(request.POST['client'], 0)
     instance = Client.objects.get(id=client_id)
     if request.is_ajax():
-        #template = 'client_demographics_ajax_form.html'
+        # template = 'client_demographics_ajax_form.html'
         if request.method == 'POST':
             county_of_residence = instance.county_of_residence
             sub_county = instance.sub_county
@@ -2145,6 +2218,3 @@ def update_programme_participation_data(request):
     else:
         raise PermissionDenied
     return render(request, template, {'programe_participation_form': form})
-
-
-

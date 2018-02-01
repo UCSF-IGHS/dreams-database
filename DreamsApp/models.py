@@ -290,7 +290,7 @@ class Intervention(models.Model):
 
 class Audit(models.Model):
     timestamp = models.DateTimeField(auto_now=True, blank=False, null=False)
-    user_id = models.IntegerField(blank=False, null=False)
+    user = models.ForeignKey(User, blank=False, null=False)
     table = models.CharField(max_length=200, default='', blank=False, null=False)
     row_id = models.IntegerField(blank=True, null=True)
     action = models.CharField(max_length=100, blank=False, null=False)
@@ -300,18 +300,17 @@ class Audit(models.Model):
         """
         Returns the first_name plus the last_name, with a space in between.
         """
-        user = User.objects.get(id__exact=int(self.user_id))
-        if user is None:
+        if self.user is None:
             return ''
         else:
-            full_name = user.get_full_name()
+            full_name = self.user.get_full_name()
             if full_name is None or full_name == '':
-                return user.username
+                return self.user.username
             else:
                 return full_name
 
     def __str__(self):
-        return '{} by user id {} at {} value {}'.format(self.action, self.user_id, self.timestamp, self.search_text)
+        return '{} by user id {} at {} value {}'.format(self.action, self.user.id, self.timestamp, self.search_text)
 
     class Meta(object):
         verbose_name = 'Audit'
@@ -1105,7 +1104,7 @@ class AuditTrail(models.Model):
     new_value = models.CharField(max_length=250, blank=True, null=True)
 
     def __str__(self):
-        return '{} by user id {} at {} value {}'.format(self.audit.action, self.audit.user_id,
+        return '{} by user id {} at {} value {}'.format(self.audit.action, self.audit.user.id,
                                                         self.audit.timestamp, self.audit.search_text)
 
     class Meta(object):
