@@ -1123,7 +1123,7 @@ def user_help_download(request):
 
 def logs(request):
     if request.user.is_authenticated() and request.user.is_active:
-        if not request.user.has_perm('DreamsApp.can_manage_audit'):
+        if not request.user.is_superuser and not request.user.has_perm('DreamsApp.can_manage_audit'):
             raise PermissionDenied('Operation not allowed. [Missing Permission]')
 
         ip = ''
