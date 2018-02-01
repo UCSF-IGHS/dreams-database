@@ -359,38 +359,6 @@ def save_client(request):
                 client_form = DemographicsForm(request.POST)
                 if client_form.is_valid():
                     client = client_form.save()
-                    ward_id = client.ward.id
-                    # client = Client.objects.create(
-                    #     implementing_partner=request.user.implementingpartneruser.implementing_partner,
-                    #     first_name=request.POST.get('first_name', ''),
-                    #     middle_name=request.POST.get('middle_name', ''),
-                    #     last_name=request.POST.get('last_name', ''),
-                    #     date_of_birth=request.POST.get('date_of_birth', ''),
-                    #     is_date_of_birth_estimated=request.POST.get('is_date_of_birth_estimated', ''),
-                    #     verification_document=VerificationDocument.objects.filter(
-                    #         code__exact=request.POST.get('verification_document', '')).first(),
-                    #     verification_doc_no=request.POST.get('verification_doc_no', ''),
-                    #     date_of_enrollment=request.POST.get('date_of_enrollment', ''),
-                    #     #age_at_enrollment=int(request.POST.get('age_at_enrollment', 10)),
-                    #     marital_status=MaritalStatus.objects.filter(
-                    #         code__exact=str(request.POST.get('marital_status', ''))).first(),
-                    #     phone_number=request.POST.get('phone_number', ''),
-                    #     dss_id_number=request.POST.get('dss_id_number', ''),
-                    #     county_of_residence=County.objects.filter(
-                    #         code__exact=request.POST.get('county_of_residence', '')).first(),
-                    #     sub_county=SubCounty.objects.filter(code__exact=request.POST.get('sub_county', '')).first(),
-                    #     ward=Ward.objects.filter(code__exact=request.POST.get('ward', '')).first(),
-                    #     informal_settlement=request.POST.get('informal_settlement', ''),
-                    #     village=request.POST.get('village', ''),
-                    #     landmark=request.POST.get('landmark', ''),
-                    #     dreams_id=dreams_id,
-                    #     guardian_name=request.POST.get('guardian_name', ''),
-                    #     relationship_with_guardian=request.POST.get('relationship_with_guardian', ''),
-                    #     guardian_phone_number=request.POST.get('guardian_phone_number', ''),
-                    #     guardian_national_id=request.POST.get('guardian_national_id', ''),
-                    #     enrolled_by=request.user
-                    # )
-                    # client.save(user_id=request.user.id, action="INSERT")
 
                     # Check client dreams_id
                     if str(client.dreams_id) == '':
