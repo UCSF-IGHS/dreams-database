@@ -21,7 +21,7 @@ def create_audit_log(sender, instance, created, *args, **kwargs):
         return
 
     audit = Audit()
-    audit.user_id = user.id
+    audit.user = user
     audit.table = instance._meta.db_table
     audit.row_id = instance.pk
     audit.action = action
@@ -48,7 +48,7 @@ def create_delete_audit_log(sender, instance, *args, **kwargs):
         return
 
     audit = Audit()
-    audit.user_id = user.id
+    audit.user = user
     audit.table = instance._meta.db_table
     audit.row_id = instance.pk
     audit.action = action
