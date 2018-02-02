@@ -1112,14 +1112,14 @@ def logs(request):
                 logs = Audit.objects.filter(Q(table__in=filter_text.split(" ")) |
                                             Q(action__in=filter_text.split(" ")) |
                                             Q(search_text__in=filter_text.split(" ")) |
-                                            Q(user__username__contains=filter_text.split(" ")[0]) |
-                                            Q(user__first_name__contains=filter_text.split(" ")[0]) |
-                                            Q(user__last_name__contains=filter_text.split(" ")[0])
+                                            Q(user__username__icontains=filter_text.split(" ")[0]) |
+                                            Q(user__first_name__icontains=filter_text.split(" ")[0]) |
+                                            Q(user__last_name__icontains=filter_text.split(" ")[0])
                                             ).order_by('-timestamp')
                 if ip != '':
                     logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
 
-                if filter_date_from == '' and filter_date == '' and filter_text == '':
+                if filter_date_from == '' and filter_date == '':
                     pass
                 elif filter_date_from != '' and filter_date == '':
                     fyr, fmnth, fdt = filter_date_from.split('-')
@@ -1161,16 +1161,16 @@ def logs(request):
             filter_date = request.POST.get('filter-log-date', '')
             filter_date_from = request.POST.get('filter-log-date-from', '')
 
-            logs = Audit.objects.filter(Q(table__contains=filter_text) |
-                                        Q(action__contains=filter_text) |
-                                        Q(search_text__contains=filter_text) |
-                                        Q(user__username__contains=filter_text) |
-                                        Q(user__first_name__contains=filter_text) |
-                                        Q(user__last_name__contains=filter_text)).order_by('-timestamp')
+            logs = Audit.objects.filter(Q(table__icontains=filter_text) |
+                                        Q(action__icontains=filter_text) |
+                                        Q(search_text__icontains=filter_text) |
+                                        Q(user__username__icontains=filter_text) |
+                                        Q(user__first_name__icontains=filter_text) |
+                                        Q(user__last_name__icontains=filter_text)).order_by('-timestamp')
             if ip != '':
                 logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
 
-            if filter_date == '' and filter_date_from == '':
+            if filter_date_from == '' and filter_date == '':
                 pass
             elif filter_date_from != '' and filter_date == '':
                 fyr, fmnth, fdt = filter_date_from.split('-')
