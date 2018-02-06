@@ -1205,6 +1205,7 @@ $(document).ready(function () {
     $('#audit-log-clear-filtes').click(function (event) {
         $('#filter-log-text').val('');
         $('#filter-log-date').val('');
+        $('#filter-log-date-from').val('');
         window.location.href = "/logs";
     })
 

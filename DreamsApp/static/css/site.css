@@ -521,6 +521,11 @@ html, body{
     text-align: match-parent;
 }
 
+.word-wrap {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
 .custom-has-error {
     margin-top: 5px;
     color: #ff0000;

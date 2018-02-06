@@ -6,3 +6,6 @@ from django.apps import AppConfig
 
 class DreamsappConfig(AppConfig):
     name = 'DreamsApp'
+
+    def ready(self):
+        import DreamsApp.signals
