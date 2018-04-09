@@ -13,14 +13,15 @@ class SessionExpiredMiddleware:
             request.session['last_activity'] = datetime.now()
             return
         last_activity = request.session['last_activity']
-        if ((datetime.now() - last_activity).total_seconds()/60) > settings.SESSION_EXPIRY_AGE:
+        if (datetime.now() - last_activity).total_seconds()/60 > settings.SESSION_EXPIRY_AGE:
+            del request.session['last_activity']
             logout(request)
             if not request.is_ajax():
                 return redirect('login')
             else:
                 response_data = {
                     'status': 'fail',
-                    'message': "Your session has expired. You need to login to continue",
+                    'message': "Your session has expired. You need to login to continue. Last activity {}, datetime.now(), difference {}".format(last_activity, datetime.now(), (datetime.now() - last_activity).total_seconds()/60),
                     'ip_users': ''
                 }
                 return JsonResponse(response_data)

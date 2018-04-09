@@ -26,7 +26,7 @@
                         {% if perms.auth.can_manage_client %}
                             <li class="{% if page == 'clients' or page == 'interventions' %}active{% endif %}" ><a class="" href="/clients" style="">Clients &amp; Interventions</a> </li>
                         {% endif %}
-                        {% if perms.auth.can_manage_audit %}
+                        {% if perms.DreamsApp.can_manage_audit %}
                             <li class="{% if page == 'logs' %}active{% endif %}"><a href="/logs" >Logs </a> </li>
                         {% endif %}
                         {% if perms.auth.can_manage_user %}

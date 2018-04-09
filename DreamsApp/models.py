@@ -5,6 +5,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
 from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.html import format_html
+
 
 
 class MaritalStatus(models.Model):
@@ -127,27 +130,18 @@ class Client(models.Model):
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
-    voided = models.NullBooleanField(blank=True, default=False)
+    voided = models.BooleanField(default=False)
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_voided = models.DateTimeField(null=True, blank=True)
 
-    exited = models.NullBooleanField(blank=True, default=False)
+    exited = models.BooleanField(default=False)
     reason_exited = models.CharField(blank=True, null=True, max_length=100)
     exited_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_exited = models.DateTimeField(null=True, blank=True)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
-        if user_id is None:
-            return
-        audit = Audit()
-        audit.user_id = user_id
-        audit.table = "DreamsApp_client"
-        audit.row_id = self.pk
-        audit.action = action
-        audit.search_text = None
-        audit.save()
 
     def __str__(self):
         return '{} {} {}'.format(self.first_name, self.middle_name, self.last_name)
@@ -275,7 +269,7 @@ class Intervention(models.Model):
     changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
     implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True,
                                              related_name='implementing_partner')
-    voided = models.NullBooleanField(blank=True, default=False)
+    voided = models.BooleanField(default=False)
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='voided_by')
     date_voided = models.DateTimeField(null=True, blank=True)
@@ -285,13 +279,6 @@ class Intervention(models.Model):
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Intervention, self).save(*args, **kwargs)
-        audit = Audit()
-        audit.user_id = user_id
-        audit.table = "DreamsApp_intervention"
-        audit.row_id = self.pk
-        audit.action = action
-        audit.search_text = None
-        audit.save()
 
     def __str__(self):
         return '{} {}'.format(self.intervention_type, self.created_by)
@@ -303,14 +290,27 @@ class Intervention(models.Model):
 
 class Audit(models.Model):
     timestamp = models.DateTimeField(auto_now=True, blank=False, null=False)
-    user_id = models.IntegerField(blank=False, null=False)
+    user = models.ForeignKey(User, blank=False, null=False)
     table = models.CharField(max_length=200, default='', blank=False, null=False)
     row_id = models.IntegerField(blank=True, null=True)
     action = models.CharField(max_length=100, blank=False, null=False)
     search_text = models.CharField(max_length=250, blank=True, null=True)
 
+    def get_user_name(self):
+        """
+        Returns the first_name plus the last_name, with a space in between.
+        """
+        if self.user is None:
+            return ''
+        else:
+            full_name = self.user.get_full_name()
+            if full_name is None or full_name == '':
+                return self.user.username
+            else:
+                return full_name
+
     def __str__(self):
-        return '{} by user id {} at {} value {}'.format(self.action, self.user_id, self.timestamp, self.search_text)
+        return '{} by user id {} at {} value {}'.format(self.action, self.user.id, self.timestamp, self.search_text)
 
     class Meta(object):
         verbose_name = 'Audit'
@@ -805,7 +805,7 @@ class ClientIndividualAndHouseholdData(models.Model):
     current_ct_program = models.CharField(verbose_name='Cash Transfer Programme currently enrolled in', max_length=50, null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
-    voided = models.NullBooleanField(blank=True, default=False)
+    voided = models.BooleanField(default=False)
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_voided = models.DateTimeField(null=True, blank=True)
@@ -836,7 +836,7 @@ class ClientEducationAndEmploymentData(models.Model):
     banking_place_other = models.CharField(max_length=20, verbose_name='Other place for savings', null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
-    voided = models.NullBooleanField(blank=True, default=False)
+    voided = models.BooleanField(default=False)
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_voided = models.DateTimeField(null=True, blank=True)
@@ -857,7 +857,7 @@ class ClientHIVTestingData(models.Model):
     reason_never_tested_for_hiv_other = models.CharField(max_length=50, verbose_name='Reason never tested for HIV(Other)', blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
-    voided = models.NullBooleanField(blank=True, default=False)
+    voided = models.BooleanField(default=False)
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_voided = models.DateTimeField(null=True, blank=True)
@@ -885,7 +885,7 @@ class ClientSexualActivityData(models.Model):
     received_money_gift_for_sex = models.ForeignKey(CategoricalResponse, blank=True, null=True, related_name='+')
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
-    voided = models.NullBooleanField(blank=True, default=False)
+    voided = models.BooleanField(default=False)
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_voided = models.DateTimeField(null=True, blank=True)
@@ -910,7 +910,7 @@ class ClientReproductiveHealthData(models.Model):
     reason_not_using_fp_other = models.CharField(max_length=50, blank=True, null=True, verbose_name="Reason not using modern family planning method(Other)")
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
-    voided = models.NullBooleanField(blank=True, default=False)
+    voided = models.BooleanField(default=False)
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_voided = models.DateTimeField(null=True, blank=True)
@@ -943,7 +943,7 @@ class ClientGenderBasedViolenceData(models.Model):
     preferred_gbv_help_provider_other = models.CharField(max_length=50, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
-    voided = models.NullBooleanField(blank=True, default=False)
+    voided = models.BooleanField(default=False)
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_voided = models.DateTimeField(null=True, blank=True)
@@ -961,7 +961,7 @@ class ClientDrugUseData(models.Model):
     produced_alcohol_last_12months = models.ForeignKey(CategoricalResponse, null=True, related_name='+')
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
-    voided = models.NullBooleanField(blank=True, default=False)
+    voided = models.BooleanField(default=False)
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_voided = models.DateTimeField(null=True, blank=True)
@@ -974,7 +974,7 @@ class ClientParticipationInDreams(models.Model):
     dreams_program = models.ManyToManyField(DreamsProgramme, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
-    voided = models.NullBooleanField(blank=True, default=False)
+    voided = models.BooleanField(default=False)
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_voided = models.DateTimeField(null=True, blank=True)
@@ -1031,5 +1031,84 @@ class FlatEnrollmentTableLog(models.Model):
     activity = models.CharField(max_length=50)
     error = models.CharField(max_length=255, null=True)
 
+
+class InterventionTypeAlternative(models.Model):
+    PACKAGE_OPTION_CATEGORIES = (
+        (1, 'Required Service'),
+        (2, 'Situation Based Service')
+    )
+
+    name = models.CharField(verbose_name='Service name', max_length=250, blank=False, null=False, default='-')
+    description = models.TextField(verbose_name='Service description', default='', blank=True, null=True)
+    package_option_category = models.IntegerField(verbose_name='Package option category', default=1, blank=False,
+                                                  null=False, choices=PACKAGE_OPTION_CATEGORIES)
+    intervention_type_alternatives = models.ManyToManyField(InterventionType,
+                                                            verbose_name='Intervention type alternatives', blank=False)
+    intervention_type_alternatives_text = models.TextField(verbose_name='Intervention type alternatives',
+                                                           blank=True, null=True)
+
+    def display_name(self):
+        return self.name
+
+    display_name.short_description = 'Name'
+    display_name.allow_tags = True
+
+    def __str__(self):
+        package_category = dict(self.PACKAGE_OPTION_CATEGORIES)[self.package_option_category]
+        str(package_category)
+        return '{}: {}'.format(self.name, str(package_category))
+
+    class Meta:
+        verbose_name = 'Service Package Intervention Alternative'
+        verbose_name_plural = 'Service Package Interventions Alternatives'
+
+
+class ServicePackage(models.Model):
+    name = models.CharField(verbose_name='Name', max_length=200, blank=False, null=False, default='')
+    description = models.CharField(verbose_name='Description', max_length=250, blank=True, null=True, default='')
+    lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', default=10,
+                                                  validators=[MinValueValidator(10), MaxValueValidator(24)])
+    upper_age_limit = models.PositiveIntegerField(verbose_name= 'Upper age limit', default=24,
+                                                  validators=[MinValueValidator(10), MaxValueValidator(24)])
+    age_group = models.CharField(verbose_name='Age group', max_length=5, blank=True, null=True, default='-')
+    intervention_type_alternatives = models.ManyToManyField(InterventionTypeAlternative,
+                                                            verbose_name='Service package intervention types',
+                                                            through='ServicePackageInterventionTypeAlternative')
+    date_created = models.DateTimeField(verbose_name='Date created', auto_now_add=True, blank=True, null=True)
+    created_by = models.ForeignKey(User, verbose_name='Created by',  null=True, related_name='+')
+    date_changed = models.DateTimeField(verbose_name='Date changed',  auto_now=True, null=True, blank=True)
+    changed_by = models.ForeignKey(User, verbose_name='Changed by',  null=True, blank=True, related_name='+')
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta:
+        verbose_name = 'Service Package'
+        verbose_name_plural = 'Service Packages'
+
+    def save(self, *args, **kwargs):
+        self.age_group = '{}-{}'.format(self.lower_age_limit, self.upper_age_limit)
+        super(ServicePackage, self).save(*args, **kwargs)
+
+
+class ServicePackageInterventionTypeAlternative(models.Model):
+    service_package = models.ForeignKey(ServicePackage, null=False)
+    intervention_type_alternative = models.ForeignKey(InterventionTypeAlternative, null=False,
+                                                      verbose_name='Service package intervention alternative')
+
+
+class AuditTrail(models.Model):
+    audit = models.ForeignKey(Audit, db_index=True)
+    column = models.CharField(max_length=50, blank=False, null=False)
+    old_value = models.CharField(max_length=250, blank=True, null=True)
+    new_value = models.CharField(max_length=250, blank=True, null=True)
+
+    def __str__(self):
+        return '{} by user id {} at {} value {}'.format(self.audit.action, self.audit.user.id,
+                                                        self.audit.timestamp, self.audit.search_text)
+
+    class Meta(object):
+        verbose_name = 'Audit Trail'
+        verbose_name_plural = 'Audit Trails'
 
 

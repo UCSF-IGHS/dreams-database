@@ -16,7 +16,25 @@
                             <input type="text" class="form-control" name="filter-log-text" id="filter-log-text" placeholder="Enter Filter text" value="{{ filter_text }}" style="width: 300px;">
                         </div>
                         <div class="form-group  has-feedback" style="margin-top: 10px;">
-                             <input type="text" class="form-control " id="filter-log-date" name="filter-log-date" value="{{ filter_date }}" placeholder="Select filter date" style="cursor: pointer;">
+                             <input type="text" class="form-control " id="filter-log-date-from" name="filter-log-date-from" value="{{ filter_date_from }}" placeholder="Filter date from" style="cursor: pointer;">
+                                <span class="add-on"><i class="icon-th"></i></span></p>
+                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                             <script>
+                                $(function() {
+                                  $( "#filter-log-date-from" ).datepicker({
+                                      dateFormat: 'yy-mm-dd',
+                                      changeMonth: true,
+                                      changeYear: true,
+                                      maxDate: '0',
+                                      onClose: function(selectedDate) {
+                                        $("#filter-log-date").datepicker("option", "minDate", selectedDate);
+                                    }
+                                  });
+                                });
+                            </script>
+                        </div>
+                        <div class="form-group  has-feedback" style="margin-top: 10px;">
+                             <input type="text" class="form-control " id="filter-log-date" name="filter-log-date" value="{{ filter_date }}" placeholder="Filter date to" style="cursor: pointer;">
                                 <span class="add-on"><i class="icon-th"></i></span></p>
                              <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                              <script>
@@ -24,7 +42,8 @@
                                   $( "#filter-log-date" ).datepicker({
                                       dateFormat: 'yy-mm-dd',
                                       changeMonth: true,
-                                      changeYear: true
+                                      changeYear: true,
+                                      maxDate: '0'
                                   });
                                 });
                             </script>
@@ -45,8 +64,15 @@
         <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table" style="margin: 0px;border-radius: 5px;border: #efc636 solid 1px;">
                 <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
                     <th>Timestamp</th>
-                    <th>User Id</th>
+                    <th>User</th>
                     <th>Table</th>
+                    <th colspan="3">
+                        <div class="col-md-12">
+                            <div class="col-md-4">Field</div>
+                            <div class="col-md-4">Old Value</div>
+                            <div class="col-md-4">New Value</div>
+                        </div>
+                    </th>
                     <th>Action</th>
                     <th>Text</th>
                 </thead>
@@ -55,8 +81,17 @@
                         {% for log in logs %}
                             <tr style="cursor: pointer; background-color: transparent;">
                                 <td>{{ log.timestamp}}</td>
-                                <td>{{ log.user_id }}</td>
+                                <td>{{ log.get_user_name }}</td>
                                 <td>{{ log.table }}</td>
+                                <td colspan="3">
+                                    {% for trail in log.audittrail_set.all %}
+                                        <div class="col-md-12">
+                                            <div class="col-md-4 word-wrap">{{ trail.column }}</div>
+                                            <div class="col-md-4 word-wrap">{{ trail.old_value }}</div>
+                                            <div class="col-md-4 word-wrap">{{ trail.new_value }}</div>
+                                        </div>
+                                    {% endfor %}
+                                </td>
                                 <td>{{ log.action }}</td>
                                 <td>{% if log.search_text != None %} {{ log.search_text }} {% endif %}</td>
                             </tr>
@@ -72,7 +107,7 @@
         <div class="pagination">
         <span class="step-links">
             {% if logs.has_previous %}
-                <a href="?page={{ logs.previous_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">previous</a>
+                <a href="?page={{ logs.previous_page_number }}&filter-log-text={{ filter_text }}&filter-log-date-from={{ filter_date_from }}&filter-log-date={{ filter_date }}">previous</a>
             {% endif %}
 
             <span class="current">
@@ -80,7 +115,7 @@
             </span>
 
             {% if logs.has_next %}
-                <a href="?page={{ logs.next_page_number }}&filter-log-text={{ filter_text }}&filter-log-date={{ filter_date }}">next</a>
+                <a href="?page={{ logs.next_page_number }}&filter-log-text={{ filter_text }}&filter-log-date-from={{ filter_date_from }}&filter-log-date={{ filter_date }}">next</a>
             {% endif %}
             <span>
                  ( {{ items_in_page }} records listed )
