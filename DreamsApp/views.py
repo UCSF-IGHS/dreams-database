@@ -740,7 +740,9 @@ def save_intervention(request):
                         'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
                         'i_type': serializers.serialize('json', [intervention_type]),
                         'hts_results': serializers.serialize('json', HTSResult.objects.all()),
-                        'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
+                        'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
+                        'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
+                        'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
                     }
                     return JsonResponse(response_data)
                 else:  # Invalid Intervention Type
@@ -816,7 +818,9 @@ def get_intervention_list(request):
                 'iv_types': serializers.serialize('json', list_of_related_iv_types),
                 'interventions': serializers.serialize('json', list_of_interventions),
                 'hts_results': serializers.serialize('json', HTSResult.objects.all()),
-                'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
+                'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
+                'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
+                'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
             }
             return JsonResponse(response_data)
         else:
@@ -903,7 +907,9 @@ def update_intervention(request):
                             'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
                             'i_type': serializers.serialize('json', [i_type]),
                             'hts_results': serializers.serialize('json', HTSResult.objects.all()),
-                            'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
+                            'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
+                            'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
+                            'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
                         }
                     else:
                         # Intervention does not belong to Implementing partner. Send back error message
