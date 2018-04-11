@@ -54,7 +54,7 @@
                               $(function() {
                                 $( "#date-of-completion" ).datepicker({
                                       maxDate: '0y 0m 0d',
-                                      minDate:  (new Date(2015, 9 , 1)),
+                                      minDate:  (new Date({{ client.date_of_enrollment.year|default:2015 }}, {{ client.date_of_enrollment.month|default:10 }} - 1 , {{ client.date_of_enrollment.day|default:1 }})),
                                       changeMonth: true,
                                       changeYear: true
                                 });
