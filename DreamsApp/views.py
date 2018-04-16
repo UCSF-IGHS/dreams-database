@@ -711,6 +711,13 @@ def save_intervention(request):
                     }
                     return JsonResponse(response_data)
 
+                if intervention_date > dt.now():
+                    response_data = {
+                        'status': 'fail',
+                        'message': "Error: The intervention date must be before the current date. "
+                    }
+                    return JsonResponse(response_data)
+
                 if intervention_type_code is not None and type(intervention_type_code) is int:
                     intervention = Intervention()
                     intervention.client = client
