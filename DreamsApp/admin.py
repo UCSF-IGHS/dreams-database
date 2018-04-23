@@ -71,6 +71,8 @@ admin.site.register(HouseholdHead)
 admin.site.register(PeriodResponse)
 admin.site.register(CategoricalResponse)
 admin.site.register(AgeBracket)
+admin.site.register(InterventionPackage)
+admin.site.register(InterventionTypePackage)
 
 admin.site.register(ClientIndividualAndHouseholdData) # verified
 admin.site.register(ClientEducationAndEmploymentData)

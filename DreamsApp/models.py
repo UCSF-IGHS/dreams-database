@@ -1128,12 +1128,14 @@ class InterventionPackage(models.Model):
 
 
 class InterventionTypePackage(models.Model):
+    MIN_AGE = 10
+    MAX_AGE = 24
     intervention_package = models.ForeignKey(InterventionPackage, null=False, blank=False)
     intervention_type = models.ForeignKey(InterventionType, null=False, blank=False)
     lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', blank=False, null=False,
-                                                  validators=[MinValueValidator(10), MaxValueValidator(24)])
+                                                  validators=[MinValueValidator(MIN_AGE), MaxValueValidator(MAX_AGE)])
     upper_age_limit = models.PositiveIntegerField(verbose_name='Upper age limit', blank=False, null=False,
-                                                  validators=[MinValueValidator(10), MaxValueValidator(24)])
+                                                  validators=[MinValueValidator(MIN_AGE), MaxValueValidator(MAX_AGE)])
 
     def __str__(self):
         return '{} is a member of {} package for age band {} to {}'.format(self.intervention_type.name,
