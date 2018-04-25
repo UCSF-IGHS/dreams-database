@@ -1145,7 +1145,7 @@ class InterventionTypePackage(models.Model):
     def clean(self):
         if self.upper_age_limit < self.lower_age_limit:
             raise ValidationError(
-                {self.upper_age_limit: "Upper age limit must be equal to or greater than lower age limit"})
+                {'upper_age_limit': "Upper age limit must be equal to or greater than lower age limit"})
 
     class Meta(object):
         verbose_name = 'InterventionType Package'

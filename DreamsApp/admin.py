@@ -72,7 +72,6 @@ admin.site.register(PeriodResponse)
 admin.site.register(CategoricalResponse)
 admin.site.register(AgeBracket)
 admin.site.register(InterventionPackage)
-admin.site.register(InterventionTypePackage)
 
 admin.site.register(ClientIndividualAndHouseholdData) # verified
 admin.site.register(ClientEducationAndEmploymentData)
@@ -237,3 +236,7 @@ class ServicePackageInterventionTypeAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         return self.readonly_fields + ('intervention_type_alternatives_text', )
 
+
+@admin.register(InterventionTypePackage)
+class InterventionTypePackageAdmin(admin.ModelAdmin):
+    list_display = ('intervention_type', 'intervention_package', 'lower_age_limit', 'upper_age_limit',)
