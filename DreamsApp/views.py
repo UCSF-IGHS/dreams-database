@@ -702,6 +702,22 @@ def save_intervention(request):
                     """An error has occurred. Throw exception. This will be handled elsewhere"""
                     raise Exception(e.message)
 
+                intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
+                if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
+                                                                                            datetime.time()):
+                    response_data = {
+                        'status': 'fail',
+                        'message': "Error: The intervention date must be after the client's enrollment date. "
+                    }
+                    return JsonResponse(response_data)
+
+                if intervention_date > dt.now():
+                    response_data = {
+                        'status': 'fail',
+                        'message': "Error: The intervention date must be before the current date. "
+                    }
+                    return JsonResponse(response_data)
+
                 if intervention_type_code is not None and type(intervention_type_code) is int:
                     intervention = Intervention()
                     intervention.client = client
@@ -740,7 +756,11 @@ def save_intervention(request):
                         'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
                         'i_type': serializers.serialize('json', [intervention_type]),
                         'hts_results': serializers.serialize('json', HTSResult.objects.all()),
-                        'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
+                        'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
+                        'permissions': json.dumps({
+                            'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
+                            'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
+                        })
                     }
                     return JsonResponse(response_data)
                 else:  # Invalid Intervention Type
@@ -816,7 +836,11 @@ def get_intervention_list(request):
                 'iv_types': serializers.serialize('json', list_of_related_iv_types),
                 'interventions': serializers.serialize('json', list_of_interventions),
                 'hts_results': serializers.serialize('json', HTSResult.objects.all()),
-                'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
+                'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
+                'permissions': json.dumps({
+                    'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
+                    'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
+                })
             }
             return JsonResponse(response_data)
         else:
@@ -868,6 +892,16 @@ def update_intervention(request):
                         intervention.intervention_type = InterventionType.objects.get(
                             code__exact=int(request.POST.get('intervention_type_code')))
                         intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
+
+                        intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
+                        if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
+                                intervention.client.date_of_enrollment, datetime.time()):
+                            response_data = {
+                                'status': 'fail',
+                                'message': "Error: The intervention date must be after the client's enrollment date. "
+                            }
+                            return JsonResponse(response_data)
+
                         intervention.name_specified = request.POST.get('other_specify',
                                                                        '') if intervention.intervention_type.is_specified else ''
                         intervention.intervention_date = request.POST.get('intervention_date')
@@ -903,7 +937,11 @@ def update_intervention(request):
                             'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
                             'i_type': serializers.serialize('json', [i_type]),
                             'hts_results': serializers.serialize('json', HTSResult.objects.all()),
-                            'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
+                            'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
+                            'permissions': json.dumps({
+                                'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
+                                'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
+                            })
                         }
                     else:
                         # Intervention does not belong to Implementing partner. Send back error message
