@@ -1,6 +1,7 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
@@ -1112,3 +1113,40 @@ class AuditTrail(models.Model):
         verbose_name_plural = 'Audit Trails'
 
 
+class InterventionPackage(models.Model):
+    code = models.PositiveIntegerField(verbose_name='Code', blank=False, null=False,
+                                       validators=[MinValueValidator(1), MaxValueValidator(100)])
+    name = models.CharField(max_length=50, verbose_name='Package Name')
+    intervention_types = models.ManyToManyField(InterventionType, through='InterventionTypePackage')
+
+    def __str__(self):
+        return '{} '.format(self.name)
+
+    class Meta(object):
+        verbose_name = 'Intervention Package'
+        verbose_name_plural = 'Intervention Packages'
+
+
+class InterventionTypePackage(models.Model):
+    MIN_AGE = 10
+    MAX_AGE = 24
+    intervention_package = models.ForeignKey(InterventionPackage, null=False, blank=False)
+    intervention_type = models.ForeignKey(InterventionType, null=False, blank=False)
+    lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', blank=False, null=False,
+                                                  validators=[MinValueValidator(MIN_AGE), MaxValueValidator(MAX_AGE)])
+    upper_age_limit = models.PositiveIntegerField(verbose_name='Upper age limit', blank=False, null=False,
+                                                  validators=[MinValueValidator(MIN_AGE), MaxValueValidator(MAX_AGE)])
+
+    def __str__(self):
+        return '{} is a member of {} package for age band {} to {}'.format(self.intervention_type.name,
+                                                                           self.intervention_package.name,
+                                                                           self.lower_age_limit, self.upper_age_limit)
+
+    def clean(self):
+        if self.upper_age_limit < self.lower_age_limit:
+            raise ValidationError(
+                {'upper_age_limit': "Upper age limit must be equal to or greater than lower age limit"})
+
+    class Meta(object):
+        verbose_name = 'InterventionType Package'
+        verbose_name_plural = 'InterventionType Packages'
