@@ -302,6 +302,12 @@ def client_profile(request):
         search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
             'search_client_term', '')
         if client_id is not None and client_id != 0:
+
+            try:
+                ip_code = request.user.implementingpartneruser.implementing_partner.code
+            except Exception as e:
+                ip_code = None
+
             try:
                 client_found = Client.objects.get(id=client_id)
                 if client_found is not None:
@@ -311,13 +317,18 @@ def client_profile(request):
                     cash_transfer_details_form = ClientCashTransferDetailsForm(instance=cash_transfer_details,
                                                                                current_AGYW=client_found)
                     cash_transfer_details_form.save(commit=False)
+
                 return render(request, 'client_profile.html', {'page': 'clients',
                                                                'page_title': 'DREAMS Client Service Uptake',
                                                                'client': client_found,
                                                                'ct_form': cash_transfer_details_form,
                                                                'ct_id': cash_transfer_details.id,
                                                                'search_client_term': search_client_term,
-                                                               'user': request.user
+                                                               'user': request.user,
+                                                               'transfer_form': ClientTransferForm(ip_code=ip_code,
+                                                                                                   initial={
+                                                                                                       'client':
+                                                                                                           client_found})
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
@@ -327,7 +338,8 @@ def client_profile(request):
                                'client': client_found,
                                'ct_form': cash_transfer_details_form,
                                'search_client_term': search_client_term,
-                               'user': request.user
+                               'user': request.user,
+                               'transfer_form': ClientTransferForm(ip_code=ip_code, initial={'client': client_found})
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -2224,3 +2236,45 @@ def update_programme_participation_data(request):
     else:
         raise PermissionDenied
     return render(request, template, {'programe_participation_form': form})
+
+
+def transfer_client(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST' and request.is_ajax():
+                # process saving user
+                try:
+                    ip_code = request.user.implementingpartneruser.implementing_partner.id
+                except Exception as e:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Enrollment Failed. You do not belong to an implementing partner',
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+                transfer_form = ClientTransferForm(request.POST)
+                if transfer_form.is_valid():
+                    client_transfer = transfer_form.save(commit=False)
+
+                    client_transfer.source_implementing_partner = request.user.implementingpartneruser.implementing_partner
+                    client_transfer.initiated_by = request.user
+                    client_transfer.save()
+
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Transfer request received, pending approval by the receiving implementing partner.',
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+                else:
+                    response_data = {
+                        'status': 'fail',
+                        'message': transfer_form.errors,
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message,
+        }
+        return JsonResponse(json.dumps(response_data), safe=False)

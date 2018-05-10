@@ -1150,3 +1150,30 @@ class InterventionTypePackage(models.Model):
     class Meta(object):
         verbose_name = 'InterventionType Package'
         verbose_name_plural = 'InterventionType Packages'
+
+
+class ClientTransfer(models.Model):
+    APPROVAL_STATUS = (
+        (1, 'Initiated'),
+        (2, 'Accepted'),
+        (3, 'Rejected'),
+    )
+
+    client = models.ForeignKey(Client, db_index=True)
+    source_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False,
+                                                    related_name='source_implementing_partner')
+    destination_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False,
+                                                         related_name='destination_implementing_partner')
+    transfer_status = models.IntegerField(verbose_name='Transfer Status', default=1, blank=False, null=False,
+                                          choices=APPROVAL_STATUS)
+    start_date = models.DateTimeField(blank=True, null=True)
+    end_date = models.DateTimeField(blank=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_changed = models.DateTimeField(auto_now=True, null=True, blank=True)
+    initiated_by = models.ForeignKey(User, null=False, blank=False, related_name='initiated_by')
+    completed_by = models.ForeignKey(User, null=True, blank=True, related_name='completed_by')
+    transfer_reason = models.TextField(max_length=255, null=True, blank=True)
+
+    class Meta(object):
+        verbose_name = 'Client Transfer'
+        verbose_name_plural = 'Client Transfers'

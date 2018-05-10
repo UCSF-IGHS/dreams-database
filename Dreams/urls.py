@@ -23,6 +23,7 @@ handler403 = 'DreamsApp.views.permission_denied'
 handler404 = 'DreamsApp.views.page_not_found'
 # handler500 = 'DreamsApp.views.server_error'
 
+
 urlpatterns = [
     url(r'^$', views.user_login, name='login'),
     url(r'^clients$', views.clients, name='clients'),
@@ -73,6 +74,7 @@ urlpatterns = [
     url(r'^update-drug-use', views.update_drug_use_data),
     url(r'^update-programme-participation', views.update_programme_participation_data),
     url(r'^client/exit$', views.client_exit_status_toggle),
+    url(r'^client/transfer$', views.transfer_client, name='transfer_client'),
     #url(r'^$', views.user_login, name='login'),
     url(r'^', views.error_404, name='error_404'),
 ]

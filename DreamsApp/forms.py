@@ -1,5 +1,5 @@
 # coding=utf-8
-from django.forms import ModelForm
+from django.forms import ModelForm, HiddenInput
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from models import *
 
@@ -191,3 +191,22 @@ class DreamsProgramParticipationForm(ModelForm):
         model = ClientParticipationInDreams
         fields = '__all__'
         exclude = ['date_created', 'date_changed']
+
+
+class ClientTransferForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        ip_code = kwargs.pop('ip_code', None)
+
+        super(ClientTransferForm, self).__init__(*args, **kwargs)
+
+        transfer_destination_implementing_partners = ImplementingPartner.objects.all().exclude(
+            code__exact=ip_code) if ip_code is not None else ImplementingPartner.objects.all()
+        self.fields['destination_implementing_partner'].queryset = transfer_destination_implementing_partners
+        self.fields['destination_implementing_partner'].empty_label = "Select an implementing partner"
+
+        self.fields['client'].widget = HiddenInput()
+
+    class Meta:
+        model = ClientTransfer
+        fields = ('client', 'destination_implementing_partner', 'transfer_reason',)

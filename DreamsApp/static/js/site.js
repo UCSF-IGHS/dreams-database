@@ -2906,6 +2906,45 @@ $(document).ready(function () {
         $('#county_filter').val('')
         $('#sub_county_filter').val('')
         $('#ward_filter').val('')
+    });
+
+    $("#btn_submit_transfer_client_form").click(function (e) {
+        $('#client-transfer-form').submit();
+    })
+
+    $('#client-transfer-form').submit(function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr('action'),
+            type: $(this).attr('method'),
+            dataType: 'json',
+            data: $('#client-transfer-form').serialize(),
+        }).done(function (data, textStatus, jqXHR) {
+            console.log("Data: " + data);
+            var status = data.status
+            var message = data.message
+            var alert_id = $('#action_alert_gen');
+
+            if (status == 'fail') {
+                $(alert_id).addClass('alert-danger');
+            }
+            else {
+                $(alert_id).addClass('alert-success');
+            }
+
+            $(alert_id).removeClass('hidden').text(message).trigger('madeVisible');
+
+            $('#btn_submit_transfer_client_form').removeAttr("disabled");
+            $("#client-transfer-modal").each(function () {
+                this.reset;
+            });
+            $('#client-transfer-modal').modal('hide');
+
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+
+        }).always(function () {
+
+        });
     })
 
 });
