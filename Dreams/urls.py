@@ -75,6 +75,11 @@ urlpatterns = [
     url(r'^update-programme-participation', views.update_programme_participation_data),
     url(r'^client/exit$', views.client_exit_status_toggle),
     url(r'^client/transfer$', views.transfer_client, name='transfer_client'),
+    url(r'^client-transfers$', views.client_transfers, name='client_transfers'),
+    url(r'^accept-client-transfer$', views.accept_client_transfer, name='accept_client_transfer'),
+    url(r'^reject-client-transfer$', views.reject_client_transfer, name='reject_client_transfer'),
+    url(r'^get-client-transfers-count$', views.get_client_transfers_count, name='get_client_transfers_count'),
+
     #url(r'^$', views.user_login, name='login'),
     url(r'^', views.error_404, name='error_404'),
 ]

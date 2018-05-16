@@ -2945,8 +2945,42 @@ $(document).ready(function () {
         }).always(function () {
 
         });
-    })
+    });
 
+
+    $('#a-accept-transfer-modal').click(function (e) {
+        e.preventDefault();
+        var el = $(this);
+        $("#accept-transfer-modal #accept_client_transfer_id").val($(el).data('id'));
+        $("#accept-transfer-modal #accept_client_name").val($(el).data('client-name'));
+        $("#accept-transfer-modal").show();
+    });
+
+
+    $('#a-reject-transfer-modal').click(function (e) {
+        e.preventDefault();
+        var el = $(this);
+        $("#reject-transfer-modal #reject_client_transfer_id").val($(el).data('id'));
+        $("#reject-transfer-modal #reject_client_name").val($(el).data('client-name'));
+        $("#reject-transfer-modal").show();
+    });
+
+    function getClientTransfersCount(){
+        var el = $('#client-transfers-count-span')
+        $.ajax({
+            url: $(el).data('count-url')
+        }).done(function (data, textStatus, jqXHR) {
+            if(data != 0) {
+                $(el).text(data).show();
+            }
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+
+        }).always(function () {
+            setTimeout(getClientTransfersCount,180000);
+        });
+    }
+
+    setTimeout(getClientTransfersCount(),180000);
 });
 
 // Handling cross module validation for sexuality and reproductive health modules in enrollment

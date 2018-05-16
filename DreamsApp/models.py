@@ -1153,10 +1153,13 @@ class InterventionTypePackage(models.Model):
 
 
 class ClientTransfer(models.Model):
+    INITIATED = 1
+    ACCEPTED = 2
+    REJECTED = 3
     APPROVAL_STATUS = (
-        (1, 'Initiated'),
-        (2, 'Accepted'),
-        (3, 'Rejected'),
+        (INITIATED, 'Initiated'),
+        (ACCEPTED, 'Accepted'),
+        (REJECTED, 'Rejected'),
     )
 
     client = models.ForeignKey(Client, db_index=True)
@@ -1164,7 +1167,7 @@ class ClientTransfer(models.Model):
                                                     related_name='source_implementing_partner')
     destination_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False,
                                                          related_name='destination_implementing_partner')
-    transfer_status = models.IntegerField(verbose_name='Transfer Status', default=1, blank=False, null=False,
+    transfer_status = models.IntegerField(verbose_name='Transfer Status', default=INITIATED, blank=False, null=False,
                                           choices=APPROVAL_STATUS)
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
@@ -1173,6 +1176,7 @@ class ClientTransfer(models.Model):
     initiated_by = models.ForeignKey(User, null=False, blank=False, related_name='initiated_by')
     completed_by = models.ForeignKey(User, null=True, blank=True, related_name='completed_by')
     transfer_reason = models.TextField(max_length=255, null=True, blank=True)
+    reject_reason = models.TextField(max_length=255, null=True, blank=True)
 
     class Meta(object):
         verbose_name = 'Client Transfer'

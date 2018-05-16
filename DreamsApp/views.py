@@ -1,4 +1,5 @@
 # coding=utf-8
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.core import serializers
@@ -10,7 +11,7 @@ from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
-from django.db import connection as db_conn_2
+from django.db import connection as db_conn_2, transaction
 
 from django.conf import settings
 
@@ -2278,3 +2279,124 @@ def transfer_client(request):
             'message': e.message,
         }
         return JsonResponse(json.dumps(response_data), safe=False)
+
+
+def client_transfers(request):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            c_transfers = ClientTransfer.objects.filter(
+                destination_implementing_partner=ip,
+                transfer_status=ClientTransfer.INITIATED)
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            c_transfers = ClientTransfer.objects.filter(transfer_status=ClientTransfer.INITIATED)
+
+        page = request.GET.get('page', 1)
+        paginator = Paginator(c_transfers, 20)
+
+        try:
+            transfers = paginator.page(page)
+        except PageNotAnInteger:
+            transfers = paginator.page(1)
+        except EmptyPage:
+            transfers = paginator.page(paginator.num_pages)
+
+        return render(request, "client_transfers.html", {'client_transfers': transfers})
+    else:
+        return redirect('login')
+
+
+def accept_client_transfer(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST':
+
+                try:
+                    ip = request.user.implementingpartneruser.implementing_partner
+                except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist) as e:
+                    messages.error(request, "You do not belong to an implementing partner")
+                    return redirect("client_transfers")
+
+                client_transfer_id = request.POST.get("id", "")
+                if client_transfer_id != "":
+                    client_transfer = ClientTransfer.objects.get(id__exact=client_transfer_id)
+
+                    if client_transfer is not None:
+                        current_datetime = dt.now()
+                        client_transfer.transfer_status = ClientTransfer.ACCEPTED
+                        client_transfer.start_date = current_datetime
+                        client_transfer.completed_by = request.user
+
+                        # Update the client to receive interventions from this new ip.
+                        client = Client.objects.get(id__exact=client_transfer.client.id)
+                        client.implementing_partner = ip
+
+                        # client transfers for current client being transferred,with no end_date and status accepted
+                        c_transfers = ClientTransfer.objects.filter(client=client_transfer.client, end_date=None,
+                                                                    transfer_status=ClientTransfer.ACCEPTED)
+
+                        with transaction.atomic():
+                            for c_transfer in c_transfers:
+                                c_transfer.end_date = current_datetime
+                                c_transfer.save()
+                            client.save()
+                            client_transfer.save()
+
+                        messages.info(request, "Transfer successfully accepted.")
+                    else:
+                        messages.error(request,
+                                       "Transfer not effected. Contact System Administrator if this error Persists.")
+                else:
+                    messages.error(request,
+                                   "Transfer not effected. Contact System Administrator if this error Persists.")
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        # print traceback.format_exc(e)
+        messages.error(request,
+                       "An error occurred while processing request. "
+                       "Contact System Administrator if this error Persists.")
+
+    return redirect("client_transfers")
+
+
+def reject_client_transfer(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST':
+                reject_client_transfer_form = RejectClientTransferForm(request.POST)
+                if reject_client_transfer_form.is_valid():
+                    client_transfer = reject_client_transfer_form.save(commit=False)
+                    client_transfer.transfer_status = ClientTransfer.REJECTED
+                    client_transfer.completed_by = request.user
+                    client_transfer.save()
+
+                    messages.info(request, "Transfer successfully rejected.")
+                else:
+                    messages.warning(request,
+                                     "Transfer not rejected. Contact System Administrator if this error Persists.")
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        messages.error(request,
+                       "An error occurred while processing request. "
+                       "Contact System Administrator if this error Persists.")
+
+    return redirect("client_transfers")
+
+
+def get_client_transfers_count(request):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            client_transfers_count = ClientTransfer.objects.filter(
+                destination_implementing_partner=ip,
+                transfer_status=ClientTransfer.INITIATED).count()
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            client_transfers_count = ClientTransfer.objects.filter(transfer_status=ClientTransfer.INITIATED).count()
+        except Exception:
+            client_transfers_count = 9
+
+        return HttpResponse(client_transfers_count)
+    else:
+        return HttpResponse(0)

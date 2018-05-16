@@ -210,3 +210,19 @@ class ClientTransferForm(ModelForm):
     class Meta:
         model = ClientTransfer
         fields = ('client', 'destination_implementing_partner', 'transfer_reason',)
+
+
+class RejectClientTransferForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(RejectClientTransferForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = ClientTransfer
+        fields = ('reject_reason',)
+
+    def clean(self):
+        reject_reason = self.cleaned_data.get("reject_reason")
+        if reject_reason is None or reject_reason == "":
+            raise ValidationError({'reject_reason': "Please provide a reason for rejecting this transfer"})
+
