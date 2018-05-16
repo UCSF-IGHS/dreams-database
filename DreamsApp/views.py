@@ -1959,6 +1959,11 @@ def viewBaselineData(request):
         else:
             print 'POST not allowed'
 
+        try:
+            ip_code = request.user.implementingpartneruser.implementing_partner.code
+        except Exception as e:
+            ip_code = None
+
         if client_id is not None and client_id != 0:
             try:
                 client_found = Client.objects.get(id=client_id)
@@ -1976,7 +1981,10 @@ def viewBaselineData(request):
                                                                          'rh_form': reproductive_health_form,
                                                                          'drug_use_form': drug_use_form,
                                                                          'programe_participation_form': participation_form,
-                                                                         'search_client_term': search_client_term
+                                                                         'search_client_term': search_client_term,
+                                                                         'transfer_form': ClientTransferForm(
+                                                                             ip_code=ip_code,
+                                                                             initial={'client': client_found})
                                                                          })
             except Client.DoesNotExist:
                 traceback.format_exc()
