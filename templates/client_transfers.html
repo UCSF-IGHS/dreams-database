@@ -49,6 +49,8 @@
                     </td>
                 </tr>
                 {% endfor %}
+            {% else %}
+                <tr><td colspan="4"> No pending transfers.</td> </tr>
             {% endif %}
             </tbody>
         </table>

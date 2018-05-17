@@ -2264,6 +2264,7 @@ def transfer_client(request):
                 if transfer_form.is_valid():
                     client_transfer = transfer_form.save(commit=False)
 
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=1)
                     client_transfer.source_implementing_partner = request.user.implementingpartneruser.implementing_partner
                     client_transfer.initiated_by = request.user
                     client_transfer.save()
@@ -2291,13 +2292,14 @@ def transfer_client(request):
 
 def client_transfers(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             c_transfers = ClientTransfer.objects.filter(
                 destination_implementing_partner=ip,
-                transfer_status=ClientTransfer.INITIATED)
+                transfer_status=initiated_client_transfer_status)
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            c_transfers = ClientTransfer.objects.filter(transfer_status=ClientTransfer.INITIATED)
+            c_transfers = ClientTransfer.objects.filter(transfer_status=initiated_client_transfer_status)
 
         page = request.GET.get('page', 1)
         paginator = Paginator(c_transfers, 20)
@@ -2331,7 +2333,9 @@ def accept_client_transfer(request):
 
                     if client_transfer is not None:
                         current_datetime = dt.now()
-                        client_transfer.transfer_status = ClientTransfer.ACCEPTED
+                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=2)
+
+                        client_transfer.transfer_status = accepted_client_transfer_status
                         client_transfer.start_date = current_datetime
                         client_transfer.completed_by = request.user
 
@@ -2341,11 +2345,12 @@ def accept_client_transfer(request):
 
                         # client transfers for current client being transferred,with no end_date and status accepted
                         c_transfers = ClientTransfer.objects.filter(client=client_transfer.client, end_date=None,
-                                                                    transfer_status=ClientTransfer.ACCEPTED)
+                                                                    transfer_status=accepted_client_transfer_status)
 
                         with transaction.atomic():
                             for c_transfer in c_transfers:
                                 c_transfer.end_date = current_datetime
+                                c_transfer.transfer_status = ClientTransfer.ENDED
                                 c_transfer.save()
                             client.save()
                             client_transfer.save()
@@ -2375,7 +2380,7 @@ def reject_client_transfer(request):
                 reject_client_transfer_form = RejectClientTransferForm(request.POST)
                 if reject_client_transfer_form.is_valid():
                     client_transfer = reject_client_transfer_form.save(commit=False)
-                    client_transfer.transfer_status = ClientTransfer.REJECTED
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=3)
                     client_transfer.completed_by = request.user
                     client_transfer.save()
 
@@ -2395,13 +2400,15 @@ def reject_client_transfer(request):
 
 def get_client_transfers_count(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             client_transfers_count = ClientTransfer.objects.filter(
                 destination_implementing_partner=ip,
-                transfer_status=ClientTransfer.INITIATED).count()
+                transfer_status=initiated_client_transfer_status).count()
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            client_transfers_count = ClientTransfer.objects.filter(transfer_status=ClientTransfer.INITIATED).count()
+            client_transfers_count = ClientTransfer.objects.filter(
+                transfer_status=initiated_client_transfer_status).count()
         except Exception:
             client_transfers_count = 9
 

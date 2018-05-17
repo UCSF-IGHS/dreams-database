@@ -1152,23 +1152,35 @@ class InterventionTypePackage(models.Model):
         verbose_name_plural = 'InterventionType Packages'
 
 
-class ClientTransfer(models.Model):
-    INITIATED = 1
-    ACCEPTED = 2
-    REJECTED = 3
-    APPROVAL_STATUS = (
-        (INITIATED, 'Initiated'),
-        (ACCEPTED, 'Accepted'),
-        (REJECTED, 'Rejected'),
-    )
+class CodeTable(models.Model):
+    code = models.IntegerField(null=False, blank=False, unique=True,
+                               validators=[
+                                   MaxValueValidator(1000),
+                                   MinValueValidator(0)
+                               ],
+                               )
+    name = models.CharField(max_length=255, null=False, blank=False)
 
+    def __str__(self):
+        return "(%s - %s)" % (self.code, self.name)
+
+    class Meta:
+        abstract = True
+
+
+class ClientTransferStatus(CodeTable):
+
+    def __str__(self):
+        return self.name
+
+
+class ClientTransfer(models.Model):
     client = models.ForeignKey(Client, db_index=True)
     source_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False,
                                                     related_name='source_implementing_partner')
     destination_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False,
                                                          related_name='destination_implementing_partner')
-    transfer_status = models.IntegerField(verbose_name='Transfer Status', default=INITIATED, blank=False, null=False,
-                                          choices=APPROVAL_STATUS)
+    transfer_status = models.ForeignKey(ClientTransferStatus, blank=False, null=False, on_delete=models.PROTECT)
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
