@@ -1,4 +1,5 @@
 # coding=utf-8
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.core import serializers
@@ -10,7 +11,7 @@ from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
-from django.db import connection as db_conn_2
+from django.db import connection as db_conn_2, transaction
 
 from django.conf import settings
 
@@ -302,6 +303,12 @@ def client_profile(request):
         search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
             'search_client_term', '')
         if client_id is not None and client_id != 0:
+
+            try:
+                ip_code = request.user.implementingpartneruser.implementing_partner.code
+            except Exception as e:
+                ip_code = None
+
             try:
                 client_found = Client.objects.get(id=client_id)
                 if client_found is not None:
@@ -311,13 +318,18 @@ def client_profile(request):
                     cash_transfer_details_form = ClientCashTransferDetailsForm(instance=cash_transfer_details,
                                                                                current_AGYW=client_found)
                     cash_transfer_details_form.save(commit=False)
+
                 return render(request, 'client_profile.html', {'page': 'clients',
                                                                'page_title': 'DREAMS Client Service Uptake',
                                                                'client': client_found,
                                                                'ct_form': cash_transfer_details_form,
                                                                'ct_id': cash_transfer_details.id,
                                                                'search_client_term': search_client_term,
-                                                               'user': request.user
+                                                               'user': request.user,
+                                                               'transfer_form': ClientTransferForm(ip_code=ip_code,
+                                                                                                   initial={
+                                                                                                       'client':
+                                                                                                           client_found})
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
@@ -327,7 +339,8 @@ def client_profile(request):
                                'client': client_found,
                                'ct_form': cash_transfer_details_form,
                                'search_client_term': search_client_term,
-                               'user': request.user
+                               'user': request.user,
+                               'transfer_form': ClientTransferForm(ip_code=ip_code, initial={'client': client_found})
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -1946,6 +1959,11 @@ def viewBaselineData(request):
         else:
             print 'POST not allowed'
 
+        try:
+            ip_code = request.user.implementingpartneruser.implementing_partner.code
+        except Exception as e:
+            ip_code = None
+
         if client_id is not None and client_id != 0:
             try:
                 client_found = Client.objects.get(id=client_id)
@@ -1963,7 +1981,10 @@ def viewBaselineData(request):
                                                                          'rh_form': reproductive_health_form,
                                                                          'drug_use_form': drug_use_form,
                                                                          'programe_participation_form': participation_form,
-                                                                         'search_client_term': search_client_term
+                                                                         'search_client_term': search_client_term,
+                                                                         'transfer_form': ClientTransferForm(
+                                                                             ip_code=ip_code,
+                                                                             initial={'client': client_found})
                                                                          })
             except Client.DoesNotExist:
                 traceback.format_exc()
@@ -2224,3 +2245,173 @@ def update_programme_participation_data(request):
     else:
         raise PermissionDenied
     return render(request, template, {'programe_participation_form': form})
+
+
+def transfer_client(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST' and request.is_ajax():
+                # process saving user
+                try:
+                    ip_code = request.user.implementingpartneruser.implementing_partner.id
+                except Exception as e:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Enrollment Failed. You do not belong to an implementing partner',
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+                transfer_form = ClientTransferForm(request.POST)
+                if transfer_form.is_valid():
+                    client_transfer = transfer_form.save(commit=False)
+
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+                    client_transfer.source_implementing_partner = request.user.implementingpartneruser.implementing_partner
+                    client_transfer.initiated_by = request.user
+                    client_transfer.save()
+
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Transfer request received, pending approval by the receiving implementing partner.',
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+                else:
+                    response_data = {
+                        'status': 'fail',
+                        'message': transfer_form.errors,
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message,
+        }
+        return JsonResponse(json.dumps(response_data), safe=False)
+
+
+def client_transfers(request):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            c_transfers = ClientTransfer.objects.filter(
+                destination_implementing_partner=ip,
+                transfer_status=initiated_client_transfer_status)
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            c_transfers = ClientTransfer.objects.filter(transfer_status=initiated_client_transfer_status)
+
+        page = request.GET.get('page', 1)
+        paginator = Paginator(c_transfers, 20)
+
+        try:
+            transfers = paginator.page(page)
+        except PageNotAnInteger:
+            transfers = paginator.page(1)
+        except EmptyPage:
+            transfers = paginator.page(paginator.num_pages)
+
+        return render(request, "client_transfers.html", {'client_transfers': transfers})
+    else:
+        return redirect('login')
+
+
+def accept_client_transfer(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST':
+
+                try:
+                    ip = request.user.implementingpartneruser.implementing_partner
+                except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist) as e:
+                    messages.error(request, "You do not belong to an implementing partner")
+                    return redirect("client_transfers")
+
+                client_transfer_id = request.POST.get("id", "")
+                if client_transfer_id != "":
+                    client_transfer = ClientTransfer.objects.get(id__exact=client_transfer_id)
+
+                    if client_transfer is not None:
+                        current_datetime = dt.now()
+                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=2)
+
+                        client_transfer.transfer_status = accepted_client_transfer_status
+                        client_transfer.start_date = current_datetime
+                        client_transfer.completed_by = request.user
+
+                        # Update the client to receive interventions from this new ip.
+                        client = Client.objects.get(id__exact=client_transfer.client.id)
+                        client.implementing_partner = ip
+
+                        # client transfers for current client being transferred,with no end_date and status accepted
+                        c_transfers = ClientTransfer.objects.filter(client=client_transfer.client, end_date=None,
+                                                                    transfer_status=accepted_client_transfer_status)
+
+                        with transaction.atomic():
+                            for c_transfer in c_transfers:
+                                c_transfer.end_date = current_datetime
+                                c_transfer.transfer_status = ClientTransfer.ENDED
+                                c_transfer.save()
+                            client.save()
+                            client_transfer.save()
+
+                        messages.info(request, "Transfer successfully accepted.")
+                    else:
+                        messages.error(request,
+                                       "Transfer not effected. Contact System Administrator if this error Persists.")
+                else:
+                    messages.error(request,
+                                   "Transfer not effected. Contact System Administrator if this error Persists.")
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        # print traceback.format_exc(e)
+        messages.error(request,
+                       "An error occurred while processing request. "
+                       "Contact System Administrator if this error Persists.")
+
+    return redirect("client_transfers")
+
+
+def reject_client_transfer(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST':
+                reject_client_transfer_form = RejectClientTransferForm(request.POST)
+                if reject_client_transfer_form.is_valid():
+                    client_transfer = reject_client_transfer_form.save(commit=False)
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=3)
+                    client_transfer.completed_by = request.user
+                    client_transfer.save()
+
+                    messages.info(request, "Transfer successfully rejected.")
+                else:
+                    messages.warning(request,
+                                     "Transfer not rejected. Contact System Administrator if this error Persists.")
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        messages.error(request,
+                       "An error occurred while processing request. "
+                       "Contact System Administrator if this error Persists.")
+
+    return redirect("client_transfers")
+
+
+def get_client_transfers_count(request):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            client_transfers_count = ClientTransfer.objects.filter(
+                destination_implementing_partner=ip,
+                transfer_status=initiated_client_transfer_status).count()
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            client_transfers_count = ClientTransfer.objects.filter(
+                transfer_status=initiated_client_transfer_status).count()
+        except Exception:
+            client_transfers_count = 9
+
+        return HttpResponse(client_transfers_count)
+    else:
+        return HttpResponse(0)
