@@ -1853,7 +1853,14 @@ def downloadRawInterventionEXCEL(request):
         else:
             show_PHI = False
 
-        wb = export_doc.get_intervention_excel_doc(ip_list_str, sub_county, ward, show_PHI)
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            transferred_clients = ClientTransfer.objects.filter(destination_implementing_partner=ip,
+                                                                end_date__isnull=True).values_list('client', flat=True)
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            transferred_clients = []
+
+        wb = export_doc.get_intervention_excel_doc(ip_list_str, sub_county, ward, show_PHI, transferred_clients)
         wb.save(response)
         return response
     except Exception as e:
@@ -2251,21 +2258,21 @@ def transfer_client(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'POST' and request.is_ajax():
-                # process saving user
                 try:
-                    ip_code = request.user.implementingpartneruser.implementing_partner.id
-                except Exception as e:
+                    ip = request.user.implementingpartneruser.implementing_partner
+                except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
                     response_data = {
                         'status': 'fail',
-                        'message': 'Enrollment Failed. You do not belong to an implementing partner',
+                        'message': 'Transfer Failed. You do not belong to an implementing partner',
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
+
                 transfer_form = ClientTransferForm(request.POST)
                 if transfer_form.is_valid():
                     client_transfer = transfer_form.save(commit=False)
 
                     client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=1)
-                    client_transfer.source_implementing_partner = request.user.implementingpartneruser.implementing_partner
+                    client_transfer.source_implementing_partner = ip
                     client_transfer.initiated_by = request.user
                     client_transfer.save()
 
@@ -2323,7 +2330,7 @@ def accept_client_transfer(request):
 
                 try:
                     ip = request.user.implementingpartneruser.implementing_partner
-                except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist) as e:
+                except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
                     messages.error(request, "You do not belong to an implementing partner")
                     return redirect("client_transfers")
 
@@ -2382,6 +2389,7 @@ def reject_client_transfer(request):
                     client_transfer = reject_client_transfer_form.save(commit=False)
                     client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=3)
                     client_transfer.completed_by = request.user
+                    client_transfer.end_date = dt.now()
                     client_transfer.save()
 
                     messages.info(request, "Transfer successfully rejected.")
@@ -2415,3 +2423,60 @@ def get_client_transfers_count(request):
         return HttpResponse(client_transfers_count)
     else:
         return HttpResponse(0)
+
+
+def intervention_export_transferred_in_page(request):
+    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+            'DreamsApp.can_export_raw_data'):
+
+        try:
+            if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
+                ips = ImplementingPartner.objects.all()
+            elif request.user.implementingpartneruser is not None:
+                ips = ImplementingPartner.objects.filter(
+                    id=request.user.implementingpartneruser.implementing_partner.id)
+            else:
+                ips = None
+
+            print "IPs", ips
+            context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
+                       'counties': County.objects.all()}
+            return render(request, 'interventionDataExportTransferredIn.html', context)
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            traceback.format_exc()
+    else:
+        raise PermissionDenied
+
+
+def download_raw_intervention_transferred_in_report(request):
+    try:
+        from_intervention_date = request.POST.get('from_intervention_date')
+        to_intervention_date = request.POST.get('to_intervention_date')
+
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=dreams_interventions.xlsx'
+        export_doc = DreamsEnrollmentExcelTemplateRenderer()
+
+        # Ensure can_view_phi_data has been created on Client contentType
+        if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
+                or Permission.objects.filter(group__user=request.user).filter(
+            codename='DreamsApp.can_view_phi_data').exists():
+            show_PHI = True
+        else:
+            show_PHI = False
+
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            transferred_clients = ClientTransfer.objects.filter(destination_implementing_partner=ip).values_list(
+                'client', flat=True)
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            ip = None
+            transferred_clients = ClientTransfer.objects.values_list('client', flat=True)
+
+        wb = export_doc.get_intervention_excel_transferred_in_doc(ip, from_intervention_date, to_intervention_date,
+                                                                  show_PHI, transferred_clients)
+        wb.save(response)
+        return response
+    except Exception as e:
+        traceback.format_exc()
+        return

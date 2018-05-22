@@ -79,7 +79,11 @@ urlpatterns = [
     url(r'^accept-client-transfer$', views.accept_client_transfer, name='accept_client_transfer'),
     url(r'^reject-client-transfer$', views.reject_client_transfer, name='reject_client_transfer'),
     url(r'^get-client-transfers-count$', views.get_client_transfers_count, name='get_client_transfers_count'),
+    url(r'^intervention-export-transferred-in-page', views.intervention_export_transferred_in_page,
+        name='intervention_export_transferred_in_page'),
+    url(r'^download-intervention-transferred-in-excel/$', views.download_raw_intervention_transferred_in_report,
+        name='download_intervention_transferred_in_excel'),
 
-    #url(r'^$', views.user_login, name='login'),
+    # url(r'^$', views.user_login, name='login'),
     url(r'^', views.error_404, name='error_404'),
 ]
