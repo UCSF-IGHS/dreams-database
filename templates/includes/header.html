@@ -29,6 +29,7 @@
                                     class="" href="/clients" style="">Clients &amp; Interventions</a></li>
                         {% endif %}
 
+                        {% if perms.DreamsApp.can_transfer_client %}
                         <li class="">
                             <a class="" href="{% url 'client_transfers' %}" style="">
                                 <!--<span style="color: #fff;background-color: red;border-radius: 50%;width: 21px;height: 21px;text-align: center;right: 0;position: absolute;line-height: 21px;font-weight: bold;bottom: 56%;/* border: 1px solid transparent; */">-->
@@ -38,6 +39,7 @@
                                       data-count-url="{% url 'get_client_transfers_count' %}"></span>
                             </a>
                         </li>
+                        {% endif %}
 
                         {% if perms.DreamsApp.can_manage_audit %}
                             <li class="{% if page == 'logs' %}active{% endif %}"><a href="/logs">Logs </a></li>

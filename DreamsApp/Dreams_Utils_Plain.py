@@ -1390,16 +1390,14 @@ WHERE voided=0 AND (i.implementing_partner_id = %s OR i.client_id IN %s)
            96: "Other (Specify)"
         }
 
-    def get_intervention_excel_transferred_in_doc(self, ip, from_intervention_date, to_intervention_date, show_PHI,
-                                                  transferred_clients):
+    def get_intervention_excel_transferred_in_doc(self, ip, from_intervention_date, to_intervention_date, show_PHI):
 
         try:
 
             wb = self.load_intervention_workbook()
             interventions_sheet = wb.get_sheet_by_name('DREAMS_Services')
             print "Starting Intervention DB Query! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            db_data = self.fetch_intervention_transferred_in_rows(ip, from_intervention_date, to_intervention_date,
-                                                                  transferred_clients)
+            db_data = self.fetch_intervention_transferred_in_rows(ip, from_intervention_date, to_intervention_date)
             print "Finished Intervention DB Query. Rendering Now. ", datetime.datetime.now().strftime(
                 '%Y-%m-%d %H:%M:%S')
             i = 1
@@ -1414,8 +1412,7 @@ WHERE voided=0 AND (i.implementing_partner_id = %s OR i.client_id IN %s)
             traceback.format_exc()
         return
 
-    def fetch_intervention_transferred_in_rows(self, ip, from_intervention_date, to_intervention_date,
-                                               transferred_clients_list):
+    def fetch_intervention_transferred_in_rows(self, ip, from_intervention_date, to_intervention_date):
         cursor = connection.cursor()
 
         query = """select
@@ -1426,19 +1423,19 @@ WHERE voided=0 AND (i.implementing_partner_id = %s OR i.client_id IN %s)
           i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
           i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
           from stag_client_intervention i
-          WHERE voided=0 AND i.client_id IN %s 
+          WHERE voided=0  
           """
-        params = [tuple(transferred_clients_list)]
+        params = []
 
         if ip is not None:
             query += " AND i.implementing_partner_id = %s "
-            params.insert(1, ip.id)
+            params.append(ip.id)
         if from_intervention_date is not None and from_intervention_date:
             query += " AND i.intervention_date >= %s "
-            params.insert(2, from_intervention_date)
+            params.append(from_intervention_date)
         if to_intervention_date is not None and to_intervention_date:
             query += " AND i.intervention_date <= %s "
-            params.insert(3, to_intervention_date)
+            params.append(to_intervention_date)
 
         try:
             cursor.execute(query, params)

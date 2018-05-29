@@ -2269,17 +2269,28 @@ def transfer_client(request):
 
                 transfer_form = ClientTransferForm(request.POST)
                 if transfer_form.is_valid():
-                    client_transfer = transfer_form.save(commit=False)
+                    num_of_pending_transfers = ClientTransfer.objects.filter(client=transfer_form.instance.client,
+                                                                             transfer_status=ClientTransferStatus.objects.get(
+                                                                                 code__exact=1)).count()
 
-                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=1)
-                    client_transfer.source_implementing_partner = ip
-                    client_transfer.initiated_by = request.user
-                    client_transfer.save()
+                    if num_of_pending_transfers > 0:
+                        print "{} pending transfers for client".format(num_of_pending_transfers)
+                        response_data = {
+                            'status': 'fail',
+                            'message': "Transfer failed, there's a pending transfer for this client.",
+                        }
+                    else:
+                        client_transfer = transfer_form.save(commit=False)
 
-                    response_data = {
-                        'status': 'success',
-                        'message': 'Transfer request received, pending approval by the receiving implementing partner.',
-                    }
+                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+                        client_transfer.source_implementing_partner = ip
+                        client_transfer.initiated_by = request.user
+                        client_transfer.save()
+
+                        response_data = {
+                            'status': 'success',
+                            'message': 'Transfer request received, pending approval by the receiving implementing partner.',
+                        }
                     return JsonResponse(json.dumps(response_data), safe=False)
                 else:
                     response_data = {
@@ -2357,7 +2368,7 @@ def accept_client_transfer(request):
                         with transaction.atomic():
                             for c_transfer in c_transfers:
                                 c_transfer.end_date = current_datetime
-                                c_transfer.transfer_status = ClientTransfer.ENDED
+                                c_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=4)
                                 c_transfer.save()
                             client.save()
                             client_transfer.save()
@@ -2372,7 +2383,7 @@ def accept_client_transfer(request):
         else:
             raise PermissionDenied
     except Exception as e:
-        # print traceback.format_exc(e)
+        print traceback.format_exc(e)
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
@@ -2384,9 +2395,14 @@ def reject_client_transfer(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
             if request.method == 'POST':
-                reject_client_transfer_form = RejectClientTransferForm(request.POST)
-                if reject_client_transfer_form.is_valid():
-                    client_transfer = reject_client_transfer_form.save(commit=False)
+
+                client_transfer_id = request.POST.get("id", "")
+                if client_transfer_id != "":
+                    client_transfer = ClientTransfer.objects.get(id__exact=client_transfer_id)
+                else:
+                    client_transfer = None
+
+                if client_transfer is not None:
                     client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=3)
                     client_transfer.completed_by = request.user
                     client_transfer.end_date = dt.now()
@@ -2399,6 +2415,7 @@ def reject_client_transfer(request):
         else:
             raise PermissionDenied
     except Exception as e:
+        print traceback.format_exc(e)
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
@@ -2467,14 +2484,11 @@ def download_raw_intervention_transferred_in_report(request):
 
         try:
             ip = request.user.implementingpartneruser.implementing_partner
-            transferred_clients = ClientTransfer.objects.filter(destination_implementing_partner=ip).values_list(
-                'client', flat=True)
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             ip = None
-            transferred_clients = ClientTransfer.objects.values_list('client', flat=True)
 
         wb = export_doc.get_intervention_excel_transferred_in_doc(ip, from_intervention_date, to_intervention_date,
-                                                                  show_PHI, transferred_clients)
+                                                                  show_PHI)
         wb.save(response)
         return response
     except Exception as e:

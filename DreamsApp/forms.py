@@ -204,7 +204,7 @@ class ClientTransferForm(ModelForm):
             code__exact=ip_code) if ip_code is not None else ImplementingPartner.objects.all()
         self.fields['destination_implementing_partner'].queryset = transfer_destination_implementing_partners
         self.fields['destination_implementing_partner'].empty_label = "Select an implementing partner"
-
+        self.fields['transfer_reason'].widget.attrs['required'] = 'required'
         self.fields['client'].widget = HiddenInput()
 
     class Meta:
