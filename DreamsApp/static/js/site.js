@@ -941,8 +941,8 @@ $(document).ready(function () {
     $('#enrollment-form').submit(function (event) {
         event.preventDefault();
 
-        $('#btn_hide_enrollment').attr("disabled","disabled");
-        $('#btn_save_enrollment').attr("disabled","disabled");
+        $('#btn_hide_enrollment').attr("disabled", true);
+        $('#btn_save_enrollment').attr("disabled", true);
 
         $('#id_implementing_partner').val($('#temp_current_ip').val())
         // validate
@@ -952,44 +952,43 @@ $(document).ready(function () {
         var enrollment_form_submit_mode = 'new';
         var post_url = '/clientSave';
         var clientForm = $(event.target);
-        if(!validateClientForm(clientForm))
+        if (!validateClientForm(clientForm))
             return;
 
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url : post_url,
-            type : "POST",
+            url: post_url,
+            type: "POST",
             dataType: 'json',
-            data:$('#enrollment-form').serialize(),
-            success : function(data) {
-                var result = $.parseJSON(data)
-                if(result.status == "success"){
-                    var clients_tbody = $('#dp-patient-list-body')
-                    var date_of_enrollment = new Date($('#enrollment-form #date_of_enrollment').val());
-                    date_of_enrollment = $.datepicker.formatDate('MM d, yy', date_of_enrollment)
-                    // redirect to demographics page
-                    $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
-                        .text(result.message)
-                        .trigger('madeVisible')
-                    window.location='/client_baseline_info?client_id=' + result.client_id + '&search_client_term='
-                    $("#enrollment-modal").modal('hide');
-                }
-                else{
-                    $("#enrollment-modal").modal('hide');
-                    $('#client_actions_alert').removeClass('hidden').addClass('alert-danger')
-                        .text(result.message)
-                        .trigger('madeVisible')
-                }
-            },
-            error : function(xhr,errmsg,err) {
-                $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')
-                        .text('An error occurred while processing client details. Contact system administratior if this persists')
-                        .trigger('madeVisible')
+            data: $('#enrollment-form').serialize(),
+        }).done(function (data, textStatus, jqXHR) {
+            var result = $.parseJSON(data)
+            if (result.status == "success") {
+                var clients_tbody = $('#dp-patient-list-body')
+                var date_of_enrollment = new Date($('#enrollment-form #date_of_enrollment').val());
+                date_of_enrollment = $.datepicker.formatDate('MM d, yy', date_of_enrollment)
+                // redirect to demographics page
+                $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
+                    .text(result.message)
+                    .trigger('madeVisible')
+                window.location = '/client_baseline_info?client_id=' + result.client_id + '&search_client_term='
+                $("#enrollment-modal").modal('hide');
             }
+            else {
+                $("#enrollment-modal").modal('hide');
+                $('#client_actions_alert').removeClass('hidden').addClass('alert-danger')
+                    .text(result.message)
+                    .trigger('madeVisible')
+            }
+        }).fail(function (xhr, errmsg, err) {
+            $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')
+                .text('An error occurred while processing client details. Contact system administratior if this persists')
+                .trigger('madeVisible')
+        }).always(function () {
+            $('#btn_hide_enrollment').removeAttr("disabled");
+            $('#btn_save_enrollment').removeAttr("disabled");
         });
-        $('#btn_hide_enrollment').removeAttr("disabled");
-        $('#btn_save_enrollment').removeAttr("disabled");
-    })
+    });
 
     $('#btn_hide_enrollment').click(function (event) {
         $('#enrollment-modal').modal('toggle');
@@ -2914,41 +2913,51 @@ $(document).ready(function () {
 
     $('#client-transfer-form').submit(function (e) {
         e.preventDefault();
+
+        $("#btn_submit_transfer_client_form").attr("disabled", true);
         $.ajax({
             url: $(this).attr('action'),
             type: $(this).attr('method'),
             dataType: 'json',
             data: $('#client-transfer-form').serialize(),
         }).done(function (data, textStatus, jqXHR) {
-            console.log("Data: " + data);
-            var status = data.status
-            var message = data.message
+            data = $.parseJSON(data);
+            var status = data.status;
+            var message = data.message;
             var alert_id = $('#action_alert_gen');
 
             if (status == 'fail') {
                 $(alert_id).addClass('alert-danger');
+
+                if(typeof message === "object") {
+                    $.each(message, function (k, v) {
+                        $("[name='" + k + "']").closest(".form-group").addClass('has-error');
+                        $("span#help_" + k).html(v[0]);
+                    });
+                } else {
+                    show_notification(alert_id, message);
+                }
             }
-            else {
+
+            if (status == 'success') {
                 $(alert_id).addClass('alert-success');
+                show_notification(alert_id, message);
             }
-
-            $(alert_id).removeClass('hidden').text(message).trigger('madeVisible');
-
-            $('#btn_submit_transfer_client_form').removeAttr("disabled");
-            $("#client-transfer-modal").each(function () {
-                this.reset;
-            });
-            $('#client-transfer-modal').modal('hide');
 
         }).fail(function (jqXHR, textStatus, errorThrown) {
 
         }).always(function () {
-
+            $("#btn_submit_transfer_client_form").attr("disabled", false);
+            $("#btn_submit_transfer_client_form").removeAttr("disabled");
         });
     });
 
+    function show_notification(alert_id, message){
+        $(alert_id).removeClass('hidden').text(message).trigger('madeVisible');
+        $('#client-transfer-modal').modal('hide');
+    }
 
-    $('#a-accept-transfer-modal').click(function (e) {
+    $('a[name=accept-transfer-modal]').click(function (e) {
         e.preventDefault();
         var el = $(this);
         $("#accept-transfer-modal #accept_client_transfer_id").val($(el).data('id'));
@@ -2956,13 +2965,25 @@ $(document).ready(function () {
         $("#accept-transfer-modal").show();
     });
 
-
-    $('#a-reject-transfer-modal').click(function (e) {
+    $('a[name=reject-transfer-modal]').click(function (e) {
         e.preventDefault();
         var el = $(this);
         $("#reject-transfer-modal #reject_client_transfer_id").val($(el).data('id'));
         $("#reject-transfer-modal #reject_client_name").val($(el).data('client-name'));
         $("#reject-transfer-modal").show();
+    });
+
+    $("#accept-transfer-modal, #reject-transfer-modal, #client-transfer-modal").on('hidden.bs.modal', function () {
+        $(this).each(function () {
+            var form = $(this).find('form');
+            form.trigger('reset');
+            form.find(".form-group.has-error").each(function () {
+                $(this).removeClass('has-error');
+            });
+            form.find(".help-block").each(function () {
+                $(this).html("");
+            });
+        });
     });
 
     function getClientTransfersCount(){

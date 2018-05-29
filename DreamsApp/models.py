@@ -1187,8 +1187,12 @@ class ClientTransfer(models.Model):
     date_changed = models.DateTimeField(auto_now=True, null=True, blank=True)
     initiated_by = models.ForeignKey(User, null=False, blank=False, related_name='initiated_by')
     completed_by = models.ForeignKey(User, null=True, blank=True, related_name='completed_by')
-    transfer_reason = models.TextField(max_length=255, null=True, blank=True)
+    transfer_reason = models.TextField(max_length=255, null=False, blank=False)
     reject_reason = models.TextField(max_length=255, null=True, blank=True)
+
+    def clean(self):
+        if self.transfer_reason is None or self.transfer_reason == '':
+            raise ValidationError({'transfer_reason': "Please specify a reason for the transfer"})
 
     class Meta(object):
         verbose_name = 'Client Transfer'
