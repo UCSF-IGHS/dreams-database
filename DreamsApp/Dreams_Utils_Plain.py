@@ -1423,7 +1423,7 @@ WHERE voided=0 AND (i.implementing_partner_id = %s OR i.client_id IN %s)
           i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
           i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
           from stag_client_intervention i
-          WHERE voided=0  
+          WHERE i.voided=0 AND i.transferred_client=1 
           """
         params = []
 
