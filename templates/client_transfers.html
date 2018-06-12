@@ -24,7 +24,7 @@
             <th>Dreams ID</th>
             <th>Source Implementing Partner</th>
             <th>Transfer Reason</th>
-            {% if perms.DreamsApp.change_clienttransfer %}
+            {% if can_accept_or_reject %}
             <th>Action</th>
             {% endif %}
             </thead>
@@ -35,7 +35,7 @@
                     <td>{{ client_transfer.client.dreams_id }}</td>
                     <td>{{ client_transfer.source_implementing_partner.name }}</td>
                     <td>{{ client_transfer.transfer_reason }}</td>
-                    {% if perms.DreamsApp.change_clienttransfer %}
+                    {% if can_accept_or_reject %}
                     <td>
                         <a id="accept-{{ client_transfer.id }}" name="accept-transfer-modal" class='glyphicon glyphicon-ok badge btn btn-success'
                            arial-label='Arial-Hidden'
