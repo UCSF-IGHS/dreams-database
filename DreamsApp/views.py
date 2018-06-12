@@ -2311,13 +2311,19 @@ def transfer_client(request):
 def client_transfers(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+        can_accept_or_reject = False
+
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             c_transfers = ClientTransfer.objects.filter(
                 destination_implementing_partner=ip,
                 transfer_status=initiated_client_transfer_status)
+            if request.user.has_perm('DreamsApp.change_clienttransfer'):
+                can_accept_or_reject = True
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             c_transfers = ClientTransfer.objects.filter(transfer_status=initiated_client_transfer_status)
+            if request.user.is_superuser:
+                can_accept_or_reject = True
 
         page = request.GET.get('page', 1)
         paginator = Paginator(c_transfers, 20)
@@ -2329,7 +2335,8 @@ def client_transfers(request):
         except EmptyPage:
             transfers = paginator.page(paginator.num_pages)
 
-        return render(request, "client_transfers.html", {'client_transfers': transfers})
+        return render(request, "client_transfers.html",
+                      {'client_transfers': transfers, 'can_accept_or_reject': can_accept_or_reject})
     else:
         return redirect('login')
 
@@ -2342,8 +2349,9 @@ def accept_client_transfer(request):
                 try:
                     ip = request.user.implementingpartneruser.implementing_partner
                 except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-                    messages.error(request, "You do not belong to an implementing partner")
-                    return redirect("client_transfers")
+                    if not request.user.is_superuser:
+                        messages.error(request, "You do not belong to an implementing partner")
+                        return redirect("client_transfers")
 
                 client_transfer_id = request.POST.get("id", "")
                 if client_transfer_id != "":
@@ -2359,6 +2367,8 @@ def accept_client_transfer(request):
 
                         # Update the client to receive interventions from this new ip.
                         client = Client.objects.get(id__exact=client_transfer.client.id)
+                        if ip is None and request.user.is_superuser:
+                            ip = client_transfer.destination_implementing_partner
                         client.implementing_partner = ip
 
                         # client transfers for current client being transferred,with no end_date and status accepted
