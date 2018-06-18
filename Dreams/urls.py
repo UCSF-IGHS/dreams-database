@@ -83,6 +83,7 @@ urlpatterns = [
         name='intervention_export_transferred_in_page'),
     url(r'^download-intervention-transferred-in-excel/$', views.download_raw_intervention_transferred_in_report,
         name='download_intervention_transferred_in_excel'),
+    url(r'^client/void$', views.void_client, name='void_client'),
 
     # url(r'^$', views.user_login, name='login'),
     url(r'^', views.error_404, name='error_404'),

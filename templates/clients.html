@@ -115,6 +115,13 @@
             </div>
         </div>
 
+        {% if messages %}
+            {% for message in messages %}
+                <div{% if message.tags %}
+                    class=" dp-action-alert fade in alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} alert-danger {% else %} alert-{{ message.tags }} {% endif %} "{% endif %}>{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
         <div class=" alert hidden dp-action-alert fade in" id="client_actions_alert" role="alert"
              style="margin-bottom: 15px;"></div>
 
@@ -199,6 +206,17 @@
                     // Handle reset of advanced filters
                     $('#is_advanced_search').val('False')
                 }
+            </script>
+        {% endif %}
+
+        {% if messages %}
+            <script>
+            var timeout = $(".dp-action-alert").hasClass('alert-danger') ? 15000 : 5000;
+            setTimeout(function(){
+            $(".dp-action-alert").removeClass('alert-info').removeClass('alert-success').removeClass('alert-danger')
+                .fadeOut('slow')
+                .text("")
+            }, timeout);
             </script>
         {% endif %}
     </div>

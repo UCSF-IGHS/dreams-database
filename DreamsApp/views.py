@@ -1,5 +1,6 @@
 # coding=utf-8
 from django.contrib import messages
+from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.core import serializers
@@ -2434,21 +2435,22 @@ def reject_client_transfer(request):
 
 
 def get_client_transfers_count(request):
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
-        try:
-            ip = request.user.implementingpartneruser.implementing_partner
-            client_transfers_count = ClientTransfer.objects.filter(
-                destination_implementing_partner=ip,
-                transfer_status=initiated_client_transfer_status).count()
-        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            client_transfers_count = ClientTransfer.objects.filter(
-                transfer_status=initiated_client_transfer_status).count()
-        except Exception:
-            client_transfers_count = 9
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+            try:
+                ip = request.user.implementingpartneruser.implementing_partner
+                client_transfers_count = ClientTransfer.objects.filter(
+                    destination_implementing_partner=ip,
+                    transfer_status=initiated_client_transfer_status).count()
+            except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+                client_transfers_count = ClientTransfer.objects.filter(
+                    transfer_status=initiated_client_transfer_status).count()
 
-        return HttpResponse(client_transfers_count)
-    else:
+            return HttpResponse(client_transfers_count)
+        else:
+            return HttpResponse(0)
+    except Exception:
         return HttpResponse(0)
 
 
@@ -2504,3 +2506,73 @@ def download_raw_intervention_transferred_in_report(request):
     except Exception as e:
         traceback.format_exc()
         return
+
+
+def void_client(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST' and request.is_ajax():
+                if not request.user.is_superuser and not request.user.has_perm(
+                        'DreamsApp.can_void_client') and not Permission.objects.filter(group__user=request.user).filter(
+                        codename='DreamsApp.can_void_client').exists():
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Voiding Failed. You do not have permission to void a client',
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
+                client_id = request.POST.get("id", "")
+                void_reason = request.POST.get("void_reason", "")
+                if void_reason is None or void_reason == "" or void_reason.isspace():
+                    response_data = {
+                        'status': 'fail',
+                        'message': {'void_reason': ['Reason for voiding is required.']},
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
+                if client_id != "":
+                    cursor = db_conn_2.cursor()
+                    try:
+                        args = [client_id, void_reason, request.user.id]
+                        cursor.callproc('sp_void_client_by_id', args)
+                        exec_status = cursor.fetchone()[0]
+
+                        if exec_status == 1:
+                            messages.info(request, "Client has been voided.")
+                            response_data = {
+                                'status': 'success',
+                                'message': 'Client has been voided.',
+                                'next_url': reverse('clients')
+                            }
+                        else:
+                            response_data = {
+                                'status': 'fail',
+                                'message': 'Client not voided, please contact system administrator for assistance.',
+                            }
+                    except Exception as e:
+                        traceback.format_exc()
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'Client could not be voided.{}'.format(e),
+                        }
+                    finally:
+                        cursor.close()
+
+                    return JsonResponse(json.dumps(response_data), safe=False)
+                else:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Client to void not found.',
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+            else:
+                raise SuspiciousOperation
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        traceback.format_exc()
+        response_data = {
+            'status': 'fail',
+            'message': e.message,
+        }
+        return JsonResponse(json.dumps(response_data), safe=False)

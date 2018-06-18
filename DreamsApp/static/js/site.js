@@ -2973,7 +2973,7 @@ $(document).ready(function () {
         $("#reject-transfer-modal").show();
     });
 
-    $("#accept-transfer-modal, #reject-transfer-modal, #client-transfer-modal").on('hidden.bs.modal', function () {
+    $("#accept-transfer-modal, #reject-transfer-modal, #client-transfer-modal, #client-void-modal").on('hidden.bs.modal', function () {
         $(this).each(function () {
             var form = $(this).find('form');
             form.trigger('reset');
@@ -2993,6 +2993,8 @@ $(document).ready(function () {
         }).done(function (data, textStatus, jqXHR) {
             if(data != 0) {
                 $(el).text(data).show();
+            } else {
+                $(el).text("").hide();
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
 
@@ -3002,6 +3004,60 @@ $(document).ready(function () {
     }
 
     setTimeout(getClientTransfersCount(),180000);
+
+    $("#btn_submit_void_client_form").click(function (e) {
+        e.preventDefault();
+
+        $("#btn_submit_void_client_form").attr("disabled", true);
+        var void_form = $("#void-client-form");
+        var close_void_client_modal = true;
+        $.ajax({
+            url: void_form.attr('action'),
+            type: void_form.attr('method'),
+            dataType: 'json',
+            data: void_form.serialize(),
+        }).done(function (data, textStatus, jqXHR) {
+            data = $.parseJSON(data);
+            var status = data.status;
+            var message = data.message;
+            var alert_id = $('#action_alert_gen');
+
+            if (status == 'fail') {
+                $(alert_id).addClass('alert-danger');
+
+                if(typeof message === "object") {
+                    $.each(message, function (k, v) {
+                        $("[name='" + k + "']").closest(".form-group").addClass('has-error');
+                        $("span#help_" + k).html(v[0]);
+                    });
+                    close_void_client_modal = false;
+                } else {
+                    show_notification(alert_id, message);
+                }
+            }
+
+            if (status == 'success') {
+                window.location.href = data.next_url;
+            }
+
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+
+        }).always(function () {
+            $("#btn_submit_void_client_form").attr("disabled", false);
+            $("#btn_submit_void_client_form").removeAttr("disabled");
+            if(close_void_client_modal){
+                $('#client-void-modal').modal('hide');
+            }
+        });
+    });
+
+    $('#p_void_client').click(function (e) {
+        e.preventDefault();
+        var el = $(this);
+        $("#client-void-modal #void_client_id").val($(el).data('client_id'));
+        $("#client-void-modal").show();
+    });
+
 });
 
 // Handling cross module validation for sexuality and reproductive health modules in enrollment
