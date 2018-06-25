@@ -316,7 +316,7 @@ VALUES """
 
         return
 
-    def fetch_intervention_rows(self, ip_list_str, sub_county, ward, transferred_clients_list):
+    def fetch_intervention_rows(self, ip_list_str, sub_county, ward):
         cursor = connection.cursor()
 
         multiple_ip_sub_county_query = """select
@@ -324,14 +324,14 @@ VALUES """
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
-from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND  (i.implementing_partner_id IN %s OR i.client_id IN %s) """
+from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id IN %s """
 
         multiple_ip_ward_query = """select
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
-from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND  (i.implementing_partner_id IN %s OR i.client_id IN %s) """
+from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id IN %s """
 
 
         multiple_ip_default_query = """select
@@ -339,14 +339,14 @@ from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND  (i.implem
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
-from stag_client_intervention i WHERE voided=0 AND  (i.implementing_partner_id IN %s OR i.client_id IN %s) """
+from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id IN %s """
 
         single_ip_sub_county_query = """select
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
-from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND (i.implementing_partner_id = %s OR i.client_id IN %s) """
+from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id = %s """
 
 
         single_ip_ward_query = """select
@@ -354,7 +354,7 @@ from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND (i.i
   i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
-from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND (i.implementing_partner_id = %s OR i.client_id IN %s) """
+from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id = %s """
 
 
         single_ip_default_query = """select
@@ -363,9 +363,7 @@ from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND (i.impleme
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i
-WHERE voided=0 AND (i.implementing_partner_id = %s OR i.client_id IN %s)
-;
- """
+WHERE voided=0 AND i.implementing_partner_id = %s """
 
         try:
 
@@ -380,20 +378,20 @@ WHERE voided=0 AND (i.implementing_partner_id = %s OR i.client_id IN %s)
                 ip_list = tuple(ip_tuple_l)
 
                 if ward is not None and ward:
-                    cursor.execute(multiple_ip_ward_query, [ward, ip_list, tuple(transferred_clients_list)])
+                    cursor.execute(multiple_ip_ward_query, [ward, ip_list])
                 elif sub_county is not None and sub_county:
                     cursor.execute(
-                        multiple_ip_sub_county_query, [sub_county, ip_list, tuple(transferred_clients_list)])
+                        multiple_ip_sub_county_query, [sub_county, ip_list])
                 else:
-                    cursor.execute(multiple_ip_default_query, [ip_list, tuple(transferred_clients_list)])
+                    cursor.execute(multiple_ip_default_query, [ip_list])
             else:
                 ip_list = ip_list_str[0]
                 if ward is not None and ward:
-                    cursor.execute(single_ip_ward_query, [ward, ip_list, tuple(transferred_clients_list)])
+                    cursor.execute(single_ip_ward_query, [ward, ip_list])
                 elif sub_county is not None and sub_county:
-                    cursor.execute(single_ip_sub_county_query, [sub_county, ip_list, tuple(transferred_clients_list)])
+                    cursor.execute(single_ip_sub_county_query, [sub_county, ip_list])
                 else:
-                    cursor.execute(single_ip_default_query, [ip_list, tuple(transferred_clients_list)])
+                    cursor.execute(single_ip_default_query, [ip_list])
 
             print "Query was successful"
             columns = [col[0] for col in cursor.description]
@@ -519,14 +517,14 @@ WHERE voided=0 AND (i.implementing_partner_id = %s OR i.client_id IN %s)
             traceback.format_exc()
         return
 
-    def get_intervention_excel_doc(self, ip_list_str, sub_county, ward, show_PHI, transferred_clients):
+    def get_intervention_excel_doc(self, ip_list_str, sub_county, ward, show_PHI):
 
         try:
 
             wb = self.load_intervention_workbook()
             interventions_sheet = wb.get_sheet_by_name('DREAMS_Services')
             print "Starting Intervention DB Query! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            db_data = self.fetch_intervention_rows(ip_list_str, sub_county, ward, transferred_clients)
+            db_data = self.fetch_intervention_rows(ip_list_str, sub_county, ward)
             print "Finished Intervention DB Query. Rendering Now. ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             i = 1
             for row in db_data:

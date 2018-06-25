@@ -1853,14 +1853,7 @@ def downloadRawInterventionEXCEL(request):
         else:
             show_PHI = False
 
-        try:
-            ip = request.user.implementingpartneruser.implementing_partner
-            transferred_clients = ClientTransfer.objects.filter(destination_implementing_partner=ip,
-                                                                end_date__isnull=True).values_list('client', flat=True)
-        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            transferred_clients = []
-
-        wb = export_doc.get_intervention_excel_doc(ip_list_str, sub_county, ward, show_PHI, transferred_clients)
+        wb = export_doc.get_intervention_excel_doc(ip_list_str, sub_county, ward, show_PHI)
         wb.save(response)
         return response
     except Exception as e:
