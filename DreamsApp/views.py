@@ -1,5 +1,6 @@
 # coding=utf-8
 from django.contrib import messages
+from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.core import serializers
@@ -2301,20 +2302,25 @@ def transfer_client(request):
         return JsonResponse(json.dumps(response_data), safe=False)
 
 
-def client_transfers(request):
+def client_transfers(request, *args, **kwargs):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
         can_accept_or_reject = False
+
+        transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
 
         try:
             ip = request.user.implementingpartneruser.implementing_partner
-            c_transfers = ClientTransfer.objects.filter(
-                destination_implementing_partner=ip,
-                transfer_status=initiated_client_transfer_status)
+            if transferred_in:
+                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip)
+            else:
+                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip)
+
             if request.user.has_perm('DreamsApp.change_clienttransfer'):
                 can_accept_or_reject = True
+
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            c_transfers = ClientTransfer.objects.filter(transfer_status=initiated_client_transfer_status)
+            c_transfers = ClientTransfer.objects.all()
+
             if request.user.is_superuser:
                 can_accept_or_reject = True
 
@@ -2329,7 +2335,8 @@ def client_transfers(request):
             transfers = paginator.page(paginator.num_pages)
 
         return render(request, "client_transfers.html",
-                      {'client_transfers': transfers, 'can_accept_or_reject': can_accept_or_reject})
+                      {'client_transfers': transfers, 'can_accept_or_reject': can_accept_or_reject,
+                       'transferred_in': transferred_in})
     else:
         return redirect('login')
 
@@ -2344,7 +2351,9 @@ def accept_client_transfer(request):
                 except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
                     if not request.user.is_superuser:
                         messages.error(request, "You do not belong to an implementing partner")
-                        return redirect("client_transfers")
+                        return redirect(reverse("client_transfers", kwargs={'transferred_in': 1}))
+                    else:
+                        ip = None
 
                 client_transfer_id = request.POST.get("id", "")
                 if client_transfer_id != "":
@@ -2377,6 +2386,7 @@ def accept_client_transfer(request):
                             client_transfer.save()
 
                         messages.info(request, "Transfer successfully accepted.")
+                        return redirect("/client?client_id={}".format(client.id))
                     else:
                         messages.error(request,
                                        "Transfer not effected. Contact System Administrator if this error Persists.")
@@ -2391,7 +2401,7 @@ def accept_client_transfer(request):
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
 
-    return redirect("client_transfers")
+    return redirect(reverse("client_transfers", kwargs={'transferred_in': 1}))
 
 
 def reject_client_transfer(request):
@@ -2423,7 +2433,7 @@ def reject_client_transfer(request):
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
 
-    return redirect("client_transfers")
+    return redirect(reverse("client_transfers", kwargs={'transferred_in': 1}))
 
 
 def get_client_transfers_count(request):
@@ -2438,7 +2448,7 @@ def get_client_transfers_count(request):
             client_transfers_count = ClientTransfer.objects.filter(
                 transfer_status=initiated_client_transfer_status).count()
         except Exception:
-            client_transfers_count = 9
+            client_transfers_count = 0
 
         return HttpResponse(client_transfers_count)
     else:

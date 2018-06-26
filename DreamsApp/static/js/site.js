@@ -2993,6 +2993,7 @@ $(document).ready(function () {
         }).done(function (data, textStatus, jqXHR) {
             if(data != 0) {
                 $(el).text(data).show();
+                $('.client-transfers-count-span').text(data).show();
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
 
