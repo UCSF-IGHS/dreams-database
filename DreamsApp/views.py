@@ -19,6 +19,10 @@ from django.conf import settings
 import json
 
 from datetime import date, timedelta, datetime as dt
+
+from openpyxl import Workbook
+from openpyxl.styles import Font
+
 from DreamsApp.forms import *
 from Dreams_Utils import *
 from Dreams_Utils_Plain import *
@@ -2507,3 +2511,51 @@ def download_raw_intervention_transferred_in_report(request):
     except Exception as e:
         traceback.format_exc()
         return
+
+
+def export_client_transfers(request, *args, **kwargs):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+
+        transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
+        columns = ("client__dreams_id", "source_implementing_partner__name",
+                   "destination_implementing_partner__name", "transfer_reason", "transfer_status__name",)
+
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            if transferred_in:
+                c_transfers = ClientTransfer.objects.values_list(*columns).filter(destination_implementing_partner=ip)
+            else:
+                c_transfers = ClientTransfer.objects.values_list(*columns).filter(source_implementing_partner=ip)
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            c_transfers = ClientTransfer.objects.values_list(*columns)
+
+        header = ['Dreams ID', 'Source Implementing Partner', 'Destination Implementing Partner', 'Transfer Reason',
+                  'Status']
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(header)
+
+        for c_transfer in c_transfers:
+            ws.append(c_transfer)
+
+        dims = {}
+        for row in ws.rows:
+            for cell in row:
+                if cell.value:
+                    dims[cell.column] = max(dims.get(cell.column, 0), len(str(cell.value)))
+
+        for col, value in dims.items():
+            ws.column_dimensions[col].width = value
+
+        ft = Font(bold=True)
+        for cell in ws["1:1"]:
+            cell.font = ft
+
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=Client_Transfers.xlsx'
+
+        wb.save(response)
+        return response
+    else:
+        return redirect('login')
