@@ -6,6 +6,9 @@
         <div class="statusBox" >
             <div>
                 <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+                <div class="pull-right btn btn-default">
+                    <a href="{% url 'download_audit_logs' %}?filter-log-text={{ filter_text }}&filter-log-date-from={{ filter_date_from }}&filter-log-date={{ filter_date }}" target="_blank">Export to Excel</a>
+                </div>
                 <h6>DREAMS Audit Log</h6>
             </div>
             <div class="floatRightLinks" style="margin-top: -10px;">
