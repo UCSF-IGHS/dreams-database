@@ -1,5 +1,6 @@
 # coding=utf-8
 from django.contrib import messages
+from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.core import serializers
@@ -18,6 +19,10 @@ from django.conf import settings
 import json
 
 from datetime import date, timedelta, datetime as dt
+
+from openpyxl import Workbook
+from openpyxl.styles import Font
+
 from DreamsApp.forms import *
 from Dreams_Utils import *
 from Dreams_Utils_Plain import *
@@ -1853,14 +1858,7 @@ def downloadRawInterventionEXCEL(request):
         else:
             show_PHI = False
 
-        try:
-            ip = request.user.implementingpartneruser.implementing_partner
-            transferred_clients = ClientTransfer.objects.filter(destination_implementing_partner=ip,
-                                                                end_date__isnull=True).values_list('client', flat=True)
-        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            transferred_clients = []
-
-        wb = export_doc.get_intervention_excel_doc(ip_list_str, sub_county, ward, show_PHI, transferred_clients)
+        wb = export_doc.get_intervention_excel_doc(ip_list_str, sub_county, ward, show_PHI)
         wb.save(response)
         return response
     except Exception as e:
@@ -2308,20 +2306,25 @@ def transfer_client(request):
         return JsonResponse(json.dumps(response_data), safe=False)
 
 
-def client_transfers(request):
+def client_transfers(request, *args, **kwargs):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
         can_accept_or_reject = False
+
+        transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
 
         try:
             ip = request.user.implementingpartneruser.implementing_partner
-            c_transfers = ClientTransfer.objects.filter(
-                destination_implementing_partner=ip,
-                transfer_status=initiated_client_transfer_status)
+            if transferred_in:
+                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip)
+            else:
+                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip)
+
             if request.user.has_perm('DreamsApp.change_clienttransfer'):
                 can_accept_or_reject = True
+
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            c_transfers = ClientTransfer.objects.filter(transfer_status=initiated_client_transfer_status)
+            c_transfers = ClientTransfer.objects.all()
+
             if request.user.is_superuser:
                 can_accept_or_reject = True
 
@@ -2336,7 +2339,8 @@ def client_transfers(request):
             transfers = paginator.page(paginator.num_pages)
 
         return render(request, "client_transfers.html",
-                      {'client_transfers': transfers, 'can_accept_or_reject': can_accept_or_reject})
+                      {'client_transfers': transfers, 'can_accept_or_reject': can_accept_or_reject,
+                       'transferred_in': transferred_in})
     else:
         return redirect('login')
 
@@ -2351,7 +2355,9 @@ def accept_client_transfer(request):
                 except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
                     if not request.user.is_superuser:
                         messages.error(request, "You do not belong to an implementing partner")
-                        return redirect("client_transfers")
+                        return redirect(reverse("client_transfers", kwargs={'transferred_in': 1}))
+                    else:
+                        ip = None
 
                 client_transfer_id = request.POST.get("id", "")
                 if client_transfer_id != "":
@@ -2384,6 +2390,7 @@ def accept_client_transfer(request):
                             client_transfer.save()
 
                         messages.info(request, "Transfer successfully accepted.")
+                        return redirect("/client?client_id={}".format(client.id))
                     else:
                         messages.error(request,
                                        "Transfer not effected. Contact System Administrator if this error Persists.")
@@ -2398,7 +2405,7 @@ def accept_client_transfer(request):
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
 
-    return redirect("client_transfers")
+    return redirect(reverse("client_transfers", kwargs={'transferred_in': 1}))
 
 
 def reject_client_transfer(request):
@@ -2430,7 +2437,7 @@ def reject_client_transfer(request):
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
 
-    return redirect("client_transfers")
+    return redirect(reverse("client_transfers", kwargs={'transferred_in': 1}))
 
 
 def get_client_transfers_count(request):
@@ -2445,7 +2452,7 @@ def get_client_transfers_count(request):
             client_transfers_count = ClientTransfer.objects.filter(
                 transfer_status=initiated_client_transfer_status).count()
         except Exception:
-            client_transfers_count = 9
+            client_transfers_count = 0
 
         return HttpResponse(client_transfers_count)
     else:
@@ -2504,3 +2511,51 @@ def download_raw_intervention_transferred_in_report(request):
     except Exception as e:
         traceback.format_exc()
         return
+
+
+def export_client_transfers(request, *args, **kwargs):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+
+        transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
+        columns = ("client__dreams_id", "source_implementing_partner__name",
+                   "destination_implementing_partner__name", "transfer_reason", "transfer_status__name",)
+
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            if transferred_in:
+                c_transfers = ClientTransfer.objects.values_list(*columns).filter(destination_implementing_partner=ip)
+            else:
+                c_transfers = ClientTransfer.objects.values_list(*columns).filter(source_implementing_partner=ip)
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            c_transfers = ClientTransfer.objects.values_list(*columns)
+
+        header = ['Dreams ID', 'Source Implementing Partner', 'Destination Implementing Partner', 'Transfer Reason',
+                  'Status']
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(header)
+
+        for c_transfer in c_transfers:
+            ws.append(c_transfer)
+
+        dims = {}
+        for row in ws.rows:
+            for cell in row:
+                if cell.value:
+                    dims[cell.column] = max(dims.get(cell.column, 0), len(str(cell.value)))
+
+        for col, value in dims.items():
+            ws.column_dimensions[col].width = value
+
+        ft = Font(bold=True)
+        for cell in ws["1:1"]:
+            cell.font = ft
+
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=Client_Transfers.xlsx'
+
+        wb.save(response)
+        return response
+    else:
+        return redirect('login')
