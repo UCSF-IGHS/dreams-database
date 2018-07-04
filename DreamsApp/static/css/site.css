@@ -530,3 +530,8 @@ html, body{
     margin-top: 5px;
     color: #ff0000;
 }
+
+.report-export-form-div {
+    border: 1px solid transparent;
+    padding-bottom: 21px;
+}

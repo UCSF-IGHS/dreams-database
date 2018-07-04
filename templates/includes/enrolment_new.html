@@ -6,7 +6,7 @@
          >
     <form method="POST" class="post-form" id="enrollment-form" action="/clientSave">
 
-        <input class="disabled" id="temp_current_ip" value="{{ current_ip }}">
+        <input class="disabled hidden" id="temp_current_ip" value="{{ current_ip }}">
         {% csrf_token %}
         <div class="modal-dialog" role="document">
             <div class="modal-content">
