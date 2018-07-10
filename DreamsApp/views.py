@@ -2568,20 +2568,12 @@ def void_client(request):
                 if not request.user.is_superuser and not request.user.has_perm(
                         'DreamsApp.can_void_client') and not Permission.objects.filter(group__user=request.user).filter(
                         codename='DreamsApp.can_void_client').exists():
-                    response_data = {
-                        'status': 'fail',
-                        'message': 'Voiding Failed. You do not have permission to void a client',
-                    }
-                    return JsonResponse(json.dumps(response_data), safe=False)
+                    return get_response_data(0, 'Voiding Failed. You do not have permission to void a client')
 
                 client_id = request.POST.get("id", "")
                 void_reason = request.POST.get("void_reason", "")
                 if void_reason is None or void_reason == "" or void_reason.isspace():
-                    response_data = {
-                        'status': 'fail',
-                        'message': {'void_reason': ['Reason for voiding is required.']},
-                    }
-                    return JsonResponse(json.dumps(response_data), safe=False)
+                    return get_response_data(0, {'void_reason': ['Reason for voiding is required.']})
 
                 if client_id != "":
                     cursor = db_conn_2.cursor()
@@ -2592,40 +2584,35 @@ def void_client(request):
 
                         if exec_status == 1:
                             messages.info(request, "Client has been voided.")
-                            response_data = {
-                                'status': 'success',
-                                'message': 'Client has been voided.',
-                                'next_url': reverse('clients')
-                            }
+                            response_data = get_response_data(1, 'Client has been voided.', next_url=reverse('clients'))
                         else:
-                            response_data = {
-                                'status': 'fail',
-                                'message': 'Client not voided, please contact system administrator for assistance.',
-                            }
+                            response_data = get_response_data(0,
+                                                              'Client not voided, please contact system '
+                                                              'administrator for assistance.')
                     except Exception as e:
-                        traceback.format_exc()
-                        response_data = {
-                            'status': 'fail',
-                            'message': 'Client could not be voided.{}'.format(e),
-                        }
+                        response_data = get_response_data(0, 'Client could not be voided.{}'.format(e))
                     finally:
                         cursor.close()
 
-                    return JsonResponse(json.dumps(response_data), safe=False)
+                    return response_data
                 else:
-                    response_data = {
-                        'status': 'fail',
-                        'message': 'Client to void not found.',
-                    }
-                    return JsonResponse(json.dumps(response_data), safe=False)
+                    return get_response_data(0, 'Invalid client ID. Please specify client.')
             else:
                 raise SuspiciousOperation
         else:
             raise PermissionDenied
     except Exception as e:
         traceback.format_exc()
-        response_data = {
-            'status': 'fail',
-            'message': e.message,
-        }
-        return JsonResponse(json.dumps(response_data), safe=False)
+        return get_response_data(0, e.message)
+
+
+def get_response_data(status, message, **kwargs):
+    response = {
+        'status': 'success' if status == 1 else 'fail',
+        'message': message
+    }
+
+    for k, v in kwargs.iteritems():
+        response[k] = v
+
+    return JsonResponse(json.dumps(response), safe=False)
