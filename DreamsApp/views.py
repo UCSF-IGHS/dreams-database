@@ -2340,7 +2340,7 @@ def client_transfers(request, *args, **kwargs):
 
         return render(request, "client_transfers.html",
                       {'client_transfers': transfers, 'can_accept_or_reject': can_accept_or_reject,
-                       'transferred_in': transferred_in})
+                       'transferred_in': transferred_in, 'page': 'transfers'})
     else:
         return redirect('login')
 
