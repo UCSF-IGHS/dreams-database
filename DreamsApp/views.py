@@ -2340,7 +2340,7 @@ def client_transfers(request, *args, **kwargs):
 
         return render(request, "client_transfers.html",
                       {'client_transfers': transfers, 'can_accept_or_reject': can_accept_or_reject,
-                       'transferred_in': transferred_in})
+                       'transferred_in': transferred_in, 'page': 'transfers'})
     else:
         return redirect('login')
 
@@ -2559,3 +2559,60 @@ def export_client_transfers(request, *args, **kwargs):
         return response
     else:
         return redirect('login')
+
+
+def void_client(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST' and request.is_ajax():
+                if not request.user.is_superuser and not request.user.has_perm(
+                        'DreamsApp.can_void_client') and not Permission.objects.filter(group__user=request.user).filter(
+                        codename='DreamsApp.can_void_client').exists():
+                    return get_response_data(0, 'Voiding Failed. You do not have permission to void a client')
+
+                client_id = request.POST.get("id", "")
+                void_reason = request.POST.get("void_reason", "")
+                if void_reason is None or void_reason == "" or void_reason.isspace():
+                    return get_response_data(0, {'void_reason': ['Reason for voiding is required.']})
+
+                if client_id != "":
+                    cursor = db_conn_2.cursor()
+                    try:
+                        args = [client_id, void_reason, request.user.id]
+                        cursor.callproc('sp_void_client_by_id', args)
+                        exec_status = cursor.fetchone()[0]
+
+                        if exec_status == 1:
+                            messages.info(request, "Client has been voided.")
+                            response_data = get_response_data(1, 'Client has been voided.', next_url=reverse('clients'))
+                        else:
+                            response_data = get_response_data(0,
+                                                              'Client not voided, please contact system '
+                                                              'administrator for assistance.')
+                    except Exception as e:
+                        response_data = get_response_data(0, 'Client could not be voided.{}'.format(e))
+                    finally:
+                        cursor.close()
+
+                    return response_data
+                else:
+                    return get_response_data(0, 'Invalid client ID. Please specify client.')
+            else:
+                raise SuspiciousOperation
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        traceback.format_exc()
+        return get_response_data(0, e.message)
+
+
+def get_response_data(status, message, **kwargs):
+    response = {
+        'status': 'success' if status == 1 else 'fail',
+        'message': message
+    }
+
+    for k, v in kwargs.iteritems():
+        response[k] = v
+
+    return JsonResponse(json.dumps(response), safe=False)

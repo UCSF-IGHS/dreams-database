@@ -128,6 +128,7 @@
     {% include 'includes/cash_transfer_details_form.html' %}
     {% include 'includes/client_exit_form.html' %}
     {% include 'includes/client_transfer_form.html' %}
+    {% include 'includes/client_void_form.html' %}
 
     <!-- Beginning Confirm Delete Modal -->
 
@@ -184,17 +185,22 @@
                     </p>
                     {% endif %}
                     {% if perms.DreamsApp.add_clienttransfer %}
-                        {% if client.can_be_transferred %}
+                        {% if client.can_be_transferred and not client.voided %}
                             <p class="underline_hover" id="p_transfer_client" data-client_id='{{ client.id }}'
                                data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
                                data-toggle="modal" data-target="#client-transfer-modal" title="Transfer Client">
                                 <span class="glyphicon glyphicon-random"></span> Transfer Client
                             </p>
-                        {% else %}
+                        {% elif not client.can_be_transferred %}
                             <p>
                                 <span>In Transfer</span>
                             </p>
                         {% endif %}
+                    {% endif %}
+                    {% if perms.DreamsApp.can_void_client and not client.voided %}
+                    <p class="underline_hover" id="p_void_client"  data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-void-modal" title="Void Client">
+                        <span class="glyphicon glyphicon-random"></span> Void Client
+                    </p>
                     {% endif %}
                 </p>
             </div><!--/col-->

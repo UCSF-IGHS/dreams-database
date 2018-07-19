@@ -30,7 +30,7 @@
                         {% endif %}
 
                         {% if perms.DreamsApp.can_transfer_client %}
-                            <li class="dropdown">
+                            <li class="dropdown {% if page == 'transfers' %}active{% endif %}">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
                                    aria-haspopup="true" aria-expanded="false">
                                     <span>Transfers</span>
