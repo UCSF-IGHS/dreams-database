@@ -30,15 +30,30 @@
                         {% endif %}
 
                         {% if perms.DreamsApp.can_transfer_client %}
-                        <li class="">
-                            <a class="" href="{% url 'client_transfers' %}" style="">
-                                <!--<span style="color: #fff;background-color: red;border-radius: 50%;width: 21px;height: 21px;text-align: center;right: 0;position: absolute;line-height: 21px;font-weight: bold;bottom: 56%;/* border: 1px solid transparent; */">-->
-                                <span>Transfers</span>
-                                <span id="client-transfers-count-span" class="badge btn btn-danger"
-                                      style="vertical-align: baseline; display: none;"
-                                      data-count-url="{% url 'get_client_transfers_count' %}"></span>
-                            </a>
-                        </li>
+                            <li class="dropdown {% if page == 'transfers' %}active{% endif %}">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                                   aria-haspopup="true" aria-expanded="false">
+                                    <span>Transfers</span>
+                                    <span id="client-transfers-count-span" class="badge btn btn-danger"
+                                                  style="vertical-align: baseline; display: none;"
+                                                  data-count-url="{% url 'get_client_transfers_count' %}"></span>
+                                    <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="" href="{% url 'client_transfers' transferred_in=1 %}" style="">
+                                            <span>Transfer In</span>
+                                            <span class="client-transfers-count-span badge btn btn-default"
+                                                  style="vertical-align: baseline; display: none;color: #000;"></span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="" href="{% url 'client_transfers' transferred_in=0 %}" style="">
+                                            <span>Transfer Out</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
                         {% endif %}
 
                         {% if perms.DreamsApp.can_manage_audit %}

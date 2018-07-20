@@ -165,6 +165,10 @@ class Client(models.Model):
                 if status != '':
                     status += ' & '
                 status += 'Exited'
+            if self.is_a_transfer_in:
+                if status != '':
+                    status += ' & '
+                status += 'Transferred In'
             if status != '':
                 status = status[:0] + '( ' + status[0:]
                 last_index = len(status)
@@ -189,6 +193,23 @@ class Client(models.Model):
             return datetime.now().year - self.date_of_birth.year - ((datetime.now().month, datetime.now().day) < (self.date_of_birth.month, self.date_of_birth.day))
         except:
             return 10
+
+    @property
+    def is_a_transfer_in(self):
+        try:
+            return self.clienttransfer_set.filter(destination_implementing_partner=self.implementing_partner,
+                                                  transfer_status=ClientTransferStatus.objects.get(
+                                                      code__exact=2)).exists()
+        except:
+            return False
+
+    @property
+    def can_be_transferred(self):
+        try:
+            return not self.clienttransfer_set.filter(transfer_status=ClientTransferStatus.objects.get(
+                code__exact=1)).exists()
+        except:
+            return True
 
     class Meta(object):
         verbose_name = 'Client'
@@ -1189,6 +1210,10 @@ class ClientTransfer(models.Model):
     completed_by = models.ForeignKey(User, null=True, blank=True, related_name='completed_by')
     transfer_reason = models.TextField(max_length=255, null=False, blank=False)
     reject_reason = models.TextField(max_length=255, null=True, blank=True)
+
+    @property
+    def can_be_accepted_or_rejected(self):
+        return self.transfer_status.code == 1
 
     def clean(self):
         if self.transfer_reason is None or self.transfer_reason == '':

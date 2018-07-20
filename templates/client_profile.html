@@ -128,6 +128,7 @@
     {% include 'includes/cash_transfer_details_form.html' %}
     {% include 'includes/client_exit_form.html' %}
     {% include 'includes/client_transfer_form.html' %}
+    {% include 'includes/client_void_form.html' %}
 
     <!-- Beginning Confirm Delete Modal -->
 
@@ -184,8 +185,21 @@
                     </p>
                     {% endif %}
                     {% if perms.DreamsApp.add_clienttransfer %}
-                    <p class="underline_hover" id="p_transfer_client"  data-client_id='{{ client.id }}' data-search_client_term='{{ search_client_term }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-transfer-modal" title="Transfer Client">
-                        <span class="glyphicon glyphicon-random"></span> Transfer Client
+                        {% if client.can_be_transferred and not client.voided %}
+                            <p class="underline_hover" id="p_transfer_client" data-client_id='{{ client.id }}'
+                               data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                               data-toggle="modal" data-target="#client-transfer-modal" title="Transfer Client">
+                                <span class="glyphicon glyphicon-random"></span> Transfer Client
+                            </p>
+                        {% elif not client.can_be_transferred %}
+                            <p>
+                                <span>In Transfer</span>
+                            </p>
+                        {% endif %}
+                    {% endif %}
+                    {% if perms.DreamsApp.can_void_client and not client.voided %}
+                    <p class="underline_hover" id="p_void_client"  data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-void-modal" title="Void Client">
+                        <span class="glyphicon glyphicon-random"></span> Void Client
                     </p>
                     {% endif %}
                 </p>
@@ -200,6 +214,18 @@
         </div>
 
     </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div{% if message.tags %}
+                class="msg alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} alert-danger {% else %} alert-{{ message.tags }} {% endif %} "{% endif %}>{{ message }}</div>
+            <script>
+                setTimeout(function(){
+                    $('.msg').addClass('hidden').text("")
+                }, 3000);
+            </script>
+        {% endfor %}
+    {% endif %}
 
     <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert"></div>
     <!-- End of Client profile section -->
