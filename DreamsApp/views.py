@@ -1,4 +1,5 @@
 # coding=utf-8
+
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
@@ -21,7 +22,7 @@ import json
 from datetime import date, timedelta, datetime as dt
 
 from openpyxl import Workbook
-from openpyxl.styles import Font
+from openpyxl.styles import Font, Alignment
 
 from DreamsApp.forms import *
 from Dreams_Utils import *
@@ -1172,26 +1173,8 @@ def logs(request):
                                             Q(user__first_name__icontains=filter_text.split(" ")[0]) |
                                             Q(user__last_name__icontains=filter_text.split(" ")[0])
                                             ).order_by('-timestamp')
-                if ip != '':
-                    logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
 
-                if filter_date_from == '' and filter_date == '':
-                    pass
-                elif filter_date_from != '' and filter_date == '':
-                    fyr, fmnth, fdt = filter_date_from.split('-')
-                    constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-                    logs = logs.filter(Q(timestamp__date__gte=constructed_date_from))
-                elif filter_date_from == '' and filter_date != '':
-                    yr, mnth, dat = filter_date.split('-')
-                    constructed_date = date(int(yr), int(mnth), int(dat))
-                    logs = logs.filter(Q(timestamp__date__lte=constructed_date))
-                else:
-                    yr, mnth, dat = filter_date.split('-')
-                    constructed_date = date(int(yr), int(mnth), int(dat))
-                    fyr, fmnth, fdt = filter_date_from.split('-')
-                    constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-                    logs = logs.filter(Q(timestamp__date__gte=constructed_date_from) &
-                                       Q(timestamp__date__lte=constructed_date)).order_by('-timestamp')
+                logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs)
 
                 paginator = Paginator(logs, 25)  # Showing 25 contacts per page
                 try:
@@ -1223,26 +1206,9 @@ def logs(request):
                                         Q(user__username__icontains=filter_text) |
                                         Q(user__first_name__icontains=filter_text) |
                                         Q(user__last_name__icontains=filter_text)).order_by('-timestamp')
-            if ip != '':
-                logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
 
-            if filter_date_from == '' and filter_date == '':
-                pass
-            elif filter_date_from != '' and filter_date == '':
-                fyr, fmnth, fdt = filter_date_from.split('-')
-                constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-                logs = logs.filter(Q(timestamp__date__gte=constructed_date_from))
-            elif filter_date_from == '' and filter_date != '':
-                yr, mnth, dat = filter_date.split('-')
-                constructed_date = date(int(yr), int(mnth), int(dat))
-                logs = logs.filter(Q(timestamp__date__lte=constructed_date))
-            else:
-                yr, mnth, dat = filter_date.split('-')
-                constructed_date = date(int(yr), int(mnth), int(dat))
-                fyr, fmnth, fdt = filter_date_from.split('-')
-                constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-                logs = logs.filter(Q(timestamp__date__gte=constructed_date_from) &
-                                   Q(timestamp__date__lte=constructed_date))
+            logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs)
+
             paginator = Paginator(logs, 25)
             try:
                 logs_list = paginator.page(1)
@@ -1260,6 +1226,29 @@ def logs(request):
                                                 (logs_list.end_index() - logs_list.start_index() + 1)})
     else:
         raise PermissionDenied
+
+
+def filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs):
+    if ip != '':
+        logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
+    if filter_date_from == '' and filter_date == '':
+        pass
+    elif filter_date_from != '' and filter_date == '':
+        fyr, fmnth, fdt = filter_date_from.split('-')
+        constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
+        logs = logs.filter(Q(timestamp__date__gte=constructed_date_from))
+    elif filter_date_from == '' and filter_date != '':
+        yr, mnth, dat = filter_date.split('-')
+        constructed_date = date(int(yr), int(mnth), int(dat))
+        logs = logs.filter(Q(timestamp__date__lte=constructed_date))
+    else:
+        yr, mnth, dat = filter_date.split('-')
+        constructed_date = date(int(yr), int(mnth), int(dat))
+        fyr, fmnth, fdt = filter_date_from.split('-')
+        constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
+        logs = logs.filter(Q(timestamp__date__gte=constructed_date_from) &
+                           Q(timestamp__date__lte=constructed_date))
+    return logs
 
 
 # user management
@@ -2616,3 +2605,83 @@ def get_response_data(status, message, **kwargs):
         response[k] = v
 
     return JsonResponse(json.dumps(response), safe=False)
+
+
+def download_audit_logs(request):
+    if not request.user.is_superuser and not request.user.has_perm('DreamsApp.can_manage_audit'):
+        raise PermissionDenied('Operation not allowed. [Missing Permission]')
+
+    ip = ''
+    try:
+        ip = request.user.implementingpartneruser.implementing_partner.id
+    except ImplementingPartnerUser.DoesNotExist:
+        pass
+
+    # user is allowed to view logs
+    if request.method == 'GET':
+        try:
+            filter_text = request.GET.get('filter-log-text', '')
+            filter_date_from = request.GET.get('filter-log-date-from', '')
+            filter_date = request.GET.get('filter-log-date', '')
+
+            # getting logs
+            logs = Audit.objects.filter(Q(table__in=filter_text.split(" ")) |
+                                        Q(action__in=filter_text.split(" ")) |
+                                        Q(search_text__in=filter_text.split(" ")) |
+                                        Q(user__username__icontains=filter_text.split(" ")[0]) |
+                                        Q(user__first_name__icontains=filter_text.split(" ")[0]) |
+                                        Q(user__last_name__icontains=filter_text.split(" ")[0])
+                                        ).order_by('-timestamp')
+
+            logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs)
+
+            header = ['Timestamp', 'User', 'Table', 'Field', 'Old Value', 'New Value', 'Action', 'Text']
+
+            wb = Workbook()
+            ws = wb.active
+            ws.append(header)
+            row_idx = 2
+
+            for log in logs:
+                ws.cell(row=row_idx, column=1).value = log.timestamp
+                ws.cell(row=row_idx, column=2).value = log.get_user_name()
+                ws.cell(row=row_idx, column=3).value = log.table
+
+                adt_idx = row_idx
+                for audittrail in log.audittrail_set.all():
+                    ws.cell(row=adt_idx, column=4).value = audittrail.column
+                    ws.cell(row=adt_idx, column=5).value = audittrail.old_value
+                    ws.cell(row=adt_idx, column=6).value = audittrail.new_value
+                    adt_idx += 1
+
+                if adt_idx == row_idx:
+                    adt_idx += 1
+
+                ws.cell(row=row_idx, column=7).value = log.action
+                ws.cell(row=row_idx, column=8).value = log.search_text
+                row_idx = adt_idx
+
+            dims = {}
+            for row in ws.rows:
+                for cell in row:
+                    if cell.value:
+                        dims[cell.column] = max(dims.get(cell.column, 0), len(str(cell.value)))
+
+            for col, value in dims.items():
+                ws.column_dimensions[col].width = value
+
+            ft = Font(bold=True)
+            for cell in ws["1:1"]:
+                cell.font = ft
+
+            response = HttpResponse(content_type='application/ms-excel')
+            response['Content-Disposition'] = 'attachment; filename=Audit_Logs.xlsx'
+
+            wb.save(response)
+            return response
+
+        except Exception as e:
+            tb = traceback.format_exc(e)
+            return HttpResponseServerError(tb)
+    else:
+        raise SuspiciousOperation
