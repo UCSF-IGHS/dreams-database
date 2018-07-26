@@ -7,8 +7,8 @@
             <div>
                 <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
                     {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
-                <div class="pull-right btn btn-default">
-                    <a href="{% url 'export_client_transfers' transferred_in=transferred_in|stringformat:'d' %}" target="_blank">Export to Excel</a>
+                <div class="pull-right">
+                    <a class="btn btn-primary" href="{% url 'export_client_transfers' transferred_in=transferred_in|stringformat:'d' %}" target="_blank">Export to Excel</a>
                 </div>
                 <h6>Client Transfers</h6>
             </div>
