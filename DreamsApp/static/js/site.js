@@ -3059,6 +3059,19 @@ $(document).ready(function () {
         $("#client-void-modal").show();
     });
 
+    $('#btn_submit_confirm_void_client_form').click(function (e) {
+        e.preventDefault();
+
+        $('#confirm-void-modal-footer').fadeOut('fast', function () {
+           $('#void-modal-footer').fadeIn('fast');
+        });
+    });
+
+    $("#client-void-modal").on('hidden.bs.modal', function () {
+        $('#confirm-void-modal-footer').css('display', 'block');
+        $('#void-modal-footer').css('display', 'none');
+    });
+
 });
 
 // Handling cross module validation for sexuality and reproductive health modules in enrollment
