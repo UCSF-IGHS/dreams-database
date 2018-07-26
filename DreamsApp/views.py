@@ -2567,7 +2567,7 @@ def void_client(request):
                 if client_id != "":
                     cursor = db_conn_2.cursor()
                     try:
-                        args = [client_id, void_reason, request.user.id]
+                        args = [client_id, request.user.id, void_reason]
                         cursor.callproc('sp_void_client_by_id', args)
                         exec_status = cursor.fetchone()[0]
 
