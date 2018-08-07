@@ -2541,8 +2541,9 @@ def export_client_transfers(request, *args, **kwargs):
         for cell in ws["1:1"]:
             cell.font = ft
 
+        file_name = "Client_Transfers_{}.xlsx".format("In" if transferred_in else "Out")
         response = HttpResponse(content_type='application/ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=Client_Transfers.xlsx'
+        response['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
 
         wb.save(response)
         return response
