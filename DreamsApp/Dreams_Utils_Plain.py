@@ -460,7 +460,7 @@ WHERE voided=0 AND i.implementing_partner_id = %s """
 
 
     def load_workbook(self):
-        DREAMS_TEMPLATE_PLAIN = os.path.join(settings.BASE_DIR, 'templates/excel_template/dreams_export.xlsx')
+        DREAMS_TEMPLATE_PLAIN = os.path.join(settings.BASE_DIR, '../templates/excel_template/dreams_export.xlsx')
         try:
             wb = xl.load_workbook(DREAMS_TEMPLATE_PLAIN)
             return wb
@@ -468,7 +468,7 @@ WHERE voided=0 AND i.implementing_partner_id = %s """
             traceback.format_exc()
 
     def load_intervention_workbook(self):
-        DREAMS_INTERVENTION_TEMPLATE = os.path.join(settings.BASE_DIR, 'templates/excel_template/service_uptake_template.xlsx')
+        DREAMS_INTERVENTION_TEMPLATE = os.path.join(settings.BASE_DIR, '../templates/excel_template/service_uptake_template.xlsx')
         try:
             wb = xl.load_workbook(DREAMS_INTERVENTION_TEMPLATE)
             return wb
@@ -476,7 +476,7 @@ WHERE voided=0 AND i.implementing_partner_id = %s """
             traceback.format_exc()
 
     def load_service_layering_workbook(self):
-        DREAMS_SERVICE_LAYERING_TEMPLATE = os.path.join(settings.BASE_DIR, 'templates/excel_template/individual_service_layering_template.xlsx')
+        DREAMS_SERVICE_LAYERING_TEMPLATE = os.path.join(settings.BASE_DIR, '../templates/excel_template/individual_service_layering_template.xlsx')
         try:
             wb = xl.load_workbook(DREAMS_SERVICE_LAYERING_TEMPLATE)
             return wb
@@ -752,10 +752,9 @@ WHERE voided=0 AND i.implementing_partner_id = %s """
             'ward_name': 20,
             'informal_settlement': 22,
             'village': 23,
-            'land_mark': 24,
+            'landmark': 24,
             'dreams_id': 25,
             'relationship_with_guardian': 30,
-            'caregiver_relationship_other': 31,
             'exit_status': 204,
             'exit_date': 205,
             'exit_reason': 206
