@@ -9,6 +9,7 @@ from django.db import connection
 from django.conf import settings
 from openpyxl.utils.exceptions import *
 import os
+import csv
 
 
 class DreamsEnrollmentExcelTemplateRenderer(object):
@@ -276,6 +277,8 @@ VALUES """
         single_ip_ward_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND implementing_partner_id = %s "
         single_ip_default_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id = %s "
 
+        cursor_results = None
+
         try:
 
             ip_tuple_l = ip_list_str
@@ -302,14 +305,17 @@ VALUES """
                 elif sub_county is not None and sub_county:
                     cursor.execute(single_ip_sub_county_query, [sub_county, ip_list])
                 else:
-                    cursor.execute(single_ip_default_query, [ip_list])
+                    cursor_results = cursor.execute(single_ip_default_query, [ip_list])
 
             print "Query was successful"
-            columns = [col[0] for col in cursor.description]
-            return [
-                dict(zip(columns, row))
-                for row in cursor.fetchall()
-                ]
+
+            return cursor_results, cursor
+
+            # columns = [col[0] for col in cursor.description]
+            # return [
+            #     dict(zip(columns, row))
+            #     for row in cursor.fetchall()
+            #     ]
         except Exception as e:
             print 'There was an Error running the query\n'
             traceback.format_exc()
@@ -485,37 +491,51 @@ WHERE voided=0 AND i.implementing_partner_id = %s
         except InvalidFileException as e:
             traceback.format_exc()
 
-    def prepare_excel_doc(self, ip_list_str, sub_county, ward, show_PHI):
+    def prepare_excel_doc(self, response, ip_list_str, sub_county, ward, show_PHI):
 
         try:
 
-            wb = self.load_workbook()
-            refined_sheet = wb.get_sheet_by_name('dreams_enrollment_data')
-            print "Starting DB Query! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            db_data = self.get_export_rows(ip_list_str, sub_county, ward)
-            print "Finished DB Query. Rendering Now. ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            i = 1
-            for row in db_data:
-                i += 1
-                self.map_demographics(refined_sheet, i, row, show_PHI)
-                self.map_individual_and_household(refined_sheet, i, row)
-                self.map_sexuality(refined_sheet, i, row)
-                self.map_reproductive_health(refined_sheet, i, row)
-                self.map_drug_use(refined_sheet, i, row)
-                self.map_education_and_employment(refined_sheet, i, row, show_PHI)
-                self.map_gbv(refined_sheet, i, row)
-                self.map_program_participation(refined_sheet, i, row)
-                self.map_hiv_testing(refined_sheet, i, row)
+            # wb = self.load_workbook()
+            # refined_sheet = wb.get_sheet_by_name('dreams_enrollment_data')
 
-            wb.save('dreams_enrollment_interventions.xlsx')
+            print "Starting DB Query! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            db_data, cursor = self.get_export_rows(ip_list_str, sub_county, ward)
+            writer = csv.writer(response)
+            col_names = []
+
+            for col in cursor.description:
+                col_names.append(col[0])
+                
+            writer.writerow(col_names)
+
+            for row in cursor:
+                writer.writerow(row)
+
+            print "Finished DB Query. Rendering Now. ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+            # i = 1
+            # for row in db_data:
+            #     i += 1
+            #     self.map_demographics(refined_sheet, i, row, show_PHI)
+            #     self.map_individual_and_household(refined_sheet, i, row)
+            #     self.map_sexuality(refined_sheet, i, row)
+            #     self.map_reproductive_health(refined_sheet, i, row)
+            #     self.map_drug_use(refined_sheet, i, row)
+            #     self.map_education_and_employment(refined_sheet, i, row, show_PHI)
+            #     self.map_gbv(refined_sheet, i, row)
+            #     self.map_program_participation(refined_sheet, i, row)
+            #     self.map_hiv_testing(refined_sheet, i, row)
+            #
+            # wb.save('dreams_enrollment_interventions.xlsx')
             print "Completed rendering excel ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            return wb
+            return writer
         except InvalidFileException as e:
             traceback.format_exc()
         except ReadOnlyWorkbookException as e:
             traceback.format_exc()
-
         except SheetTitleException as e:
+            traceback.format_exc()
+        except Exception as e:
             traceback.format_exc()
         return
 

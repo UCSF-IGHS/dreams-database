@@ -11,6 +11,8 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.db import connection as db_conn_2
+import csv
+import urllib
 
 from django.conf import settings
 
@@ -1764,8 +1766,14 @@ def downloadEXCEL(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        response = HttpResponse(content_type='application/ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
+        # response = HttpResponse(content_type='application/ms-excel')
+        # response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
+
+        response = HttpResponse(content_type='text/csv')
+        g = ("/tmp/output-{}.csv").format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        export_file_name = urllib.quote(g)
+        response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
+
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
 
         # Ensure can_view_phi_data has been created on Client contentType
@@ -1776,9 +1784,8 @@ def downloadEXCEL(request):
         else:
             show_PHI = False
 
-        wb = export_doc.prepare_excel_doc(ip_list_str, sub_county, ward, show_PHI)
-        wb.save(response)
-        return response
+        return export_doc.prepare_excel_doc(response, ip_list_str, sub_county, ward, show_PHI)
+        # wb.save(response)
     except Exception as e:
         traceback.format_exc()
         return
