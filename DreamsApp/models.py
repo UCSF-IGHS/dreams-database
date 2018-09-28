@@ -1,6 +1,7 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
@@ -164,6 +165,10 @@ class Client(models.Model):
                 if status != '':
                     status += ' & '
                 status += 'Exited'
+            if self.is_a_transfer_in:
+                if status != '':
+                    status += ' & '
+                status += 'Transferred In'
             if status != '':
                 status = status[:0] + '( ' + status[0:]
                 last_index = len(status)
@@ -188,6 +193,23 @@ class Client(models.Model):
             return datetime.now().year - self.date_of_birth.year - ((datetime.now().month, datetime.now().day) < (self.date_of_birth.month, self.date_of_birth.day))
         except:
             return 10
+
+    @property
+    def is_a_transfer_in(self):
+        try:
+            return self.clienttransfer_set.filter(destination_implementing_partner=self.implementing_partner,
+                                                  transfer_status=ClientTransferStatus.objects.get(
+                                                      code__exact=2)).exists()
+        except:
+            return False
+
+    @property
+    def can_be_transferred(self):
+        try:
+            return not self.clienttransfer_set.filter(transfer_status=ClientTransferStatus.objects.get(
+                code__exact=1)).exists()
+        except:
+            return True
 
     class Meta(object):
         verbose_name = 'Client'
@@ -1112,3 +1134,91 @@ class AuditTrail(models.Model):
         verbose_name_plural = 'Audit Trails'
 
 
+class InterventionPackage(models.Model):
+    code = models.PositiveIntegerField(verbose_name='Code', blank=False, null=False,
+                                       validators=[MinValueValidator(1), MaxValueValidator(100)])
+    name = models.CharField(max_length=50, verbose_name='Package Name')
+    intervention_types = models.ManyToManyField(InterventionType, through='InterventionTypePackage')
+
+    def __str__(self):
+        return '{} '.format(self.name)
+
+    class Meta(object):
+        verbose_name = 'Intervention Package'
+        verbose_name_plural = 'Intervention Packages'
+
+
+class InterventionTypePackage(models.Model):
+    MIN_AGE = 10
+    MAX_AGE = 24
+    intervention_package = models.ForeignKey(InterventionPackage, null=False, blank=False)
+    intervention_type = models.ForeignKey(InterventionType, null=False, blank=False)
+    lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', blank=False, null=False,
+                                                  validators=[MinValueValidator(MIN_AGE), MaxValueValidator(MAX_AGE)])
+    upper_age_limit = models.PositiveIntegerField(verbose_name='Upper age limit', blank=False, null=False,
+                                                  validators=[MinValueValidator(MIN_AGE), MaxValueValidator(MAX_AGE)])
+
+    def __str__(self):
+        return '{} is a member of {} package for age band {} to {}'.format(self.intervention_type.name,
+                                                                           self.intervention_package.name,
+                                                                           self.lower_age_limit, self.upper_age_limit)
+
+    def clean(self):
+        if self.upper_age_limit < self.lower_age_limit:
+            raise ValidationError(
+                {'upper_age_limit': "Upper age limit must be equal to or greater than lower age limit"})
+
+    class Meta(object):
+        verbose_name = 'InterventionType Package'
+        verbose_name_plural = 'InterventionType Packages'
+
+
+class CodeTable(models.Model):
+    code = models.IntegerField(null=False, blank=False, unique=True,
+                               validators=[
+                                   MaxValueValidator(1000),
+                                   MinValueValidator(0)
+                               ],
+                               )
+    name = models.CharField(max_length=255, null=False, blank=False)
+
+    def __str__(self):
+        return "(%s - %s)" % (self.code, self.name)
+
+    class Meta:
+        abstract = True
+
+
+class ClientTransferStatus(CodeTable):
+
+    def __str__(self):
+        return self.name
+
+
+class ClientTransfer(models.Model):
+    client = models.ForeignKey(Client, db_index=True)
+    source_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False,
+                                                    related_name='source_implementing_partner')
+    destination_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False,
+                                                         related_name='destination_implementing_partner')
+    transfer_status = models.ForeignKey(ClientTransferStatus, blank=False, null=False, on_delete=models.PROTECT)
+    start_date = models.DateTimeField(blank=True, null=True)
+    end_date = models.DateTimeField(blank=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_changed = models.DateTimeField(auto_now=True, null=True, blank=True)
+    initiated_by = models.ForeignKey(User, null=False, blank=False, related_name='initiated_by')
+    completed_by = models.ForeignKey(User, null=True, blank=True, related_name='completed_by')
+    transfer_reason = models.TextField(max_length=255, null=False, blank=False)
+    reject_reason = models.TextField(max_length=255, null=True, blank=True)
+
+    @property
+    def can_be_accepted_or_rejected(self):
+        return self.transfer_status.code == 1
+
+    def clean(self):
+        if self.transfer_reason is None or self.transfer_reason == '':
+            raise ValidationError({'transfer_reason': "Please specify a reason for the transfer"})
+
+    class Meta(object):
+        verbose_name = 'Client Transfer'
+        verbose_name_plural = 'Client Transfers'

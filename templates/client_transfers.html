@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    <div class="wrapper-container">
+        <div class="statusBox">
+            <div>
+                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
+                    {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+                <div class="pull-right">
+                    <a class="btn btn-primary" href="{% url 'export_client_transfers' transferred_in=transferred_in|stringformat:'d' %}" target="_blank">Export to Excel</a>
+                </div>
+                <h6>Client Transfers</h6>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div{% if message.tags %}
+                    class=" msg alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} alert-danger {% else %} alert-{{ message.tags }} {% endif %} "{% endif %}>{{ message }}</div>
+                <script>
+                    setTimeout(function(){
+                        $('.msg').addClass('hidden').text("")
+                    }, 3000);
+                </script>
+            {% endfor %}
+        {% endif %}
+
+        <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table"
+               style="margin: 0px;border-radius: 5px;border: #efc636 solid 1px;">
+            <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
+            <th>Dreams ID</th>
+            <th>Source Implementing Partner</th>
+            <th>Transfer Reason</th>
+            {% if can_accept_or_reject and transferred_in %}
+            <th>Action</th>
+            {% endif %}
+            {% if not transferred_in %}
+            <th>Status</th>
+            {% endif %}
+            </thead>
+            <tbody id="dp-patient-list-body">
+            {% if client_transfers %}
+                {% for client_transfer in client_transfers %}
+                <tr>
+                    <td>{{ client_transfer.client.dreams_id }}</td>
+                    <td>{{ client_transfer.source_implementing_partner.name }}</td>
+                    <td>{{ client_transfer.transfer_reason }}</td>
+                    {% if can_accept_or_reject and transferred_in %}
+                    <td>
+                        {% if client_transfer.can_be_accepted_or_rejected %}
+                            <a id="accept-{{ client_transfer.id }}" name="accept-transfer-modal" class='glyphicon glyphicon-ok badge btn btn-success'
+                               arial-label='Arial-Hidden'
+                               style="padding-bottom: 8px;" data-toggle="modal" data-target="#accept-transfer-modal"
+                               data-id="{{ client_transfer.id }}" data-client-name="{{ client_transfer.client.get_full_name }}">
+                                Accept
+                            </a> &nbsp;&nbsp;
+                            <a id="reject-{{ client_transfer.id }}" name="reject-transfer-modal" class='glyphicon glyphicon-remove badge btn btn-danger'
+                               arial-label='Arial-Hidden' style="padding-bottom: 8px;" data-toggle="modal"
+                               data-target="#reject-transfer-modal"
+                               data-id="{{ client_transfer.id }}" data-client-name="{{ client_transfer.client.get_full_name }}">
+                                Reject
+                            </a>
+                        {% else %}
+                            <span>{{ client_transfer.transfer_status.name }}</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if not transferred_in %}
+                    <td>{{ client_transfer.transfer_status.name }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="4"> No pending transfers.</td> </tr>
+            {% endif %}
+            </tbody>
+        </table>
+
+
+        <!-- Pagination section -->
+        <div class="pagination">
+            <span class="step-links">
+                {% if client_transfers.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ client_transfers.previous_page_number }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ client_transfers.number }} of {{ client_transfers.paginator.num_pages }}.
+                </span>
+
+                {% if client_transfers.has_next %}
+                    <a href="?page={{ client_transfers.next_page_number }}">next</a>
+                    <a href="?page={{ client_transfers.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+
+        <!-- Beginning Accept Transfer Modal -->
+        <div class="modal fade" id="accept-transfer-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Accept Client Transfer</h4>
+                    </div>
+                    <form method="POST" action="{% url 'accept_client_transfer' %}" id="accept_client_transfer_form">
+                        <div class="modal-body">
+
+                            {% csrf_token %}
+
+                            <input id="accept_client_transfer_id" type="hidden" name="id" value="">
+
+                            <div class="form-group form-inline">
+                                <label for="client_name" class="control-label enrolment-label">Client</label>
+                                <input id="accept_client_name" class="form-control" type="text" value=""
+                                       readonly="readonly"/>
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel
+                                </button>
+                                <button type="submit" class="btn btn-sm btn-info">Accept transfer</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Beginning Reject Transfer Modal -->
+        <div class="modal fade" id="reject-transfer-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Reject Client Transfer</h4>
+                    </div>
+                    <form method="POST" action="{% url 'reject_client_transfer' %}" id="reject_client_transfer_form">
+                        <div class="modal-body">
+
+                            {% csrf_token %}
+
+                            <input id="reject_client_transfer_id" type="hidden" name="id" value="">
+
+                            <div class="form-group form-inline">
+                                <label for="client_name" class="control-label enrolment-label">Client</label>
+                                <input id="reject_client_name" class="form-control" type="text" value=""
+                                       readonly="readonly"/>
+                            </div>
+
+                            <div class="form-group form-inline">
+                                <label for="reject_reason" class="control-label enrolment-label">Reason</label>
+                                <textarea id="reject_reason" name="reject_reason" class="form-control" rows="10"
+                                          cols="40" required></textarea>
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel
+                                </button>
+                                <button type="submit" class="btn btn-sm btn-info">Reject transfer</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}

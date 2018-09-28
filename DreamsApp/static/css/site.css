@@ -11,7 +11,7 @@ html, body{
 }
 
 .wrapper-container{
-    margin-bottom: 5em;
+    margin-bottom: 9em;
 }
 
 /* Start nav-bar */
@@ -155,7 +155,7 @@ html, body{
 .footer{
      background-color: #ffffff;
      margin-bottom: 0px;
-     padding-bottom: 20px;
+     padding-bottom: 1.25em;
  }
 
 .descriptor-image{
@@ -529,4 +529,9 @@ html, body{
 .custom-has-error {
     margin-top: 5px;
     color: #ff0000;
+}
+
+.report-export-form-div {
+    border: 1px solid transparent;
+    padding-bottom: 21px;
 }

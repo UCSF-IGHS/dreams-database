@@ -437,7 +437,7 @@ order by d.implementing_partner_id
 
     def prepare_excel_doc(self):
 
-        DREAMS_TEMPLATE = os.path.join(settings.BASE_DIR, 'templates/excel_template/dreams_export.xlsx')
+        DREAMS_TEMPLATE = os.path.join(settings.BASE_DIR, '../templates/excel_template/dreams_export.xlsx')
 
         try:
             wb = xl.load_workbook(DREAMS_TEMPLATE)

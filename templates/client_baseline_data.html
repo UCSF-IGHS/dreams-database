@@ -2,6 +2,8 @@
 {% block content %}
 
     {% include 'includes/client_exit_form.html' %}
+    {% include 'includes/client_transfer_form.html' %}
+    {% include 'includes/client_void_form.html' %}
 
     <div class="wrapper-container enrolment-input-question">
         <!-- Start of Client profile section -->
@@ -13,11 +15,11 @@
                 <div class="col-xs-12 col-sm-5">
                     <p><strong>Client: </strong><span id="shown_client_name"> {{ client.get_full_name }} <span class="client_exit_voided_status">{{ client.get_client_status }}</span></p>
                     <p><strong>DREAMS ID: </strong><span id="shown_client_dreams_id"> {{ client.dreams_id }}</span></p>
-                    <p><strong>Date Birth: </strong><span id="shown_client_dob"> {{ client.date_of_birth }}</span> (Age <span id="shown_client_age">{{ client.get_age_at_enrollment }}</span> )</p>
+                    <p><strong>Date Birth: </strong><span id="shown_client_dob"> {{ client.date_of_birth }}</span> (Current Age <span id="shown_client_age">{{ client.get_current_age }}</span> )</p>
 
                 </div><!--/col-->
                 <div class="col-xs-12 col-sm-4">
-                    <p><strong>Date Enrolled: </strong> <span id="shown_client_doe">{{ client.date_of_enrollment }}</span></p>
+                    <p><strong>Date Enrolled: </strong> <span id="shown_client_doe">{{ client.date_of_enrollment }} (Age at enrollment: {{ client.get_age_at_enrollment }})</span></p>
                      <p><strong>Phone Number: </strong>
                         <span id="shown_client_phone">{% if client.phone_number != None%}{{ client.phone_number }}{% endif %}</span>
                     </p>
@@ -29,6 +31,25 @@
                     {% if perms.DreamsApp.can_exit_client %}
                     <p class="underline_hover" id="p_exit_client"  data-client_id='{{ client.id }}' data-search_client_term='{{ search_client_term }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-exit-modal" title="Exit Client">
                         <span class="glyphicon glyphicon-log-out"></span> <span class="client_status_action_text"> {{ client.get_client_status_action_text }} </span>
+                    </p>
+                    {% endif %}
+                    {% if perms.DreamsApp.add_clienttransfer %}
+                        {% if client.can_be_transferred and not client.voided %}
+                            <p class="underline_hover" id="p_transfer_client" data-client_id='{{ client.id }}'
+                               data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                               data-toggle="modal" data-target="#client-transfer-modal" title="Transfer Client">
+                                <span class="glyphicon glyphicon-transfer"></span> Transfer Client
+                            </p>
+                        {% elif not client.can_be_transferred %}
+                            <p>
+                                <span>In Transfer</span>
+                            </p>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if perms.DreamsApp.can_void_client and not client.voided %}
+                    <p class="underline_hover" id="p_void_client"  data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-void-modal" title="Void Client">
+                        <span class="glyphicon glyphicon-minus-sign"></span> Void Client
                     </p>
                     {% endif %}
                 </p>

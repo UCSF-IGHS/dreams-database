@@ -1,4 +1,7 @@
 # coding=utf-8
+
+from django.contrib import messages
+from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.core import serializers
@@ -10,8 +13,7 @@ from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
-from django.db import connection as db_conn_2
-import csv
+from django.db import connection as db_conn_2, transaction
 import urllib
 
 from django.conf import settings
@@ -19,6 +21,10 @@ from django.conf import settings
 import json
 
 from datetime import date, timedelta, datetime as dt
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
+
 from DreamsApp.forms import *
 from Dreams_Utils import *
 from Dreams_Utils_Plain import *
@@ -304,6 +310,12 @@ def client_profile(request):
         search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
             'search_client_term', '')
         if client_id is not None and client_id != 0:
+
+            try:
+                ip_code = request.user.implementingpartneruser.implementing_partner.code
+            except Exception as e:
+                ip_code = None
+
             try:
                 client_found = Client.objects.get(id=client_id)
                 if client_found is not None:
@@ -313,13 +325,18 @@ def client_profile(request):
                     cash_transfer_details_form = ClientCashTransferDetailsForm(instance=cash_transfer_details,
                                                                                current_AGYW=client_found)
                     cash_transfer_details_form.save(commit=False)
+
                 return render(request, 'client_profile.html', {'page': 'clients',
                                                                'page_title': 'DREAMS Client Service Uptake',
                                                                'client': client_found,
                                                                'ct_form': cash_transfer_details_form,
                                                                'ct_id': cash_transfer_details.id,
                                                                'search_client_term': search_client_term,
-                                                               'user': request.user
+                                                               'user': request.user,
+                                                               'transfer_form': ClientTransferForm(ip_code=ip_code,
+                                                                                                   initial={
+                                                                                                       'client':
+                                                                                                           client_found})
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
@@ -329,7 +346,8 @@ def client_profile(request):
                                'client': client_found,
                                'ct_form': cash_transfer_details_form,
                                'search_client_term': search_client_term,
-                               'user': request.user
+                               'user': request.user,
+                               'transfer_form': ClientTransferForm(ip_code=ip_code, initial={'client': client_found})
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -704,6 +722,22 @@ def save_intervention(request):
                     """An error has occurred. Throw exception. This will be handled elsewhere"""
                     raise Exception(e.message)
 
+                intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
+                if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
+                                                                                            datetime.time()):
+                    response_data = {
+                        'status': 'fail',
+                        'message': "Error: The intervention date must be after the client's enrollment date. "
+                    }
+                    return JsonResponse(response_data)
+
+                if intervention_date > dt.now():
+                    response_data = {
+                        'status': 'fail',
+                        'message': "Error: The intervention date must be before the current date. "
+                    }
+                    return JsonResponse(response_data)
+
                 if intervention_type_code is not None and type(intervention_type_code) is int:
                     intervention = Intervention()
                     intervention.client = client
@@ -742,7 +776,11 @@ def save_intervention(request):
                         'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
                         'i_type': serializers.serialize('json', [intervention_type]),
                         'hts_results': serializers.serialize('json', HTSResult.objects.all()),
-                        'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
+                        'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
+                        'permissions': json.dumps({
+                            'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
+                            'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
+                        })
                     }
                     return JsonResponse(response_data)
                 else:  # Invalid Intervention Type
@@ -818,7 +856,11 @@ def get_intervention_list(request):
                 'iv_types': serializers.serialize('json', list_of_related_iv_types),
                 'interventions': serializers.serialize('json', list_of_interventions),
                 'hts_results': serializers.serialize('json', HTSResult.objects.all()),
-                'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
+                'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
+                'permissions': json.dumps({
+                    'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
+                    'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
+                })
             }
             return JsonResponse(response_data)
         else:
@@ -870,6 +912,16 @@ def update_intervention(request):
                         intervention.intervention_type = InterventionType.objects.get(
                             code__exact=int(request.POST.get('intervention_type_code')))
                         intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
+
+                        intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
+                        if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
+                                intervention.client.date_of_enrollment, datetime.time()):
+                            response_data = {
+                                'status': 'fail',
+                                'message': "Error: The intervention date must be after the client's enrollment date. "
+                            }
+                            return JsonResponse(response_data)
+
                         intervention.name_specified = request.POST.get('other_specify',
                                                                        '') if intervention.intervention_type.is_specified else ''
                         intervention.intervention_date = request.POST.get('intervention_date')
@@ -905,7 +957,11 @@ def update_intervention(request):
                             'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
                             'i_type': serializers.serialize('json', [i_type]),
                             'hts_results': serializers.serialize('json', HTSResult.objects.all()),
-                            'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all())
+                            'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
+                            'permissions': json.dumps({
+                                'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
+                                'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
+                            })
                         }
                     else:
                         # Intervention does not belong to Implementing partner. Send back error message
@@ -1118,26 +1174,8 @@ def logs(request):
                                             Q(user__first_name__icontains=filter_text.split(" ")[0]) |
                                             Q(user__last_name__icontains=filter_text.split(" ")[0])
                                             ).order_by('-timestamp')
-                if ip != '':
-                    logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
 
-                if filter_date_from == '' and filter_date == '':
-                    pass
-                elif filter_date_from != '' and filter_date == '':
-                    fyr, fmnth, fdt = filter_date_from.split('-')
-                    constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-                    logs = logs.filter(Q(timestamp__date__gte=constructed_date_from))
-                elif filter_date_from == '' and filter_date != '':
-                    yr, mnth, dat = filter_date.split('-')
-                    constructed_date = date(int(yr), int(mnth), int(dat))
-                    logs = logs.filter(Q(timestamp__date__lte=constructed_date))
-                else:
-                    yr, mnth, dat = filter_date.split('-')
-                    constructed_date = date(int(yr), int(mnth), int(dat))
-                    fyr, fmnth, fdt = filter_date_from.split('-')
-                    constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-                    logs = logs.filter(Q(timestamp__date__gte=constructed_date_from) &
-                                       Q(timestamp__date__lte=constructed_date)).order_by('-timestamp')
+                logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs)
 
                 paginator = Paginator(logs, 25)  # Showing 25 contacts per page
                 try:
@@ -1169,26 +1207,9 @@ def logs(request):
                                         Q(user__username__icontains=filter_text) |
                                         Q(user__first_name__icontains=filter_text) |
                                         Q(user__last_name__icontains=filter_text)).order_by('-timestamp')
-            if ip != '':
-                logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
 
-            if filter_date_from == '' and filter_date == '':
-                pass
-            elif filter_date_from != '' and filter_date == '':
-                fyr, fmnth, fdt = filter_date_from.split('-')
-                constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-                logs = logs.filter(Q(timestamp__date__gte=constructed_date_from))
-            elif filter_date_from == '' and filter_date != '':
-                yr, mnth, dat = filter_date.split('-')
-                constructed_date = date(int(yr), int(mnth), int(dat))
-                logs = logs.filter(Q(timestamp__date__lte=constructed_date))
-            else:
-                yr, mnth, dat = filter_date.split('-')
-                constructed_date = date(int(yr), int(mnth), int(dat))
-                fyr, fmnth, fdt = filter_date_from.split('-')
-                constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-                logs = logs.filter(Q(timestamp__date__gte=constructed_date_from) &
-                                   Q(timestamp__date__lte=constructed_date))
+            logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs)
+
             paginator = Paginator(logs, 25)
             try:
                 logs_list = paginator.page(1)
@@ -1206,6 +1227,29 @@ def logs(request):
                                                 (logs_list.end_index() - logs_list.start_index() + 1)})
     else:
         raise PermissionDenied
+
+
+def filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs):
+    if ip != '':
+        logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
+    if filter_date_from == '' and filter_date == '':
+        pass
+    elif filter_date_from != '' and filter_date == '':
+        fyr, fmnth, fdt = filter_date_from.split('-')
+        constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
+        logs = logs.filter(Q(timestamp__date__gte=constructed_date_from))
+    elif filter_date_from == '' and filter_date != '':
+        yr, mnth, dat = filter_date.split('-')
+        constructed_date = date(int(yr), int(mnth), int(dat))
+        logs = logs.filter(Q(timestamp__date__lte=constructed_date))
+    else:
+        yr, mnth, dat = filter_date.split('-')
+        constructed_date = date(int(yr), int(mnth), int(dat))
+        fyr, fmnth, fdt = filter_date_from.split('-')
+        constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
+        logs = logs.filter(Q(timestamp__date__gte=constructed_date_from) &
+                           Q(timestamp__date__lte=constructed_date))
+    return logs
 
 
 # user management
@@ -1913,6 +1957,11 @@ def viewBaselineData(request):
         else:
             print 'POST not allowed'
 
+        try:
+            ip_code = request.user.implementingpartneruser.implementing_partner.code
+        except Exception as e:
+            ip_code = None
+
         if client_id is not None and client_id != 0:
             try:
                 client_found = Client.objects.get(id=client_id)
@@ -1930,7 +1979,10 @@ def viewBaselineData(request):
                                                                          'rh_form': reproductive_health_form,
                                                                          'drug_use_form': drug_use_form,
                                                                          'programe_participation_form': participation_form,
-                                                                         'search_client_term': search_client_term
+                                                                         'search_client_term': search_client_term,
+                                                                         'transfer_form': ClientTransferForm(
+                                                                             ip_code=ip_code,
+                                                                             initial={'client': client_found})
                                                                          })
             except Client.DoesNotExist:
                 traceback.format_exc()
@@ -2191,3 +2243,450 @@ def update_programme_participation_data(request):
     else:
         raise PermissionDenied
     return render(request, template, {'programe_participation_form': form})
+
+
+def transfer_client(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST' and request.is_ajax():
+                try:
+                    ip = request.user.implementingpartneruser.implementing_partner
+                except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Transfer Failed. You do not belong to an implementing partner',
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
+                transfer_form = ClientTransferForm(request.POST)
+                if transfer_form.is_valid():
+                    num_of_pending_transfers = ClientTransfer.objects.filter(client=transfer_form.instance.client,
+                                                                             transfer_status=ClientTransferStatus.objects.get(
+                                                                                 code__exact=1)).count()
+
+                    if num_of_pending_transfers > 0:
+                        print "{} pending transfers for client".format(num_of_pending_transfers)
+                        response_data = {
+                            'status': 'fail',
+                            'message': "Transfer failed, there's a pending transfer for this client.",
+                        }
+                    else:
+                        client_transfer = transfer_form.save(commit=False)
+
+                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+                        client_transfer.source_implementing_partner = ip
+                        client_transfer.initiated_by = request.user
+                        client_transfer.save()
+
+                        response_data = {
+                            'status': 'success',
+                            'message': 'Transfer request received, pending approval by the receiving implementing partner.',
+                        }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+                else:
+                    response_data = {
+                        'status': 'fail',
+                        'message': transfer_form.errors,
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': e.message,
+        }
+        return JsonResponse(json.dumps(response_data), safe=False)
+
+
+def client_transfers(request, *args, **kwargs):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        can_accept_or_reject = False
+
+        transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
+
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            if transferred_in:
+                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip)
+            else:
+                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip)
+
+            if request.user.has_perm('DreamsApp.change_clienttransfer'):
+                can_accept_or_reject = True
+
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            c_transfers = ClientTransfer.objects.all()
+
+            if request.user.is_superuser:
+                can_accept_or_reject = True
+
+        page = request.GET.get('page', 1)
+        paginator = Paginator(c_transfers, 20)
+
+        try:
+            transfers = paginator.page(page)
+        except PageNotAnInteger:
+            transfers = paginator.page(1)
+        except EmptyPage:
+            transfers = paginator.page(paginator.num_pages)
+
+        return render(request, "client_transfers.html",
+                      {'client_transfers': transfers, 'can_accept_or_reject': can_accept_or_reject,
+                       'transferred_in': transferred_in, 'page': 'transfers'})
+    else:
+        return redirect('login')
+
+
+def accept_client_transfer(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST':
+
+                try:
+                    ip = request.user.implementingpartneruser.implementing_partner
+                except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+                    if not request.user.is_superuser:
+                        messages.error(request, "You do not belong to an implementing partner")
+                        return redirect(reverse("client_transfers", kwargs={'transferred_in': 1}))
+                    else:
+                        ip = None
+
+                client_transfer_id = request.POST.get("id", "")
+                if client_transfer_id != "":
+                    client_transfer = ClientTransfer.objects.get(id__exact=client_transfer_id)
+
+                    if client_transfer is not None:
+                        current_datetime = dt.now()
+                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=2)
+
+                        client_transfer.transfer_status = accepted_client_transfer_status
+                        client_transfer.start_date = current_datetime
+                        client_transfer.completed_by = request.user
+
+                        # Update the client to receive interventions from this new ip.
+                        client = Client.objects.get(id__exact=client_transfer.client.id)
+                        if ip is None and request.user.is_superuser:
+                            ip = client_transfer.destination_implementing_partner
+                        client.implementing_partner = ip
+
+                        # client transfers for current client being transferred,with no end_date and status accepted
+                        c_transfers = ClientTransfer.objects.filter(client=client_transfer.client, end_date=None,
+                                                                    transfer_status=accepted_client_transfer_status)
+
+                        with transaction.atomic():
+                            for c_transfer in c_transfers:
+                                c_transfer.end_date = current_datetime
+                                c_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=4)
+                                c_transfer.save()
+                            client.save()
+                            client_transfer.save()
+
+                        messages.info(request, "Transfer successfully accepted.")
+                        return redirect("/client?client_id={}".format(client.id))
+                    else:
+                        messages.error(request,
+                                       "Transfer not effected. Contact System Administrator if this error Persists.")
+                else:
+                    messages.error(request,
+                                   "Transfer not effected. Contact System Administrator if this error Persists.")
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        print traceback.format_exc(e)
+        messages.error(request,
+                       "An error occurred while processing request. "
+                       "Contact System Administrator if this error Persists.")
+
+    return redirect(reverse("client_transfers", kwargs={'transferred_in': 1}))
+
+
+def reject_client_transfer(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST':
+
+                client_transfer_id = request.POST.get("id", "")
+                if client_transfer_id != "":
+                    client_transfer = ClientTransfer.objects.get(id__exact=client_transfer_id)
+                else:
+                    client_transfer = None
+
+                if client_transfer is not None:
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=3)
+                    client_transfer.completed_by = request.user
+                    client_transfer.end_date = dt.now()
+                    client_transfer.save()
+
+                    messages.info(request, "Transfer successfully rejected.")
+                else:
+                    messages.warning(request,
+                                     "Transfer not rejected. Contact System Administrator if this error Persists.")
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        print traceback.format_exc(e)
+        messages.error(request,
+                       "An error occurred while processing request. "
+                       "Contact System Administrator if this error Persists.")
+
+    return redirect(reverse("client_transfers", kwargs={'transferred_in': 1}))
+
+
+def get_client_transfers_count(request):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            client_transfers_count = ClientTransfer.objects.filter(
+                destination_implementing_partner=ip,
+                transfer_status=initiated_client_transfer_status).count()
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            client_transfers_count = ClientTransfer.objects.filter(
+                transfer_status=initiated_client_transfer_status).count()
+        except Exception:
+            client_transfers_count = 0
+
+        return HttpResponse(client_transfers_count)
+    else:
+        return HttpResponse(0)
+
+
+def intervention_export_transferred_in_page(request):
+    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+            'DreamsApp.can_export_raw_data'):
+
+        try:
+            if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
+                ips = ImplementingPartner.objects.all()
+            elif request.user.implementingpartneruser is not None:
+                ips = ImplementingPartner.objects.filter(
+                    id=request.user.implementingpartneruser.implementing_partner.id)
+            else:
+                ips = None
+
+            print "IPs", ips
+            context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
+                       'counties': County.objects.all()}
+            return render(request, 'interventionDataExportTransferredIn.html', context)
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            traceback.format_exc()
+    else:
+        raise PermissionDenied
+
+
+def download_raw_intervention_transferred_in_report(request):
+    try:
+        from_intervention_date = request.POST.get('from_intervention_date')
+        to_intervention_date = request.POST.get('to_intervention_date')
+
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=dreams_interventions.xlsx'
+        export_doc = DreamsEnrollmentExcelTemplateRenderer()
+
+        # Ensure can_view_phi_data has been created on Client contentType
+        if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
+                or Permission.objects.filter(group__user=request.user).filter(
+            codename='DreamsApp.can_view_phi_data').exists():
+            show_PHI = True
+        else:
+            show_PHI = False
+
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            ip = None
+
+        wb = export_doc.get_intervention_excel_transferred_in_doc(ip, from_intervention_date, to_intervention_date,
+                                                                  show_PHI)
+        wb.save(response)
+        return response
+    except Exception as e:
+        traceback.format_exc()
+        return
+
+
+def export_client_transfers(request, *args, **kwargs):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+
+        transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
+        columns = ("client__dreams_id", "source_implementing_partner__name",
+                   "destination_implementing_partner__name", "transfer_reason", "transfer_status__name",)
+
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            if transferred_in:
+                c_transfers = ClientTransfer.objects.values_list(*columns).filter(destination_implementing_partner=ip)
+            else:
+                c_transfers = ClientTransfer.objects.values_list(*columns).filter(source_implementing_partner=ip)
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            c_transfers = ClientTransfer.objects.values_list(*columns)
+
+        header = ['Dreams ID', 'Source Implementing Partner', 'Destination Implementing Partner', 'Transfer Reason',
+                  'Status']
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(header)
+
+        for c_transfer in c_transfers:
+            ws.append(c_transfer)
+
+        dims = {}
+        for row in ws.rows:
+            for cell in row:
+                if cell.value:
+                    dims[cell.column] = max(dims.get(cell.column, 0), len(str(cell.value)))
+
+        for col, value in dims.items():
+            ws.column_dimensions[col].width = value
+
+        ft = Font(bold=True)
+        for cell in ws["1:1"]:
+            cell.font = ft
+
+        file_name = "Client_Transfers_{}.xlsx".format("In" if transferred_in else "Out")
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
+
+        wb.save(response)
+        return response
+    else:
+        return redirect('login')
+
+
+def void_client(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST' and request.is_ajax():
+                if not request.user.is_superuser and not request.user.has_perm(
+                        'DreamsApp.can_void_client') and not Permission.objects.filter(group__user=request.user).filter(
+                        codename='DreamsApp.can_void_client').exists():
+                    return get_response_data(0, 'Voiding Failed. You do not have permission to void a client')
+
+                client_id = request.POST.get("id", "")
+                void_reason = request.POST.get("void_reason", "")
+                if void_reason is None or void_reason == "" or void_reason.isspace():
+                    return get_response_data(0, {'void_reason': ['Reason for voiding is required.']})
+
+                if client_id != "":
+                    cursor = db_conn_2.cursor()
+                    try:
+                        args = [client_id, request.user.id, void_reason]
+                        cursor.callproc('sp_void_client_by_id', args)
+                        exec_status = cursor.fetchone()[0]
+
+                        if exec_status == 1:
+                            messages.info(request, "Client has been voided.")
+                            response_data = get_response_data(1, 'Client has been voided.', next_url=reverse('clients'))
+                        else:
+                            response_data = get_response_data(0,
+                                                              'Client not voided, please contact system '
+                                                              'administrator for assistance.')
+                    except Exception as e:
+                        response_data = get_response_data(0, 'Client could not be voided.{}'.format(e))
+                    finally:
+                        cursor.close()
+
+                    return response_data
+                else:
+                    return get_response_data(0, 'Invalid client ID. Please specify client.')
+            else:
+                raise SuspiciousOperation
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        traceback.format_exc()
+        return get_response_data(0, e.message)
+
+
+def get_response_data(status, message, **kwargs):
+    response = {
+        'status': 'success' if status == 1 else 'fail',
+        'message': message
+    }
+
+    for k, v in kwargs.iteritems():
+        response[k] = v
+
+    return JsonResponse(json.dumps(response), safe=False)
+
+
+def download_audit_logs(request):
+    if not request.user.is_superuser and not request.user.has_perm('DreamsApp.can_manage_audit'):
+        raise PermissionDenied('Operation not allowed. [Missing Permission]')
+
+    ip = ''
+    try:
+        ip = request.user.implementingpartneruser.implementing_partner.id
+    except ImplementingPartnerUser.DoesNotExist:
+        pass
+
+    # user is allowed to view logs
+    if request.method == 'GET':
+        try:
+            filter_text = request.GET.get('filter-log-text', '')
+            filter_date_from = request.GET.get('filter-log-date-from', '')
+            filter_date = request.GET.get('filter-log-date', '')
+
+            # getting logs
+            logs = Audit.objects.filter(Q(table__in=filter_text.split(" ")) |
+                                        Q(action__in=filter_text.split(" ")) |
+                                        Q(search_text__in=filter_text.split(" ")) |
+                                        Q(user__username__icontains=filter_text.split(" ")[0]) |
+                                        Q(user__first_name__icontains=filter_text.split(" ")[0]) |
+                                        Q(user__last_name__icontains=filter_text.split(" ")[0])
+                                        ).order_by('-timestamp')
+
+            logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs)
+
+            header = ['Timestamp', 'User', 'Table', 'Field', 'Old Value', 'New Value', 'Action', 'Text']
+
+            wb = Workbook()
+            ws = wb.active
+            ws.append(header)
+            row_idx = 2
+
+            for log in logs:
+                ws.cell(row=row_idx, column=1).value = log.timestamp
+                ws.cell(row=row_idx, column=2).value = log.get_user_name()
+                ws.cell(row=row_idx, column=3).value = log.table
+
+                adt_idx = row_idx
+                for audittrail in log.audittrail_set.all():
+                    ws.cell(row=adt_idx, column=4).value = audittrail.column
+                    ws.cell(row=adt_idx, column=5).value = audittrail.old_value
+                    ws.cell(row=adt_idx, column=6).value = audittrail.new_value
+                    adt_idx += 1
+
+                if adt_idx == row_idx:
+                    adt_idx += 1
+
+                ws.cell(row=row_idx, column=7).value = log.action
+                ws.cell(row=row_idx, column=8).value = log.search_text
+                row_idx = adt_idx
+
+            dims = {}
+            for row in ws.rows:
+                for cell in row:
+                    if cell.value:
+                        dims[cell.column] = max(dims.get(cell.column, 0), len(str(cell.value)))
+
+            for col, value in dims.items():
+                ws.column_dimensions[col].width = value
+
+            ft = Font(bold=True)
+            for cell in ws["1:1"]:
+                cell.font = ft
+
+            response = HttpResponse(content_type='application/ms-excel')
+            response['Content-Disposition'] = 'attachment; filename=Audit_Logs.xlsx'
+
+            wb.save(response)
+            return response
+
+        except Exception as e:
+            tb = traceback.format_exc(e)
+            return HttpResponseServerError(tb)
+    else:
+        raise SuspiciousOperation

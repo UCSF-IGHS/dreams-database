@@ -4,7 +4,8 @@
     <div class="container" style="">
 
         <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1">
                 <span class="sr-only">Toggle navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
@@ -24,13 +25,42 @@
                 {% else %}
                     {% if user.is_authenticated %}
                         {% if perms.auth.can_manage_client %}
-                            <li class="{% if page == 'clients' or page == 'interventions' %}active{% endif %}" ><a class="" href="/clients" style="">Clients &amp; Interventions</a> </li>
+                            <li class="{% if page == 'clients' or page == 'interventions' %}active{% endif %}"><a
+                                    class="" href="/clients" style="">Clients &amp; Interventions</a></li>
                         {% endif %}
+
+                        {% if perms.DreamsApp.can_transfer_client %}
+                            <li class="dropdown {% if page == 'transfers' %}active{% endif %}">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                                   aria-haspopup="true" aria-expanded="false">
+                                    <span>Transfers</span>
+                                    <span id="client-transfers-count-span" class="badge btn btn-danger"
+                                                  style="vertical-align: baseline; display: none;"
+                                                  data-count-url="{% url 'get_client_transfers_count' %}"></span>
+                                    <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="" href="{% url 'client_transfers' transferred_in=1 %}" style="">
+                                            <span>Transfer In</span>
+                                            <span class="client-transfers-count-span badge btn btn-default"
+                                                  style="vertical-align: baseline; display: none;color: #000;"></span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="" href="{% url 'client_transfers' transferred_in=0 %}" style="">
+                                            <span>Transfer Out</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        {% endif %}
+
                         {% if perms.DreamsApp.can_manage_audit %}
-                            <li class="{% if page == 'logs' %}active{% endif %}"><a href="/logs" >Logs </a> </li>
+                            <li class="{% if page == 'logs' %}active{% endif %}"><a href="/logs">Logs </a></li>
                         {% endif %}
                         {% if perms.auth.can_manage_user %}
-                            <li class="{% if page == 'users' %}active{% endif %}"><a href="/admin/users" >Users </a> </li>
+                            <li class="{% if page == 'users' %}active{% endif %}"><a href="/admin/users">Users </a></li>
                         {% endif %}
                     {% endif %}
                     <!--
@@ -40,30 +70,37 @@
                     -->
 
                     {% if user.is_authenticated %}
-                        <li class="dropdown {% if page == 'export' %}active{% endif %}" >
-                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
-                          {% if perms.DreamsApp.can_export_raw_data %}
-                              <ul class="dropdown-menu">
-                                  <li><a href="https://dreams-reports.globalhealthapp.net" target="_blank" class="text-danger">DREAMS Jasper Reports</a></li>
-                                  <li role="separator" class="divider"></li>
-                                  <li><a href="/export-page" class="text-danger">Raw Enrollment Export</a></li>
-                                  <li><a href="/intervention-export-page" class="text-danger">Raw Interventions Export</a></li>
-                                  <li><a href="/service-layering-export-page" class="text-danger">Services Received Export</a></li>
-                              </ul>
-                          {% endif %}
+                        <li class="dropdown {% if page == 'export' %}active{% endif %}">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                               aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
+                            {% if perms.DreamsApp.can_export_raw_data %}
+                                <ul class="dropdown-menu">
+                                    <li><a href="https://dreams-reports.globalhealthapp.net" target="_blank"
+                                           class="text-danger">DREAMS Jasper Reports</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="/export-page" class="text-danger">Raw Enrollment Export</a></li>
+                                    <li><a href="/intervention-export-page" class="text-danger">Raw Interventions
+                                        Export</a></li>
+                                    <li><a href="/service-layering-export-page" class="text-danger">Services Received
+                                        Export</a></li>
+                                    <li><a href="{% url 'intervention_export_transferred_in_page' %}" class="text-danger">Raw Interventions
+                                        Export (Transferred In)</a></li>
+                                </ul>
+                            {% endif %}
                         </li>
                     {% endif %}
 
                     {% if user.is_authenticated %}
-                        <li class="dropdown {% if page == 'account' %}active{% endif %}" >
-                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
-                          <ul class="dropdown-menu">
-                              <li><a href="/admin/users/change_cred" class="text-danger">Change password</a></li>
-                              <li><a href="/logout" class="text-danger">Logout: {{ user.username }}</a></li>
-                          </ul>
+                        <li class="dropdown {% if page == 'account' %}active{% endif %}">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                               aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/admin/users/change_cred" class="text-danger">Change password</a></li>
+                                <li><a href="/logout" class="text-danger">Logout: {{ user.username }}</a></li>
+                            </ul>
                         </li>
                     {% endif %}
-                    <li class="{% if page == 'help' %}active{% endif %}" ><a href="/help">Help &nbsp;</a></li>
+                    <li class="{% if page == 'help' %}active{% endif %}"><a href="/help">Help &nbsp;</a></li>
                 {% endif %}
             </ul>
 
