@@ -491,21 +491,21 @@ WHERE voided=0 AND i.implementing_partner_id = %s
         except InvalidFileException as e:
             traceback.format_exc()
 
-    def prepare_excel_doc(self, export_file_name, ip_list_str, sub_county, ward, show_PHI):
+    def prepare_excel_doc(self, response, ip_list_str, sub_county, ward, show_PHI):
 
         try:
             print "Starting DB Query! ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             db_data, cursor = self.get_export_rows(ip_list_str, sub_county, ward)
-            with open(export_file_name, 'wb') as temp_file:
-                writer = csv.writer(temp_file, quoting=csv.QUOTE_ALL)
-                col_names = []
 
-                for col in cursor.description:
-                    col_names.append(col[0])
-                writer.writerow(col_names)
+            writer = csv.writer(response, quoting=csv.QUOTE_ALL)
+            col_names = []
 
-                for row in cursor:
-                    writer.writerow(row)
+            for col in cursor.description:
+                col_names.append(col[0])
+            writer.writerow(col_names)
+
+            for row in cursor:
+                writer.writerow(row)
 
             print "Finished DB Query. Rendering Now. ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             print "Completed rendering excel ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')

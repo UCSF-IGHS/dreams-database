@@ -1778,9 +1778,10 @@ def downloadEXCEL(request):
         else:
             show_PHI = False
 
-        export_doc.prepare_excel_doc(export_file_name, ip_list_str, sub_county, ward, show_PHI)
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
+        export_doc.prepare_excel_doc(response, ip_list_str, sub_county, ward, show_PHI)
+
         return response
 
     except Exception as e:
