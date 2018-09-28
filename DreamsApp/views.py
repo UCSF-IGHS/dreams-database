@@ -2274,6 +2274,10 @@ def transfer_client(request):
                         client_transfer.initiated_by = request.user
                         client_transfer.save()
 
+                        client = transfer_form.instance.client
+                        client.date_changed = dt.now()
+                        client.save()
+
                         response_data = {
                             'status': 'success',
                             'message': 'Transfer request received, pending approval by the receiving implementing partner.',
