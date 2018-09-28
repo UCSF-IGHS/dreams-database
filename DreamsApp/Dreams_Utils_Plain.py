@@ -311,11 +311,6 @@ VALUES """
 
             return cursor_results, cursor
 
-            # columns = [col[0] for col in cursor.description]
-            # return [
-            #     dict(zip(columns, row))
-            #     for row in cursor.fetchall()
-            #     ]
         except Exception as e:
             print 'There was an Error running the query\n'
             traceback.format_exc()
