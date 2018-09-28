@@ -1766,14 +1766,8 @@ def downloadEXCEL(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        # response = HttpResponse(content_type='application/ms-excel')
-        # response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
 
-        response = HttpResponse(content_type='text/csv')
-        g = ("/tmp/output-{}.csv").format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        export_file_name = urllib.quote(g)
-        response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-
+        export_file_name = urllib.quote(("/tmp/output-{}.csv").format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
 
         # Ensure can_view_phi_data has been created on Client contentType
@@ -1784,8 +1778,11 @@ def downloadEXCEL(request):
         else:
             show_PHI = False
 
-        return export_doc.prepare_excel_doc(response, ip_list_str, sub_county, ward, show_PHI)
-        # wb.save(response)
+        export_doc.prepare_excel_doc(export_file_name, ip_list_str, sub_county, ward, show_PHI)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
+        return response
+
     except Exception as e:
         traceback.format_exc()
         return
