@@ -1,0 +1,21 @@
+[
+  {
+    "model": "DreamsApp.serviceprovidertype",
+    "pk": 1,
+    "fields" : {
+      "code": 1,
+      "name": "Internal"
+    }
+  },
+  {
+    "model": "DreamsApp.serviceprovidertype",
+    "pk": 2,
+    "fields" : {
+      "code": 2,
+      "name": "External"
+    }
+  }
+]
+
+
+

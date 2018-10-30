@@ -10,7 +10,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.html import format_html
 
 
-
 class MaritalStatus(models.Model):
     code = models.CharField(verbose_name='Marital Status Code', max_length=10, null=False, blank=False)
     name = models.CharField(max_length=100, null=False)
@@ -73,9 +72,33 @@ class VerificationDocument(models.Model):
         verbose_name_plural = 'Verification Documents'
 
 
+class ServiceProviderType(models.Model):
+    SERVICE_PROVIDER_TYPES = (
+        (1, 'Internal'),
+        (2, 'External')
+    )
+    code = models.IntegerField(null=False, blank=False, unique=True,
+                               validators=[
+                                   MaxValueValidator(100),
+                                   MinValueValidator(0)
+                               ],
+                               )
+    name = models.CharField(max_length=20, choices=SERVICE_PROVIDER_TYPES, verbose_name='Service Provider Type')
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta(object):
+        verbose_name = 'Service Provider Type'
+        verbose_name_plural = 'Service Provider Types'
+
+
+# Give initial default value for service_provider_type
 class ImplementingPartner(models.Model):
     code = models.IntegerField(name='code', verbose_name='Implementing Partner Code')
     name = models.CharField(max_length=150, verbose_name='Implementing Partner Name')
+    parent_implementing_partner = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, unique=False, verbose_name='Parent Implementing Partner')
+    service_provider_type = models.ForeignKey(ServiceProviderType, on_delete=models.PROTECT, null=False, blank=False, verbose_name='Implementing Partner Type')
 
     def __str__(self):
         return '{}'.format(self.name)
@@ -95,6 +118,24 @@ class ImplementingPartnerUser(models.Model):
     class Meta(object):
         verbose_name = 'Implementing Partner User'
         verbose_name_plural = 'Implementing Partner Users'
+
+
+#### do we have predefined reasons??
+class ExitReasons(models.Model):
+    code = models.IntegerField(null=False, blank=False, unique=True,
+                               validators=[
+                                   MaxValueValidator(100),
+                                   MinValueValidator(0)
+                               ],
+                               )
+    name = models.CharField(blank=False, null=False, max_length=100, unique=True)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta(object):
+        verbose_name = 'Exit Reason'
+        verbose_name_plural = 'Exit Reasons'
 
 
 class Client(models.Model):
@@ -137,9 +178,12 @@ class Client(models.Model):
     date_voided = models.DateTimeField(null=True, blank=True)
 
     exited = models.BooleanField(default=False)
+    exit_reason = models.ForeignKey(ExitReasons, null=True, blank=True)
     reason_exited = models.CharField(blank=True, null=True, max_length=100)
     exited_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_exited = models.DateTimeField(null=True, blank=True)
+    exit_authorized_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    exit_authorized_date = models.DateTimeField(null=True, blank=True)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
@@ -1222,3 +1266,78 @@ class ClientTransfer(models.Model):
     class Meta(object):
         verbose_name = 'Client Transfer'
         verbose_name_plural = 'Client Transfers'
+
+
+class ReferralStatus(models.Model):
+    REFERRAL_STATUSES = (
+        (1, 'Pending'),
+        (2, 'Accepted'),
+        (3, 'Rejected'),
+        (4, 'Completed')
+    )
+    code = models.IntegerField(null=False, blank=False, unique=True,
+                               validators=[
+                                   MaxValueValidator(100),
+                                   MinValueValidator(0)
+                               ],
+                               )
+    name = models.CharField(null=False, blank=False, max_length=20,
+                            choices=REFERRAL_STATUSES, default='Pending')
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta(object):
+        verbose_name = 'Referral Status'
+        verbose_name_plural = 'Referral Statuses'
+
+
+# Need to link referral to intervention
+class Referrals(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, null=False, blank=False, related_name='client_referral')
+    primary_ip = models.ForeignKey(ImplementingPartner, on_delete=models.PROTECT, null=False, blank=False, related_name='primary_ip')
+    referral_ip = models.ForeignKey(ImplementingPartner, on_delete=models.PROTECT, null=False, blank=False, related_name='referral_ip')
+    referral_ip_other = models.CharField(null=True, blank=True, max_length=255)
+    intervention_type = models.ForeignKey(InterventionType, on_delete=models.PROTECT, null=False, blank=False, related_name='intervention_type')
+    referral_status = models.ForeignKey(ReferralStatus, on_delete=models.PROTECT, null=False, blank=False, related_name='referral_status')
+    referral_date = models.DateField(null=False, blank=False)
+
+    def __str__(self):
+        return '{}'.format(self.referral_ip.name)
+
+    class Meta(object):
+        verbose_name = 'Referral'
+        verbose_name_plural = 'Referrals'
+
+
+class ClientLTFU(models.Model):
+    FOLLOWUP_CATEGORIES = (
+        (1, 'Call'),
+        (2, 'Visit')
+    )
+    client = models.ForeignKey(Client, null=False, blank=False, related_name='client_ltfu')
+    date_of_followup = models.DateField(blank=False, null=False, verbose_name='Date of Followup')
+    name_of_followup_person = models.CharField(blank=False, null=False, max_length=255, verbose_name='Name of Followup Person')
+    type_of_followup = models.CharField(blank=False, null=False, max_length=10, verbose_name='Type of Followup', choices=FOLLOWUP_CATEGORIES)
+    result_of_followup = models.CharField(blank=False, null=False, max_length=255, verbose_name='Result of Followup')
+    comment = models.CharField(null=True, blank=True, max_length=255, verbose_name='Comment')
+
+    def __str__(self):
+        return '{}'.format(self.client.dreams_id)
+
+    class Meta(object):
+        verbose_name = 'Client LTFU'
+        verbose_name_plural = 'Client LTFUs'
+
+
+class ClientMapping(models.Model):
+    implementing_partner = models.ForeignKey(ImplementingPartner, on_delete=models.PROTECT, null=False, blank=False)
+    external_program_client_id = models.IntegerField(null=False, blank=False)
+    dreams_id = models.CharField(null=False, blank=False, max_length=50)
+
+    def __str__(self):
+        return '{}'.format(self.dreams_id)
+
+    class Meta(object):
+        verbose_name = 'Client Mapping'
+        verbose_name_plural = 'Client Mappings'
