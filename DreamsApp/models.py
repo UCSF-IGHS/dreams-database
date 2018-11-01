@@ -185,8 +185,9 @@ class Client(models.Model):
     reason_exited = models.CharField(blank=True, null=True, max_length=100)
     exited_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_exited = models.DateTimeField(null=True, blank=True)
-    exit_authorized_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
-    exit_authorized_date = models.DateTimeField(null=True, blank=True)
+
+    ovc_id = models.CharField(blank=True, null=True, max_length=20)
+    external_organisation = models.ForeignKey(ExternalOrganisation, null=True, blank=True)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
@@ -325,7 +326,8 @@ class ReferralStatus(models.Model):
     REFERRAL_STATUSES = (
         (1, 'Pending'),
         (2, 'Completed'),
-        (3, 'Rejected')
+        (3, 'Rejected'),
+        (4, 'Expired')
     )
     code = models.IntegerField(null=False, blank=False, unique=True,
                                validators=[
