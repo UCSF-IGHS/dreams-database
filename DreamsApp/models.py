@@ -124,7 +124,7 @@ class ImplementingPartnerUser(models.Model):
 
 
 #### do we have predefined reasons??
-class ExitReasons(models.Model):
+class ExitReason(models.Model):
     code = models.IntegerField(null=False, blank=False, unique=True,
                                validators=[
                                    MaxValueValidator(100),
@@ -181,7 +181,7 @@ class Client(models.Model):
     date_voided = models.DateTimeField(null=True, blank=True)
 
     exited = models.BooleanField(default=False)
-    exit_reason = models.ForeignKey(ExitReasons, null=True, blank=True)
+    exit_reason = models.ForeignKey(ExitReason, null=True, blank=True)
     reason_exited = models.CharField(blank=True, null=True, max_length=100)
     exited_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_exited = models.DateTimeField(null=True, blank=True)
