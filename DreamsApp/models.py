@@ -107,6 +107,7 @@ class ImplementingPartnerFunder(models.Model):
         verbose_name = 'Funder'
         verbose_name_plural = 'Funders'
 
+
 # Give initial default value for service_provider_type
 class ImplementingPartner(models.Model):
     code = models.IntegerField(name='code', verbose_name='Implementing Partner Code')
@@ -334,12 +335,6 @@ class PregnancyTestResult(models.Model):
 
 
 class ReferralStatus(models.Model):
-    REFERRAL_STATUSES = (
-        (1, 'Pending'),
-        (2, 'Completed'),
-        (3, 'Rejected'),
-        (4, 'Expired')
-    )
     code = models.IntegerField(null=False, blank=False, unique=True,
                                validators=[
                                    MaxValueValidator(100),
@@ -347,7 +342,7 @@ class ReferralStatus(models.Model):
                                ], verbose_name='Referral Code'
                                )
     name = models.CharField(null=False, blank=False, max_length=20,
-                            choices=REFERRAL_STATUSES, default='Pending', verbose_name='Referral Name')
+                            default='Pending', verbose_name='Referral Name')
 
     def __str__(self):
         return '{}'.format(self.name)
