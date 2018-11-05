@@ -1,5 +1,24 @@
 $(document).ready(function () {
 
+    $('div#other_external_organization').hide();
+    $('#external-organization-select').change(function () {
+        var selectedExternalOrganization = $(this).find(':selected');
+        if(selectedExternalOrganization.val() == -1) {
+            $('div#other_external_organization').show();
+        } else {
+            $('div#other_external_organization').hide();
+        }
+    });
+
+
+    $('input#external-organization-checkbox').change(function () {
+        if (this.checked) {
+            $('fieldset#external_organization_more_section').removeClass('hidden');
+        } else {
+            $('fieldset#external_organization_more_section').addClass('hidden');
+        }
+    });
+
     $('#alert_modal').on('shown.bs.modal', function (e) {
         // Start counter to close this modal
         setTimeout(function(){
@@ -561,6 +580,8 @@ $(document).ready(function () {
                 // notes
                 showSection(true, '#notes_section')
                 interventionTypeEmpty = true;
+                // external organization section
+                showSection(true, '#external_organization_section')
                 return false
             }
         })
