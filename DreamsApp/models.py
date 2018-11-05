@@ -97,11 +97,23 @@ class ExternalOrganisation(models.Model):
         verbose_name_plural = 'External Organisations'
 
 
+class ImplementingPartnerFunder(models.Model):
+    name = models.CharField(max_length=20, verbose_name='Funder', null=False, blank=False, unique=True)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta(object):
+        verbose_name = 'Funder'
+        verbose_name_plural = 'Funders'
+
+
 # Give initial default value for service_provider_type
 class ImplementingPartner(models.Model):
     code = models.IntegerField(name='code', verbose_name='Implementing Partner Code')
     name = models.CharField(max_length=150, verbose_name='Implementing Partner Name')
     parent_implementing_partner = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, unique=False, verbose_name='Parent Implementing Partner')
+    implementing_partner_funder = models.ForeignKey(ImplementingPartnerFunder, on_delete=models.PROTECT, null=True, blank=True, verbose_name='Funder')
 
     def __str__(self):
         return '{}'.format(self.name)
@@ -323,12 +335,6 @@ class PregnancyTestResult(models.Model):
 
 
 class ReferralStatus(models.Model):
-    REFERRAL_STATUSES = (
-        (1, 'Pending'),
-        (2, 'Completed'),
-        (3, 'Rejected'),
-        (4, 'Expired')
-    )
     code = models.IntegerField(null=False, blank=False, unique=True,
                                validators=[
                                    MaxValueValidator(100),
@@ -336,7 +342,7 @@ class ReferralStatus(models.Model):
                                ], verbose_name='Referral Code'
                                )
     name = models.CharField(null=False, blank=False, max_length=20,
-                            choices=REFERRAL_STATUSES, default='Pending', verbose_name='Referral Name')
+                            default='Pending', verbose_name='Referral Name')
 
     def __str__(self):
         return '{}'.format(self.name)
