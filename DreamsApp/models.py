@@ -392,6 +392,7 @@ class Intervention(models.Model):
                                              related_name='implementing_partner')
     external_organisation = models.ForeignKey(ExternalOrganisation, null=True, blank=True,
                                              related_name='external_organisation')
+    external_organisation_other = models.CharField(null=True, blank=True, max_length=255)
     referral = models.ForeignKey(Referral, null=True, blank=True,
                                               related_name='referral')
     voided = models.BooleanField(default=False)
