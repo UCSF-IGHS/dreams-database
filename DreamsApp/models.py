@@ -357,6 +357,7 @@ class Referral(models.Model):
     referral_date = models.DateField(null=False, blank=False)
     referral_expiration_date = models.DateField(null=False, blank=False)
     comments = models.CharField(null=True, blank=True, max_length=255)
+    rejectreason = models.CharField(null=True, blank=True, max_length=255)
 
     def __str__(self):
         return '{}'.format(self.referring_ip.name)
