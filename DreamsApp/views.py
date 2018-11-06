@@ -336,7 +336,8 @@ def client_profile(request):
                                                                'transfer_form': ClientTransferForm(ip_code=ip_code,
                                                                                                    initial={
                                                                                                        'client':
-                                                                                                           client_found})
+                                                                                                           client_found}),
+                                                               'external_organisation_type_list': ['233', '23e44']
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
@@ -632,6 +633,24 @@ def testajax(request):
 # Handles post request for intervention types.
 # Receives category_code from request and searches for types in the database
 
+def get_external_organisation(request):
+    try:
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            response_data = {}
+            external_orgs = serializers.serialize('json', ExternalOrganisation.objects.all())
+            response_data["external_orgs"] = external_orgs
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+# Use /ivgetTypes/ in the post url to access the method
+# Handles post request for intervention types.
+# Receives category_code from request and searches for types in the database
+
+
 def get_intervention_types(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
@@ -726,6 +745,8 @@ def save_intervention(request):
 
                 # check if external organisation is selected
                 external_organization_checkbox = request.POST.get('external_organization_checkbox')
+                external_organization_code = int(request.POST.get('external_organization_code'))
+                other_external_organization_code = request.POST.get('other_external_organization_code')
 
                 if not external_organization_checkbox: # if not external organisation
                     if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
@@ -754,6 +775,12 @@ def save_intervention(request):
                     intervention.created_by = created_by
                     intervention.date_created = dt.now()
                     intervention.comment = request.POST.get('comment', '')
+
+                    if external_organization_checkbox:
+                        if external_organization_code == -1:
+                            intervention.external_organisation_other = other_external_organization_code
+                        else:
+                            intervention.external_organisation = external_organization_code
 
                     if intervention_type.has_hts_result:
                         intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
@@ -922,6 +949,8 @@ def update_intervention(request):
 
                         # check if external organisation is selected
                         external_organization_checkbox = request.POST.get('external_organization_checkbox')
+                        external_organization_code = int(request.POST.get('external_organization_code'))
+                        other_external_organization_code = request.POST.get('other_external_organization_code')
 
                         if not external_organization_checkbox:  # if not external organisation
                             if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
@@ -954,6 +983,12 @@ def update_intervention(request):
 
                         if i_type.has_no_of_sessions:
                             intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
+
+                        if external_organization_checkbox:
+                            if external_organization_code == -1:
+                                intervention.external_organisation_other = other_external_organization_code
+                            else:
+                                intervention.external_organisation = external_organization_code
 
                         intervention.save(user_id=request.user.id, action="UPDATE")  # Logging
                         # using defer() miraculously solved serialization problem of datetime properties.
