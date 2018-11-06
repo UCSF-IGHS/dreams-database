@@ -212,6 +212,7 @@ $(document).ready(function () {
 
     $('#intervention-modal').on('hide.bs.modal', function (event) {
         $('#intervention-type-select').removeAttr('disabled')
+        $('div#external_organization_section').addClass('hidden');
         $('#error-space').text("");
         $('#comments-text').val("")
         // reset the form
