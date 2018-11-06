@@ -634,7 +634,7 @@ def testajax(request):
 
 def get_external_organisation(request):
     try:
-        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
             response_data = {}
             external_orgs = serializers.serialize('json', ExternalOrganisation.objects.all())
             response_data["external_orgs"] = external_orgs
@@ -644,11 +644,6 @@ def get_external_organisation(request):
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
-
-# Use /ivgetTypes/ in the post url to access the method
-# Handles post request for intervention types.
-# Receives category_code from request and searches for types in the database
-
 
 def get_intervention_types(request):
     try:

@@ -3,7 +3,8 @@ $(document).ready(function () {
     $('div#other_external_organization').hide();
     $('#external-organization-select').change(function () {
         var selectedExternalOrganization = $(this).find(':selected');
-        if(selectedExternalOrganization.val() == -1) {
+        var otherOption = -1;
+        if(selectedExternalOrganization.val() == otherOption) {
             $('div#other_external_organization').show();
         } else {
             $('div#other_external_organization').hide();
@@ -326,16 +327,12 @@ $(document).ready(function () {
     }
 
      function fetchExternalOrganisations() {
-        var csrftoken = getCookie('csrftoken');
         $('#intervention-entry-form .processing-indicator').removeClass('hidden');
         $.ajax({
-            url : "/getExternalOrganisations", // the endpoint
-            type : "POST", // http method
+            url : "/getExternalOrganisations",
+            type : "GET",
             dataType: 'json',
             async: false,
-            data : {
-                csrfmiddlewaretoken : csrftoken
-            },
             success : function(data) {
                 externalOrganisations = $.parseJSON(data.external_orgs); // Gloabal variable
                 setExternalOrganisationsSelect(externalOrganisations);
