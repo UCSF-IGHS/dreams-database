@@ -1,34 +1,23 @@
 [
   {
-    "model": "DreamsApp.referralstatus",
+    "model": "DreamsApp.implementingpartnerfunder",
     "pk": 1,
     "fields" : {
-      "code": 1,
-      "name": "Pending"
+      "name": "CDC"
     }
   },
   {
-    "model": "DreamsApp.referralstatus",
+    "model": "DreamsApp.implementingpartnerfunder",
     "pk": 2,
     "fields" : {
-      "code": 2,
-      "name": "Completed"
+      "name": "USAID"
     }
   },
   {
-    "model": "DreamsApp.referralstatus",
+    "model": "DreamsApp.implementingpartnerfunder",
     "pk": 3,
     "fields" : {
-      "code": 3,
-      "name": "Rejected"
-    }
-  },
-  {
-    "model": "DreamsApp.referralstatus",
-    "pk": 4,
-    "fields" : {
-      "code": 4,
-      "name": "Expired"
+      "name": "DOD"
     }
   }
 ]
