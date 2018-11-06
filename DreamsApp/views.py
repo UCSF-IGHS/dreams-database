@@ -336,8 +336,7 @@ def client_profile(request):
                                                                'transfer_form': ClientTransferForm(ip_code=ip_code,
                                                                                                    initial={
                                                                                                        'client':
-                                                                                                           client_found}),
-                                                               'external_organisation_type_list': ['233', '23e44']
+                                                                                                           client_found})
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
