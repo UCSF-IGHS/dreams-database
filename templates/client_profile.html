@@ -487,13 +487,13 @@
                   </div>
 
               </div>
-
         </div>
     </div>
 
     <input id="current_client_id" class="hidden" type="text" name="client_id" value="{{ client.id }}">
     <input id="current_client_age" class="hidden" type="text" name="client_age" value="{{ client.get_current_age }}">
-
+    <input type="hidden" id="current_date" value="{{ client.date_of_enrollment.year|default:2015 }}, {{ client.date_of_enrollment.month|default:10 }}, {{ client.date_of_enrollment.day|default:1 }}">
     <br/>
+
 </div>
 {% endblock %}

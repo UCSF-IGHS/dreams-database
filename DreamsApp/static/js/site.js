@@ -10,12 +10,14 @@ $(document).ready(function () {
         }
     });
 
-
     $('input#external-organization-checkbox').change(function () {
         if (this.checked) {
             $('fieldset#external_organization_more_section').removeClass('hidden');
+            // expand date range
+            $( "#date-of-completion" ).datepicker( "option", "minDate", new Date(2007, 1 - 1, 1) );
         } else {
             $('fieldset#external_organization_more_section').addClass('hidden');
+            $( "#date-of-completion" ).datepicker( "option", "minDate", new Date($('#current_date').val()) );
         }
     });
 
