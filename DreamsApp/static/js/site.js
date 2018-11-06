@@ -10,11 +10,18 @@ $(document).ready(function () {
         }
     });
 
+    $( "#date-of-completion" ).datepicker({
+          maxDate: '0y 0m 0d',
+          minDate:  (new Date($('#current_date').val())),
+          changeMonth: true,
+          changeYear: true
+    });
+
     $('input#external-organization-checkbox').change(function () {
         if (this.checked) {
             $('fieldset#external_organization_more_section').removeClass('hidden');
             // expand date range
-            $( "#date-of-completion" ).datepicker( "option", "minDate", new Date(2007, 1 - 1, 1) );
+            $( "#date-of-completion" ).datepicker( "option", "minDate", new Date(1970, 0, 0) );
         } else {
             $('fieldset#external_organization_more_section').addClass('hidden');
             $( "#date-of-completion" ).datepicker( "option", "minDate", new Date($('#current_date').val()) );

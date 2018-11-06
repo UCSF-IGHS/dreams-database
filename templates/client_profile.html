@@ -74,16 +74,7 @@
                             <input type="text" class="form-control validate-intervention-form-field" id="date-of-completion"  placeholder="Select date " style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                             <input type="text" class="form-control validate-intervention-form-field hidden" id="date-of-completion-formatted" name="intervention_date"/>
                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
-                          <script>
-                              $(function() {
-                                $( "#date-of-completion" ).datepicker({
-                                      maxDate: '0y 0m 0d',
-                                      minDate:  (new Date({{ client.date_of_enrollment.year|default:2015 }}, {{ client.date_of_enrollment.month|default:10 }} - 1 , {{ client.date_of_enrollment.day|default:1 }})),
-                                      changeMonth: true,
-                                      changeYear: true
-                                });
-                              });
-                          </script>
+
                         </div>
 
                          <div class="form-group hidden" id="hts_result_section">
