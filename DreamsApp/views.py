@@ -30,6 +30,8 @@ from Dreams_Utils import *
 from Dreams_Utils_Plain import *
 
 
+OTHER_OPTION = -1
+
 def get_enrollment_form_config_data(request):
     try:
         try:
@@ -771,7 +773,7 @@ def save_intervention(request):
                     intervention.comment = request.POST.get('comment', '')
 
                     if external_organization_checkbox:
-                        if external_organization_code == -1:
+                        if external_organization_code == OTHER_OPTION:
                             intervention.external_organisation_other = other_external_organization_code
                         else:
                             intervention.external_organisation = external_organization_code
@@ -979,7 +981,7 @@ def update_intervention(request):
                             intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
                         if external_organization_checkbox:
-                            if external_organization_code == -1:
+                            if external_organization_code == OTHER_OPTION:
                                 intervention.external_organisation_other = other_external_organization_code
                             else:
                                 intervention.external_organisation = external_organization_code
