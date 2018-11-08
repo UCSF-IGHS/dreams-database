@@ -8,7 +8,7 @@ $(document).ready(function () {
             $('div#other_external_organization').show();
         } else {
             $('div#other_external_organization').hide();
-            $('#other_specify').val(null);
+            $('#other-external-organization').val('');
         }
     });
 
@@ -678,7 +678,7 @@ $(document).ready(function () {
                 $('#other-external-organization').val(iv.fields.external_organisation_other);
             } else {
                 $('div#other_external_organization').hide();
-                $('#other-external-organization').val(null);
+                $('#other-external-organization').val('');
             }
         } else {
             $('#external-organization-checkbox').prop('checked', false);
