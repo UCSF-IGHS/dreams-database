@@ -739,7 +739,7 @@ def save_intervention(request):
 
                 # check if external organisation is selected
                 external_organization_checkbox = request.POST.get('external_organization_checkbox')
-                external_organization_code = int(request.POST.get('external_organization_code'))
+                external_organization_code = request.POST.get('external_organization_code')
                 other_external_organization_code = request.POST.get('other_external_organization_code')
 
                 if not external_organization_checkbox: # if not external organisation
