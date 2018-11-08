@@ -35,10 +35,6 @@
                                 <label class="control-label">Warning!, the client's age is outside the selected intervention type's age bracket </label>
                             </div>
                         </div>
-                        <div class="processing-indicator hidden" style="text-align: center; opacity: 0.4;">
-                            <i class='fa fa-spinner fa-spin fa-1x'></i>
-                            <p style="font-size: medium">Loading...</p>
-                        </div>
 
                         <div class="form-group hidden" id="other_specify_section">
                             <label for="other_specify" class="control-label">Specify Intervention</label>
@@ -112,7 +108,7 @@
                         </div>
 
                          <div class="form-group" id="notes_section">
-                            <span id="error-space" class="label" style="color: red;"></span>
+                            <span id="error-space" class="label error-space" style="color: red;"></span>
                         </div>
                          Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
 
@@ -130,7 +126,6 @@
                           <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving intervention... </span>
                       </span>
                   </div>
-
                 </form>
             </div>
           </div>

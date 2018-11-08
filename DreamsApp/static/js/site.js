@@ -183,6 +183,7 @@ $(document).ready(function () {
     
     $('#intervention-modal').on('show.bs.modal', function (event) {
          // check the mode... Can be new or edit
+        $('#btn_save_intervention').removeAttr("disabled");
         var button = $(event.relatedTarget) // Button that triggered the modal
         var currentClientId = $('#current_client_id').val();
 
@@ -314,8 +315,6 @@ $(document).ready(function () {
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
             }
         });
-
-
     });
 
     function filterTable(table_id, filter_value) {
@@ -468,7 +467,7 @@ $(document).ready(function () {
             })
             $('#error-space').html(textMessage);
             // And return
-            return false
+            return false;
         }
         return true;
     }
@@ -722,9 +721,12 @@ $(document).ready(function () {
                 if(status == 'fail'){
                     $(alert_id).removeClass('hidden').addClass('alert-danger')
                         .text(message)
-                        .trigger('madeVisible')
+                        .trigger('madeVisible');
                     $("#intervention-modal").each( function() { this.reset; });
-                    $('#intervention-modal').modal('hide');
+                    // $('#intervention-modal').modal('hide');
+                    $('#btn_save_intervention').removeAttr("disabled");
+                    $('#intervention-entry-form .processing-indicator').addClass('hidden');
+                    $('#intervention-entry-form #error-space').html("* " + message);
                 }
                 else{
                     var iv = $.parseJSON(data.intervention)[0];
@@ -779,10 +781,10 @@ $(document).ready(function () {
                 $('#action_alert_' + currentInterventionCategoryCode_Global).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again: ' + errmsg)
                 $('#btn_save_intervention').removeAttr("disabled");
                 console.log(xhr.status + " " +err + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                $('#intervention-entry-form .processing-indicator').addClass('hidden');
+                $('#intervention-entry-form #error-space').html("* " + message);
             }
         });
-
-
     });
 
     $('.dp-action-alert').on('madeVisible', function (event) {

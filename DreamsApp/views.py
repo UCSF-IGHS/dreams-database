@@ -1023,9 +1023,15 @@ def update_intervention(request):
             }
             return JsonResponse(response_data)
     except Exception as e:
+        # check if validation error
+        if type(e) is ValidationError:
+            errormsg = '; '.join(ValidationError(e).messages)
+        else:
+            errormsg = str(e)
+
         response_data = {
             'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
+            'message': "An error has occurred: " + errormsg
         }
         return JsonResponse(response_data)
 

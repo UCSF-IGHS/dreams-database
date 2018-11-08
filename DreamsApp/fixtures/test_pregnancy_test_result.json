@@ -1,0 +1,18 @@
+[
+  {
+    "model": "DreamsApp.pregnancytestresult",
+    "pk": 1,
+    "fields" : {
+      "code": 101,
+      "name": "Not Pregnant"
+    }
+  },
+  {
+    "model": "DreamsApp.pregnancytestresult",
+    "pk": 2,
+    "fields" : {
+      "code": 102,
+      "name": "Pregnant"
+    }
+  }
+]

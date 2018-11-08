@@ -1,0 +1,29 @@
+[
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 1,
+    "fields" : {
+      "name": "Mwendo OVC",
+      "type": 2,
+      "code": null
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 2,
+    "fields" : {
+     "name": "Case OVC",
+      "type": 2,
+      "code": null
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 3,
+    "fields" : {
+     "name": "Nilinde (Plan Onternational)",
+      "type": 2,
+      "code": null
+    }
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "model": "DreamsApp.ward",
+    "pk": 1,
+    "fields" : {
+      "code": 1,
+      "name": "West Ugenya",
+      "sub_county_id": 1
+    }
+  },
+  {
+    "model": "DreamsApp.ward",
+    "pk": 2,
+    "fields" : {
+      "code": 2,
+      "name": "Ukwala",
+      "sub_county_id": 1
+    }
+  },
+  {
+    "model": "DreamsApp.ward",
+    "pk": 3,
+    "fields" : {
+      "code": 3,
+      "name": "North Ugenya",
+      "sub_county_id": 1
+    }
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "model": "DreamsApp.subcounty",
+    "pk": 1,
+    "fields" : {
+      "code": "Alego Usonga",
+      "name": "Alego Usonga",
+      "county_id": 4
+    }
+  },
+  {
+    "model": "DreamsApp.subcounty",
+    "pk": 2,
+    "fields" : {
+      "code": "Bondo",
+      "name": "Bondo",
+      "county_id": 4
+    }
+  },
+  {
+    "model": "DreamsApp.subcounty",
+    "pk": 3,
+    "fields" : {
+      "code": "Gem",
+      "name": "Gem",
+      "county_id": 4
+    }
+  },
+  {
+    "model": "DreamsApp.subcounty",
+    "pk": 4,
+    "fields" : {
+      "code": "Rarieda",
+      "name": "Rarieda",
+      "county_id": 4
+    }
+  },
+  {
+    "model": "DreamsApp.subcounty",
+    "pk": 4,
+    "fields" : {
+      "code": "Ugenya",
+      "name": "Ugenya",
+      "county_id": 4
+    }
+  },
+  {
+    "model": "DreamsApp.subcounty",
+    "pk": 4,
+    "fields" : {
+      "code": "Ugunja",
+      "name": "Ugunja",
+      "county_id": 4
+    }
+  }
+]
