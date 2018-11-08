@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from DreamsApp.models import *
 from DreamsApp.xf_test_case.xf_test_case import XFTestCase
+import datetime
 
 
 class TestInterventionDateTestCase(XFTestCase):
@@ -20,10 +21,10 @@ class TestInterventionDateTestCase(XFTestCase):
 
     def test_equal_to_today(self):
         self.assertFieldClean(Intervention, 'intervention_date',
-                                 datetime.date.today(),
-                                 'intervention_date cannot be equal to today')
+                              datetime.date.today(),
+                              'intervention_date cannot be equal to today')
 
     def test_less_than_today(self):
         self.assertFieldClean(Intervention, 'intervention_date',
-                                 datetime.date.today() - datetime.timedelta(days=1),
-                                 'intervention_date cannot be later than today')
+                              datetime.date.today() - datetime.timedelta(days=1),
+                              'intervention_date cannot be later than today')

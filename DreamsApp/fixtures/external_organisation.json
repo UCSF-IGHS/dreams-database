@@ -4,8 +4,9 @@
     "pk": 1,
     "fields" : {
       "name": "Mwendo OVC",
-      "type": 2,
-      "code": null
+      "type": 1,
+      "code": null,
+      "allow_specific": false
     }
   },
   {
@@ -13,8 +14,9 @@
     "pk": 2,
     "fields" : {
      "name": "Case OVC",
-      "type": 2,
-      "code": null
+      "type": 1,
+      "code": null,
+      "allow_specific": false
     }
   },
   {
@@ -22,8 +24,19 @@
     "pk": 3,
     "fields" : {
      "name": "Nilinde (Plan Onternational)",
-      "type": 2,
-      "code": null
+      "type": 1,
+      "code": null,
+      "allow_specific": false
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 4,
+    "fields" : {
+     "name": "Other",
+      "type": 4,
+      "code": null,
+      "allow_specific": false
     }
   }
 ]

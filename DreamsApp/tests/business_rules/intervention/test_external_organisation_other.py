@@ -1,22 +1,26 @@
 from __future__ import unicode_literals
 from DreamsApp.models import *
-from django.test import TestCase
+import datetime
+from DreamsApp.xf_test_case.xf_test_case import XFTestCase
 
 
-class TestExternalOrganisationOtherTestCase(TestCase):
+class TestExternalOrganisationOtherTestCase(XFTestCase):
+    # load fixtures
+    fixtures = ['external_organisation_type.json', 'external_organisation.json']
+
     def setUp(self):
-        self.EXTERNAL_ORGANISATION = ExternalOrganisation.objects.get(pk=1) # fixture run by migration
-        self.EXTERNAL_ORGANISATION_OTHER = "Global Communities"
+        self.EXTERNAL_ORGANISATION = ExternalOrganisation.objects.get(pk=4)
+        self.EXTERNAL_ORGANISATION_OTHER = None
 
     def tearDown(self):
         del self.EXTERNAL_ORGANISATION
-        del self.EXTERNAL_ORGANISATION_OTHER
+        self.EXTERNAL_ORGANISATION_OTHER
 
-    def test_external_organisation_and_external_organisation_both_selected(self):
-        external_organisation_and_external_organisation_both_selected = {
-            "external_organisation": self.EXTERNAL_ORGANISATION ,
-            "external_organisation_other": self.EXTERNAL_ORGANISATION_OTHER,
+    def test_external_organisation_other_is_required_if_external_organisation_is_other(self):
+        external_organisation_other_is_required_if_external_organisation_is_other = {
+            "external_organisation": self.EXTERNAL_ORGANISATION,
+            "external_organisation_other": None
         }
-        self.assertModelNotClean(Intervention, external_organisation_and_external_organisation_both_selected,
+        self.assertModelNotClean(Intervention, external_organisation_other_is_required_if_external_organisation_is_other,
                               {'external_organisation_other'},
-                              'external organisation and external_organisation_other cannot be both selected')
+                              'External organisation other is required if external organisation is Other')

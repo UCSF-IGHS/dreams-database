@@ -3,11 +3,12 @@ $(document).ready(function () {
     $('div#other_external_organization').hide();
     $('#external-organization-select').change(function () {
         var selectedExternalOrganization = $(this).find(':selected');
-        var otherOption = -1;
-        if(selectedExternalOrganization.val() == otherOption) {
+        var otherOption = "Other";
+        if(selectedExternalOrganization.text() == otherOption) {
             $('div#other_external_organization').show();
         } else {
             $('div#other_external_organization').hide();
+            $('#other_specify').val(null);
         }
     });
 
@@ -384,11 +385,10 @@ $(document).ready(function () {
         externalOrganisationSelect.append($("<option />").attr("value", '').text('Select External Organisation').addClass('selected disabled hidden').css({display:'none'}));
 
         if (externalOrganisations.length > 0) {
-            $.each(externalOrganisationSelect, function () {
+            $.each(externalOrganisations, function () {
                 externalOrganisationSelect.append($("<option />").attr("value", this.pk).text(this.fields.name));
             });
         }
-        externalOrganisationSelect.append($("<option />").attr("value", -1).text('Other'));
     }
 
 
@@ -625,11 +625,11 @@ $(document).ready(function () {
                 // number of sessions
                 showSection(type.fields.has_no_of_sessions, '#no_of_sessions_section')
                 // notes
-                showSection(true, '#notes_section')
+                showSection(true, '#notes_section');
                 interventionTypeEmpty = true;
                 // external organization section
                 showSection(true, '#external_organization_section')
-                return false
+                return false;
             }
         })
 
@@ -668,18 +668,17 @@ $(document).ready(function () {
         $('#comments-text').val(iv.fields.comment)
 
         // check if external organisation
-        if (iv.fields.external_organization || iv.fields.external_organisation_other) {
+        if (iv.fields.external_organisation) {
             $('#external-organization-checkbox').prop('checked', true);
             $('fieldset#external_organization_more_section').removeClass('hidden');
+            $('#external-organization-select').val(iv.fields.external_organisation);
 
             if (iv.fields.external_organisation_other) {
                 $('div#other_external_organization').show();
-                $('#external-organization-select').val(-1);
-
                 $('#other-external-organization').val(iv.fields.external_organisation_other);
             } else {
-                $('#external-organization-select').val(iv.fields.external_organization);
                 $('div#other_external_organization').hide();
+                $('#other-external-organization').val(null);
             }
         } else {
             $('#external-organization-checkbox').prop('checked', false);

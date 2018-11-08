@@ -773,10 +773,11 @@ def save_intervention(request):
                     intervention.comment = request.POST.get('comment', '')
 
                     if external_organization_checkbox:
-                        if external_organization_code == OTHER_OPTION:
+                        intervention.external_organisation = ExternalOrganisation.objects.get(pk=external_organization_code)
+                        if other_external_organization_code:
                             intervention.external_organisation_other = other_external_organization_code
                         else:
-                            intervention.external_organisation = external_organization_code
+                            intervention.external_organisation_other = None
 
                     if intervention_type.has_hts_result:
                         intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
@@ -945,7 +946,7 @@ def update_intervention(request):
 
                         # check if external organisation is selected
                         external_organization_checkbox = request.POST.get('external_organization_checkbox')
-                        external_organization_code = int(request.POST.get('external_organization_code'))
+                        external_organization_code = request.POST.get('external_organization_code')
                         other_external_organization_code = request.POST.get('other_external_organization_code')
 
                         if not external_organization_checkbox:  # if not external organisation
@@ -981,10 +982,11 @@ def update_intervention(request):
                             intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
                         if external_organization_checkbox:
-                            if external_organization_code == OTHER_OPTION:
+                            intervention.external_organisation = ExternalOrganisation.objects.get(pk=external_organization_code)
+                            if other_external_organization_code:
                                 intervention.external_organisation_other = other_external_organization_code
                             else:
-                                intervention.external_organisation = external_organization_code
+                                intervention.external_organisation_other = None
 
                         intervention.save(user_id=request.user.id, action="UPDATE")  # Logging
                         # using defer() miraculously solved serialization problem of datetime properties.

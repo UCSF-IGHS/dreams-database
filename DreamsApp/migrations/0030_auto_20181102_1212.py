@@ -11,7 +11,6 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
     def load_data(apps, schema_editor):
         call_command("loaddata", "referral_status.json")
-        call_command("loaddata", "external_organisation_type.json")
 
     dependencies = [
         ('DreamsApp', '0029_auto_20180517_1259'),

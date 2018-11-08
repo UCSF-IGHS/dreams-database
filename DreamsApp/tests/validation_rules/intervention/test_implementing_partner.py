@@ -10,5 +10,5 @@ class TestImplementingPartnerTestCase(XFTestCase):
     def tearDown(self):
         pass
 
-    def test_implementing_partner_is_required(self):
-        self.assertFieldRequired(Intervention, 'implementing_partner', 'implementing_partner is required')
+    def test_implementing_partner_is_optional(self):
+        self.assertFieldOptional(Intervention, 'implementing_partner', 'implementing_partner is optional')

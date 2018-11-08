@@ -3,12 +3,12 @@ from DreamsApp.models import *
 from DreamsApp.xf_test_case.xf_test_case import XFTestCase
 
 
-class TestInterventionTypeTestCase(XFTestCase):
+class TestClientTestCase(XFTestCase):
     def setUp(self):
         pass
 
     def tearDown(self):
         pass
 
-    def test_intervention_type_is_optional(self):
-        self.assertFieldOptional(Intervention, 'intervention_type', 'intervention_type is optional')
+    def test_client_is_required(self):
+        self.assertFieldRequired(Intervention, 'client', 'client is required')

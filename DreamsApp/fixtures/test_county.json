@@ -1,0 +1,50 @@
+[
+  {
+    "model": "DreamsApp.county",
+    "pk": 1,
+    "fields" : {
+      "code": 1,
+      "name": "Nairobi"
+    }
+  },
+  {
+    "model": "DreamsApp.county",
+    "pk": 2,
+    "fields" : {
+      "code": 2,
+      "name": "Kisumu"
+    }
+  },
+  {
+    "model": "DreamsApp.county",
+    "pk": 3,
+    "fields" : {
+      "code": 3,
+      "name": "Homa Bay"
+    }
+  },
+  {
+    "model": "DreamsApp.county",
+    "pk": 4,
+    "fields" : {
+      "code": 4,
+      "name": "Siaya"
+    }
+  },
+  {
+    "model": "DreamsApp.county",
+    "pk": 5,
+    "fields" : {
+      "code": 5,
+      "name": "Migori"
+    }
+  },
+  {
+    "model": "DreamsApp.county",
+    "pk": 6,
+    "fields" : {
+      "code": 6,
+      "name": "Kiambu"
+    }
+  }
+]

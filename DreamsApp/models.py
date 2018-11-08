@@ -427,19 +427,22 @@ class Intervention(models.Model):
             raise ValidationError(validation_errors)
 
     def validate_field_intervention_type(self, validation_errors):
-        if self.intervention_type is None:
+        if not hasattr(self, "intervention_type"):
             validation_errors['intervention_type'] = 'Intervention type is required'
 
     def validate_field_intervention_date(self, validation_errors):
         if self.intervention_date is None:
             validation_errors['intervention_date'] = 'Intervention date is required'
 
+        if self.intervention_date is not None and self.intervention_date > datetime.today().date():
+            validation_errors['intervention_date'] = 'Intervention date cannot be later than today.'
+
     def validate_field_client(self, validation_errors):
-        if self.client is None:
+        if hasattr(self, "client") and self.client is None:
             validation_errors['client'] = 'Client is required'
 
     def validate_field_implementing_partner(self, validation_errors):
-        if self.implementing_partner is None:
+        if hasattr(self, "implementing_partner") and self.implementing_partner is None:
             validation_errors['implementing_partner'] = 'Implementing partner is required'
 
     def clean(self):
@@ -447,28 +450,23 @@ class Intervention(models.Model):
         validation_errors = {}
 
         self.validate_model_external_organisation_other(validation_errors)
+        self.validate_model_intervention_date(validation_errors)
 
         if validation_errors:
             raise ValidationError(validation_errors)
 
     def validate_model_external_organisation_other(self, validation_errors):
-        # if self.external_organisation is None and (
-        #         self.external_organisation_other is None or self.external_organisation_other == ''):
-        #     validation_errors[
-        #         'external_organisation_other'] = 'Other external organisation is required if no organisation is selected'
-
-        if self.external_organisation is not None and (
-                self.external_organisation_other is not None and self.external_organisation_other != ''):
-            validation_errors[
-                'external_organisation_other'] = 'External organisation and Other external organisation cannot be both selected'
+        if hasattr(self, "external_organisation") and self.external_organisation is not None:
+            if self.external_organisation.name == "Other" and (
+                    self.external_organisation_other is None or self.external_organisation_other == ""):
+                validation_errors[
+                    'external_organisation_other'] = 'External organisation other is required if external organisation is Other'
 
     def validate_model_intervention_date(self, validation_errors):
-        if self.intervention_date is not None:
-            if (self.external_organisation is None and (
-                    self.external_organisation_other is None or self.external_organisation_other == '')):
-                if self.intervention_date < self.client.date_of_enrollment:
-                    validation_errors[
-                        'intervention_date'] = 'Intervention date cannot be later than client enrolment date.'
+        if hasattr(self, "external_organisation") and self.external_organisation is None:
+            if self.intervention_date < self.client.date_of_enrollment:
+                validation_errors[
+                    'intervention_date'] = 'Intervention date cannot be later than client enrolment date for implementing partner.'
 
 
 class Audit(models.Model):
