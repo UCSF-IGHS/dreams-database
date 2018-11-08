@@ -30,8 +30,6 @@ from Dreams_Utils import *
 from Dreams_Utils_Plain import *
 
 
-OTHER_OPTION = -1
-
 def get_enrollment_form_config_data(request):
     try:
         try:
