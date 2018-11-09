@@ -1,0 +1,50 @@
+[
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 1,
+    "fields" : {
+      "name": "Mwendo OVC",
+      "type": [
+        "Facility"
+      ],
+      "code": "MWENDO-OVC",
+      "allow_specific": false
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 2,
+    "fields" : {
+     "name": "Case OVC",
+      "type": [
+        "OVC Partner"
+      ],
+      "code": "CASE_OVC",
+      "allow_specific": false
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 3,
+    "fields" : {
+     "name": "Nilinde (Plan International)",
+      "type": [
+        "OVC Partner"
+      ],
+      "code": "NILINDE",
+      "allow_specific": false
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 4,
+    "fields" : {
+     "name": "Other",
+      "type": [
+        "Other"
+      ],
+      "code": "OTHER",
+      "allow_specific": false
+    }
+  }
+]

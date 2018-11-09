@@ -72,11 +72,22 @@ class VerificationDocument(models.Model):
         verbose_name_plural = 'Verification Documents'
 
 
+class ExternalOrganizationTypeManager(models.Manager):
+
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
 class ExternalOrganisationType(models.Model):
+    objects = ExternalOrganizationTypeManager()
+
     name = models.CharField(max_length=20, verbose_name='External Organisation Type', null=False, blank=False, unique=True)
 
     def __str__(self):
         return '{}'.format(self.name)
+
+    def natural_key(self):
+        return (self.name, )
 
     class Meta(object):
         verbose_name = 'External Organisation Type'
@@ -404,6 +415,7 @@ class Intervention(models.Model):
         return self.name_specified if self.name_specified else ''
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
+        self.full_clean()
         super(Intervention, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -412,6 +424,60 @@ class Intervention(models.Model):
     class Meta(object):
         verbose_name = 'Intervention'
         verbose_name_plural = 'Interventions'
+
+    def clean_fields(self, exclude=None):
+        super(Intervention, self).clean_fields(exclude)
+        validation_errors = {}
+
+        self.validate_field_intervention_type(validation_errors)
+        self.validate_field_intervention_date(validation_errors)
+        self.validate_field_client(validation_errors)
+        self.validate_field_implementing_partner(validation_errors)
+
+        if validation_errors:
+            raise ValidationError(validation_errors)
+
+    def validate_field_intervention_type(self, validation_errors):
+        if not hasattr(self, "intervention_type"):
+            validation_errors['intervention_type'] = 'Intervention type is required'
+
+    def validate_field_intervention_date(self, validation_errors):
+        if self.intervention_date is None:
+            validation_errors['intervention_date'] = 'Intervention date is required'
+
+        if self.intervention_date is not None and self.intervention_date > datetime.today().date():
+            validation_errors['intervention_date'] = 'Intervention date cannot be later than today.'
+
+    def validate_field_client(self, validation_errors):
+        if hasattr(self, "client") and self.client is None:
+            validation_errors['client'] = 'Client is required'
+
+    def validate_field_implementing_partner(self, validation_errors):
+        if hasattr(self, "implementing_partner") and self.implementing_partner is None:
+            validation_errors['implementing_partner'] = 'Implementing partner is required'
+
+    def clean(self):
+        super(Intervention, self).clean()
+        validation_errors = {}
+
+        self.validate_model_external_organisation_other(validation_errors)
+        self.validate_model_intervention_date(validation_errors)
+
+        if validation_errors:
+            raise ValidationError(validation_errors)
+
+    def validate_model_external_organisation_other(self, validation_errors):
+        if hasattr(self, "external_organisation") and self.external_organisation is not None:
+            if self.external_organisation.name == "Other" and (
+                    self.external_organisation_other is None or self.external_organisation_other == ""):
+                validation_errors[
+                    'external_organisation_other'] = 'External organisation other is required if external organisation is Other'
+
+    def validate_model_intervention_date(self, validation_errors):
+        if hasattr(self, "external_organisation") and self.external_organisation is None:
+            if self.intervention_date < self.client.date_of_enrollment:
+                validation_errors[
+                    'intervention_date'] = 'Intervention date cannot be later than client enrolment date for implementing partner.'
 
 
 class Audit(models.Model):

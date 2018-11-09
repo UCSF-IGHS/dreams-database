@@ -1,0 +1,34 @@
+[
+  {
+    "model": "DreamsApp.maritalstatus",
+    "pk": 1,
+    "fields" : {
+      "code": 1,
+      "name": "Single"
+    }
+  },
+  {
+    "model": "DreamsApp.maritalstatus",
+    "pk": 2,
+    "fields" : {
+      "code": 2,
+      "name": "Married/Cohabiting"
+    }
+  },
+  {
+    "model": "DreamsApp.maritalstatus",
+    "pk": 3,
+    "fields" : {
+      "code": 3,
+      "name": "Separated/Divorced"
+    }
+  },
+  {
+    "model": "DreamsApp.maritalstatus",
+    "pk": 4,
+    "fields" : {
+      "code": 4,
+      "name": "Widowed"
+    }
+  }
+]
