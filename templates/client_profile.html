@@ -35,33 +35,43 @@
                                 <label class="control-label">Warning!, the client's age is outside the selected intervention type's age bracket </label>
                             </div>
                         </div>
-                        <div class="processing-indicator hidden" style="text-align: center; opacity: 0.4;">
-                            <i class='fa fa-spinner fa-spin fa-1x'></i>
-                            <p style="font-size: medium">Loading...</p>
-                        </div>
 
                         <div class="form-group hidden" id="other_specify_section">
                             <label for="other_specify" class="control-label">Specify Intervention</label>
                             <input type="text" class="form-control validate-intervention-form-field" id="other_specify" name="other_specify">
                         </div>
 
-                         <div class="form-group has-feedback hidden" id="intervention_date_section">
+                        <div class="form-group hidden" id="external_organization_section">
+                              <label id="external_organization_label" for="external-organization-checkbox">Provided by External
+                                  Organization</label>
+                              <input type="checkbox" id="external-organization-checkbox"
+                                     name="external_organization_checkbox" class="form-control">
+                              </input>
+                          </div>
+
+                      <fieldset id="external_organization_more_section" class="hidden">
+                          <div class="form-group">
+                              <label for="external-organization-select">Intervention Provided by External Organization:</label>
+                              <select id="external-organization-select" name="external_organization_code"
+                                      class="form-control">
+                              </select>
+                          </div>
+
+                          <div class="form-group" id="other_external_organization">
+                              <label for="other-external-organization">Please specify</label>
+                              <input type="text" id="other-external-organization"
+                                     name="other_external_organization_code" class="form-control">
+                              </input>
+                          </div>
+                      </fieldset>
+
+                       <div class="form-group has-feedback hidden" id="intervention_date_section">
                             <label for="date-of-completion" class="control-label">Date: </label>
                             <input type="text" class="form-control validate-intervention-form-field" id="date-of-completion"  placeholder="Select date " style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                             <input type="text" class="form-control validate-intervention-form-field hidden" id="date-of-completion-formatted" name="intervention_date"/>
                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
-                          <script>
-                              $(function() {
-                                $( "#date-of-completion" ).datepicker({
-                                      maxDate: '0y 0m 0d',
-                                      minDate:  (new Date({{ client.date_of_enrollment.year|default:2015 }}, {{ client.date_of_enrollment.month|default:10 }} - 1 , {{ client.date_of_enrollment.day|default:1 }})),
-                                      changeMonth: true,
-                                      changeYear: true
-                                });
-                              });
-                          </script>
-                        </div>
 
+                        </div>
 
                          <div class="form-group hidden" id="hts_result_section">
                           <label for="intervention-type-select">HTS Test Result</label>
@@ -72,7 +82,6 @@
                               <option value="203">Known Positive</option>
                           </select>
                         </div>
-
 
                          <div class="form-group hidden" id="ccc_number_section">
                             <label for="ccc-number" class="control-label">CCC Number</label>
@@ -99,7 +108,7 @@
                         </div>
 
                          <div class="form-group" id="notes_section">
-                            <span id="error-space" class="label" style="color: red;"></span>
+                            <span id="error-space" class="label error-space" style="color: red;"></span>
                         </div>
                          Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
 
@@ -117,7 +126,6 @@
                           <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving intervention... </span>
                       </span>
                   </div>
-
                 </form>
             </div>
           </div>
@@ -457,13 +465,13 @@
                   </div>
 
               </div>
-
         </div>
     </div>
 
     <input id="current_client_id" class="hidden" type="text" name="client_id" value="{{ client.id }}">
     <input id="current_client_age" class="hidden" type="text" name="client_age" value="{{ client.get_current_age }}">
-
+    <input type="hidden" id="current_date" value="{{ client.date_of_enrollment.year|default:2015 }}, {{ client.date_of_enrollment.month|default:10 }}, {{ client.date_of_enrollment.day|default:1 }}">
     <br/>
+
 </div>
 {% endblock %}

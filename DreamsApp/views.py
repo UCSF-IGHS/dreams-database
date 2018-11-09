@@ -632,6 +632,19 @@ def testajax(request):
 # Handles post request for intervention types.
 # Receives category_code from request and searches for types in the database
 
+def get_external_organisation(request):
+    try:
+        if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            response_data = {}
+            external_orgs = serializers.serialize('json', ExternalOrganisation.objects.all())
+            response_data["external_orgs"] = external_orgs
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
 def get_intervention_types(request):
     try:
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
@@ -723,18 +736,25 @@ def save_intervention(request):
                     raise Exception(e.message)
 
                 intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
-                if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
-                                                                                            datetime.time()):
-                    response_data = {
-                        'status': 'fail',
-                        'message': "Error: The intervention date must be after the client's enrollment date. "
-                    }
-                    return JsonResponse(response_data)
+
+                # check if external organisation is selected
+                external_organization_checkbox = request.POST.get('external_organization_checkbox')
+                external_organization_code = request.POST.get('external_organization_code')
+                other_external_organization_code = request.POST.get('other_external_organization_code')
+
+                if not external_organization_checkbox: # if not external organisation
+                    if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
+                                                                                                datetime.time()):
+                        response_data = {
+                            'status': 'fail',
+                            'message': "Error: The intervention date must be after the client's enrollment date. "
+                        }
+                        return JsonResponse(response_data)
 
                 if intervention_date > dt.now():
                     response_data = {
                         'status': 'fail',
-                        'message': "Error: The intervention date must be before the current date. "
+                        'message': "Error: The intervention date must be before or on the current date. "
                     }
                     return JsonResponse(response_data)
 
@@ -749,6 +769,13 @@ def save_intervention(request):
                     intervention.created_by = created_by
                     intervention.date_created = dt.now()
                     intervention.comment = request.POST.get('comment', '')
+
+                    if external_organization_checkbox:
+                        intervention.external_organisation = ExternalOrganisation.objects.get(pk=external_organization_code)
+                        if other_external_organization_code:
+                            intervention.external_organisation_other = other_external_organization_code
+                        else:
+                            intervention.external_organisation_other = None
 
                     if intervention_type.has_hts_result:
                         intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
@@ -914,13 +941,20 @@ def update_intervention(request):
                         intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
 
                         intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
-                        if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
-                                intervention.client.date_of_enrollment, datetime.time()):
-                            response_data = {
-                                'status': 'fail',
-                                'message': "Error: The intervention date must be after the client's enrollment date. "
-                            }
-                            return JsonResponse(response_data)
+
+                        # check if external organisation is selected
+                        external_organization_checkbox = request.POST.get('external_organization_checkbox')
+                        external_organization_code = request.POST.get('external_organization_code')
+                        other_external_organization_code = request.POST.get('other_external_organization_code')
+
+                        if not external_organization_checkbox:  # if not external organisation
+                            if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
+                                    intervention.client.date_of_enrollment, datetime.time()):
+                                response_data = {
+                                    'status': 'fail',
+                                    'message': "Error: The intervention date must be after the client's enrollment date. "
+                                }
+                                return JsonResponse(response_data)
 
                         intervention.name_specified = request.POST.get('other_specify',
                                                                        '') if intervention.intervention_type.is_specified else ''
@@ -944,6 +978,13 @@ def update_intervention(request):
 
                         if i_type.has_no_of_sessions:
                             intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
+
+                        if external_organization_checkbox:
+                            intervention.external_organisation = ExternalOrganisation.objects.get(pk=external_organization_code)
+                            if other_external_organization_code:
+                                intervention.external_organisation_other = other_external_organization_code
+                            else:
+                                intervention.external_organisation_other = None
 
                         intervention.save(user_id=request.user.id, action="UPDATE")  # Logging
                         # using defer() miraculously solved serialization problem of datetime properties.
@@ -982,9 +1023,15 @@ def update_intervention(request):
             }
             return JsonResponse(response_data)
     except Exception as e:
+        # check if validation error
+        if type(e) is ValidationError:
+            errormsg = '; '.join(ValidationError(e).messages)
+        else:
+            errormsg = str(e)
+
         response_data = {
             'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
+            'message': "An error has occurred: " + errormsg
         }
         return JsonResponse(response_data)
 

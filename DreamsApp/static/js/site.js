@@ -1,12 +1,42 @@
 $(document).ready(function () {
 
+    $('div#other_external_organization').hide();
+    $('#external-organization-select').change(function () {
+        var selectedExternalOrganization = $(this).find(':selected');
+        var otherOption = "Other";
+        if(selectedExternalOrganization.text() == otherOption) {
+            $('div#other_external_organization').show();
+        } else {
+            $('div#other_external_organization').hide();
+            $('#other-external-organization').val('');
+        }
+    });
+
+    $( "#date-of-completion" ).datepicker({
+          maxDate: '0y 0m 0d',
+          minDate:  (new Date($('#current_date').val())),
+          changeMonth: true,
+          changeYear: true
+    });
+
+    $('input#external-organization-checkbox').change(function () {
+        if (this.checked) {
+            $('fieldset#external_organization_more_section').removeClass('hidden');
+            // expand date range
+            $( "#date-of-completion" ).datepicker( "option", "minDate", new Date(1970, 0, 0) );
+        } else {
+            $('fieldset#external_organization_more_section').addClass('hidden');
+            $( "#date-of-completion" ).datepicker( "option", "minDate", new Date($('#current_date').val()) );
+        }
+    });
+
     $('#alert_modal').on('shown.bs.modal', function (e) {
         // Start counter to close this modal
         setTimeout(function(){
             // hide alert_modal after 2 seconds
             $('#alert_modal').modal('hide');
         }, 5000);
-    })
+    });
 
     $('#alert_enrollment_modal').on('shown.bs.modal', function (e) {
         // Start counter to close this modal
@@ -14,7 +44,7 @@ $(document).ready(function () {
             // hide alert_modal after 2 seconds
             $('#alert_enrollment_modal').modal('hide');
         }, 5000);
-    })
+    });
 
     $('#i_types').change(function () {
         fetchRelatedInterventions();
@@ -68,7 +98,7 @@ $(document).ready(function () {
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
             }
         });
-    })
+    });
 
     /* End Login form submission */
 
@@ -111,8 +141,8 @@ $(document).ready(function () {
         // Add delete event listener on confirmation
         $('#confirmationModal #dataConfirmOK').click(function (event) {
             deleteClient(clientId);
-        })
-    })
+        });
+    });
     }
 
     $('#clients_search_form').submit(function (event) {
@@ -135,7 +165,7 @@ $(document).ready(function () {
             $.each(namePartsArray, function (index, namePart) {
                 if($.trim(namePart) != "")
                     validParts++;
-            })
+            });
 
             if(validParts < 2){
                 // Show error message
@@ -150,51 +180,52 @@ $(document).ready(function () {
 
         $(this).unbind("submit").submit();
         return;
-
-    })
+    });
     
     $('#intervention-modal').on('show.bs.modal', function (event) {
          // check the mode... Can be new or edit
+        $('#btn_save_intervention').removeAttr("disabled");
         var button = $(event.relatedTarget) // Button that triggered the modal
         var currentClientId = $('#current_client_id').val();
 
         var interventionCategoryCode = $("#dreams-profile-tab-control ul li.active a").data('intervention_category_code')
         if(currentClientId == null || interventionCategoryCode == null)
-            return
-        fetchRelatedInterventions(interventionCategoryCode, currentClientId)
+            return;
+        fetchRelatedInterventions(interventionCategoryCode, currentClientId);
          if ((typeof $(button).data('whatever') != 'undefined' &&  $(button).data('whatever')  != null))
              modalMode = "new";
          else
              modalMode = "edit"
-
-    })
+        fetchExternalOrganisations();
+    });
 
     $('#intervention-modal').on('shown.bs.modal', function (event) {
          if(modalMode == "edit"){
              $('#intervention_id').val(intervention.pk) // This is the intervention id
              $('#intervention-modal #intervention-type-select').val(currentInterventionType.fields.code).change();
-             prePopulateInterventionModal(intervention, currentInterventionType)
+
+             prePopulateInterventionModal(intervention, currentInterventionType);
 
          }
         else {
              $('#intervention-modal #intervention-type-select').val('').change();
          }
-
-    })
+    });
 
     $('#intervention-modal').on('hide.bs.modal', function (event) {
         $('#intervention-type-select').removeAttr('disabled')
+        $('div#external_organization_section').addClass('hidden');
         $('#error-space').text("");
         $('#comments-text').val("")
         // reset the form
         intervention = null;
-    })
+    });
 
     $('.filter').keyup(function () {
         var targetTable = $(this).data("target_tbody");
         var filterValue = $(this).val();
         filterTable(targetTable, filterValue)
-    })
+    });
 
     $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
     $('.nav-tabs a[href="#' + "demographics" + '"]').tab('show');
@@ -207,7 +238,7 @@ $(document).ready(function () {
             $.each(results_list, function (index, resultObject) {
                 if(resultObject.pk == resultId)
                     resultName =  resultObject.fields.name;
-            })
+            });
         }
         return resultName;
     }
@@ -223,8 +254,8 @@ $(document).ready(function () {
             return  // Loading has been done before...
 
         // Show loading spinner on tab
-        var spinner = $(panel_id + ' .spinner')
-        spinner.removeClass('hidden')
+        var spinner = $(panel_id + ' .spinner');
+        spinner.removeClass('hidden');
 
         // Do an ajax POST to get elements
 
@@ -256,7 +287,7 @@ $(document).ready(function () {
                             iv_type = obj
                             return false
                         }
-                    })
+                    });
                     var hts_result = iv_type.fields.has_hts_result? getResultName(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result) : "";
                     var pregnancy_result = iv_type.fields.has_pregnancy_result ? getResultName(pregnancy_results, iv_type.fields.has_pregnancy_result, iv.fields.pregnancy_test_result) : "";
                     iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
@@ -285,9 +316,7 @@ $(document).ready(function () {
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
             }
         });
-
-
-    })
+    });
 
     function filterTable(table_id, filter_value) {
         var rex = new RegExp(filter_value, 'i');
@@ -297,6 +326,29 @@ $(document).ready(function () {
         }).show();
 
     }
+
+     function fetchExternalOrganisations() {
+        $('#intervention-entry-form .processing-indicator').removeClass('hidden');
+        $.ajax({
+            url : "/getExternalOrganisations",
+            type : "GET",
+            dataType: 'json',
+            async: false,
+            success : function(data) {
+                externalOrganisations = $.parseJSON(data.external_orgs); // Gloabal variable
+                setExternalOrganisationsSelect(externalOrganisations);
+                $('#intervention-entry-form .processing-indicator').addClass('hidden');
+            },
+            error : function(xhr,errmsg,err) {
+                alert(errmsg);
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                $('#intervention-entry-form .processing-indicator').addClass('hidden');
+            }
+        });
+    }
+
 
     function fetchRelatedInterventions(interventionCategoryCode, currentClientId) {
         currentInterventionCategoryCode_Global = interventionCategoryCode
@@ -325,6 +377,20 @@ $(document).ready(function () {
             }
         });
     }
+
+
+    function setExternalOrganisationsSelect(externalOrganisations) {
+        var externalOrganisationSelect = $('#external-organization-select');
+        externalOrganisationSelect.empty();
+        externalOrganisationSelect.append($("<option />").attr("value", '').text('Select External Organisation').addClass('selected disabled hidden').css({display:'none'}));
+
+        if (externalOrganisations.length > 0) {
+            $.each(externalOrganisations, function () {
+                externalOrganisationSelect.append($("<option />").attr("value", this.pk).text(this.fields.name));
+            });
+        }
+    }
+
 
     function setInterventionTypesSelect(interventionTypes) {
         var interventionTypeSelect = $('#intervention-type-select');
@@ -401,7 +467,7 @@ $(document).ready(function () {
             })
             $('#error-space').html(textMessage);
             // And return
-            return false
+            return false;
         }
         return true;
     }
@@ -559,9 +625,11 @@ $(document).ready(function () {
                 // number of sessions
                 showSection(type.fields.has_no_of_sessions, '#no_of_sessions_section')
                 // notes
-                showSection(true, '#notes_section')
+                showSection(true, '#notes_section');
                 interventionTypeEmpty = true;
-                return false
+                // external organization section
+                showSection(true, '#external_organization_section')
+                return false;
             }
         })
 
@@ -598,6 +666,24 @@ $(document).ready(function () {
             $('#number-of-ss-sessions-attended').val(iv.fields.no_of_sessions_attended)
         // notes
         $('#comments-text').val(iv.fields.comment)
+
+        // check if external organisation
+        if (iv.fields.external_organisation) {
+            $('#external-organization-checkbox').prop('checked', true);
+            $('fieldset#external_organization_more_section').removeClass('hidden');
+            $('#external-organization-select').val(iv.fields.external_organisation);
+
+            if (iv.fields.external_organisation_other) {
+                $('div#other_external_organization').show();
+                $('#other-external-organization').val(iv.fields.external_organisation_other);
+            } else {
+                $('div#other_external_organization').hide();
+                $('#other-external-organization').val('');
+            }
+        } else {
+            $('#external-organization-checkbox').prop('checked', false);
+            $('fieldset#external_organization_more_section').addClass('hidden');
+        }
     }
 
     $('#intervention-entry-form').submit(function (event) {
@@ -634,9 +720,12 @@ $(document).ready(function () {
                 if(status == 'fail'){
                     $(alert_id).removeClass('hidden').addClass('alert-danger')
                         .text(message)
-                        .trigger('madeVisible')
+                        .trigger('madeVisible');
                     $("#intervention-modal").each( function() { this.reset; });
-                    $('#intervention-modal').modal('hide');
+                    // $('#intervention-modal').modal('hide');
+                    $('#btn_save_intervention').removeAttr("disabled");
+                    $('#intervention-entry-form .processing-indicator').addClass('hidden');
+                    $('#intervention-entry-form #error-space').html("* " + message);
                 }
                 else{
                     var iv = $.parseJSON(data.intervention)[0];
@@ -691,10 +780,10 @@ $(document).ready(function () {
                 $('#action_alert_' + currentInterventionCategoryCode_Global).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again: ' + errmsg)
                 $('#btn_save_intervention').removeAttr("disabled");
                 console.log(xhr.status + " " +err + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                $('#intervention-entry-form .processing-indicator').addClass('hidden');
+                $('#intervention-entry-form #error-space').html("* " + message);
             }
         });
-
-
     });
 
     $('.dp-action-alert').on('madeVisible', function (event) {
@@ -2883,14 +2972,14 @@ $(document).ready(function () {
         });
 
 
-    })
+    });
 
     $('#collapseOne').on('shown.bs.collapse', function () {
         $('#search-expand-collapse-glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus')
         $('#advanced_filter_text_span').html('Hide Advanced Search Filters')
         // Set advanced search
         $('#is_advanced_search').val('True')
-    })
+    });
 
     $('#collapseOne').on('hidden.bs.collapse', function () {
         $('#search-expand-collapse-glyphicon').removeClass('glyphicon-minus').addClass('glyphicon-plus')
