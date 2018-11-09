@@ -72,11 +72,22 @@ class VerificationDocument(models.Model):
         verbose_name_plural = 'Verification Documents'
 
 
+class ExternalOrganizationTypeManager(models.Manager):
+
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
 class ExternalOrganisationType(models.Model):
+    objects = ExternalOrganizationTypeManager()
+
     name = models.CharField(max_length=20, verbose_name='External Organisation Type', null=False, blank=False, unique=True)
 
     def __str__(self):
         return '{}'.format(self.name)
+
+    def natural_key(self):
+        return (self.name, )
 
     class Meta(object):
         verbose_name = 'External Organisation Type'
