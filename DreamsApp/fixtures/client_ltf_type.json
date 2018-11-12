@@ -1,0 +1,19 @@
+[
+  {
+    "model": "DreamsApp.clientltfutype",
+    "fields" : {
+      "code": 1,
+      "name": "Initiated"
+    }
+  },
+  {
+    "model": "DreamsApp.clientltfutype",
+    "fields" : {
+      "code": 2,
+      "name": "Accepted"
+    }
+  }
+]
+
+
+

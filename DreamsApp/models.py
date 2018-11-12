@@ -345,18 +345,23 @@ class PregnancyTestResult(models.Model):
         verbose_name_plural = 'Pregnancy Results'
 
 
+class ReferralStatusManager(models.Manager):
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
 class ReferralStatus(models.Model):
-    code = models.IntegerField(null=False, blank=False, unique=True,
-                               validators=[
-                                   MaxValueValidator(100),
-                                   MinValueValidator(0)
-                               ], verbose_name='Referral Code'
+    objects = ReferralStatusManager()
+    code = models.IntegerField(null=False, blank=False, unique=True, verbose_name='Referral Code'
                                )
-    name = models.CharField(null=False, blank=False, max_length=20,
+    name = models.CharField(null=False, blank=False, max_length=20, unique=True,
                             default='Pending', verbose_name='Referral Name')
 
     def __str__(self):
         return '{}'.format(self.name)
+
+    def natural_key(self):
+        return self.name
 
     class Meta(object):
         verbose_name = 'Referral Status'
@@ -1394,14 +1399,31 @@ class ClientTransfer(models.Model):
         verbose_name_plural = 'Client Transfers'
 
 
+class ClientLTFUTypeTypeManager(models.Manager):
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
+class ClientLTFUType(models.Model):
+    objects = ExternalOrganizationTypeManager()
+    code = models.CharField(verbose_name='County Code', max_length=10, default='', null=False, blank=False)
+    name = models.CharField(verbose_name='County', max_length=100, default='', null=False, blank=False)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    def natural_key(self):
+        return self.name
+
+    class Meta(object):
+        verbose_name = 'County'
+        verbose_name_plural = 'Counties'
+
+
 class ClientLTFU(models.Model):
-    FOLLOWUP_CATEGORIES = (
-        (1, 'Call'),
-        (2, 'Visit')
-    )
     client = models.ForeignKey(Client, null=False, blank=False, related_name='client_ltfu')
     date_of_followup = models.DateField(blank=False, null=False, verbose_name='Date of Followup')
-    type_of_followup = models.CharField(blank=False, null=False, max_length=10, verbose_name='Type of Followup', choices=FOLLOWUP_CATEGORIES)
+    type_of_followup = models.ForeignKey(ClientLTFUType, null=False, blank=False, related_name='ltfu_type')
     result_of_followup = models.CharField(blank=False, null=False, max_length=255, verbose_name='Result of Followup')
     comment = models.CharField(null=True, blank=True, max_length=255, verbose_name='Comment')
 
@@ -1411,3 +1433,7 @@ class ClientLTFU(models.Model):
     class Meta(object):
         verbose_name = 'Client LTFU'
         verbose_name_plural = 'Client LTFUs'
+
+
+
+
