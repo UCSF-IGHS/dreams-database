@@ -17,20 +17,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='ClientLTFU',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date_of_followup', models.DateField(verbose_name='Date of Followup')),
-                ('type_of_followup', models.CharField(choices=[(1, 'Call'), (2, 'Visit')], max_length=10, verbose_name='Type of Followup')),
-                ('result_of_followup', models.CharField(max_length=255, verbose_name='Result of Followup')),
-                ('comment', models.CharField(blank=True, max_length=255, null=True, verbose_name='Comment')),
-            ],
-            options={
-                'verbose_name': 'Client LTFU',
-                'verbose_name_plural': 'Client LTFUs',
-            },
-        ),
-        migrations.CreateModel(
             name='ClientLTFUType',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
