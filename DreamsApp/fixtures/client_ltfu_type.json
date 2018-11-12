@@ -3,17 +3,14 @@
     "model": "DreamsApp.clientltfutype",
     "fields" : {
       "code": 1,
-      "name": "Initiated"
+      "name": "Call"
     }
   },
   {
     "model": "DreamsApp.clientltfutype",
     "fields" : {
       "code": 2,
-      "name": "Accepted"
+      "name": "Visit"
     }
   }
 ]
-
-
-

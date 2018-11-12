@@ -9,13 +9,27 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     def load_data(apps, schema_editor):
-        call_command("loaddata", "client_ltf_type.json")
+        call_command("loaddata", "client_ltfu_type.json")
 
     dependencies = [
         ('DreamsApp', '0035_populate_external_organisations'),
     ]
 
     operations = [
+        migrations.CreateModel(
+            name='ClientLTFU',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('date_of_followup', models.DateField(verbose_name='Date of Followup')),
+                ('type_of_followup', models.CharField(choices=[(1, 'Call'), (2, 'Visit')], max_length=10, verbose_name='Type of Followup')),
+                ('result_of_followup', models.CharField(max_length=255, verbose_name='Result of Followup')),
+                ('comment', models.CharField(blank=True, max_length=255, null=True, verbose_name='Comment')),
+            ],
+            options={
+                'verbose_name': 'Client LTFU',
+                'verbose_name_plural': 'Client LTFUs',
+            },
+        ),
         migrations.CreateModel(
             name='ClientLTFUType',
             fields=[
@@ -36,11 +50,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='referralstatus',
             name='code',
-            field=models.IntegerField(unique=True, verbose_name='Referral Code'),
+            field=models.IntegerField(verbose_name='Referral Code'),
         ),
         migrations.AlterField(
             model_name='referralstatus',
             name='name',
-            field=models.CharField(default='Pending', max_length=20, unique=True, verbose_name='Referral Name'),
+            field=models.CharField(default='Pending', max_length=20, verbose_name='Referral Name'),
         ),
     ]

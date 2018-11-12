@@ -1399,25 +1399,26 @@ class ClientTransfer(models.Model):
         verbose_name_plural = 'Client Transfers'
 
 
-class ClientLTFUTypeTypeManager(models.Manager):
+class ClientLTFUTypeManager(models.Manager):
     def get_by_natural_key(self, name):
         return self.get(name=name)
 
 
 class ClientLTFUType(models.Model):
-    objects = ExternalOrganizationTypeManager()
-    code = models.CharField(verbose_name='County Code', max_length=10, default='', null=False, blank=False)
-    name = models.CharField(verbose_name='County', max_length=100, default='', null=False, blank=False)
+    objects = ClientLTFUTypeManager()
+
+    code = models.CharField(max_length=10, default='', null=False, blank=False)
+    name = models.CharField(max_length=100, default='', null=False, blank=False)
 
     def __str__(self):
         return '{}'.format(self.name)
 
     def natural_key(self):
-        return self.name
+        return (self.name, )
 
     class Meta(object):
-        verbose_name = 'County'
-        verbose_name_plural = 'Counties'
+        verbose_name = 'LTFU Type'
+        verbose_name_plural = 'LTFU Types'
 
 
 class ClientLTFU(models.Model):
@@ -1433,7 +1434,3 @@ class ClientLTFU(models.Model):
     class Meta(object):
         verbose_name = 'Client LTFU'
         verbose_name_plural = 'Client LTFUs'
-
-
-
-
