@@ -206,8 +206,10 @@ class Client(models.Model):
     exited = models.BooleanField(default=False)
     exit_reason = models.ForeignKey(ExitReason, null=True, blank=True)
     reason_exited = models.CharField(blank=True, null=True, max_length=100)
-    exited_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    exited_by = models.ForeignKey(User, null=True, blank=True, related_name='exited_by_user')
     date_exited = models.DateTimeField(null=True, blank=True)
+    exit_authorized_by = models.ForeignKey(User, null=True, blank=True, related_name='exit_authorized_by_user')
+    exit_authorized_date = models.DateTimeField(null=True, blank=True)
 
     ovc_id = models.CharField(blank=True, null=True, max_length=20)
     external_organisation = models.ForeignKey(ExternalOrganisation, null=True, blank=True)
