@@ -32,6 +32,10 @@ $(document).ready(function () {
     });
 
 
+    if ($('input[name=ovc_checkbox]').prop('checked')) {
+        $('fieldset#ovc_more_section').removeClass('hidden');
+    }
+
     $('input[name=ovc_checkbox]').change(function () {
         if (this.checked) {
             $('fieldset#ovc_more_section').removeClass('hidden');

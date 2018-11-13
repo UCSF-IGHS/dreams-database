@@ -161,9 +161,9 @@
 
             <div class="form-group form-inline" id="ovc_section_checkbox">
                 {{ demo_form.ovc_checkbox.errors }}
-                <label id="ovc_label" for="ovc-checkbox">Is OVC Client?</label>
-                {% if demo_form.external_organisation %}
-                    {{ demo_form.ovc_checkbox|add_attr:'checked'|add_class:"input-sm form-control enrolment-input" }}
+                <label class="control-label enrolment-label">Is OVC Client?</label>
+                {% if demo_form.ovc_id.value %}
+                    {{ demo_form.ovc_checkbox|attr:'checked:checked'|add_class:"input-sm form-control enrolment-input" }}
                 {% else %}
                     {{ demo_form.ovc_checkbox|add_class:"input-sm form-control enrolment-input" }}
                 {% endif %}
