@@ -33,6 +33,7 @@ urlpatterns = [
     url(r'^client$', views.client_profile),
     url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^ivgetTypes$', views.get_intervention_types),
+    url(r'^getExternalOrganisations$', views.get_external_organisation),
     url(r'^ivSave$', views.save_intervention),
     url(r'^ivList$', views.get_intervention_list),
     url(r'^ivGet$', views.get_intervention),

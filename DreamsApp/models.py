@@ -10,7 +10,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.html import format_html
 
 
-
 class MaritalStatus(models.Model):
     code = models.CharField(verbose_name='Marital Status Code', max_length=10, null=False, blank=False)
     name = models.CharField(max_length=100, null=False)
@@ -73,9 +72,68 @@ class VerificationDocument(models.Model):
         verbose_name_plural = 'Verification Documents'
 
 
+class ExternalOrganizationTypeManager(models.Manager):
+
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
+class ExternalOrganisationType(models.Model):
+    objects = ExternalOrganizationTypeManager()
+
+    name = models.CharField(max_length=20, verbose_name='External Organisation Type', null=False, blank=False, unique=True)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    def natural_key(self):
+        return (self.name, )
+
+    class Meta(object):
+        verbose_name = 'External Organisation Type'
+        verbose_name_plural = 'External Organisation Types'
+
+
+class ExternalOrganisation(models.Model):
+    name = models.CharField(max_length=255, null=False, blank=False, unique=True, verbose_name='Organisation Name')
+    type = models.ForeignKey(ExternalOrganisationType, on_delete=models.PROTECT, null=False, blank=False, verbose_name='Organisation Type')
+    code = models.CharField(max_length=20, null=True, blank=True, verbose_name='Organisation Code')
+    allow_specific = models.BooleanField(null=False, blank=False, default=False)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta(object):
+        verbose_name = 'External Organisation'
+        verbose_name_plural = 'External Organisations'
+
+
+class ImplementingPartnerFunderManager(models.Manager):
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
+class ImplementingPartnerFunder(models.Model):
+    objects = ImplementingPartnerFunderManager()
+    name = models.CharField(max_length=20, verbose_name='Funder', null=False, blank=False, unique=True)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    def natural_key(self):
+        return (self.name, )
+
+    class Meta(object):
+        verbose_name = 'Funder'
+        verbose_name_plural = 'Funders'
+
+
+# Give initial default value for service_provider_type
 class ImplementingPartner(models.Model):
     code = models.IntegerField(name='code', verbose_name='Implementing Partner Code')
     name = models.CharField(max_length=150, verbose_name='Implementing Partner Name')
+    parent_implementing_partner = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, unique=False, verbose_name='Parent Implementing Partner')
+    implementing_partner_funder = models.ForeignKey(ImplementingPartnerFunder, on_delete=models.PROTECT, null=True, blank=True, verbose_name='Funder')
 
     def __str__(self):
         return '{}'.format(self.name)
@@ -95,6 +153,24 @@ class ImplementingPartnerUser(models.Model):
     class Meta(object):
         verbose_name = 'Implementing Partner User'
         verbose_name_plural = 'Implementing Partner Users'
+
+
+#### do we have predefined reasons??
+class ExitReason(models.Model):
+    code = models.IntegerField(null=False, blank=False, unique=True,
+                               validators=[
+                                   MaxValueValidator(100),
+                                   MinValueValidator(0)
+                               ],
+                               )
+    name = models.CharField(blank=False, null=False, max_length=100, unique=True)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta(object):
+        verbose_name = 'Exit Reason'
+        verbose_name_plural = 'Exit Reasons'
 
 
 class Client(models.Model):
@@ -137,9 +213,13 @@ class Client(models.Model):
     date_voided = models.DateTimeField(null=True, blank=True)
 
     exited = models.BooleanField(default=False)
+    exit_reason = models.ForeignKey(ExitReason, null=True, blank=True)
     reason_exited = models.CharField(blank=True, null=True, max_length=100)
     exited_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_exited = models.DateTimeField(null=True, blank=True)
+
+    ovc_id = models.CharField(blank=True, null=True, max_length=20)
+    external_organisation = models.ForeignKey(ExternalOrganisation, null=True, blank=True)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
         super(Client, self).save(*args, **kwargs)
@@ -274,6 +354,50 @@ class PregnancyTestResult(models.Model):
         verbose_name_plural = 'Pregnancy Results'
 
 
+class ReferralStatusManager(models.Manager):
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
+class ReferralStatus(models.Model):
+    objects = ReferralStatusManager()
+    code = models.IntegerField(null=False, blank=False, unique=True, verbose_name='Referral Code'
+                               )
+    name = models.CharField(null=False, blank=False, max_length=20, unique=True,
+                            default='Pending', verbose_name='Referral Name')
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    def natural_key(self):
+        return self.name
+
+    class Meta(object):
+        verbose_name = 'Referral Status'
+        verbose_name_plural = 'Referral Statuses'
+
+
+class Referral(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, null=False, blank=False, related_name='client_referral')
+    referring_ip = models.ForeignKey(ImplementingPartner, on_delete=models.PROTECT, null=False, blank=False, related_name='referral_ip')
+    receiving_ip = models.ForeignKey(ImplementingPartner, on_delete=models.PROTECT, null=True, blank=True, related_name='receiving_ip')
+    external_organisation = models.ForeignKey(ExternalOrganisation, on_delete=models.PROTECT, null=True, blank=True)
+    external_organisation_other = models.CharField(null=True, blank=True, max_length=255)
+    intervention_type = models.ForeignKey(InterventionType, on_delete=models.PROTECT, null=False, blank=False, related_name='intervention_type')
+    referral_status = models.ForeignKey(ReferralStatus, on_delete=models.PROTECT, null=False, blank=False, related_name='referral_status')
+    referral_date = models.DateField(null=False, blank=False)
+    referral_expiration_date = models.DateField(null=False, blank=False)
+    comments = models.CharField(null=True, blank=True, max_length=255)
+    rejectreason = models.CharField(null=True, blank=True, max_length=255)
+
+    def __str__(self):
+        return '{}'.format(self.referring_ip.name)
+
+    class Meta(object):
+        verbose_name = 'Referral'
+        verbose_name_plural = 'Referrals'
+
+
 class Intervention(models.Model):
     intervention_date = models.DateField()
     client = models.ForeignKey(Client)
@@ -291,6 +415,11 @@ class Intervention(models.Model):
     changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
     implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True,
                                              related_name='implementing_partner')
+    external_organisation = models.ForeignKey(ExternalOrganisation, null=True, blank=True,
+                                             related_name='external_organisation')
+    external_organisation_other = models.CharField(null=True, blank=True, max_length=255)
+    referral = models.ForeignKey(Referral, null=True, blank=True,
+                                              related_name='referral')
     voided = models.BooleanField(default=False)
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='voided_by')
@@ -300,6 +429,7 @@ class Intervention(models.Model):
         return self.name_specified if self.name_specified else ''
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
+        self.full_clean()
         super(Intervention, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -308,6 +438,60 @@ class Intervention(models.Model):
     class Meta(object):
         verbose_name = 'Intervention'
         verbose_name_plural = 'Interventions'
+
+    def clean_fields(self, exclude=None):
+        super(Intervention, self).clean_fields(exclude)
+        validation_errors = {}
+
+        self.validate_field_intervention_type(validation_errors)
+        self.validate_field_intervention_date(validation_errors)
+        self.validate_field_client(validation_errors)
+        self.validate_field_implementing_partner(validation_errors)
+
+        if validation_errors:
+            raise ValidationError(validation_errors)
+
+    def validate_field_intervention_type(self, validation_errors):
+        if not hasattr(self, "intervention_type"):
+            validation_errors['intervention_type'] = 'Intervention type is required'
+
+    def validate_field_intervention_date(self, validation_errors):
+        if self.intervention_date is None:
+            validation_errors['intervention_date'] = 'Intervention date is required'
+
+        if self.intervention_date is not None and self.intervention_date > datetime.today().date():
+            validation_errors['intervention_date'] = 'Intervention date cannot be later than today.'
+
+    def validate_field_client(self, validation_errors):
+        if hasattr(self, "client") and self.client is None:
+            validation_errors['client'] = 'Client is required'
+
+    def validate_field_implementing_partner(self, validation_errors):
+        if hasattr(self, "implementing_partner") and self.implementing_partner is None:
+            validation_errors['implementing_partner'] = 'Implementing partner is required'
+
+    def clean(self):
+        super(Intervention, self).clean()
+        validation_errors = {}
+
+        self.validate_model_external_organisation_other(validation_errors)
+        self.validate_model_intervention_date(validation_errors)
+
+        if validation_errors:
+            raise ValidationError(validation_errors)
+
+    def validate_model_external_organisation_other(self, validation_errors):
+        if hasattr(self, "external_organisation") and self.external_organisation is not None:
+            if self.external_organisation.name == "Other" and (
+                    self.external_organisation_other is None or self.external_organisation_other == ""):
+                validation_errors[
+                    'external_organisation_other'] = 'External organisation other is required if external organisation is Other'
+
+    def validate_model_intervention_date(self, validation_errors):
+        if hasattr(self, "external_organisation") and self.external_organisation is None:
+            if self.intervention_date < self.client.date_of_enrollment:
+                validation_errors[
+                    'intervention_date'] = 'Intervention date cannot be later than client enrolment date for implementing partner.'
 
 
 class Audit(models.Model):
@@ -1222,3 +1406,40 @@ class ClientTransfer(models.Model):
     class Meta(object):
         verbose_name = 'Client Transfer'
         verbose_name_plural = 'Client Transfers'
+
+
+class ClientLTFUTypeManager(models.Manager):
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
+class ClientLTFUType(models.Model):
+    objects = ClientLTFUTypeManager()
+
+    code = models.CharField(max_length=10, default='', null=False, blank=False)
+    name = models.CharField(max_length=100, default='', null=False, blank=False)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    def natural_key(self):
+        return (self.name, )
+
+    class Meta(object):
+        verbose_name = 'LTFU Type'
+        verbose_name_plural = 'LTFU Types'
+
+
+class ClientLTFU(models.Model):
+    client = models.ForeignKey(Client, null=False, blank=False, related_name='client_ltfu')
+    date_of_followup = models.DateField(blank=False, null=False, verbose_name='Date of Followup')
+    type_of_followup = models.ForeignKey(ClientLTFUType, null=False, blank=False, related_name='ltfu_type')
+    result_of_followup = models.CharField(blank=False, null=False, max_length=255, verbose_name='Result of Followup')
+    comment = models.CharField(null=True, blank=True, max_length=255, verbose_name='Comment')
+
+    def __str__(self):
+        return '{}'.format(self.client.dreams_id)
+
+    class Meta(object):
+        verbose_name = 'Client LTFU'
+        verbose_name_plural = 'Client LTFUs'

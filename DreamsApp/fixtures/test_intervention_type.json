@@ -1,0 +1,57 @@
+[
+  {
+    "model": "DreamsApp.interventiontype",
+    "pk": 1,
+    "fields" : {
+      "code": 1002,
+      "name": "SHUGA II",
+      "intervention_category": 1,
+      "has_hts_result": false,
+      "has_pregnancy_result": false,
+      "has_ccc_number": false,
+      "has_no_of_sessions": false,
+      "min_age": 15,
+      "max_age": 24,
+      "is_age_restricted": true,
+      "is_given_once": true,
+      "is_specified": false
+    }
+  },
+  {
+    "model": "DreamsApp.interventiontype",
+    "pk": 2,
+    "fields" : {
+      "code": 1003,
+      "name": "RESPECT-K",
+      "intervention_category": 1,
+      "has_hts_result": false,
+      "has_pregnancy_result": false,
+      "has_ccc_number": false,
+      "has_no_of_sessions": false,
+      "min_age": 15,
+      "max_age": 24,
+      "is_age_restricted": true,
+      "is_given_once": true,
+      "is_specified": false
+    }
+  },
+  {
+    "model": "DreamsApp.interventiontype",
+    "pk": 3,
+    "fields" : {
+      "code": 1004,
+      "name": "HCBC",
+      "intervention_category": 1,
+      "has_hts_result": false,
+      "has_pregnancy_result": false,
+      "has_ccc_number": false,
+      "has_no_of_sessions": false,
+      "min_age": 15,
+      "max_age": 24,
+      "is_age_restricted": true,
+      "is_given_once": true,
+      "is_specified": false
+    }
+  }
+]
+
