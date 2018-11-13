@@ -108,11 +108,20 @@ class ExternalOrganisation(models.Model):
         verbose_name_plural = 'External Organisations'
 
 
+class ImplementingPartnerFunderManager(models.Manager):
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
 class ImplementingPartnerFunder(models.Model):
+    objects = ImplementingPartnerFunderManager()
     name = models.CharField(max_length=20, verbose_name='Funder', null=False, blank=False, unique=True)
 
     def __str__(self):
         return '{}'.format(self.name)
+
+    def natural_key(self):
+        return (self.name, )
 
     class Meta(object):
         verbose_name = 'Funder'

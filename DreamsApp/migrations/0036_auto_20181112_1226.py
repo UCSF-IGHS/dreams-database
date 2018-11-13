@@ -20,12 +20,12 @@ class Migration(migrations.Migration):
             name='ClientLTFUType',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(default='', max_length=10, verbose_name='County Code')),
-                ('name', models.CharField(default='', max_length=100, verbose_name='County')),
+                ('code', models.CharField(default='', max_length=10, verbose_name='LTFU Code')),
+                ('name', models.CharField(default='', max_length=100, verbose_name='LTFU Name')),
             ],
             options={
-                'verbose_name': 'County',
-                'verbose_name_plural': 'Counties',
+                'verbose_name': 'LTFU Type',
+                'verbose_name_plural': 'LTFU Types',
             },
         ),
         migrations.AlterField(
