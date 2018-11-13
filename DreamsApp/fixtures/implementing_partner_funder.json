@@ -1,21 +1,18 @@
 [
   {
     "model": "DreamsApp.implementingpartnerfunder",
-    "pk": 1,
     "fields" : {
       "name": "CDC"
     }
   },
   {
     "model": "DreamsApp.implementingpartnerfunder",
-    "pk": 2,
     "fields" : {
       "name": "USAID"
     }
   },
   {
     "model": "DreamsApp.implementingpartnerfunder",
-    "pk": 3,
     "fields" : {
       "name": "DOD"
     }
