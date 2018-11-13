@@ -370,7 +370,7 @@ class ReferralStatus(models.Model):
         return '{}'.format(self.name)
 
     def natural_key(self):
-        return self.name
+        return (self.name, )
 
     class Meta(object):
         verbose_name = 'Referral Status'

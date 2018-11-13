@@ -239,6 +239,8 @@ def clients(request):
                     'implementing_partners': ImplementingPartner.objects.all(),
                     'verification_documents': VerificationDocument.objects.all(),
                     'marital_status': MaritalStatus.objects.all(),
+                    'external_ovcs': ExternalOrganisation.objects.filter(
+                        type=ExternalOrganisationType.objects.get_by_natural_key('OVC Partner')),
                     'counties': County.objects.all(),
                     'current_ip': current_ip,
                     'demo_form': DemographicsForm()
@@ -279,6 +281,8 @@ def clients(request):
                     'implementing_partners': ImplementingPartner.objects.all(),
                     'verification_documents': VerificationDocument.objects.all(),
                     'marital_status': MaritalStatus.objects.all(),
+                    'external_ovcs': ExternalOrganisation.objects.filter(
+                        type=ExternalOrganisationType.objects.get_by_natural_key('OVC Partner')),
                     'counties': County.objects.all(),
                     'current_ip': current_ip,
                     'demo_form': DemographicsForm(),
@@ -746,7 +750,7 @@ def save_intervention(request):
                     if not external_organization_code:
                         response_data = {
                             'status': 'fail',
-                            'message': "Error: External organisation or External organisation Other must be selected."
+                            'message': "Error: External organisation must be selected if checkbox is checked."
                         }
                         return JsonResponse(response_data)
                 else:
@@ -963,7 +967,7 @@ def update_intervention(request):
                             if not external_organization_code:
                                 response_data = {
                                     'status': 'fail',
-                                    'message': "Error: External organisation or External organisation Other must be selected."
+                                    'message': "Error: External organisation must be selected if checkbox is checked."
                                 }
                                 return JsonResponse(response_data)
                         else:
