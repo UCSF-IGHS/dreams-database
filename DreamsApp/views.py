@@ -743,7 +743,7 @@ def save_intervention(request):
                 other_external_organization_code = request.POST.get('other_external_organization_code')
 
                 if external_organization_checkbox:
-                    if not external_organization_code and not other_external_organization_code:
+                    if not external_organization_code:
                         response_data = {
                             'status': 'fail',
                             'message': "Error: External organisation or External organisation Other must be selected."
@@ -960,7 +960,7 @@ def update_intervention(request):
                         other_external_organization_code = request.POST.get('other_external_organization_code')
 
                         if external_organization_checkbox:
-                            if not external_organization_code and not other_external_organization_code:
+                            if not external_organization_code:
                                 response_data = {
                                     'status': 'fail',
                                     'message': "Error: External organisation or External organisation Other must be selected."
