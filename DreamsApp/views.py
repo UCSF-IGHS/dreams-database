@@ -239,8 +239,6 @@ def clients(request):
                     'implementing_partners': ImplementingPartner.objects.all(),
                     'verification_documents': VerificationDocument.objects.all(),
                     'marital_status': MaritalStatus.objects.all(),
-                    'external_ovcs': ExternalOrganisation.objects.filter(
-                        type=ExternalOrganisationType.objects.get_by_natural_key('OVC Partner')),
                     'counties': County.objects.all(),
                     'current_ip': current_ip,
                     'demo_form': DemographicsForm()
@@ -281,8 +279,6 @@ def clients(request):
                     'implementing_partners': ImplementingPartner.objects.all(),
                     'verification_documents': VerificationDocument.objects.all(),
                     'marital_status': MaritalStatus.objects.all(),
-                    'external_ovcs': ExternalOrganisation.objects.filter(
-                        type=ExternalOrganisationType.objects.get_by_natural_key('OVC Partner')),
                     'counties': County.objects.all(),
                     'current_ip': current_ip,
                     'demo_form': DemographicsForm(),
