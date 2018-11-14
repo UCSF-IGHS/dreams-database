@@ -12,7 +12,6 @@ $(document).ready(function () {
         }
     });
 
-
     $( "#date-of-completion" ).datepicker({
           maxDate: '0y 0m 0d',
           minDate:  (new Date($('#current_date').val())),
@@ -46,8 +45,6 @@ $(document).ready(function () {
 
         }
     });
-
-
 
     $('#alert_modal').on('shown.bs.modal', function (e) {
         // Start counter to close this modal
@@ -367,13 +364,6 @@ $(document).ready(function () {
             }
         });
     }
-
-
-
-
-
-
-
 
     function fetchRelatedInterventions(interventionCategoryCode, currentClientId) {
         currentInterventionCategoryCode_Global = interventionCategoryCode
@@ -1028,15 +1018,12 @@ $(document).ready(function () {
                         }
                     });
 
-
-                     // Set OVC
+                    // Set OVC
                     $('#external_organisation option').each(function() {
                         if($(this).data('external_organisation') ==  client.fields.external_organisation) {
                             $(this).prop("selected", true);
                         }
                     });
-
-
 
                     getSubCounties(true, $('#county_of_residence').val(), client.fields.sub_county, client.fields.ward)   // bool, code and id
                 },
