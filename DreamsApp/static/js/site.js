@@ -1791,7 +1791,7 @@ $(document).ready(function () {
 
     $.validator.addMethod('selectOVCAttributesIfOvcSelected', function (value) {
         var ovcCheckboxChecked = $('input[type=checkbox][name=ovc_checkbox]').prop('checked');
-        var ovc = $('select[name=external_organisation]').find(":selected").text();
+        var ovc = $('select[name=external_organisation]').find(":selected").val();
         var ovcId = $('input[name=ovc_id]').val();
         return ovcCheckboxChecked ? (ovc != '' && ovcId != '') : true;
     });
