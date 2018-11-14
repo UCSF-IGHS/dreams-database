@@ -1,5 +1,5 @@
 # coding=utf-8
-from django.forms import ModelForm, HiddenInput
+from django.forms import ModelForm, HiddenInput, BooleanField
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from models import *
 
@@ -37,6 +37,12 @@ class ClientCashTransferDetailsForm(ModelForm):
 
 
 class DemographicsForm(ModelForm):
+    ovc_checkbox = BooleanField()
+
+    def __init__(self, *args, **kwargs):
+        super(DemographicsForm, self).__init__(*args, **kwargs)
+        self.fields['external_organisation'].queryset = ExternalOrganisation.objects.filter(
+                        type=ExternalOrganisationType.objects.get_by_natural_key('OVC Partner'))
 
     class Meta:
         model = Client
