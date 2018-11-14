@@ -40,7 +40,7 @@ class DemographicsForm(ModelForm):
     ovc_checkbox = BooleanField()
 
     def __init__(self, *args, **kwargs):
-        super(DemographicsForm, self).__init__(*args, **kwargs)  # populates the post
+        super(DemographicsForm, self).__init__(*args, **kwargs)
         self.fields['external_organisation'].queryset = ExternalOrganisation.objects.filter(
                         type=ExternalOrganisationType.objects.get_by_natural_key('OVC Partner'))
 
