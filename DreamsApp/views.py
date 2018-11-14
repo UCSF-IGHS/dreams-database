@@ -746,7 +746,7 @@ def save_intervention(request):
                     if not external_organization_code:
                         response_data = {
                             'status': 'fail',
-                            'message': "Error: External organisation or External organisation Other must be selected."
+                            'message': "Error: External organisation must be selected if checkbox is checked."
                         }
                         return JsonResponse(response_data)
                 else:
@@ -963,7 +963,7 @@ def update_intervention(request):
                             if not external_organization_code:
                                 response_data = {
                                     'status': 'fail',
-                                    'message': "Error: External organisation or External organisation Other must be selected."
+                                    'message': "Error: External organisation must be selected if checkbox is checked."
                                 }
                                 return JsonResponse(response_data)
                         else:

@@ -30,6 +30,22 @@ $(document).ready(function () {
         }
     });
 
+
+    if ($('input[name=ovc_checkbox]').prop('checked')) {
+        $('fieldset#ovc_more_section').removeClass('hidden');
+    }
+
+    $('input[name=ovc_checkbox]').change(function () {
+        if (this.checked) {
+            $('fieldset#ovc_more_section').removeClass('hidden');
+            // clear values
+
+        } else {
+            $('fieldset#ovc_more_section').addClass('hidden');
+
+        }
+    });
+
     $('#alert_modal').on('shown.bs.modal', function (e) {
         // Start counter to close this modal
         setTimeout(function(){
@@ -348,7 +364,6 @@ $(document).ready(function () {
             }
         });
     }
-
 
     function fetchRelatedInterventions(interventionCategoryCode, currentClientId) {
         currentInterventionCategoryCode_Global = interventionCategoryCode
@@ -999,6 +1014,13 @@ $(document).ready(function () {
                     // Set County values
                     $('#county_of_residence option').each(function() {
                         if($(this).data('county_of_residence_id') ==  client.fields.county_of_residence) {
+                            $(this).prop("selected", true);
+                        }
+                    });
+
+                    // Set OVC
+                    $('#external_organisation option').each(function() {
+                        if($(this).data('external_organisation') ==  client.fields.external_organisation) {
                             $(this).prop("selected", true);
                         }
                     });
@@ -1767,6 +1789,13 @@ $(document).ready(function () {
         return true;
     }, ' ');
 
+    $.validator.addMethod('selectOVCAttributesIfOvcSelected', function (value) {
+        var ovcCheckboxChecked = $('input[type=checkbox][name=ovc_checkbox]').prop('checked');
+        var ovc = $('select[name=external_organisation]').find(":selected").text();
+        var ovcId = $('input[name=ovc_id]').val();
+        return ovcCheckboxChecked ? (ovc != '' && ovcId != '') : true;
+    });
+
     //requiresChildren
     $.validator.addMethod('requiresChildren', function (value) {
         var hasBiologicalChildren = $('#id_has_biological_children').val() || 0
@@ -2143,9 +2172,12 @@ $(document).ready(function () {
                 phoneKE:true
             },
             guardian_national_id:{
-                number:true
+                number: true
+            },
+            ovc_checkbox: {
+                selectOVCAttributesIfOvcSelected: true
             }
-              },
+        },
         messages: { 
             implementing_partner: { 
                 required: " * Please enter your Client Implementing Partner" 
@@ -2195,7 +2227,10 @@ $(document).ready(function () {
             } , 
             guardian_national_id: { 
                 number: " * Please enter valid National ID" 
-            } 
+            } ,
+            ovc_checkbox: {
+                selectOVCAttributesIfOvcSelected: 'Please ensure that the OVC and OVC client ID are indicated'
+            }
         }, 
         highlight: function (element) { 
             //$('#form_demographics').find('.error').addClass('text-danger') 
@@ -2249,9 +2284,12 @@ $(document).ready(function () {
                 phoneKE:true
             },
             guardian_national_id:{
-                number:true
+                number: true
+            },
+            ovc_checkbox: {
+                selectOVCAttributesIfOvcSelected: true
             }
-              },
+        },
         messages: { 
             implementing_partner: { 
                 required: " * Please enter your Client Implementing Partner" 
@@ -2289,7 +2327,10 @@ $(document).ready(function () {
             } , 
             guardian_national_id: { 
                 number: " * Please enter valid National ID" 
-            } 
+            } ,
+            ovc_checkbox: {
+                selectOVCAttributesIfOvcSelected: 'Please ensure that the OVC and OVC client ID are indicated'
+            }
         }, 
         highlight: function (element) { 
             //$('#form_demographics').find('.error').addClass('text-danger') 
