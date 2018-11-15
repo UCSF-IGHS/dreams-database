@@ -5,7 +5,7 @@
     "fields" : {
       "name": "Mwendo OVC",
       "type": [
-        "Facility"
+        "OVC Partner"
       ],
       "code": "MWENDO-OVC",
       "allow_specific": false

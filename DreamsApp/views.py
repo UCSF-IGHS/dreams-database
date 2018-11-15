@@ -842,7 +842,14 @@ def save_intervention(request):
                 external_organization_code = request.POST.get('external_organization_code')
                 other_external_organization_code = request.POST.get('other_external_organization_code')
 
-                if not external_organization_checkbox: # if not external organisation
+                if external_organization_checkbox:
+                    if not external_organization_code:
+                        response_data = {
+                            'status': 'fail',
+                            'message': "Error: External organisation must be selected if checkbox is checked."
+                        }
+                        return JsonResponse(response_data)
+                else:
                     if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
                                                                                                 datetime.time()):
                         response_data = {
@@ -938,10 +945,15 @@ def save_intervention(request):
         }
         return JsonResponse(response_data)
     except Exception as e:
-        # Return error with message
+        # check if validation error
+        if type(e) is ValidationError:
+            errormsg = '; '.join(ValidationError(e).messages)
+        else:
+            errormsg = str(e)
+
         response_data = {
             'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
+            'message': "An error has occurred: " + errormsg
         }
         return JsonResponse(response_data)
 
@@ -1047,7 +1059,14 @@ def update_intervention(request):
                         external_organization_code = request.POST.get('external_organization_code')
                         other_external_organization_code = request.POST.get('other_external_organization_code')
 
-                        if not external_organization_checkbox:  # if not external organisation
+                        if external_organization_checkbox:
+                            if not external_organization_code:
+                                response_data = {
+                                    'status': 'fail',
+                                    'message': "Error: External organisation must be selected if checkbox is checked."
+                                }
+                                return JsonResponse(response_data)
+                        else:
                             if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
                                     intervention.client.date_of_enrollment, datetime.time()):
                                 response_data = {

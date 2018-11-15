@@ -134,7 +134,7 @@
                             <select id="id_ward" name="ward" class="form-control clear_value" >
                                 <option value="">Select Ward</option>
                                 {% for ward in wards %}
-                                <option value="{{ ward.code }}">{{ ward.name }}</option>
+                                    <option value="{{ ward.code }}">{{ ward.name }}</option>
                                 {% endfor %}
 
                             </select>
@@ -181,6 +181,26 @@
                             <label class="control-label enrolment-label">{{ demo_form.guardian_national_id.label_tag }}</label>
                             {{ demo_form.guardian_national_id|add_class:"input-sm form-control enrolment-input" }}
                         </div>
+
+                        <div class="form-group" id="ovc_section_checkbox">
+                              {{ demo_form.ovc_checkbox.errors }}
+                              <label class="control-label enrolment-label">Is OVC Client?</label>
+                            {{ demo_form.ovc_checkbox|add_class:"input-sm form-control enrolment-input" }}
+                          </div>
+
+                          <fieldset id="ovc_more_section" class="hidden">
+                              <div class="form-group">
+                                 {{ demo_form.external_organisation.errors }}
+                                <label class="control-label enrolment-label">{{ demo_form.external_organisation.label_tag }}</label>
+                                {{ demo_form.external_organisation|add_class:"input-sm form-control enrolment-input" }}
+                              </div>
+                             <div class="form-group">
+                                  {{ demo_form.ovc_id.errors }}
+                                    <label class="control-label enrolment-label">{{ demo_form.ovc_id.label_tag }}</label>
+                                    {{ demo_form.ovc_id|add_class:"input-sm form-control enrolment-input" }}
+                              </div>
+                          </fieldset>
+
                         <div class="form-group">
                             {{ demo_form.client.as_hidden }}
                         </div>

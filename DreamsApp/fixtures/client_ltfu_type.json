@@ -1,0 +1,16 @@
+[
+  {
+    "model": "DreamsApp.clientltfutype",
+    "fields" : {
+      "code": 1,
+      "name": "Call"
+    }
+  },
+  {
+    "model": "DreamsApp.clientltfutype",
+    "fields" : {
+      "code": 2,
+      "name": "Visit"
+    }
+  }
+]
