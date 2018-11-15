@@ -640,7 +640,7 @@ def exit_client(request):
             exit_comment = request.POST.get('exitComment')
 
             if reason_for_exit is not None:
-                if reason_for_exit.code is LOST_TO_FOLLOW_UP_CODE:
+                if reason_for_exit.code == LOST_TO_FOLLOW_UP_CODE:
                     if is_not_null_or_empty(ltfu_date) \
                             or is_not_null_or_empty(ltfu_type) \
                             or is_not_null_or_empty(ltfu_result) \
@@ -649,9 +649,9 @@ def exit_client(request):
                                                          ltfu_type, ltfu_result, ltfu_comment, request.user)
                     else:
                         raise Exception('Missing Lost to follow up fields')
-                elif reason_for_exit.code is OTHER_CODE:
+                elif reason_for_exit.code == OTHER_CODE:
                     if is_not_null_or_empty(exit_comment):
-                        exited_client = simple_client_exit(client_id, reason_for_exit, request.user, date_of_exit)
+                        exited_client = simple_client_exit(client_id, exit_comment, request.user, date_of_exit)
                     else:
                         raise Exception('Reason for exit missing')
 
@@ -676,10 +676,10 @@ def exit_client(request):
         return JsonResponse(response_data, status=500)
 
 
-def simple_client_exit(client_id, reason_for_exit, exit_user, date_of_exit):
+def simple_client_exit(client_id, exit_comment, exit_user, date_of_exit):
     client = Client.objects.filter(id=client_id).first()
-    client.exited = not client.exited
-    client.reason_exited = reason_for_exit
+    client.exited = True
+    client.reason_exited = exit_comment
     client.exited_by = exit_user
     client.date_exited = date_of_exit
     client.save()
@@ -688,8 +688,8 @@ def simple_client_exit(client_id, reason_for_exit, exit_user, date_of_exit):
 
 def ltfu_client_exit(client_id, reason_for_exit, date_of_exit, ltfu_date, ltfu_type, ltfu_result, ltfu_comment, exit_user):
     client = Client.objects.filter(id=client_id).first()
-    client.exited = not client.exited
-    client.reason_exited = reason_for_exit
+    client.exited = True
+    client.exit_reason = reason_for_exit
     client.exited_by = exit_user
     client.date_exited = date_of_exit
     client.save()
@@ -697,7 +697,7 @@ def ltfu_client_exit(client_id, reason_for_exit, date_of_exit, ltfu_date, ltfu_t
     client_ltfu = ClientLTFU()
     client_ltfu.client = Client.objects.filter(id=client_id).first()
     client_ltfu.date_of_followup = ltfu_date
-    client_ltfu.type_of_followup = ltfu_type
+    client_ltfu.type_of_followup = ClientLTFUType.objects.filter(code=reason_for_exit.code).first()
     client_ltfu.result_of_followup = ltfu_result
     client_ltfu.comment = ltfu_comment
     client_ltfu.save()

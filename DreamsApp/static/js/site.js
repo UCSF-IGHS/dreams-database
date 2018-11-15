@@ -1860,8 +1860,8 @@ $(document).ready(function () {
     }, ' ');
 
     var existsAndNotEmpty = function(elems) {
-        elems.map(function () {
-            if ($.trim($(elem).val()) != "") 
+        $.each(elems, function (index, value) {
+            if ($.trim(value) == "")
                 return false;
         });
         return true;
@@ -3105,13 +3105,12 @@ $(document).ready(function () {
         var ltfuResult = $('input#result_of_followup').val();
         var ltfuComment = $('textarea#followup_comment').val();
         var exitComment = $('textarea#reason_for_exit_other').val();
-        
-        if ($.trim(reasonForExit) == LOST_TO_FOLLOW_UP_CODE && 
+
+        if ($.trim(reasonForExit) == LOST_TO_FOLLOW_UP_CODE &&
             (
                 $.trim(ltfuDate) == ""  ||
                 $.trim(ltfuType) == ""  ||
-                $.trim(ltfuResult) == "" ||
-                $.trim(ltfuComment) == "" 
+                $.trim(ltfuResult) == ""
             )) {
             $('#action_alert_gen').removeClass('hidden')
                                   .addClass('alert-danger')
