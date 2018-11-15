@@ -22,6 +22,10 @@
                 }
                 frm.submit();
             });
+
+            {% if sub_grantees|length > 0 %}
+                $('#div_sub_grantee').removeClass('hidden');
+            {% endif %}
         });
 
         function getCookie(name) {
@@ -57,12 +61,15 @@
 
                     var subGranteeSelect = $('#id_sub_grantee');
                     subGranteeSelect.empty();
-                    subGranteeSelect.append($("<option />").attr("value", '').text('Select Sub Grantee').addClass('selected disabled hidden').css({display:'none'}));
+                    subGranteeSelect.append($("<option />").attr("value", '').text('Select Sub Grantee').addClass('selected disabled hidden').css({display: 'none'}));
 
                     if (sub_grantees.length > 0) {
+                        $('#div_sub_grantee').removeClass('hidden')
                         $.each(sub_grantees, function () {
                             subGranteeSelect.append($("<option />").attr("value", this.pk).text(this.fields.name));
                         });
+                    } else {
+                        $('#div_sub_grantee').addClass('hidden')
                     }
                 },
 
@@ -178,17 +185,15 @@
                     </select>
                  </div>
 
-{#                {% if sub_grantees %}#}
-                    <div class="form-group">
-                        <label for="ward">Sub Grantee</label>
-                        <select id="id_sub_grantee" name="sub_grantee" class="form-control clear_value" >
-                            <option value="">Select Sub Grantee</option>
-                            {% for sub_grantee in sub_grantees %}
-                                <option value="{{ sub_grantee.id }}">{{ sub_grantee.name }}</option>
-                            {% endfor %}
-                        </select>
-                     </div>
-{#                {% endif %}#}
+                <div id="div_sub_grantee" class="form-group hidden">
+                    <label for="ward">Sub Grantee</label>
+                    <select id="id_sub_grantee" name="sub_grantee" class="form-control clear_value" >
+                        <option value="">Select Sub Grantee</option>
+                        {% for sub_grantee in sub_grantees %}
+                            <option value="{{ sub_grantee.id }}">{{ sub_grantee.name }}</option>
+                        {% endfor %}
+                    </select>
+                 </div>
 
                 <div class="form-group">
                     <input class="btn btn-sm btn-primary" type="button" id="btn_download_enrollment_excel" value="Download EXCEL">
