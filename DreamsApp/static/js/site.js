@@ -352,8 +352,25 @@ $(document).ready(function () {
             dataType: 'json',
             async: false,
             success: function (data) {
-                ltfuReasons = $.parseJSON(data.exit_reasons);
-                setExitReasonsSelect(ltfuReasons);
+                exitReasons = $.parseJSON(data.exit_reasons);
+                setExitReasonsSelect(exitReasons);
+            },
+            error: function (xhr, errmsg, err) {
+                alert(errmsg);
+                console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+    }
+
+    function fetchAndLoadLTFUTypes() {
+        $.ajax({
+            url: "/getLTFUTypes",
+            type: "GET",
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                ltfuTypes = $.parseJSON(data.ltfu_types);
+                setLTFUTypesSelect(ltfuTypes);
             },
             error: function (xhr, errmsg, err) {
                 alert(errmsg);
@@ -432,6 +449,17 @@ $(document).ready(function () {
         if (exitReasons.length > 0) {
             $.each(exitReasons, function () {
                 exitReasonsSelect.append($("<option />").attr("value", this.pk).text(this.fields.name));
+            });
+        }
+    }
+
+    function setLTFUTypesSelect(ltfuTypes) {
+      var ltfuTypesSelect = $('select#type_of_followup');
+        ltfuTypesSelect.empty().append($("<option />").attr("value", '').text('Select LTFU Type').addClass('selected disabled hidden').css({display:'none'}));
+
+        if (ltfuTypes.length > 0) {
+            $.each(ltfuTypes, function () {
+                ltfuTypesSelect.append($("<option />").attr("value", this.pk).text(this.fields.name));
             });
         }
     }
@@ -1874,8 +1902,8 @@ $(document).ready(function () {
                                         'input#date_of_followup',
                                         '#form_client_exit #id_date_of_exit',
                                         'input#date_of_followup',
-                                        'input#type_of_followup',
-                                        'input#result_of_followup']);
+                                        'input#result_of_followup'])
+                && $('select#type_of_followup').find(':selected').val() != "";
         } else if (selectedOption == OTHER_CODE) {
             return $('textarea#reason_for_exit_other').val() != "";
         }
@@ -2961,6 +2989,7 @@ $(document).ready(function () {
     // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
         fetchAndLoadExitReasons();
+        fetchAndLoadLTFUTypes();
         $('#client-exit-modal #id_reason_for_exit').val('');
         $("#client-exit-modal #id_date_of_exit").datepicker("setDate", new Date());
     });
@@ -3101,7 +3130,7 @@ $(document).ready(function () {
         var reasonForExit = $('select[name=reason_for_exit]').find(':selected').val();
         var dateOfExit = $('#form_client_exit #id_date_of_exit').val();
         var ltfuDate = $('input#date_of_followup').val();
-        var ltfuType = $('input#type_of_followup').val();
+        var ltfuType = $('select#type_of_followup').find(':selected').val();
         var ltfuResult = $('input#result_of_followup').val();
         var ltfuComment = $('textarea#followup_comment').val();
         var exitComment = $('textarea#reason_for_exit_other').val();
