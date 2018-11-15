@@ -18,14 +18,8 @@
                 <div class="modal-body">
                         <div style="margin: auto 15px;">
                              <div class="form-group">
-                                 <label id="reason_for_exit_label" for="reason_for_exit" class="control-label">Reason to {{ client.x }}</label>
+                                 <label id="reason_for_exit_label" for="reason_for_exit" class="control-label">Reason to exit client</label>
                                  <select class="form-control" id="reason_for_exit" name="reason_for_exit" >
-                                     <option value="1">Permanent Migration</option>
-                                     <option value="2">Death</option>
-                                     <option value="3">Voluntary Exit</option>
-                                     <option value="4">Parental/Guardian/Partner refusal</option>
-                                     <option value="5">Lost to follow up</option>
-                                     <option value="6">Other</option>
                                  </select>
                              </div>
                             <fieldset id="ltfu" class="form-groups hidden">
@@ -47,7 +41,7 @@
                              </div>
                             </fieldset>
                             <div id="reason_for_exit_other_section" class="form-group hidden">
-                                 <label id="client_exit_activation_label" for="reason_for_exit_other" class="control-label">Reason to {{ client.get_client_status_action_text }}</label>
+                                 <label id="client_exit_activation_label" for="reason_for_exit_other" class="control-label">Reason to Exit Client</label>
                                  <textarea class="form-control" id="reason_for_exit_other" name="reason_for_exit" ></textarea>
                              </div>
                             <div class="form-group has-feedback">

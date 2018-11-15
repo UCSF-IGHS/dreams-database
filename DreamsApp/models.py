@@ -250,9 +250,6 @@ class Client(models.Model):
         except Exception as e:
             return 'Invalid Status'
 
-    def get_client_status_action_text(self):
-        return 'Undo Exit' if self.exited else 'Exit Client'
-
     def get_age_at_enrollment(self):
         try:
             return self.date_of_enrollment.year - self.date_of_birth.year - (

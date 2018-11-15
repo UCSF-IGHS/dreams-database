@@ -76,6 +76,7 @@ urlpatterns = [
     url(r'^update-drug-use', views.update_drug_use_data),
     url(r'^update-programme-participation', views.update_programme_participation_data),
     url(r'^client/exit$', views.exit_client),
+    url(r'^client/unexit$', views.unexit_client),
     url(r'^client/transfer$', views.transfer_client, name='transfer_client'),
     url(r'^client-transfers/(?P<transferred_in>[0-1])$', views.client_transfers, name='client_transfers'),
     url(r'^accept-client-transfer$', views.accept_client_transfer, name='accept_client_transfer'),

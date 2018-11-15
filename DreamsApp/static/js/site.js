@@ -2918,19 +2918,13 @@ $(document).ready(function () {
     // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
         fetchAndLoadExitReasons();
-
         $('#client-exit-modal #id_reason_for_exit').val('');
         $("#client-exit-modal #id_date_of_exit").datepicker("setDate", new Date());
+    });
 
-        var clientStatus = $('.client_status_action_text').html()
-        if($.trim(clientStatus) == 'Exit Client'){
-            $('#lbl_client_exit_activation_label').html('Reason to Exit Client');
-            $('#btn_submit_exit_client_form').val('Exit Client');
-        }
-        else{
-            $('#lbl_client_exit_activation_label').html('Reason to Activate Client');
-            $('#btn_submit_exit_client_form').html('Activate Client');
-        }
+    $('#client-unexit-modal').on('show.bs.modal', function (e) {
+        $('#client-unexit-modal #id_reason_for_exit').val('');
+        $("#client-unexit-modal #id_date_of_exit").datepicker("setDate", new Date());
     })
 
 
@@ -2959,6 +2953,34 @@ $(document).ready(function () {
 
     });
 
+    $("#form_client_unexit").validate({
+        rules: { 
+            reason_for_unexit: { 
+                required: true 
+            },
+            date_of_unexit:{
+                required:true
+            }
+        },
+        messages: { 
+             reason_for_unexit: { 
+                required: " * Required field" 
+            },
+            date_of_exit:{
+                required: " * Required field"
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_client_unexit .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_client_unexit').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+
     $('select[name=reason_for_exit]').change(function () {
         var selectedOption = $(this).find(':selected').val();
         if(selectedOption == LOST_TO_FOLLOW_UP_CODE) {
@@ -2971,6 +2993,62 @@ $(document).ready(function () {
             $('fieldset#ltfu').addClass('hidden');
             $('div#reason_for_exit_other_section').addClass('hidden');
         }
+    });
+
+    $('#form_client_unexit').on('submit',function (event) {
+        event.preventDefault()
+        if(!$(event.target).valid()) return false;
+        
+        var reasonForExit = $('#form_client_unexit #id_reason_for_exit').val();
+        var dateOfExit = $('#form_client_unexit #id_date_of_exit').val();
+        if(reasonForExit == ''){
+            $('#id_reason_for_exit_error').html('* Required field')
+        }
+        if(dateOfExit == ''){
+            $('#id_reason_for_exit_error').html('* Required field')
+        }
+        if(reasonForExit == '' || dateOfExit == '')
+            return
+
+        var client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
+        if (typeof client_id == undefined || isNaN(client_id) || client_id == ''){
+            return;
+        }
+
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : "/client/unexit",
+            type : "POST",
+            dataType: 'json',
+            data : {
+                csrfmiddlewaretoken : csrftoken,
+                client_id : client_id,
+                reason_for_exit: reasonForExit,
+                date_of_exit: dateOfExit
+            },
+            success: function (data) {
+                if(data.status == 'success'){
+                    var client_status = data.client_status;
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                   .text(data.message + ' Successfully')
+                   .trigger('madeVisible')
+                    $('.client_exit_voided_status').html(client_status);
+                    $('.client_status_action_text').html('Exit Client');
+                }
+                else {
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                   .text(data.message)
+                   .trigger('madeVisible')
+                }
+                $('#client-exit-modal').modal('hide');
+            },
+            error: function (xhr, errmsg, err) {
+                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+               .text('Could not save changes')
+               .trigger('madeVisible')
+
+            }
+        });
     });
 
     $('#form_client_exit').on('submit',function (event) {
@@ -3036,7 +3114,7 @@ $(document).ready(function () {
                    .text(data.message + ' Successfully')
                    .trigger('madeVisible')
                     $('.client_exit_voided_status').html(client_status);
-                    $('.client_status_action_text').html(data.get_client_status_action_text);
+                    $('.client_status_action_text').html('Undo Exit');
                 }
                 else {
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
@@ -3052,8 +3130,6 @@ $(document).ready(function () {
 
             }
         });
-
-
     });
 
     $('#collapseOne').on('shown.bs.collapse', function () {

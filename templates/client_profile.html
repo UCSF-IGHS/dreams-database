@@ -188,8 +188,16 @@
                 <p><strong>Actions: </strong> <br>
                     <p class="underline_hover"  data-client_id='{{ client.id }}' style="cursor:pointer;" onclick="window.location='/client_baseline_info?client_id={{ client.id }}&search_client_term={{ search_client_term }}'" data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-pencil"></span> Edit Enrollment Data</p>
                     {% if perms.DreamsApp.can_exit_client %}
-                    <p class="underline_hover" id="p_exit_client"  data-client_id='{{ client.id }}' data-search_client_term='{{ search_client_term }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-exit-modal" title="Exit Client">
-                        <span class="glyphicon glyphicon-log-out"></span> <span class="client_status_action_text"> {{ client.get_client_status_action_text }} </span>
+                    <p class="underline_hover" id="p_exit_client" data-client_id='{{ client.id }}'
+                       data-search_client_term='{{ search_client_term }}' style="cursor:pointer;" data-toggle="modal"
+                       data-target="#client-exit-modal" title="Exit Client">
+                        <span class="glyphicon glyphicon-log-out"></span> <span class="client_status_action_text">
+                        {% if client.exited %}
+                            Undo Exit
+                        {% else %}
+                            Exit
+                        {% endif %}
+                        </span>
                     </p>
                     {% endif %}
                     {% if perms.DreamsApp.add_clienttransfer %}
