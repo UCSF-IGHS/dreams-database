@@ -3071,15 +3071,16 @@ $(document).ready(function () {
         event.preventDefault()
         if(!$(event.target).valid()) return false;
         
-        var reasonForExit = $('#form_client_unexit #id_reason_for_exit').val();
-        var dateOfExit = $('#form_client_unexit #id_date_of_exit').val();
-        if(reasonForExit == ''){
-            $('#id_reason_for_exit_error').html('* Required field')
+        var reasonForUndoneExit = $('#form_client_unexit #id_reason_for_unexit').val();
+        var dateOfUndoneExit = $('#form_client_unexit #id_date_of_unexit').val();
+
+        if(reasonForUndoneExit == ''){
+            $('#id_reason_for_unexit_error').html('* Required field')
         }
-        if(dateOfExit == ''){
-            $('#id_reason_for_exit_error').html('* Required field')
+        if(dateOfUndoneExit == ''){
+            $('#id_date_of_unexit_error').html('* Required field')
         }
-        if(reasonForExit == '' || dateOfExit == '')
+        if(reasonForUndoneExit == '' || dateOfUndoneExit == '')
             return
 
         var client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
@@ -3095,8 +3096,8 @@ $(document).ready(function () {
             data : {
                 csrfmiddlewaretoken : csrftoken,
                 client_id : client_id,
-                reason_for_exit: reasonForExit,
-                date_of_exit: dateOfExit
+                reason_for_exit: reasonForUndoneExit,
+                date_of_exit: dateOfUndoneExit
             },
             success: function (data) {
                 if(data.status == 'success'){
@@ -3112,13 +3113,12 @@ $(document).ready(function () {
                    .text(data.message)
                    .trigger('madeVisible')
                 }
-                $('#client-exit-modal').modal('hide');
+                $('#client-unexit-modal').modal('hide');
             },
             error: function (xhr, errmsg, err) {
                 $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                .text('Could not save changes')
                .trigger('madeVisible')
-
             }
         });
     });

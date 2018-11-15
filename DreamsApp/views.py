@@ -593,8 +593,8 @@ def unexit_client(request):
             'DreamsApp.can_exit_client'):
         try:
             client_id = int(str(request.POST.get('client_id', '0')))
-            reason_for_exit = str(request.POST.get('reason_for_exit', ''))
-            date_of_exit = request.POST.get('date_of_exit', datetime.datetime.now())
+            reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
+            date_of_exit = request.POST.get('date_of_unexit', datetime.datetime.now())
             client = Client.objects.filter(id=client_id).first()
             client.exited = not client.exited
             client.reason_exited = reason_for_exit
