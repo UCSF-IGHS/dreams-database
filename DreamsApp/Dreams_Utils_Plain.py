@@ -280,7 +280,6 @@ VALUES """
         cursor_results = None
 
         try:
-
             ip_tuple_l = ip_list_str
             if sub_county is not None and sub_county:
                 sub_county = int(sub_county)

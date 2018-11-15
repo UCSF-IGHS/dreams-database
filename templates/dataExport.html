@@ -4,6 +4,13 @@
 
     <script type="text/javascript">
         $(document).ready(function(){
+
+            $('select#i_p').change(function() {
+                $(this).map(function() {
+                    getSubGrantees($(this).val());
+                });
+            });
+
             $('#btn_download_enrollment_excel').click(function(){
                 var frm = $('#frm_download-excel')
                 var ips = $('#i_p').val();
@@ -22,34 +29,41 @@
            if (document.cookie && document.cookie != '') {
              var cookies = document.cookie.split(';');
              for (var i = 0; i < cookies.length; i++) {
-             var cookie = jQuery.trim(cookies[i]);
-             // Does this cookie string begin with the name we want?
-             if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                 break;
-              }
+                 var cookie = jQuery.trim(cookies[i]);
+                 // Does this cookie string begin with the name we want?
+                 if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                     break;
+                  }
+             }
          }
-     }
-     return cookieValue;
-    }
+         return cookieValue;
+        }
 
-        function getInterventionUsingId() {
 
+        function getSubGrantees(ip_list) {
             var csrftoken = getCookie('csrftoken');
-            var iv_id = $('#iv_id').val();
-
+            console.log(ip_list);
             $.ajax({
-                url : "/ivGet/", // the endpoint
+                url : "/getSubGrantees", // the endpoint
                 type : "POST", // http method
                 dataType: 'json',
                 data : {
                     csrfmiddlewaretoken : csrftoken,
-                    intervention_id : iv_id
+                    ip_list : ip_list
                 },
                 success : function(data) {
-                    alert(data);
-                    console.log(data);
+                    sub_grantees = $.parseJSON(data.sub_grantees);
 
+                    var subGranteeSelect = $('#id_sub_grantee');
+                    subGranteeSelect.empty();
+                    subGranteeSelect.append($("<option />").attr("value", '').text('Select Sub Grantee').addClass('selected disabled hidden').css({display:'none'}));
+
+                    if (sub_grantees.length > 0) {
+                        $.each(sub_grantees, function () {
+                            subGranteeSelect.append($("<option />").attr("value", this.pk).text(this.fields.name));
+                        });
+                    }
                 },
 
                 // handle a non-successful response
@@ -61,12 +75,19 @@
             });
         }
 
+
         function download_excel() {
              var i_frame = document.getElementById('download_excel');
              var csrftoken = getCookie('csrftoken');
              var ips = $('#i_p').val();
              var sub_county = $('#id_sub_county').val();
              var ward = $('#id_ward').val();
+             var sub_grantee = null;
+
+            if ($('#id_sub_grantee')) {
+                sub_grantee = $('#id_sub_grantee').val();
+            }
+
             $.ajax({
                 url : "/download-excel/", // the endpoint
                 type : "POST", // http method
@@ -75,12 +96,11 @@
                     csrfmiddlewaretoken : csrftoken,
                     ips : ips,
                     sub_county: sub_county,
-                    ward: ward
+                    ward: ward,
+                    sub_grantee: sub_grantee
                 },
                 success : function(data) {
                     alert(data);
-
-
                 },
 
                 // handle a non-successful response
@@ -90,15 +110,11 @@
                     console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
                 }
             });
-             //i_frame.src = "/download-excel/";
         }
-
     </script>
-
 {% endblock %}
 
 {% block content %}
-
     <div class="wrapper-container">
         <div class="statusBox"  style="">
             <div>
@@ -132,45 +148,52 @@
                     </select>
                 </div>
 
+                <div class="form-group">
+                    <label for="county_of_residence">County</label>
+                    <select id="id_county_of_residence" name="county_of_residence" class="form-control clear_value">
+                        <option value="">Select County</option>
+                        {% for county in counties %}
+                            <option data-county_of_residence_id="{{ county.id }}" value="{{ county.id }}">{{ county.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            <div class="form-group">
-                            <label for="county_of_residence">County</label>
-                            <select id="id_county_of_residence" name="county_of_residence" class="form-control clear_value">
-                                <option value="">Select County</option>
-                                {% for county in counties %}
-                                    <option data-county_of_residence_id="{{ county.id }}" value="{{ county.id }}">{{ county.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                 <div class="form-group">
+                    <label for="sub_county">Sub-County</label>
+                    <select id="id_sub_county" name="sub_county" class="form-control clear_value" >
+                        <option value="">Select Sub-County</option>
+                        {% for sub_county in sub_counties %}
+                            <option value="{{ sub_county.id }}" data-sub_county_id="{{ sub_county.id }}" data-county_id="{{ sub_county.county.id }}">{{ sub_county.name }}</option>
+                        {% endfor %}
+                    </select>
+                 </div>
 
-                         <div class="form-group">
-                            <label for="sub_county">Sub-County</label>
-                            <select id="id_sub_county" name="sub_county" class="form-control clear_value" >
-                                <option value="">Select Sub-County</option>
-                                {% for sub_county in sub_counties %}
-                                <option value="{{ sub_county.id }}" data-sub_county_id="{{ sub_county.id }}" data-county_id="{{ sub_county.county.id }}">{{ sub_county.name }}</option>
-                                {% endfor %}
-                            </select>
-                         </div>
+                 <div class="form-group">
+                    <label for="ward">Ward</label>
+                    <select id="id_ward" name="ward" class="form-control clear_value" >
+                        <option value="">Select Ward</option>
+                        {% for ward in wards %}
+                            <option value="{{ ward.code }}">{{ ward.name }}</option>
+                        {% endfor %}
+                    </select>
+                 </div>
 
-                         <div class="form-group">
-                            <label for="ward">Ward</label>
-                            <select id="id_ward" name="ward" class="form-control clear_value" >
-                                <option value="">Select Ward</option>
-                                {% for ward in wards %}
-                                <option value="{{ ward.code }}">{{ ward.name }}</option>
-                                {% endfor %}
-
-                            </select>
-                         </div>
-
+{#                {% if sub_grantees %}#}
+                    <div class="form-group">
+                        <label for="ward">Sub Grantee</label>
+                        <select id="id_sub_grantee" name="sub_grantee" class="form-control clear_value" >
+                            <option value="">Select Sub Grantee</option>
+                            {% for sub_grantee in sub_grantees %}
+                                <option value="{{ sub_grantee.id }}">{{ sub_grantee.name }}</option>
+                            {% endfor %}
+                        </select>
+                     </div>
+{#                {% endif %}#}
 
                 <div class="form-group">
                     <input class="btn btn-sm btn-primary" type="button" id="btn_download_enrollment_excel" value="Download EXCEL">
                 </div>
             </form>
         </div>
-
     </div>
-
 {% endblock %}

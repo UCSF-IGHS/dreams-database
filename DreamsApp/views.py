@@ -1821,19 +1821,21 @@ def export_page(request):
             'DreamsApp.can_export_raw_data'):
 
         try:
+            ips = None
+            sub_grantees = None
 
             if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
+
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
                     id=request.user.implementingpartneruser.implementing_partner.id)
+                if ips.count() > 0:
+                    sub_grantees = get_sub_grantees(ips.first())
 
-            else:
-                ips = None
-
-            print "IPs", ips
             context = {'page': 'export', 'page_title': 'DREAMS Data Export', 'ips': ips,
-                       'counties': County.objects.all()}
+                       'counties': County.objects.all(), 'sub_grantees': sub_grantees}
+
             return render(request, 'dataExport.html', context)
         except ImplementingPartnerUser.DoesNotExist:
             traceback.format_exc()
@@ -1841,6 +1843,20 @@ def export_page(request):
             traceback.format_exc()
     else:
         raise PermissionDenied
+
+
+def get_sub_grantees(request):
+    try:
+        ip_list = request.POST.getlist('ip_list[]')
+
+        response_data = {
+            'status': 'success',
+            'sub_grantees': serializers.serialize('json',ImplementingPartner.objects.filter(parent_implementing_partner__in=ip_list))
+        }
+        return JsonResponse(response_data, status=200)
+
+    except Exception as e:
+        raise e
 
 
 def intervention_export_page(request):
@@ -1872,10 +1888,17 @@ def intervention_export_page(request):
 
 def downloadEXCEL(request):
     try:
-        ip_list_str = request.POST.getlist('ips')
+        ip_list_str = []
+        sub_grantee = request.POST.get('sub_grantee')
+
+        if sub_grantee:
+            ip_list_str = request.POST.getlist('sub_grantee')
+        else:
+            ip_list_str = request.POST.getlist('ips')
+
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
-        county = request.POST.get('county_of_residence')
+        #county = request.POST.get('county_of_residence')
 
         export_file_name = urllib.quote(("/tmp/output-{}.csv").format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
