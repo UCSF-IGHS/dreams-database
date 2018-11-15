@@ -588,26 +588,50 @@ def get_client_status_action_text(client):
     return 'Undo Exit' if client.exited else 'Exit Client'
 
 
-def client_exit_status_toggle(request):
+def is_not_null_or_empty(str):
+    return str is not None and str is not ""
+
+
+def exit_client(request):
     """Exit or undo Exit depending on client's current status"""
+
+    LOST_TO_FOLLOW_UP_CODE = 5
+    OTHER_CODE = 6
+
     if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_exit_client'):
         try:
             client_id = int(str(request.POST.get('client_id', '0')))
-            reason_for_exit = str(request.POST.get('reason_for_exit', ''))
+            reason_for_exit = ExitReason.objects.get(id__exact=int(request.POST.get('reason_for_exit', '')))
             date_of_exit = request.POST.get('date_of_exit', datetime.datetime.now())
-            client = Client.objects.filter(id=client_id).first()
-            client.exited = not client.exited
-            client.reason_exited = reason_for_exit
-            client.exited_by = request.user
-            client.date_exited = date_of_exit
-            client.save()
+            ltfu_date = request.POST.get('ltfuDate')
+            ltfu_type = request.POST.get('ltfuType')
+            ltfu_result = request.POST.get('ltfuResult')
+            ltfu_comment = request.POST.get('ltfuComment')
+            exit_comment = request.POST.get('exitComment')
+
+            if reason_for_exit is not None:
+                if reason_for_exit.code is LOST_TO_FOLLOW_UP_CODE:
+                    if is_not_null_or_empty(ltfu_date) \
+                            or is_not_null_or_empty(ltfu_type) \
+                            or is_not_null_or_empty(ltfu_result) \
+                            or is_not_null_or_empty(ltfu_comment):
+                        exited_client = ltfu_client_exit(client_id, reason_for_exit, date_of_exit, ltfu_date,
+                                                         ltfu_type, ltfu_result, ltfu_comment, request.user)
+                    else:
+                        raise Exception('Missing Lost to follow up fields')
+                elif reason_for_exit.code is OTHER_CODE:
+                    if is_not_null_or_empty(exit_comment):
+                        exited_client = simple_client_exit(client_id, reason_for_exit, request.user, date_of_exit)
+                    else:
+                        raise Exception('Reason for exit missing')
+
             response_data = {
                 'status': 'success',
-                'message': 'Client' + ' Exited' if client.exited else 'Client Activated',
-                'client_id': client.id,
-                'client_status': get_client_status(client),
-                'get_client_status_action_text': get_client_status_action_text(client)
+                'message': 'Client Exited',
+                'client_id': exited_client.id,
+                'client_status': get_client_status(exited_client),
+                'get_client_status_action_text': get_client_status_action_text(exited_client)
             }
             return JsonResponse(response_data, status=200)
         except Exception as e:
@@ -622,6 +646,35 @@ def client_exit_status_toggle(request):
             'message': 'Permission Denied. Please contact System Administrator for help.'
         }
         return JsonResponse(response_data, status=500)
+
+
+def simple_client_exit(client_id, reason_for_exit, exit_user, date_of_exit):
+    client = Client.objects.filter(id=client_id).first()
+    client.exited = not client.exited
+    client.reason_exited = reason_for_exit
+    client.exited_by = exit_user
+    client.date_exited = date_of_exit
+    client.save()
+    return client
+
+
+def ltfu_client_exit(client_id, reason_for_exit, date_of_exit, ltfu_date, ltfu_type, ltfu_result, ltfu_comment, exit_user):
+    client = Client.objects.filter(id=client_id).first()
+    client.exited = not client.exited
+    client.reason_exited = reason_for_exit
+    client.exited_by = exit_user
+    client.date_exited = date_of_exit
+    client.save()
+
+    client_ltfu = ClientLTFU()
+    client_ltfu.client = Client.objects.filter(id=client_id).first()
+    client_ltfu.date_of_followup = ltfu_date
+    client_ltfu.type_of_followup = ltfu_type
+    client_ltfu.result_of_followup = ltfu_result
+    client_ltfu.comment = ltfu_comment
+    client_ltfu.save()
+
+    return client
 
 
 def testajax(request):
@@ -644,6 +697,25 @@ def get_external_organisation(request):
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
+
+
+def get_exit_reasons(request):
+    try:
+        if is_valid_get_request(request):
+            response_data = {}
+            exit_reasons = serializers.serialize('json', ExitReason.objects.all())
+            response_data["exit_reasons"] = exit_reasons
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
+def is_valid_get_request(request):
+    return request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active
+
 
 def get_intervention_types(request):
     try:

@@ -1,4 +1,6 @@
 $(document).ready(function () {
+    
+    const LOST_TO_FOLLOW_UP_CODE = 5, OTHER_CODE = 6;
 
     $('div#other_external_organization').hide();
     $('#external-organization-select').change(function () {
@@ -327,6 +329,23 @@ $(document).ready(function () {
 
     }
 
+    function fetchAndLoadExitReasons() {
+        $.ajax({
+            url: "/getExitReasons",
+            type: "GET",
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                ltfuReasons = $.parseJSON(data.exit_reasons);
+                setExitReasonsSelect(ltfuReasons);
+            },
+            error: function (xhr, errmsg, err) {
+                alert(errmsg);
+                console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+    }
+
      function fetchExternalOrganisations() {
         $('#intervention-entry-form .processing-indicator').removeClass('hidden');
         $.ajax({
@@ -391,6 +410,14 @@ $(document).ready(function () {
         }
     }
 
+    function setExitReasonsSelect(exitReasons) {
+        var exitReasonsSelect = $('select#reason_for_exit');
+        exitReasonsSelect.empty().append($("<option />").attr("value", '').text('Select Exit Reason').addClass('selected disabled hidden').css({display:'none'}));
+
+        exitReasons.map(function() {
+           exitReasonsSelect.append($("<option />").attr("value", this.code).text(this.name));
+        });
+    }
 
     function setInterventionTypesSelect(interventionTypes) {
         var interventionTypeSelect = $('#intervention-type-select');
@@ -1801,6 +1828,29 @@ $(document).ready(function () {
         return true;
     }, ' ');
 
+    var existsAndNotEmpty = function(elems) {
+        elems.map(function () {
+            if ($.trim($(elem).val()) != "") 
+                return false;
+        });
+        return true;
+    };
+
+    $.validator.addMethod('checkIfLTFUOrOther', function(value, element) {
+        var selectedOption = $(element).find(':selected').val();
+        if (selectedOption == LOST_TO_FOLLOW_UP_CODE) {
+            return existsAndNotEmpty(['#form_client_exit #id_date_of_exit',
+                                        'input#date_of_followup',
+                                        '#form_client_exit #id_date_of_exit',
+                                        'input#date_of_followup',
+                                        'input#type_of_followup',
+                                        'input#result_of_followup']);
+        } else if (selectedOption == OTHER_CODE) {
+            return $('textarea#reason_for_exit_other').val() != "";
+        }
+        return false;
+    }, "* Please ensure that all exit fields below are filled in");
+
     $('#grievances-form').validate({
         rules: {
             date: {
@@ -2867,14 +2917,13 @@ $(document).ready(function () {
 
     // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
-        // get relevant client details
-        // Nothing important should happen here
+        fetchAndLoadExitReasons();
+
         $('#client-exit-modal #id_reason_for_exit').val('');
         $("#client-exit-modal #id_date_of_exit").datepicker("setDate", new Date());
-        // Action wording
+
         var clientStatus = $('.client_status_action_text').html()
         if($.trim(clientStatus) == 'Exit Client'){
-            // Client is actively in the program.
             $('#lbl_client_exit_activation_label').html('Reason to Exit Client');
             $('#btn_submit_exit_client_form').val('Exit Client');
         }
@@ -2882,23 +2931,20 @@ $(document).ready(function () {
             $('#lbl_client_exit_activation_label').html('Reason to Activate Client');
             $('#btn_submit_exit_client_form').html('Activate Client');
         }
-        console.log(clientStatus)
     })
+
 
     // Exit form validation
     $("#form_client_exit").validate({
         rules: { 
             reason_for_exit: { 
-                required: true 
+                checkIfLTFUOrOther: true 
             },
             date_of_exit:{
                 required:true
             }
         },
         messages: { 
-            reason_for_exit: { 
-                required: " * Required field" 
-            },
             date_of_exit:{
                 required: " * Required field"
             }
@@ -2913,28 +2959,59 @@ $(document).ready(function () {
 
     });
 
+    $('select[name=reason_for_exit]').change(function () {
+        var selectedOption = $(this).find(':selected').val();
+        if(selectedOption == LOST_TO_FOLLOW_UP_CODE) {
+            $('fieldset#ltfu').removeClass('hidden');
+            $('div#reason_for_exit_other_section').addClass('hidden');
+        } else if(selectedOption == OTHER_CODE) {
+            $('div#reason_for_exit_other_section').removeClass('hidden');
+            $('fieldset#ltfu').addClass('hidden');
+        } else {
+            $('fieldset#ltfu').addClass('hidden');
+            $('div#reason_for_exit_other_section').addClass('hidden');
+        }
+    });
 
     $('#form_client_exit').on('submit',function (event) {
         event.preventDefault()
         if(!$(event.target).valid())
             return false;
-        var reasonForExit = $('#form_client_exit #id_reason_for_exit').val();
+        var reasonForExit = $('select[name=reason_for_exit]').find(':selected').val();
         var dateOfExit = $('#form_client_exit #id_date_of_exit').val();
-        if(reasonForExit == ''){
-            $('#id_reason_for_exit_error').html('* Required field')
+        var ltfuDate = $('input#date_of_followup').val();
+        var ltfuType = $('input#type_of_followup').val();
+        var ltfuResult = $('input#result_of_followup').val();
+        var ltfuComment = $('textarea#followup_comment').val();
+        var exitComment = $('textarea#reason_for_exit_other').val();
+        
+        if ($.trim(reasonForExit) == LOST_TO_FOLLOW_UP_CODE && 
+            (
+                $.trim(ltfuDate) == ""  ||
+                $.trim(ltfuType) == ""  ||
+                $.trim(ltfuResult) == "" ||
+                $.trim(ltfuComment) == "" 
+            )) {
+            $('#action_alert_gen').removeClass('hidden')
+                                  .addClass('alert-danger')
+                                  .text('Please ensure that all lost to follow up fields are correctly entered.')
+                                  .trigger('madeVisible');
+            return;
+        } 
+        
+        if ($.trim(reasonForExit) == OTHER_CODE && $.trim(exitComment) == "") {
+            $('#action_alert_gen').removeClass('hidden')
+                                  .addClass('alert-danger')
+                                  .text('Please ensure that reason for exit is entered.')
+                                  .trigger('madeVisible');
+            return;
         }
-        if(dateOfExit == ''){
-            $('#id_reason_for_exit_error').html('* Required field')
-        }
-        if(reasonForExit == '' || dateOfExit == '')
-            return
-
+        
         var client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
         if (typeof client_id == undefined || isNaN(client_id) || client_id == ''){
             return;
         }
 
-        // Everything is fine. Do an ajax call to Exit client
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url : "/client/exit", // the endpoint
@@ -2944,6 +3021,11 @@ $(document).ready(function () {
                 csrfmiddlewaretoken : csrftoken,
                 client_id : client_id,
                 reason_for_exit: reasonForExit,
+                ltfuDate: ltfuDate,
+                ltfuType: ltfuType,
+                ltfuResult: ltfuResult,
+                ltfuComment: ltfuComment,
+                exitComment: exitComment,
                 date_of_exit: dateOfExit
             },
             success: function (data) {
