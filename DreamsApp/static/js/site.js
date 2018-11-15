@@ -429,9 +429,11 @@ $(document).ready(function () {
         var exitReasonsSelect = $('select#reason_for_exit');
         exitReasonsSelect.empty().append($("<option />").attr("value", '').text('Select Exit Reason').addClass('selected disabled hidden').css({display:'none'}));
 
-        exitReasons.map(function() {
-           exitReasonsSelect.append($("<option />").attr("value", this.code).text(this.name));
-        });
+        if (exitReasons.length > 0) {
+            $.each(exitReasons, function () {
+                exitReasonsSelect.append($("<option />").attr("value", this.pk).text(this.fields.name));
+            });
+        }
     }
 
     function setInterventionTypesSelect(interventionTypes) {

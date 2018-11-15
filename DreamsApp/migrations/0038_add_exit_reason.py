@@ -12,7 +12,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     def load_data(apps, schema_editor):
-        call_command("loaddata", "exit_reason.json")
+        call_command("loaddata", "exit_reasons.json")
 
     dependencies = [
         ('DreamsApp', '0037_auto_20181113_1212'),
