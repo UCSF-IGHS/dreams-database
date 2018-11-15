@@ -1907,7 +1907,7 @@ $(document).ready(function () {
         } else if (selectedOption == OTHER_CODE) {
             return $('textarea#reason_for_exit_other').val() != "";
         }
-        return false;
+        return true;
     }, "* Please ensure that all exit fields below are filled in");
 
     $('#grievances-form').validate({
@@ -3185,7 +3185,7 @@ $(document).ready(function () {
                    .text(data.message + ' Successfully')
                    .trigger('madeVisible')
                     $('.client_exit_voided_status').html(client_status);
-                    $('.client_status_action_text').html('Undo Exit');
+                    $('.client_status_action_text').html('Undo Exit Client');
                 }
                 else {
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
