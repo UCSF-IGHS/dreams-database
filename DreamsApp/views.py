@@ -1822,19 +1822,18 @@ def export_page(request):
 
         try:
             ips = None
-            sub_grantees = None
-
             if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
 
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
                     id=request.user.implementingpartneruser.implementing_partner.id)
-                if ips.count() > 0:
-                    sub_grantees = get_sub_grantees(ips.first())
+
+            if ips.count() > 0:
+                ips = ips.union(ImplementingPartner.objects.filter(parent_implementing_partner__in=ips))
 
             context = {'page': 'export', 'page_title': 'DREAMS Data Export', 'ips': ips,
-                       'counties': County.objects.all(), 'sub_grantees': sub_grantees}
+                       'counties': County.objects.all()}
 
             return render(request, 'dataExport.html', context)
         except ImplementingPartnerUser.DoesNotExist:
@@ -1845,18 +1844,18 @@ def export_page(request):
         raise PermissionDenied
 
 
-def get_sub_grantees(request):
-    try:
-        ip_list = request.POST.getlist('ip_list[]')
-
-        response_data = {
-            'status': 'success',
-            'sub_grantees': serializers.serialize('json',ImplementingPartner.objects.filter(parent_implementing_partner__in=ip_list))
-        }
-        return JsonResponse(response_data, status=200)
-
-    except Exception as e:
-        raise e
+# def get_sub_grantees(request):
+#     try:
+#         ip_list = request.POST.getlist('ip_list[]')
+#
+#         response_data = {
+#             'status': 'success',
+#             'sub_grantees': serializers.serialize('json',ImplementingPartner.objects.filter(parent_implementing_partner__in=ip_list))
+#         }
+#         return JsonResponse(response_data, status=200)
+#
+#     except Exception as e:
+#         raise e
 
 
 def intervention_export_page(request):
@@ -1864,17 +1863,15 @@ def intervention_export_page(request):
             'DreamsApp.can_export_raw_data'):
 
         try:
-
+            ips = None
             if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
                     id=request.user.implementingpartneruser.implementing_partner.id)
+            if ips.count() > 0:
+                ips = ips.union(ImplementingPartner.objects.filter(parent_implementing_partner__in=ips))
 
-            else:
-                ips = None
-
-            print "IPs", ips
             context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'interventionDataExport.html', context)
@@ -1888,22 +1885,13 @@ def intervention_export_page(request):
 
 def downloadEXCEL(request):
     try:
-        ip_list_str = []
-        sub_grantee = request.POST.get('sub_grantee')
-
-        if sub_grantee:
-            ip_list_str = request.POST.getlist('sub_grantee')
-        else:
-            ip_list_str = request.POST.getlist('ips')
-
+        ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
-        #county = request.POST.get('county_of_residence')
-
+        county = request.POST.get('county_of_residence')
         export_file_name = urllib.quote(("/tmp/output-{}.csv").format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
 
-        # Ensure can_view_phi_data has been created on Client contentType
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(
             codename='DreamsApp.can_view_phi_data').exists():
@@ -1925,6 +1913,11 @@ def downloadEXCEL(request):
 def downloadRawInterventionEXCEL(request):
     try:
         ip_list_str = request.POST.getlist('ips')
+        sub_grantee = [x for x in request.POST.getlist('sub_grantee') if x]
+
+        if sub_grantee:
+            ip_list_str = sub_grantee
+
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
@@ -1932,7 +1925,6 @@ def downloadRawInterventionEXCEL(request):
         response['Content-Disposition'] = 'attachment; filename=dreams_interventions.xlsx'
         export_doc = DreamsEnrollmentExcelTemplateRenderer()
 
-        # Ensure can_view_phi_data has been created on Client contentType
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(
             codename='DreamsApp.can_view_phi_data').exists():
@@ -1953,17 +1945,15 @@ def individual_service_layering_export_page(request):
             'DreamsApp.can_export_raw_data'):
 
         try:
-
+            ips = None
             if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
                     id=request.user.implementingpartneruser.implementing_partner.id)
+            if ips.count() > 0:
+                ips = ips.union(ImplementingPartner.objects.filter(parent_implementing_partner__in=ips))
 
-            else:
-                ips = None
-
-            print "IPs", ips
             context = {'page': 'export', 'page_title': 'Service Layering Report Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'individualServiceLayeringDataExport.html', context)
@@ -2550,15 +2540,15 @@ def intervention_export_transferred_in_page(request):
             'DreamsApp.can_export_raw_data'):
 
         try:
+            ips = None
             if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
                     id=request.user.implementingpartneruser.implementing_partner.id)
-            else:
-                ips = None
+            if ips.count() > 0:
+                ips = ips.union(ImplementingPartner.objects.filter(parent_implementing_partner__in=ips))
 
-            print "IPs", ips
             context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'interventionDataExportTransferredIn.html', context)

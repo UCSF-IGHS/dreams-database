@@ -1,131 +1,16 @@
 {% extends 'base.html' %}
+{% load staticfiles %}
+
 {% block pageJs %}
-
-
-    <script type="text/javascript">
-        $(document).ready(function(){
-
-            $('select#i_p').change(function() {
-                $(this).map(function() {
-                    getSubGrantees($(this).val());
-                });
-            });
-
-            $('#btn_download_enrollment_excel').click(function(){
-                var frm = $('#frm_download-excel')
-                var ips = $('#i_p').val();
-                if(ips == null || ips.length == 0){
-                    $('#ip_selection_alert').removeClass('hidden').addClass('alert-danger')
-                        .text("Please select Implementing Partner to Export Data")
-                        .trigger('madeVisible')
-                    return;
-                }
-                frm.submit();
-            });
-
-            {% if sub_grantees|length > 0 %}
-                $('#div_sub_grantee').removeClass('hidden');
-            {% endif %}
-        });
-
-        function getCookie(name) {
-           var cookieValue = null;
-           if (document.cookie && document.cookie != '') {
-             var cookies = document.cookie.split(';');
-             for (var i = 0; i < cookies.length; i++) {
-                 var cookie = jQuery.trim(cookies[i]);
-                 // Does this cookie string begin with the name we want?
-                 if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                     break;
-                  }
-             }
-         }
-         return cookieValue;
-        }
-
-
-        function getSubGrantees(ip_list) {
-            var csrftoken = getCookie('csrftoken');
-            console.log(ip_list);
-            $.ajax({
-                url : "/getSubGrantees", // the endpoint
-                type : "POST", // http method
-                dataType: 'json',
-                data : {
-                    csrfmiddlewaretoken : csrftoken,
-                    ip_list : ip_list
-                },
-                success : function(data) {
-                    sub_grantees = $.parseJSON(data.sub_grantees);
-
-                    var subGranteeSelect = $('#id_sub_grantee');
-                    subGranteeSelect.empty();
-                    subGranteeSelect.append($("<option />").attr("value", '').text('Select Sub Grantee').addClass('selected disabled hidden').css({display: 'none'}));
-
-                    if (sub_grantees.length > 0) {
-                        $('#div_sub_grantee').removeClass('hidden')
-                        $.each(sub_grantees, function () {
-                            subGranteeSelect.append($("<option />").attr("value", this.pk).text(this.fields.name));
-                        });
-                    } else {
-                        $('#div_sub_grantee').addClass('hidden')
-                    }
-                },
-
-                // handle a non-successful response
-                error : function(xhr,errmsg,err) {
-                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-                }
-            });
-        }
-
-
-        function download_excel() {
-             var i_frame = document.getElementById('download_excel');
-             var csrftoken = getCookie('csrftoken');
-             var ips = $('#i_p').val();
-             var sub_county = $('#id_sub_county').val();
-             var ward = $('#id_ward').val();
-             var sub_grantee = null;
-
-            if ($('#id_sub_grantee')) {
-                sub_grantee = $('#id_sub_grantee').val();
-            }
-
-            $.ajax({
-                url : "/download-excel/", // the endpoint
-                type : "POST", // http method
-                dataType: 'json',
-                data : {
-                    csrfmiddlewaretoken : csrftoken,
-                    ips : ips,
-                    sub_county: sub_county,
-                    ward: ward,
-                    sub_grantee: sub_grantee
-                },
-                success : function(data) {
-                    alert(data);
-                },
-
-                // handle a non-successful response
-                error : function(xhr,errmsg,err) {
-                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-                }
-            });
-        }
-    </script>
+    <script src="{% static 'js/raw_export.js' %}"></script>
 {% endblock %}
 
 {% block content %}
     <div class="wrapper-container">
         <div class="statusBox"  style="">
             <div>
-                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
+                    {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
                 <h6>Raw Data Export &nbsp;</h6>
             </div>
             <div class="floatRightLinks">
@@ -185,18 +70,8 @@
                     </select>
                  </div>
 
-                <div id="div_sub_grantee" class="form-group hidden">
-                    <label for="ward">Sub Grantee</label>
-                    <select id="id_sub_grantee" name="sub_grantee" class="form-control clear_value" >
-                        <option value="">Select Sub Grantee</option>
-                        {% for sub_grantee in sub_grantees %}
-                            <option value="{{ sub_grantee.id }}">{{ sub_grantee.name }}</option>
-                        {% endfor %}
-                    </select>
-                 </div>
-
                 <div class="form-group">
-                    <input class="btn btn-sm btn-primary" type="button" id="btn_download_enrollment_excel" value="Download EXCEL">
+                    <input class="btn btn-sm btn-primary" type="button" id="btn_download_excel" value="Download EXCEL">
                 </div>
             </form>
         </div>
