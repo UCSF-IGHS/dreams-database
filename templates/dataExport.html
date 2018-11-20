@@ -29,7 +29,7 @@
         <div class=" alert hidden dp-action-alert fade in" id="ip_selection_alert" role="alert" style="margin-bottom: 10px;"></div>
 
         <div class="fit-item report-export-form-div">
-            <form id="frm_download-excel" method="post" class="" action="/download-excel/" target="_blank">
+            <form id="frm_download-report" method="post" class="" action="/download-enrollment-report/" target="_blank">
                 {% csrf_token %}
                 <div class="form-group">
                     <label>Select Implementing Partner</label>
@@ -71,7 +71,7 @@
                  </div>
 
                 <div class="form-group">
-                    <input class="btn btn-sm btn-primary" type="button" id="btn_download_excel" value="Download EXCEL">
+                    <input class="btn btn-sm btn-primary" type="button" id="btn_download_report" value="Download Report">
                 </div>
             </form>
         </div>

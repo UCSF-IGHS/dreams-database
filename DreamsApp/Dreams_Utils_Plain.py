@@ -252,7 +252,6 @@ WHERE voided=0 AND i.implementing_partner_id = %s """
 
         try:
             cursor_data = self.fetch_intervention_transferred_in_rows(ip, from_intervention_date, to_intervention_date)
-
             col_names = [x[0] for x in cursor_data.description]
 
             if not show_PHI:

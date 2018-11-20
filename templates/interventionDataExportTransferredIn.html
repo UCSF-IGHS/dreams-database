@@ -28,7 +28,7 @@
              style="margin-bottom: 10px;"></div>
 
         <div class="fit-item report-export-form-div">
-            <form id="frm_download-intervention-excel" method="post" class="" action="{% url 'download_intervention_transferred_in_excel' %}"
+            <form id="frm_download-intervention-report" method="post" class="" action="{% url 'download_intervention_transferred_in_report' %}"
                   target="_blank">
                 {% csrf_token %}
 
@@ -76,7 +76,7 @@
                 </div>
 
                 <div class="form-group">
-                    <input class="btn btn-sm btn-primary" type="submit" id="btn_download_intervention_excel"
+                    <input class="btn btn-sm btn-primary" type="submit" id="btn_download_intervention_report"
                            value="Download Interventions Report">
                 </div>
             </form>
