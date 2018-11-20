@@ -1794,11 +1794,6 @@ def cash_transfer_details_save(request):
         return JsonResponse(response_data)
 
 
-# def download_excel(request):
-#     enrolment = DreamsEnrollmentExcelDatabase()
-#     rows = enrolment.get_export_rows()
-
-
 def export_page(request):
     if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_export_raw_data'):
@@ -1827,20 +1822,6 @@ def export_page(request):
             traceback.format_exc()
     else:
         raise PermissionDenied
-
-
-# def get_sub_grantees(request):
-#     try:
-#         ip_list = request.POST.getlist('ip_list[]')
-#
-#         response_data = {
-#             'status': 'success',
-#             'sub_grantees': serializers.serialize('json',ImplementingPartner.objects.filter(parent_implementing_partner__in=ip_list))
-#         }
-#         return JsonResponse(response_data, status=200)
-#
-#     except Exception as e:
-#         raise e
 
 
 def intervention_export_page(request):
