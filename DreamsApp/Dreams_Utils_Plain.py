@@ -5,7 +5,7 @@ import MySQLdb.cursors as cursors
 from django.conf import settings
 
 
-class DreamsEnrollmentExportTemplateRenderer(object):
+class DreamsRawExportTemplateRenderer(object):
     def __init__(self):
         pass
 

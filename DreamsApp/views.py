@@ -1859,7 +1859,7 @@ def download_enrollment_export(request):
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
         export_file_name = urllib.quote(("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-        export_doc = DreamsEnrollmentExportTemplateRenderer()
+        export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(
@@ -1887,7 +1887,7 @@ def download_raw_intervention_export(request):
         county = request.POST.get('county_of_residence')
         export_file_name = urllib.quote(
             ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-        export_doc = DreamsEnrollmentExportTemplateRenderer()
+        export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(
@@ -1943,7 +1943,7 @@ def downloadIndividualLayeringReport(request):
         county = request.POST.get('county_of_residence')
         export_file_name = urllib.quote(
             ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-        export_doc = DreamsEnrollmentExportTemplateRenderer()
+        export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(
@@ -2537,7 +2537,7 @@ def download_raw_intervention_transferred_in_report(request):
 
         export_file_name = urllib.quote(
             ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-        export_doc = DreamsEnrollmentExportTemplateRenderer()
+        export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(
