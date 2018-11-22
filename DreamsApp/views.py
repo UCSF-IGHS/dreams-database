@@ -624,7 +624,6 @@ def unexit_client(request):
 
 def exit_client(request):
 
-    LOST_TO_FOLLOW_UP_CODE = 5
     OTHER_CODE = 6
 
     if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
@@ -636,22 +635,7 @@ def exit_client(request):
             exit_comment = request.POST.get('exitComment')
 
             if reason_for_exit is not None:
-                if reason_for_exit.code == LOST_TO_FOLLOW_UP_CODE:
-
-                    ltfu_date = request.POST.get('ltfuDate')
-                    ltfu_type = ClientLTFUType.objects.get(id__exact=int(request.POST.get('ltfuType')))
-                    ltfu_result = request.POST.get('ltfuResult')
-                    ltfu_comment = request.POST.get('ltfuComment')
-
-                    if is_not_null_or_empty(ltfu_date) \
-                            or is_not_null_or_empty(ltfu_type) \
-                            or is_not_null_or_empty(ltfu_result) \
-                            or is_not_null_or_empty(ltfu_comment):
-                        exited_client = ltfu_client_exit(client_id, reason_for_exit, date_of_exit, ltfu_date,
-                                                         ltfu_type, ltfu_result, ltfu_comment, request.user)
-                    else:
-                        raise Exception('Missing Lost to follow up fields')
-                elif reason_for_exit.code == OTHER_CODE:
+                if reason_for_exit.code == OTHER_CODE:
                     if is_not_null_or_empty(exit_comment):
                         exited_client = other_client_exit(client_id, reason_for_exit, exit_comment, request.user, date_of_exit)
                     else:
@@ -701,24 +685,6 @@ def client_exit(client_id, reason_for_exit, exit_user, date_of_exit):
     return client
 
 
-def ltfu_client_exit(client_id, reason_for_exit, date_of_exit, ltfu_date, ltfu_type, ltfu_result, ltfu_comment, exit_user):
-    client = Client.objects.filter(id=client_id).first()
-    client.exited = True
-    client.exit_reason = reason_for_exit
-    client.exited_by = exit_user
-    client.date_exited = date_of_exit
-    client.save()
-
-    client_ltfu = ClientLTFU()
-    client_ltfu.client = Client.objects.filter(id=client_id).first()
-    client_ltfu.date_of_followup = ltfu_date
-    client_ltfu.type_of_followup = ltfu_type
-    client_ltfu.result_of_followup = ltfu_result
-    client_ltfu.comment = ltfu_comment
-    client_ltfu.save()
-    return client
-
-
 def testajax(request):
     return render(request, 'testAjax.html')
 
@@ -733,20 +699,6 @@ def get_external_organisation(request):
             response_data = {}
             external_orgs = serializers.serialize('json', ExternalOrganisation.objects.all())
             response_data["external_orgs"] = external_orgs
-            return JsonResponse(response_data)
-        else:
-            raise PermissionDenied
-    except Exception as e:
-        tb = traceback.format_exc(e)
-        return HttpResponseServerError(tb)
-
-
-def get_ltfu_types(request):
-    try:
-        if is_valid_get_request(request):
-            response_data = {}
-            ltfu_types = serializers.serialize('json', ClientLTFUType.objects.all())
-            response_data["ltfu_types"] = ltfu_types
             return JsonResponse(response_data)
         else:
             raise PermissionDenied
