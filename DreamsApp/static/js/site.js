@@ -1,6 +1,6 @@
 $(document).ready(function () {
-    
-    const LOST_TO_FOLLOW_UP_CODE = 5, OTHER_CODE = 6;
+
+    const MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS = 4, LOST_TO_FOLLOW_UP_CODE = 5, OTHER_CODE = 6;
 
     $('div#other_external_organization').hide();
     $('#external-organization-select').change(function () {
@@ -199,7 +199,7 @@ $(document).ready(function () {
         $(this).unbind("submit").submit();
         return;
     });
-    
+
     $('#intervention-modal').on('show.bs.modal', function (event) {
          // check the mode... Can be new or edit
         $('#btn_save_intervention').removeAttr("disabled");
@@ -362,7 +362,23 @@ $(document).ready(function () {
         });
     }
 
-     function fetchExternalOrganisations() {
+    var followupAttempts = 0;
+    function fetchFollowUpAttempts() {
+        $.ajax({
+            url: "/getValidUnsuccessfulFollowUpAttempts",
+            type: "GET",
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                followupAttempts = $.parseJSON(data.valid_unsuccessful_follow_up_attempts);
+            },
+            error: function (xhr, errmsg, err) {
+                $('span#exit_reason_validation').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg + " <a href='#' class='close'>&times;</a></div>");
+            }
+        });
+    }
+
+    function fetchExternalOrganisations() {
         $('#intervention-entry-form .processing-indicator').removeClass('hidden');
         $.ajax({
             url : "/getExternalOrganisations",
@@ -468,7 +484,7 @@ $(document).ready(function () {
         else
             $(elementId).addClass('hidden')
     }
-    
+
     $('#date-of-completion').change(function () {
         // get the current value
         var selected_date_string = $('#date-of-completion').val();
@@ -529,7 +545,7 @@ $(document).ready(function () {
 
         return []
     }
-    
+
     function validateDateField() {
         var selected_date_string = $('#date-of-completion').val();
 
@@ -937,7 +953,7 @@ $(document).ready(function () {
 
         return errors < 1;
     }
-    
+
     $('.format_date_event').change(function (event) {
         var target = $(event.target);
         var target_id = '#' + target.attr('id')
@@ -1508,7 +1524,7 @@ $(document).ready(function () {
             }
         });
     })
-    
+
     $('#user-clear-filters').click(function (e) {
         window.location.href = "/admin/users";
     })
@@ -1858,6 +1874,13 @@ $(document).ready(function () {
             return false;
         return true;
     }, ' ');
+
+    $.validator.addMethod('checkFollowUpAttempts', function (value) {
+        if (value == LOST_TO_FOLLOW_UP_CODE) {
+            return (followupAttempts.length < MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS);
+        }
+        return true;
+    }, 'Client does not have 4 follow up attempts');
 
     $('#grievances-form').validate({
         rules: {
@@ -2759,7 +2782,7 @@ $(document).ready(function () {
          }
 
     });
-    
+
     /* Drug Use validation
 
      */
@@ -2795,7 +2818,7 @@ $(document).ready(function () {
          }
 
     });
-    
+
     $('.manual_download').click(function (event) {
         var item = event.target;
         var formID = $(item).data("form_id")
@@ -2889,7 +2912,7 @@ $(document).ready(function () {
                     var hide_on_show_classes = hide_if_true_cascade.split(" ");
                     hide_if_true_cascade = hide_on_show_classes;
                 }
-        
+
                 if($.inArray(val,show_value_cascade) >=0 ){
                     $('.'+show_if_true_cascade).removeClass('hidden');
 
@@ -2938,6 +2961,7 @@ $(document).ready(function () {
     // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
         fetchAndLoadExitReasons();
+        fetchFollowUpAttempts();
         $('#client-exit-modal #id_reason_for_exit').val('');
         $("#client-exit-modal #id_date_of_exit").datepicker("setDate", new Date());
     });
@@ -2952,6 +2976,7 @@ $(document).ready(function () {
     $("#form_client_exit").validate({
         rules: { 
             reason_for_exit: {
+                checkFollowUpAttempts: true,
                 required: true
             },
             date_of_exit:{
@@ -3015,7 +3040,7 @@ $(document).ready(function () {
     $('#form_client_unexit').on('submit',function (event) {
         event.preventDefault()
         if(!$(event.target).valid()) return false;
-        
+
         var reasonForUndoneExit = $('#form_client_unexit #id_reason_for_unexit').val();
         var dateOfUndoneExit = $('#form_client_unexit #id_date_of_unexit').val();
 
@@ -3083,7 +3108,7 @@ $(document).ready(function () {
                                   .trigger('madeVisible');
             return;
         }
-        
+
         var client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
         if (typeof client_id == undefined || isNaN(client_id) || client_id == ''){
             return;
