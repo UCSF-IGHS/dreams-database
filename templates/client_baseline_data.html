@@ -52,6 +52,10 @@
                         <span class="glyphicon glyphicon-minus-sign"></span> Void Client
                     </p>
                     {% endif %}
+
+                    <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;" onclick="window.location='/follow_ups?client_id={{ client.id }}&search_client_term={{ search_client_term }}'" data-toggle="tooltip" title="Follow Ups">
+                        <span class="glyphicon glyphicon-search"></span> Follow Ups
+                    </p>
                 </p>
             </div>
 

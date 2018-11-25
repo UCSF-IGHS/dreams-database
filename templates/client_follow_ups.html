@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+    <!-- Beginning modal-->
+        <!-- Modal -->
+    <div class="modal fade" id="intervention-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="intervention-entry-form" method="post" action="#">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel">ADD FOLLOW UP</h4>
+                        <h5>For: {{ client.get_full_name }}</h5>
+                  </div>
+                  <div class="modal-body">
+
+                        {% csrf_token %}
+                        <!-- Permanently hidden Fields -->
+
+                        <input class="hidden validate-intervention-form-field" name="client" value="{{ client.id }}"/>
+                        <input class="hidden validate-intervention-form-field" name="created_by" value="{{ user.id }}"/>
+                        <input class="hidden validate-intervention-form-field" name="intervention_id" id="intervention_id" value=""/>
+                        <input class="hidden validate-intervention-form-field" name="changed_by" id="changed_by" value="{{ user.id }}"/>
+
+                        <!-- End of Permanently hidden fields -->
+
+                        <div class="form-group">
+                          <label for="follow-up-type-select">Follow Up Type</label>
+                          <select id="follow-up-type-select" name="follow_up_type_code" class="form-control validate-intervention-form-field" >
+                          </select>
+                        </div>
+
+                        <div class="form-group" id="result_specify_section">
+                            <label for="result_specify" class="control-label">Result</label>
+                            <input type="text" class="form-control validate-intervention-form-field" id="result_specify" name="result_specify">
+                        </div>
+
+                      <div class="form-group has-feedback date" id="follow_up_date_section">
+                            <label for="follow_up_date" class="control-label">Date </label>
+                            <input type="text" class="form-control validate-intervention-form-field" id="follow_up_date"  placeholder="Select date " style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                            <input type="text" class="form-control validate-intervention-form-field hidden" id="follow_up_date_formatted" name="follow_up_date"/>
+                            <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                        </div>
+
+                       <div class="form-group" id="comment_section">
+                           <label for="comments-text" class="control-label">Comments</label>
+                           <textarea class="form-control validate-intervention-form-field" id="comments-text" name="comment"></textarea>
+                        </div>
+
+                        <div class="form-group" id="notes_section">
+                            <span id="error-space" class="label error-space" style="color: red;"></span>
+                        </div>
+                         Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
+                  </div>
+                  <div class="modal-footer">
+
+                      <button id="btn_cancel_intervention" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
+                      <button id="btn_save_intervention" type="submit" class="btn btn-sm btn-primary" > Save Follow Up </button>
+
+                      <span class="processing-indicator hidden">
+                          <br/><br/>
+                          <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving follow up... </span>
+                      </span>
+                  </div>
+                </form>
+            </div>
+          </div>
+    </div>
+    <!-- End modal-->
+
+    <!-- Beginning Confirm Delete Modal -->
+
+    <div class="modal fade" id="confirm-delete-mordal" tabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Confirm Follow Up Delete Action</h4>
+          </div>
+          <div class="modal-body">
+              <form method="POST" action="#" id="follow_up_delete_form">
+                  {% csrf_token %}
+                  <p>Are you sure you want to delete this Follow Up entry? Changes cannot be undone.</p>
+                  <input type="hidden" name="intervention_delete_id" id="follow_up_delete_id" value=""/>
+              </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
+            <button type="button" class="btn btn-sm btn-danger" id="btn_delete_intervention_confirmation">Delete Follow Up</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- End Confirm Delete Modal -->
+
+    <!-- Start of Client Follow Up profile section -->
+<div class="wrapper-container">
+    <div class=" statusBox">
+        <div>
+            <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-5">
+            <p><strong>Client: </strong> {{ client.get_full_name }} <span class="client_exit_voided_status">{{ client.get_client_status }}</span></p>
+            <p><strong>DREAMS ID: </strong> {{ client.dreams_id }}</p>
+            <p><strong>Date Birth: </strong> {{ client.date_of_birth }} (Current Age {{ client.get_current_age }})</p>
+
+        </div><!--/col-->
+            <div class="col-xs-12 col-sm-4">
+                <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }} (Age at enrollment: {{ client.get_age_at_enrollment }})</p>
+                 <p><strong>Phone Number: </strong>
+                    <span>{% if client.phone_number != None%}{{ client.phone_number }}{% endif %} {% if client.phone_number == None and client.guardian_phone_number != None and client.guardian_phone_number != '' %}(Guardian){{ client.guardian_phone_number }}{% endif %}</span>
+                </p>
+                <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
+            </div><!--/col-->
+            <div class="col-xs-12 col-sm-3">
+                <p><strong>Actions: </strong> <br>
+                    <p class="underline_hover"  data-client_id='{{ client.id }}' style="cursor:pointer;" onclick="window.location='/client_baseline_info?client_id={{ client.id }}&search_client_term={{ search_client_term }}'" data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-pencil"></span> Edit Enrollment Data</p>
+                    {% if perms.DreamsApp.can_exit_client %}
+                    <p class="underline_hover" id="p_exit_client"  data-client_id='{{ client.id }}' data-search_client_term='{{ search_client_term }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-exit-modal" title="Exit Client">
+                        <span class="glyphicon glyphicon-log-out"></span> <span class="client_status_action_text"> {{ client.get_client_status_action_text }} </span>
+                    </p>
+                    {% endif %}
+                    {% if perms.DreamsApp.add_clienttransfer %}
+                        {% if client.can_be_transferred and not client.voided %}
+                            <p class="underline_hover" id="p_transfer_client" data-client_id='{{ client.id }}'
+                               data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                               data-toggle="modal" data-target="#client-transfer-modal" title="Transfer Client">
+                                <span class="glyphicon glyphicon-transfer"></span> Transfer Client
+                            </p>
+                        {% elif not client.can_be_transferred %}
+                            <p>
+                                <span>In Transfer</span>
+                            </p>
+                        {% endif %}
+                    {% endif %}
+                    {% if perms.DreamsApp.can_void_client and not client.voided %}
+                    <p class="underline_hover" id="p_void_client"  data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-void-modal" title="Void Client">
+                        <span class="glyphicon glyphicon-minus-sign"></span> Void Client
+                    </p>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div{% if message.tags %}
+                class="msg alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} alert-danger {% else %} alert-{{ message.tags }} {% endif %} "{% endif %}>{{ message }}</div>
+            <script>
+                setTimeout(function(){
+                    $('.msg').addClass('hidden').text("")
+                }, 3000);
+            </script>
+        {% endfor %}
+    {% endif %}
+
+    <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert"></div>
+    <!-- End of Client profile section -->
+
+    <div class="dreams-profile-tab-control" id="dreams-profile-tab-control">
+        <br/>
+        <table class="fit-item">
+            <thead>
+            <tr>
+                <th>
+                    <div class="form-group" style="margin-right: 5px;">
+                        <input id="filter_1001" type="text" class="form-control filter"
+                               data-target_tbody="#follow_ups_1001_tbody" data-intervention_category_code="1001"
+                               data-tab_intervention_table_id="#follow_ups_1001_table"
+                               placeholder="Type to search...">
+                    </div>
+                </th>
+                {% if perms.DreamsApp.add_intervention %}
+                    <th width="130">
+                        <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal"
+                                data-whatever="1001" style="height: 35px; margin-top: -15px;"><i
+                                class="glyphicon glyphicon-plus"></i> Add Follow Up
+                        </button>
+                    </th>
+                {% endif %}
+            </tr>
+            </thead>
+        </table>
+
+        <div class="alert hidden dp-action-alert" id="action_alert_1001" role="alert"></div>
+
+        <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
+            <div class="panel-body" style="margin: 0px;padding: 0px;">
+
+                <table class="table table-striped " id="follow_ups_1001_table" data-cols="4">
+                    <thead class="dp-table-head-black">
+                    <tr>
+                        <th>Follow Up Type</th>
+                        <th>Date Completed</th>
+                        <th>Follow Up Result</th>
+                        <th>Comment/Notes</th>
+                        {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %} <!-- TODO: add follow ups modification perm -->
+                            <th class="actions-col">Actions</th>
+                        {% endif %}
+                    </tr>
+                    </thead>
+                    <tbody class="searchable" id="follow_ups_1001_tbody">
+                    </tbody>
+                </table>
+                <div class="spinner hidden fit-item">
+                    <i class='fa fa-spinner fa-spin'></i>
+                    <p style="font-size: large">Loading interventions</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <input id="current_client_id" class="hidden" type="text" name="client_id" value="{{ client.id }}">
+    <input id="current_client_age" class="hidden" type="text" name="client_age" value="{{ client.get_current_age }}">
+    <input type="hidden" id="current_date" value="{{ client.date_of_enrollment.year|default:2015 }}, {{ client.date_of_enrollment.month|default:10 }}, {{ client.date_of_enrollment.day|default:1 }}">
+    <br/>
+
+</div>
+{% endblock %}

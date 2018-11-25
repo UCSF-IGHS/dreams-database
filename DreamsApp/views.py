@@ -302,6 +302,41 @@ def clients(request):
         return HttpResponseServerError(tb)
 
 
+def follow_ups(request):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        client_id = request.GET.get('client_id', '') if request.method == 'GET' else request.POST.get(
+            'client_id', '')
+        search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
+            'search_client_term', '')
+        if client_id is not None and client_id != 0:
+            try:
+                ip_code = request.user.implementingpartneruser.implementing_partner.code
+            except Exception as e:
+                ip_code = None
+
+            try:
+                client_found = Client.objects.get(id=client_id)
+                return render(request, 'client_follow_ups.html', {
+                                                               'page': 'clients',
+                                                               'page_title': 'DREAMS Client Service Uptake',
+                                                               'client': client_found,
+                                                               'search_client_term': search_client_term,
+                                                               'user': request.user,
+                                                               'transfer_form': ClientTransferForm(ip_code=ip_code,
+                                                                                                   initial={
+                                                                                                       'client':
+                                                                                                           client_found})
+                                                               })
+            except Exception as e:
+                pass
+            except Client.DoesNotExist:
+                return render(request, 'login.html')
+            except Exception as e:
+                return render(request, 'login.html')
+    else:
+        raise PermissionDenied
+
+
 def client_profile(request):
     """ Returns client profile """
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:

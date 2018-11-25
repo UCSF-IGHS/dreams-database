@@ -1408,13 +1408,13 @@ class ClientTransfer(models.Model):
         verbose_name_plural = 'Client Transfers'
 
 
-class ClientLTFUTypeManager(models.Manager):
+class ClientFollowUpTypeManager(models.Manager):
     def get_by_natural_key(self, name):
         return self.get(name=name)
 
 
-class ClientLTFUType(models.Model):
-    objects = ClientLTFUTypeManager()
+class ClientFollowUpType(models.Model):
+    objects = ClientFollowUpTypeManager()
 
     code = models.CharField(max_length=10, default='', null=False, blank=False)
     name = models.CharField(max_length=100, default='', null=False, blank=False)
@@ -1426,14 +1426,14 @@ class ClientLTFUType(models.Model):
         return (self.name, )
 
     class Meta(object):
-        verbose_name = 'LTFU Type'
-        verbose_name_plural = 'LTFU Types'
+        verbose_name = 'Follow Up Type'
+        verbose_name_plural = 'Follow Up Types'
 
 
-class ClientLTFU(models.Model):
-    client = models.ForeignKey(Client, null=False, blank=False, related_name='client_ltfu')
+class ClientFollowUp(models.Model):
+    client = models.ForeignKey(Client, null=False, blank=False, related_name='client_follow_up')
     date_of_followup = models.DateField(blank=False, null=False, verbose_name='Date of Followup')
-    type_of_followup = models.ForeignKey(ClientLTFUType, null=False, blank=False, related_name='ltfu_type')
+    type_of_followup = models.ForeignKey(ClientFollowUpType, null=False, blank=False, related_name='follow_up_type')
     result_of_followup = models.CharField(blank=False, null=False, max_length=255, verbose_name='Result of Followup')
     comment = models.CharField(null=True, blank=True, max_length=255, verbose_name='Comment')
 
@@ -1441,5 +1441,5 @@ class ClientLTFU(models.Model):
         return '{}'.format(self.client.dreams_id)
 
     class Meta(object):
-        verbose_name = 'Client LTFU'
-        verbose_name_plural = 'Client LTFUs'
+        verbose_name = 'Client Follow Up'
+        verbose_name_plural = 'Client Follow Ups'

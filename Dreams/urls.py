@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'^clientEdit$', views.edit_client, name='edit_client'),
     url(r'^clientDelete$', views.delete_client, name='delete_client'),
     url(r'^client$', views.client_profile),
+    url(r'^follow_ups$', views.follow_ups, name='follow_ups'),
     url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^ivgetTypes$', views.get_intervention_types),
     url(r'^getExternalOrganisations$', views.get_external_organisation),
