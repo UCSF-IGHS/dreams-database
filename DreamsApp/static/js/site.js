@@ -30,7 +30,6 @@ $(document).ready(function () {
         }
     });
 
-
     if ($('input[name=ovc_checkbox]').prop('checked')) {
         $('fieldset#ovc_more_section').removeClass('hidden');
     }
@@ -870,7 +869,7 @@ $(document).ready(function () {
             }
         });
 
-    })
+    });
 
     function validateClientForm(clientForm) {
         var errors = 0;
@@ -878,7 +877,7 @@ $(document).ready(function () {
         // reset all validate fields
         clientForm.find('.validate_field').each(function (index, field) {
             $('#spn_' + $(field).attr('id')).addClass('hidden');
-        })
+        });
 
         // validate required fields
         clientForm.find('.required_field').each(function (index, field) {
@@ -889,8 +888,7 @@ $(document).ready(function () {
                     .removeClass('hidden');
                 errors++;
             }
-
-        })
+        });
 
         clientForm.find('.phone_number_field').each(function (index, field) {
             var phone_number = $(field).val();
@@ -904,15 +902,15 @@ $(document).ready(function () {
                     errors++;
                 }
             }
-        })
+        });
 
         return errors < 1;
     }
     
     $('.format_date_event').change(function (event) {
         var target = $(event.target);
-        var target_id = '#' + target.attr('id')
-        var formatted_target_id = target_id + '_formatted'
+        var target_id = '#' + target.attr('id');
+        var formatted_target_id = target_id + '_formatted';
 
         var selected_date_string = $(target_id).val();
         if(selected_date_string == null || selected_date_string == "")
@@ -920,7 +918,7 @@ $(document).ready(function () {
         var split_date_string_array = selected_date_string.split('/') // MM, DD, YYYY
         var formatted_date_string = split_date_string_array[2] + "-" + split_date_string_array[0] + "-" + split_date_string_array[1]
         $(formatted_target_id).val(formatted_date_string);
-    })
+    });
 
     function deleteClient(client_id) {
         var client_id = client_id;
@@ -1041,13 +1039,13 @@ $(document).ready(function () {
         else {
             return;
         }
-    })
+    });
 
     $('#enrollment-modal').on('hide.bs.modal', function (e) {
         $('#enrollment-form .clear_value').val('');
         $('#enrollment-form .clear_span').html('');
         $('#enrollment-form .clear_true').prop('checked', false);
-    })
+    });
 
     $('#enrollment-form').submit(function (event) {
         event.preventDefault();
@@ -1055,16 +1053,26 @@ $(document).ready(function () {
         $('#btn_hide_enrollment').attr("disabled", true);
         $('#btn_save_enrollment').attr("disabled", true);
 
-        $('#id_implementing_partner').val($('#temp_current_ip').val())
+        $('#id_implementing_partner').val($('#temp_current_ip').val());
         // validate
-        if (!$('#enrollment-form').valid())
-            return
+        alert("before submission");
 
+        if (!$('#enrollment-form').valid()) {
+            $('#btn_hide_enrollment').attr("disabled", false);
+            $('#btn_save_enrollment').attr("disabled", false);
+            return;
+        }
+
+        alert("form valid");
         var enrollment_form_submit_mode = 'new';
         var post_url = '/clientSave';
         var clientForm = $(event.target);
-        if (!validateClientForm(clientForm))
+        if (!validateClientForm(clientForm)) {
+            $('#btn_hide_enrollment').attr("disabled", false);
+            $('#btn_save_enrollment').attr("disabled", false);
             return;
+        }
+        alert("form validated");
 
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -1091,7 +1099,7 @@ $(document).ready(function () {
                     .text(result.message)
                     .trigger('madeVisible')
             }
-        }).fail(function (xhr, errmsg, err) {
+        }).error(function (xhr, errmsg, err) {
             $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')
                 .text('An error occurred while processing client details. Contact system administratior if this persists')
                 .trigger('madeVisible')
@@ -1103,12 +1111,11 @@ $(document).ready(function () {
 
     $('#btn_hide_enrollment').click(function (event) {
         $('#enrollment-modal').modal('toggle');
-    })
+    });
 
     $('#county_filter').change(function (event) {
         getSubCountiesFilter(false, null, null, null);
-
-    })
+    });
 
     function getSubCountiesFilter(setSelected, c_code, sub_county_id, ward_id) {
         var county_id = setSelected == true ? c_code : $('#county_filter').val();
@@ -1273,12 +1280,6 @@ $(document).ready(function () {
         });
     }
 
-    /*
-    $('#filter-log-date').change(function (event) {
-        // do a get with the new parameters
-        window.location.href = "/logs/?page=1&date=" + $('#filter-log-date').val();
-    })
-    */
 
     /* Confirmation modal*/
     $('a[data-confirm-client-delete]').click(function (event) {
@@ -1344,8 +1345,8 @@ $(document).ready(function () {
         $('#confirmationModal #dataConfirmOK').click(function (event) {
             callback_func(ip_user_id, active, btn);
             $(event.target).off('click'); // Works like a charm
-        })
-    })
+        });
+    });
 
     function toggleUserStatus(ip_user_id, activate, target) {
         // deactivate using ajax
