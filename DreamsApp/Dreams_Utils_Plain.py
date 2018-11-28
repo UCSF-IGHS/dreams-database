@@ -1,4 +1,3 @@
-import traceback
 import unicodecsv as unicodecsv
 import MySQLdb
 import MySQLdb.cursors as cursors
@@ -26,8 +25,6 @@ class DreamsRawExportTemplateRenderer(object):
         single_ip_sub_county_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND implementing_partner_id = %s "
         single_ip_ward_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND implementing_partner_id = %s "
         single_ip_default_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id = %s "
-
-        cursor_results = None
 
         try:
             ip_tuple_l = ip_list_str
@@ -58,9 +55,7 @@ class DreamsRawExportTemplateRenderer(object):
             return cursor
 
         except Exception as e:
-            print 'There was an Error running the query\n'
-            traceback.format_exc()
-        return
+            raise e
 
     def fetch_intervention_rows(self, ip_list_str, sub_county, ward):
         cursor = self.get_connection().cursor()
@@ -78,7 +73,6 @@ from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.im
   i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
   i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention
 from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id IN %s """
-
 
         multiple_ip_default_query = """select
   i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
@@ -141,7 +135,6 @@ WHERE voided=0 AND i.implementing_partner_id = %s """
 
         except Exception as e:
             raise e
-        return
 
     def extract_service_layering_for_all_girls(self, ip_list_str, sub_county, ward):
 
@@ -181,12 +174,10 @@ WHERE voided=0 AND i.implementing_partner_id = %s """
                 else:
                     cursor.execute(single_ip_default_query, [ip_list])
 
-            print "Query for individual service layering data was successful"
             return cursor
 
         except Exception as e:
             raise e
-        return
 
     def prepare_enrolment_export_doc(self, response, ip_list_str, sub_county, ward, show_PHI):
         try:
@@ -295,11 +286,7 @@ WHERE voided=0 AND i.implementing_partner_id = %s """
 
         try:
             cursor.execute(query, params)
-            print "Query was successful"
             return cursor
 
         except Exception as e:
-            print 'There was an Error running the query: {} \n'.format(e)
-            traceback.format_exc()
-
-        return
+            raise e

@@ -57,7 +57,6 @@ urlpatterns = [
     url(r'^grievances/delete', views.grievances_delete, name='grievances_delete'),
     url(r'^grievances/get', views.grievances_get, name='grievances_get'),
     url(r'^cashTransfer/save', views.cash_transfer_details_save, name='cash_transfer_details_save'),
-    #url(r'^excel-output', views.download_excel, name='excel_template'),
     url(r'^download-enrollment-report/$', views.download_enrollment_export),
     url(r'^download-intervention-export/$', views.download_raw_intervention_export),
     url(r'^export-page', views.export_page),
