@@ -1055,15 +1055,12 @@ $(document).ready(function () {
 
         $('#id_implementing_partner').val($('#temp_current_ip').val());
         // validate
-        alert("before submission");
-
         if (!$('#enrollment-form').valid()) {
             $('#btn_hide_enrollment').attr("disabled", false);
             $('#btn_save_enrollment').attr("disabled", false);
             return;
         }
 
-        alert("form valid");
         var enrollment_form_submit_mode = 'new';
         var post_url = '/clientSave';
         var clientForm = $(event.target);
@@ -1072,7 +1069,6 @@ $(document).ready(function () {
             $('#btn_save_enrollment').attr("disabled", false);
             return;
         }
-        alert("form validated");
 
         var csrftoken = getCookie('csrftoken');
         $.ajax({
