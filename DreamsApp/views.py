@@ -333,7 +333,8 @@ def client_profile(request):
 
             try:
                 client_found = Client.objects.get(id=client_id)
-                is_transferred_out = client_found.is_a_transfer_out(ip)
+                is_editable_by_ip = client_found.is_editable_by_ip(ip)
+
                 if client_found is not None:
                     # get cash transfer details
                     cash_transfer_details = ClientCashTransferDetails.objects.get(client=client_found)
@@ -353,7 +354,7 @@ def client_profile(request):
                                                                                                    initial={
                                                                                                        'client':
                                                                                                            client_found}),
-                                                               'is_transferred_out': is_transferred_out
+                                                               'is_editable_by_ip': is_editable_by_ip
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
@@ -365,7 +366,7 @@ def client_profile(request):
                                'search_client_term': search_client_term,
                                'user': request.user,
                                'transfer_form': ClientTransferForm(ip_code=ip_code, initial={'client': client_found}),
-                               'is_transferred_out': is_transferred_out
+                               'is_editable_by_ip': is_editable_by_ip
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -2107,12 +2108,7 @@ def viewBaselineData(request):
             try:
                 client_found = Client.objects.get(id=client_id)
                 if client_found is not None:
-
-                    #is_transferred_out = client_found.is_a_transfer_out(ip)
-
                     is_editable_by_ip = client_found.is_editable_by_ip(ip)
-
-
 
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',

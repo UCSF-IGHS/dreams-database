@@ -260,7 +260,7 @@
                               </div>
                           </th>
 
-                          {% if perms.DreamsApp.add_intervention and is_transferred_out == False %}
+                          {% if perms.DreamsApp.add_intervention and is_editable_by_ip == True %}
                               <th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="1001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
                           {% endif %}
                       </tr>
