@@ -10,6 +10,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.html import format_html
 
 
+TRANSFER_ACCEPTED_STATUS = 2
+
 class MaritalStatus(models.Model):
     code = models.CharField(verbose_name='Marital Status Code', max_length=10, null=False, blank=False)
     name = models.CharField(max_length=100, null=False)
@@ -279,7 +281,29 @@ class Client(models.Model):
         try:
             return self.clienttransfer_set.filter(destination_implementing_partner=self.implementing_partner,
                                                   transfer_status=ClientTransferStatus.objects.get(
-                                                      code__exact=2)).exists()
+                                                      code__exact=TRANSFER_ACCEPTED_STATUS)).exists()
+        except:
+            return False
+
+    def is_a_transfer_out(self, user_ip):
+        try:
+            return self.clienttransfer_set.filter(transfer_status=ClientTransferStatus.objects.get(
+                                                      code__exact=TRANSFER_ACCEPTED_STATUS), source_implementing_partner=user_ip).exists()
+        except:
+            return False
+
+    def is_editable_by_ip(self, user_ip):
+        editable = False
+        try:
+            if self.is_a_transfer_out(user_ip):
+                editable = False
+
+            elif self.is_a_transfer_in:
+                editable = False
+
+            else:
+                editable = True
+            return editable
         except:
             return False
 
@@ -438,6 +462,22 @@ class Intervention(models.Model):
     class Meta(object):
         verbose_name = 'Intervention'
         verbose_name_plural = 'Interventions'
+
+    def is_editable_by_ip(self, user_ip):
+        editable = False
+        try:
+            if self.client.is_a_transfer_out(user_ip):
+                editable = False
+
+            elif self.client.is_a_transfer_in:
+                if self.implementing_partner == user_ip:
+                    editable = True
+
+            else:
+                editable = True
+            return editable
+        except:
+            return False
 
     def clean_fields(self, exclude=None):
         super(Intervention, self).clean_fields(exclude)

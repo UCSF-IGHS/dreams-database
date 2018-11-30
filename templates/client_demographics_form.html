@@ -185,11 +185,13 @@
             <div class="form-group form-inline">
                 {{ demo_form.client.as_hidden }}
             </div>
-            <div class="form-group form-inline">
-                <label class="control-label enrolment-label"></label>
-                <button type="submit" class="btn btn-sm btn-primary" style=""> &nbsp; &nbsp;&nbsp; &nbsp; Save &nbsp;&nbsp;&nbsp;&nbsp;</button>
 
-            </div>
+            {% if is_editable_by_ip == True %}
+                <div class="form-group form-inline">
+                    <label class="control-label enrolment-label"></label>
+                    <button type="submit" class="btn btn-sm btn-primary" style=""> &nbsp; &nbsp;&nbsp; &nbsp; Save &nbsp;&nbsp;&nbsp;&nbsp;</button>
+                </div>
+            {% endif %}
         </fieldset>
     </div>
 
