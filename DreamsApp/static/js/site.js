@@ -4,7 +4,7 @@ $(document).ready(function () {
     $('#external-organization-select').change(function () {
         var selectedExternalOrganization = $(this).find(':selected');
         var otherOption = "Other";
-        if (selectedExternalOrganization.text() == otherOption) {
+        if(selectedExternalOrganization.text() == otherOption) {
             $('div#other_external_organization').show();
         } else {
             $('div#other_external_organization').hide();
@@ -12,11 +12,11 @@ $(document).ready(function () {
         }
     });
 
-    $("#date-of-completion").datepicker({
-        maxDate: '0y 0m 0d',
-        minDate: (new Date($('#current_date').val())),
-        changeMonth: true,
-        changeYear: true
+    $( "#date-of-completion" ).datepicker({
+          maxDate: '0y 0m 0d',
+          minDate:  (new Date($('#current_date').val())),
+          changeMonth: true,
+          changeYear: true
     });
 
     $('input#external-organization-checkbox').change(function () {
@@ -29,7 +29,6 @@ $(document).ready(function () {
             $("#date-of-completion").datepicker("option", "minDate", new Date($('#current_date').val()));
         }
     });
-
 
     if ($('input[name=ovc_checkbox]').prop('checked')) {
         $('fieldset#ovc_more_section').removeClass('hidden');
@@ -170,8 +169,7 @@ $(document).ready(function () {
             if ($('#search-term-dreams_id').val() == "") {
                 // Show error dialog
                 // Then return
-                $('#client_search_errors').html("* MISSING DREAMS ID: Please enter a valid DREAMS ID.").removeClass("hidden").addClass("shown");
-                ;
+                $('#client_search_errors').html("* MISSING DREAMS ID: Please enter a valid DREAMS ID.").removeClass("hidden").addClass("shown");;
                 return;
             }
         }
@@ -1056,13 +1054,13 @@ $(document).ready(function () {
         else {
             return;
         }
-    })
+    });
 
     $('#enrollment-modal').on('hide.bs.modal', function (e) {
         $('#enrollment-form .clear_value').val('');
         $('#enrollment-form .clear_span').html('');
         $('#enrollment-form .clear_true').prop('checked', false);
-    })
+    });
 
     $('#enrollment-form').submit(function (event) {
         event.preventDefault();
@@ -1070,16 +1068,22 @@ $(document).ready(function () {
         $('#btn_hide_enrollment').attr("disabled", true);
         $('#btn_save_enrollment').attr("disabled", true);
 
-        $('#id_implementing_partner').val($('#temp_current_ip').val())
+        $('#id_implementing_partner').val($('#temp_current_ip').val());
         // validate
-        if (!$('#enrollment-form').valid())
+        if (!$('#enrollment-form').valid()) {
+            $('#btn_hide_enrollment').attr("disabled", false);
+            $('#btn_save_enrollment').attr("disabled", false);
             return;
+        }
 
         var enrollment_form_submit_mode = 'new';
         var post_url = '/clientSave';
         var clientForm = $(event.target);
-        if (!validateClientForm(clientForm))
+        if (!validateClientForm(clientForm)) {
+            $('#btn_hide_enrollment').attr("disabled", false);
+            $('#btn_save_enrollment').attr("disabled", false);
             return;
+        }
 
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -1122,7 +1126,6 @@ $(document).ready(function () {
 
     $('#county_filter').change(function (event) {
         getSubCountiesFilter(false, null, null, null);
-
     });
 
     function getSubCountiesFilter(setSelected, c_code, sub_county_id, ward_id) {
@@ -2694,6 +2697,18 @@ $(document).ready(function () {
             },
             threatened_for_sexual_acts_ever: {
                 required: true
+            }, 
+            physical_violence_ever: { 
+                required: true 
+            }, 
+            physically_forced_sex_ever: { 
+                required: true 
+            }, 
+            physically_forced_other_sex_acts_ever: { 
+                required: true 
+            }, 
+            threatened_for_sexual_acts_ever: { 
+                required: true 
             }
         },
         messages: {
