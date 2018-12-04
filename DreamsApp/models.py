@@ -1,4 +1,4 @@
-# coding=utf-8
+
 from __future__ import unicode_literals
 
 from django.core.exceptions import ValidationError
@@ -385,9 +385,9 @@ class ReferralStatusManager(models.Manager):
 
 class ReferralStatus(models.Model):
     objects = ReferralStatusManager()
-    code = models.IntegerField(null=False, blank=False, unique=True, verbose_name='Referral Code'
+    code = models.IntegerField(null=False, blank=False, verbose_name='Referral Code'
                                )
-    name = models.CharField(null=False, blank=False, max_length=20, unique=True,
+    name = models.CharField(null=False, blank=False, max_length=20,
                             default='Pending', verbose_name='Referral Name')
 
     def __str__(self):

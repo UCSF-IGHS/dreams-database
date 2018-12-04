@@ -1,5 +1,7 @@
-# coding=utf-8
+
 import os
+import traceback
+
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
@@ -14,13 +16,14 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.db import connection as db_conn_2, transaction
-import urllib
+import urllib.parse
 import json
 from datetime import date, timedelta, datetime as dt
 from openpyxl import Workbook
 from openpyxl.styles import Font
+
+from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
-from Dreams_Utils_Plain import *
 
 
 TRANSFER_ACCEPTED_STATUS = 2
@@ -638,7 +641,7 @@ def client_exit_status_toggle(request):
         except Exception as e:
             response_data = {
                 'status': 'failed',
-                'message': 'Invalid client Id: ' + e.message
+                'message': 'Invalid client Id: ' + str(e)
             }
             return JsonResponse(response_data, status=500)
     else:
@@ -921,10 +924,6 @@ def get_intervention_list(request):
                                                                      [dt.now() - timedelta(days=31),
                                                                       dt.now()]
                                                                      )
-
-
-
-
 
             is_editable_by_ip = {}
             for i in list_of_interventions:
@@ -1929,7 +1928,7 @@ def download_enrollment_export(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        export_file_name = urllib.quote(("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        export_file_name = urllib.parse.quote(("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
@@ -1956,7 +1955,7 @@ def download_raw_intervention_export(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        export_file_name = urllib.quote(
+        export_file_name = urllib.parse.quote(
             ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
@@ -2012,7 +2011,7 @@ def downloadIndividualLayeringReport(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        export_file_name = urllib.quote(
+        export_file_name = urllib.parse.quote(
             ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
@@ -2076,7 +2075,7 @@ def viewBaselineData(request):
             except Client.DoesNotExist:
                 traceback.format_exc()
         else:
-            print 'POST not allowed'
+            print ('POST not allowed')
 
         ip = None
         try:
@@ -2202,7 +2201,7 @@ def update_edu_and_employment_data(request):
                 }
                 return JsonResponse(response_data, status=200)
             else:
-                print form.errors
+                print (form.errors)
         else:
             response_data = {
                 'status': 'fail',
@@ -2394,7 +2393,7 @@ def transfer_client(request):
                                                                                  code__exact=1)).count()
 
                     if num_of_pending_transfers > 0:
-                        print "{} pending transfers for client".format(num_of_pending_transfers)
+                        print ("{} pending transfers for client".format(num_of_pending_transfers))
                         response_data = {
                             'status': 'fail',
                             'message': "Transfer failed, there's a pending transfer for this client.",
@@ -2427,7 +2426,7 @@ def transfer_client(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message,
+            'message': e,
         }
         return JsonResponse(json.dumps(response_data), safe=False)
 
@@ -2526,7 +2525,7 @@ def accept_client_transfer(request):
         else:
             raise PermissionDenied
     except Exception as e:
-        print traceback.format_exc(e)
+        print (traceback.format_exc(e))
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
@@ -2558,7 +2557,7 @@ def reject_client_transfer(request):
         else:
             raise PermissionDenied
     except Exception as e:
-        print traceback.format_exc(e)
+        print (traceback.format_exc(e))
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
@@ -2614,7 +2613,7 @@ def download_raw_intervention_transferred_in_report(request):
         from_intervention_date = request.POST.get('from_intervention_date')
         to_intervention_date = request.POST.get('to_intervention_date')
 
-        export_file_name = urllib.quote(
+        export_file_name = urllib.parse.quote(
             ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
@@ -2731,7 +2730,7 @@ def void_client(request):
             raise PermissionDenied
     except Exception as e:
         traceback.format_exc()
-        return get_response_data(0, e.message)
+        return get_response_data(0, e)
 
 
 def get_response_data(status, message, **kwargs):
@@ -2740,7 +2739,7 @@ def get_response_data(status, message, **kwargs):
         'message': message
     }
 
-    for k, v in kwargs.iteritems():
+    for k, v in kwargs.values():
         response[k] = v
 
     return JsonResponse(json.dumps(response), safe=False)

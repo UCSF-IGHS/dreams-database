@@ -1,7 +1,7 @@
-# coding=utf-8
+
 from django.forms import ModelForm, HiddenInput, BooleanField
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from models import *
+from DreamsApp.models import *
 
 # DreamsApp imports
 from DreamsApp.models import Grievance, ImplementingPartner, ClientCashTransferDetails, Client, ClientIndividualAndHouseholdData, \

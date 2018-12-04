@@ -25,11 +25,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='referralstatus',
             name='code',
-            field=models.IntegerField(unique=True, verbose_name='Referral Code'),
+            field=models.IntegerField(verbose_name='Referral Code'),
         ),
         migrations.AlterField(
             model_name='referralstatus',
             name='name',
-            field=models.CharField(default='Pending', max_length=20, unique=True, verbose_name='Referral Name'),
+            field=models.CharField(default='Pending', max_length=20, verbose_name='Referral Name'),
         ),
     ]
