@@ -30,7 +30,6 @@ $(document).ready(function () {
         }
     });
 
-
     if ($('input[name=ovc_checkbox]').prop('checked')) {
         $('fieldset#ovc_more_section').removeClass('hidden');
     }
@@ -904,7 +903,6 @@ $(document).ready(function () {
                     .removeClass('hidden');
                 errors++;
             }
-
         });
 
         clientForm.find('.phone_number_field').each(function (index, field) {
@@ -1056,13 +1054,13 @@ $(document).ready(function () {
         else {
             return;
         }
-    })
+    });
 
     $('#enrollment-modal').on('hide.bs.modal', function (e) {
         $('#enrollment-form .clear_value').val('');
         $('#enrollment-form .clear_span').html('');
         $('#enrollment-form .clear_true').prop('checked', false);
-    })
+    });
 
     $('#enrollment-form').submit(function (event) {
         event.preventDefault();
@@ -1070,16 +1068,22 @@ $(document).ready(function () {
         $('#btn_hide_enrollment').attr("disabled", true);
         $('#btn_save_enrollment').attr("disabled", true);
 
-        $('#id_implementing_partner').val($('#temp_current_ip').val())
+        $('#id_implementing_partner').val($('#temp_current_ip').val());
         // validate
-        if (!$('#enrollment-form').valid())
+        if (!$('#enrollment-form').valid()) {
+            $('#btn_hide_enrollment').attr("disabled", false);
+            $('#btn_save_enrollment').attr("disabled", false);
             return;
+        }
 
         var enrollment_form_submit_mode = 'new';
         var post_url = '/clientSave';
         var clientForm = $(event.target);
-        if (!validateClientForm(clientForm))
+        if (!validateClientForm(clientForm)) {
+            $('#btn_hide_enrollment').attr("disabled", false);
+            $('#btn_save_enrollment').attr("disabled", false);
             return;
+        }
 
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -1122,7 +1126,6 @@ $(document).ready(function () {
 
     $('#county_filter').change(function (event) {
         getSubCountiesFilter(false, null, null, null);
-
     });
 
     function getSubCountiesFilter(setSelected, c_code, sub_county_id, ward_id) {

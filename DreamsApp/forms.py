@@ -37,7 +37,7 @@ class ClientCashTransferDetailsForm(ModelForm):
 
 
 class DemographicsForm(ModelForm):
-    ovc_checkbox = BooleanField()
+    ovc_checkbox = BooleanField(required=False, label="Is OVC Client?")
 
     def __init__(self, *args, **kwargs):
         super(DemographicsForm, self).__init__(*args, **kwargs)
