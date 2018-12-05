@@ -18,10 +18,12 @@
             <div class="form-group">
                 {{ programe_participation_form.client.as_hidden }}
             </div>
-            <div class="form-group form-inline">
-                 <label class="control-label enrolment-label"></label>
-                 <button type="submit" class="btn btn-sm btn-primary">Save</button>
-            </div>
+            {% if is_editable_by_ip == True %}
+                <div class="form-group form-inline">
+                     <label class="control-label enrolment-label"></label>
+                     <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                </div>
+            {% endif %}
         </fieldset>
     </div>
 </form>

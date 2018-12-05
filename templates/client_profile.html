@@ -259,7 +259,8 @@
                                    <input id="filter_1001" type="text" class="form-control filter"  data-target_tbody="#interventions_1001_tbody" data-intervention_category_code="1001" data-tab_intervention_table_id="#interventions_1001_table" placeholder="Type to search...">
                               </div>
                           </th>
-                          {% if perms.DreamsApp.add_intervention %}
+
+                          {% if perms.DreamsApp.add_intervention and is_editable_by_ip == True %}
                               <th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="1001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
                           {% endif %}
                       </tr>
