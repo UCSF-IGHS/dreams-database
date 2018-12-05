@@ -12,11 +12,11 @@ $(document).ready(function () {
         }
     });
 
-    $( "#date-of-completion" ).datepicker({
-          maxDate: '0y 0m 0d',
-          minDate:  (new Date($('#current_date').val())),
-          changeMonth: true,
-          changeYear: true
+    $("#date-of-completion").datepicker({
+        maxDate: '0y 0m 0d',
+        minDate: (new Date($('#current_date').val())),
+        changeMonth: true,
+        changeYear: true
     });
 
     $('input#external-organization-checkbox').change(function () {
@@ -169,7 +169,7 @@ $(document).ready(function () {
             if ($('#search-term-dreams_id').val() == "") {
                 // Show error dialog
                 // Then return
-                $('#client_search_errors').html("* MISSING DREAMS ID: Please enter a valid DREAMS ID.").removeClass("hidden").addClass("shown");;
+                $('#client_search_errors').html("* MISSING DREAMS ID: Please enter a valid DREAMS ID.").removeClass("hidden").addClass("shown");
                 return;
             }
         }
@@ -902,7 +902,6 @@ $(document).ready(function () {
                     .removeClass('hidden');
                 errors++;
             }
-
         });
 
         clientForm.find('.phone_number_field').each(function (index, field) {
@@ -2697,18 +2696,6 @@ $(document).ready(function () {
             },
             threatened_for_sexual_acts_ever: {
                 required: true
-            }, 
-            physical_violence_ever: { 
-                required: true 
-            }, 
-            physically_forced_sex_ever: { 
-                required: true 
-            }, 
-            physically_forced_other_sex_acts_ever: { 
-                required: true 
-            }, 
-            threatened_for_sexual_acts_ever: { 
-                required: true 
             }
         },
         messages: {
