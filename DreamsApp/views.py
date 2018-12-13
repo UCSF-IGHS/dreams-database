@@ -2438,7 +2438,8 @@ def client_transfers(request, *args, **kwargs):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
 
-        can_accept_or_reject = TransferServiceLayer(request.user, transfer_type="transferred_in").transfer_perm.can_accept_or_reject_transfer()
+        transfer_perm = TransferServiceLayer(request.user, transfer_type="transferred_in")
+        can_accept_or_reject = transfer_perm.can_accept_or_reject_transfer()
 
         try:
             ip = request.user.implementingpartneruser.implementing_partner
@@ -2484,6 +2485,13 @@ def accept_client_transfer(request):
                 client_transfer_id = request.POST.get("id", "")
                 if client_transfer_id != "":
                     client_transfer = ClientTransfer.objects.get(id__exact=client_transfer_id)
+
+                    transfer_perm = TransferServiceLayer(request.user, client_transfer=client_transfer)
+                    can_accept_or_reject_transfer = transfer_perm.can_accept_or_reject_transfer()
+                    can_complete_transfer = transfer_perm.can_complete_transfer()
+
+                    if not can_accept_or_reject_transfer or not can_complete_transfer:
+                        raise PermissionDenied
 
                     if client_transfer is not None:
                         current_datetime = dt.now()
@@ -2542,6 +2550,12 @@ def reject_client_transfer(request):
                     client_transfer = None
 
                 if client_transfer is not None:
+                    transfer_perm = TransferServiceLayer(request.user, client_transfer=client_transfer)
+                    can_accept_or_reject_transfer = transfer_perm.can_accept_or_reject_transfer()
+
+                    if not can_accept_or_reject_transfer:
+                        raise PermissionDenied
+
                     client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_REJECTED_STATUS)
                     client_transfer.completed_by = request.user
                     client_transfer.end_date = dt.now()
