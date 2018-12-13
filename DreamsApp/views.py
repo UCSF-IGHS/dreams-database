@@ -314,8 +314,8 @@ def client_profile(request):
         search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
             'search_client_term', '')
         if client_id is not None and client_id != 0:
-            ip = request.user.implementingpartneruser.implementing_partner
             try:
+                ip = request.user.implementingpartneruser.implementing_partner
                 if ip:
                     ip_code = ip.code
                 else:
@@ -2438,7 +2438,7 @@ def client_transfers(request, *args, **kwargs):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
 
-        transfer_perm = TransferServiceLayer(request.user, transfer_type="transferred_in")
+        transfer_perm = TransferServiceLayer(request.user)
         can_accept_or_reject = transfer_perm.can_accept_or_reject_transfer()
 
         try:
@@ -2487,10 +2487,9 @@ def accept_client_transfer(request):
                     client_transfer = ClientTransfer.objects.get(id__exact=client_transfer_id)
 
                     transfer_perm = TransferServiceLayer(request.user, client_transfer=client_transfer)
-                    can_accept_or_reject_transfer = transfer_perm.can_accept_or_reject_transfer()
-                    can_complete_transfer = transfer_perm.can_complete_transfer()
+                    can_accept_transfer = transfer_perm.can_accept_transfer()
 
-                    if not can_accept_or_reject_transfer or not can_complete_transfer:
+                    if not can_accept_transfer:
                         raise PermissionDenied
 
                     if client_transfer is not None:
@@ -2511,6 +2510,10 @@ def accept_client_transfer(request):
                         c_transfers = ClientTransfer.objects.filter(client=client_transfer.client, end_date=None,
                                                                     transfer_status=accepted_client_transfer_status)
 
+                        can_complete_transfer = transfer_perm.can_complete_transfer()
+                        if not can_complete_transfer:
+                            raise PermissionDenied
+
                         with transaction.atomic():
                             for c_transfer in c_transfers:
                                 c_transfer.end_date = current_datetime
@@ -2530,7 +2533,6 @@ def accept_client_transfer(request):
         else:
             raise PermissionDenied
     except Exception as e:
-        print (traceback.format_exc(e))
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
@@ -2551,9 +2553,9 @@ def reject_client_transfer(request):
 
                 if client_transfer is not None:
                     transfer_perm = TransferServiceLayer(request.user, client_transfer=client_transfer)
-                    can_accept_or_reject_transfer = transfer_perm.can_accept_or_reject_transfer()
+                    can_reject_transfer = transfer_perm.can_reject_transfer()
 
-                    if not can_accept_or_reject_transfer:
+                    if not can_reject_transfer:
                         raise PermissionDenied
 
                     client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_REJECTED_STATUS)
@@ -2568,7 +2570,6 @@ def reject_client_transfer(request):
         else:
             raise PermissionDenied
     except Exception as e:
-        print (traceback.format_exc(e))
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
