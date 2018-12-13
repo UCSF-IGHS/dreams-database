@@ -1,4 +1,3 @@
-
 import os
 import traceback
 
@@ -24,9 +23,13 @@ from openpyxl.styles import Font
 
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
+from DreamsApp.service_layer import *
 
 
+TRANSFER_INITIATED_STATUS = 1
 TRANSFER_ACCEPTED_STATUS = 2
+TRANSFER_REJECTED_STATUS = 3
+TRANSFER_ENDED_STATUS = 4
 
 
 def get_enrollment_form_config_data(request):
@@ -2390,7 +2393,7 @@ def transfer_client(request):
                 if transfer_form.is_valid():
                     num_of_pending_transfers = ClientTransfer.objects.filter(client=transfer_form.instance.client,
                                                                              transfer_status=ClientTransferStatus.objects.get(
-                                                                                 code__exact=1)).count()
+                                                                                 code__exact=TRANSFER_INITIATED_STATUS)).count()
 
                     if num_of_pending_transfers > 0:
                         print ("{} pending transfers for client".format(num_of_pending_transfers))
@@ -2401,7 +2404,7 @@ def transfer_client(request):
                     else:
                         client_transfer = transfer_form.save(commit=False)
 
-                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
                         client_transfer.source_implementing_partner = ip
                         client_transfer.initiated_by = request.user
                         client_transfer.save()
@@ -2433,9 +2436,9 @@ def transfer_client(request):
 
 def client_transfers(request, *args, **kwargs):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        can_accept_or_reject = False
-
         transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
+
+        can_accept_or_reject = TransferServiceLayer(request.user, transfer_type="transferred_in").transfer_perm.can_accept_or_reject_transfer()
 
         try:
             ip = request.user.implementingpartneruser.implementing_partner
@@ -2444,14 +2447,8 @@ def client_transfers(request, *args, **kwargs):
             else:
                 c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip)
 
-            if request.user.has_perm('DreamsApp.change_clienttransfer'):
-                can_accept_or_reject = True
-
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             c_transfers = ClientTransfer.objects.all()
-
-            if request.user.is_superuser:
-                can_accept_or_reject = True
 
         page = request.GET.get('page', 1)
         paginator = Paginator(c_transfers, 20)
@@ -2490,7 +2487,7 @@ def accept_client_transfer(request):
 
                     if client_transfer is not None:
                         current_datetime = dt.now()
-                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=2)
+                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
 
                         client_transfer.transfer_status = accepted_client_transfer_status
                         client_transfer.start_date = current_datetime
@@ -2509,7 +2506,7 @@ def accept_client_transfer(request):
                         with transaction.atomic():
                             for c_transfer in c_transfers:
                                 c_transfer.end_date = current_datetime
-                                c_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=4)
+                                c_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ENDED_STATUS)
                                 c_transfer.save()
                             client.save()
                             client_transfer.save()
@@ -2545,7 +2542,7 @@ def reject_client_transfer(request):
                     client_transfer = None
 
                 if client_transfer is not None:
-                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=3)
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_REJECTED_STATUS)
                     client_transfer.completed_by = request.user
                     client_transfer.end_date = dt.now()
                     client_transfer.save()
@@ -2567,7 +2564,7 @@ def reject_client_transfer(request):
 
 def get_client_transfers_count(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             client_transfers_count = ClientTransfer.objects.filter(
