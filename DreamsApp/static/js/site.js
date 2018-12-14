@@ -1,5 +1,7 @@
 $(document).ready(function () {
 
+    const MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS = 4, LOST_TO_FOLLOW_UP_CODE = 5, OTHER_CODE = 6;
+
     $('div#other_external_organization').hide();
     $('#external-organization-select').change(function () {
         var selectedExternalOrganization = $(this).find(':selected');
@@ -346,6 +348,39 @@ $(document).ready(function () {
 
     }
 
+    function fetchAndLoadExitReasons() {
+        $.ajax({
+            url: "/getExitReasons",
+            type: "GET",
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                exitReasons = $.parseJSON(data.exit_reasons);
+                setExitReasonsSelect(exitReasons);
+            },
+            error: function (xhr, errmsg, err) {
+                alert(errmsg);
+                console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+    }
+
+    var followupAttempts = 0;
+    function fetchFollowUpAttempts() {
+        $.ajax({
+            url: "/getValidUnsuccessfulFollowUpAttempts",
+            type: "GET",
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                followupAttempts = $.parseJSON(data.valid_unsuccessful_follow_up_attempts);
+            },
+            error: function (xhr, errmsg, err) {
+                $('span#exit_reason_validation').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg + " <a href='#' class='close'>&times;</a></div>");
+            }
+        });
+    }
+
     function fetchExternalOrganisations() {
         $('#intervention-entry-form .processing-indicator').removeClass('hidden');
         $.ajax({
@@ -409,6 +444,16 @@ $(document).ready(function () {
         }
     }
 
+    function setExitReasonsSelect(exitReasons) {
+        var exitReasonsSelect = $('select#reason_for_exit');
+        exitReasonsSelect.empty().append($("<option />").attr("value", '').text('Select Exit Reason').addClass('selected disabled hidden').css({display:'none'}));
+
+        if (exitReasons.length > 0) {
+            $.each(exitReasons, function () {
+                exitReasonsSelect.append($("<option />").attr("value", this.pk).text(this.fields.name));
+            });
+        }
+    }
 
     function setInterventionTypesSelect(interventionTypes) {
         var interventionTypeSelect = $('#intervention-type-select');
@@ -1841,6 +1886,13 @@ $(document).ready(function () {
         return true;
     }, ' ');
 
+    $.validator.addMethod('checkFollowUpAttempts', function (value) {
+        if (value == LOST_TO_FOLLOW_UP_CODE) {
+            return (followupAttempts.length < MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS);
+        }
+        return true;
+    }, 'Client does not have 4 follow up attempts');
+
     $('#grievances-form').validate({
         rules: {
             date: {
@@ -2908,10 +2960,16 @@ $(document).ready(function () {
 
     // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
-        // get relevant client details
-        // Nothing important should happen here
+        fetchAndLoadExitReasons();
+        fetchFollowUpAttempts();
         $('#client-exit-modal #id_reason_for_exit').val('');
         $("#client-exit-modal #id_date_of_exit").datepicker("setDate", new Date());
+    });
+
+    $('#client-unexit-modal').on('show.bs.modal', function (e) {
+        $('#client-unexit-modal #id_reason_for_exit').val('');
+        $("#client-unexit-modal #id_date_of_exit").datepicker("setDate", new Date());
+
         // Action wording
         var clientStatus = $('.client_status_action_text').html()
         if ($.trim(clientStatus) == 'Exit Client') {
@@ -2924,12 +2982,14 @@ $(document).ready(function () {
             $('#btn_submit_exit_client_form').html('Activate Client');
         }
         console.log(clientStatus)
-    })
+    });
+
 
     // Exit form validation
     $("#form_client_exit").validate({
-        rules: {
+        rules: { 
             reason_for_exit: {
+                checkFollowUpAttempts: true,
                 required: true
             },
             date_of_exit: {
@@ -2953,19 +3013,122 @@ $(document).ready(function () {
         }
     });
 
+    $("#form_client_unexit").validate({
+        rules: { 
+            reason_for_unexit: { 
+                required: true 
+            },
+            date_of_unexit:{
+                required:true
+            }
+        },
+        messages: { 
+             reason_for_unexit: { 
+                required: " * Required field" 
+            },
+            date_of_exit:{
+                required: " * Required field"
+            }
+        }, 
+        highlight: function (element) { 
+            //$('#form_demographics').find('.error').addClass('text-danger') 
+            $('#form_client_unexit .error').addClass('text-danger') 
+        }, 
+        unhighlight: function (element) { 
+            $('#form_client_unexit').find('.error').removeClass('text-danger')
+         }
+
+    });
+
+
+    $('select[name=reason_for_exit]').change(function () {
+        var selectedOption = $(this).find(':selected').val();
+        if(selectedOption == OTHER_CODE) {
+            $('div#reason_for_exit_other_section').removeClass('hidden');
+            $('fieldset#ltfu').addClass('hidden');
+        } else {
+            $('fieldset#ltfu').addClass('hidden');
+            $('div#reason_for_exit_other_section').addClass('hidden');
+        }
+    });
+
+    $('#form_client_unexit').on('submit',function (event) {
+        event.preventDefault()
+        if(!$(event.target).valid()) return false;
+
+        var reasonForUndoneExit = $('#form_client_unexit #id_reason_for_unexit').val();
+        var dateOfUndoneExit = $('#form_client_unexit #id_date_of_unexit').val();
+
+        if(reasonForUndoneExit == ''){
+            $('#id_reason_for_unexit_error').html('* Required field')
+        }
+        if(dateOfUndoneExit == ''){
+            $('#id_date_of_unexit_error').html('* Required field')
+        }
+        if(reasonForUndoneExit == '' || dateOfUndoneExit == '')
+            return
+
+        var client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
+        if (typeof client_id == undefined || isNaN(client_id) || client_id == ''){
+            return;
+        }
+
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url : "/client/unexit",
+            type : "POST",
+            dataType: 'json',
+            data : {
+                csrfmiddlewaretoken : csrftoken,
+                client_id : client_id,
+                reason_for_exit: reasonForUndoneExit,
+                date_of_exit: dateOfUndoneExit
+            },
+            success: function (data) {
+                if(data.status == 'success'){
+                    var client_status = data.client_status;
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                   .text(data.message + ' Successfully')
+                   .trigger('madeVisible')
+                    $('.client_exit_voided_status').html(client_status);
+                    $('.client_status_action_text').html('Exit Client');
+                }
+                else {
+                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                   .text(data.message)
+                   .trigger('madeVisible')
+                }
+                $('#client-unexit-modal').modal('hide');
+            },
+            error: function (xhr, errmsg, err) {
+                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+               .text('Could not save changes')
+               .trigger('madeVisible')
+            }
+        });
+    });
 
     $('#form_client_exit').on('submit', function (event) {
         event.preventDefault()
         if (!$(event.target).valid())
             return false;
-        var reasonForExit = $('#form_client_exit #id_reason_for_exit').val();
+        var reasonForExit = $('select[name=reason_for_exit]').find(':selected').val();
         var dateOfExit = $('#form_client_exit #id_date_of_exit').val();
-        if (reasonForExit == '') {
-            $('#id_reason_for_exit_error').html('* Required field')
+
+        var exitComment = $('textarea#reason_for_exit_other').val();
+
+        if ($.trim(reasonForExit) == OTHER_CODE && $.trim(exitComment) == "") {
+            $('#action_alert_gen').removeClass('hidden')
+                                  .addClass('alert-danger')
+                                  .text('Please ensure that reason for exit is entered.')
+                                  .trigger('madeVisible');
+            return;
         }
+
         if (dateOfExit == '') {
             $('#id_reason_for_exit_error').html('* Required field')
         }
+        
         if (reasonForExit == '' || dateOfExit == '')
             return
 
@@ -2974,7 +3137,6 @@ $(document).ready(function () {
             return;
         }
 
-        // Everything is fine. Do an ajax call to Exit client
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url: "/client/exit", // the endpoint
@@ -2984,6 +3146,7 @@ $(document).ready(function () {
                 csrfmiddlewaretoken: csrftoken,
                 client_id: client_id,
                 reason_for_exit: reasonForExit,
+                exitComment: exitComment,
                 date_of_exit: dateOfExit
             },
             success: function (data) {
@@ -2994,7 +3157,7 @@ $(document).ready(function () {
                         .text(data.message + ' Successfully')
                         .trigger('madeVisible')
                     $('.client_exit_voided_status').html(client_status);
-                    $('.client_status_action_text').html(data.get_client_status_action_text);
+                    $('.client_status_action_text').html('Undo Exit Client');
                 }
                 else {
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
