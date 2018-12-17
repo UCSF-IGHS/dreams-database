@@ -217,7 +217,7 @@ class Client(models.Model):
     exited = models.BooleanField(default=False)
     exit_reason = models.ForeignKey(ExitReason, null=True, blank=True)
     reason_exited = models.CharField(blank=True, null=True, max_length=100)
-    exited_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    exited_by = models.ForeignKey(User, null=True, blank=True, related_name='exited_by_user')
     date_exited = models.DateTimeField(null=True, blank=True)
 
     ovc_id = models.CharField(blank=True, null=True, max_length=20)
@@ -258,9 +258,6 @@ class Client(models.Model):
             return status
         except Exception as e:
             return 'Invalid Status'
-
-    def get_client_status_action_text(self):
-        return 'Undo Exit' if self.exited else 'Exit Client'
 
     def get_age_at_enrollment(self):
         try:

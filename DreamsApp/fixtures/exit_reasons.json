@@ -1,0 +1,44 @@
+[
+  {
+    "model": "DreamsApp.exitreason",
+    "fields" : {
+      "code": 1,
+      "name": "Death"
+    }
+  },
+  {
+    "model": "DreamsApp.exitreason",
+    "fields" : {
+      "code": 2,
+      "name": "Permanent Migration"
+    }
+  },
+  {
+    "model": "DreamsApp.exitreason",
+    "fields" : {
+      "code": 3,
+      "name": "Voluntary Exit"
+    }
+  },
+  {
+    "model": "DreamsApp.exitreason",
+    "fields" : {
+      "code": 4,
+      "name": "Parental/Guardian/Partner refusal"
+    }
+  },
+  {
+    "model": "DreamsApp.exitreason",
+    "fields" : {
+      "code": 5,
+      "name": "Lost to follow-up"
+    }
+  },
+  {
+    "model": "DreamsApp.exitreason",
+    "fields" : {
+      "code": 6,
+      "name": "Other"
+    }
+  }
+]

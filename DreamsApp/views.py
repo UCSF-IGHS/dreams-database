@@ -615,18 +615,17 @@ def get_client_status(client):
         return 'Invalid Status'
 
 
-def get_client_status_action_text(client):
-    return 'Undo Exit' if client.exited else 'Exit Client'
+def is_not_null_or_empty(str):
+    return str is not None and str is not ""
 
 
-def client_exit_status_toggle(request):
-    """Exit or undo Exit depending on client's current status"""
+def unexit_client(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_exit_client'):
         try:
             client_id = int(str(request.POST.get('client_id', '0')))
-            reason_for_exit = str(request.POST.get('reason_for_exit', ''))
-            date_of_exit = request.POST.get('date_of_exit', datetime.now())
+            reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
+            date_of_exit = request.POST.get('date_of_unexit', datetime.datetime.now())
             client = Client.objects.filter(id=client_id).first()
             client.exited = not client.exited
             client.reason_exited = reason_for_exit
@@ -635,10 +634,9 @@ def client_exit_status_toggle(request):
             client.save()
             response_data = {
                 'status': 'success',
-                'message': 'Client' + ' Exited' if client.exited else 'Client Activated',
+                'message': 'Client Exit Undone',
                 'client_id': client.id,
-                'client_status': get_client_status(client),
-                'get_client_status_action_text': get_client_status_action_text(client)
+                'client_status': get_client_status(client)
             }
             return JsonResponse(response_data, status=200)
         except Exception as e:
@@ -653,6 +651,69 @@ def client_exit_status_toggle(request):
             'message': 'Permission Denied. Please contact System Administrator for help.'
         }
         return JsonResponse(response_data, status=500)
+
+
+def exit_client(request):
+
+    OTHER_CODE = 6
+
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+            'DreamsApp.can_exit_client'):
+        try:
+            client_id = int(str(request.POST.get('client_id', '0')))
+            reason_for_exit = ExitReason.objects.get(id__exact=int(request.POST.get('reason_for_exit', '')))
+            date_of_exit = request.POST.get('date_of_exit', datetime.datetime.now())
+            exit_comment = request.POST.get('exitComment')
+
+            if reason_for_exit is not None:
+                if reason_for_exit.code == OTHER_CODE:
+                    if is_not_null_or_empty(exit_comment):
+                        exited_client = other_client_exit(client_id, reason_for_exit, exit_comment, request.user, date_of_exit)
+                    else:
+                        raise Exception('Reason for exit missing')
+                else:
+                    exited_client = client_exit(client_id, reason_for_exit, request.user, date_of_exit)
+
+            response_data = {
+                'status': 'success',
+                'message': 'Client Exited',
+                'client_id': exited_client.id,
+                'client_status': get_client_status(exited_client)
+            }
+            return JsonResponse(response_data, status=200)
+        except Exception as e:
+            response_data = {
+                'status': 'failed',
+                'message': 'Invalid client Id: ' + e.message
+            }
+            return JsonResponse(response_data, status=500)
+    else:
+        response_data = {
+            'status': 'failed',
+            'message': 'Permission Denied. Please contact System Administrator for help.'
+        }
+        return JsonResponse(response_data, status=500)
+
+
+def other_client_exit(client_id, reason_for_exit, exit_comment, exit_user, date_of_exit):
+    client = Client.objects.filter(id=client_id).first()
+    client.exited = True
+    client.exit_reason = reason_for_exit
+    client.reason_exited = exit_comment
+    client.exited_by = exit_user
+    client.date_exited = date_of_exit
+    client.save()
+    return client
+
+
+def client_exit(client_id, reason_for_exit, exit_user, date_of_exit):
+    client = Client.objects.filter(id=client_id).first()
+    client.exited = True
+    client.exit_reason = reason_for_exit
+    client.exited_by = exit_user
+    client.date_exited = date_of_exit
+    client.save()
+    return client
 
 
 def testajax(request):
@@ -675,6 +736,25 @@ def get_external_organisation(request):
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
+
+
+def get_exit_reasons(request):
+    try:
+        if is_valid_get_request(request):
+            response_data = {}
+            exit_reasons = serializers.serialize('json', ExitReason.objects.all())
+            response_data["exit_reasons"] = exit_reasons
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
+def is_valid_get_request(request):
+    return request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active
+
 
 def get_intervention_types(request):
     try:
