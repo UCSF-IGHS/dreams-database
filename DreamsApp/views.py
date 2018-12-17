@@ -858,7 +858,7 @@ def save_intervention(request):
                         return JsonResponse(response_data)
                 else:
                     if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
-                                                                                                datetime.time()):
+                                                                                                datetime.now().time()):
                         response_data = {
                             'status': 'fail',
                             'message': "Error: The intervention date must be after the client's enrollment date. "
@@ -1099,7 +1099,7 @@ def update_intervention(request):
                                 return JsonResponse(response_data)
                         else:
                             if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
-                                    intervention.client.date_of_enrollment, datetime.time()):
+                                    intervention.client.date_of_enrollment, datetime.now().time()):
                                 response_data = {
                                     'status': 'fail',
                                     'message': "Error: The intervention date must be after the client's enrollment date. "
