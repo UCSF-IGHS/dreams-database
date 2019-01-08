@@ -10,6 +10,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.html import format_html
 
 
+TRANSFER_ACCEPTED_STATUS = 2
+
 class MaritalStatus(models.Model):
     code = models.CharField(verbose_name='Marital Status Code', max_length=10, null=False, blank=False)
     name = models.CharField(max_length=100, null=False)
@@ -215,7 +217,7 @@ class Client(models.Model):
     exited = models.BooleanField(default=False)
     exit_reason = models.ForeignKey(ExitReason, null=True, blank=True)
     reason_exited = models.CharField(blank=True, null=True, max_length=100)
-    exited_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
+    exited_by = models.ForeignKey(User, null=True, blank=True, related_name='exited_by_user')
     date_exited = models.DateTimeField(null=True, blank=True)
 
     ovc_id = models.CharField(blank=True, null=True, max_length=20)
@@ -257,9 +259,6 @@ class Client(models.Model):
         except Exception as e:
             return 'Invalid Status'
 
-    def get_client_status_action_text(self):
-        return 'Undo Exit' if self.exited else 'Exit Client'
-
     def get_age_at_enrollment(self):
         try:
             return self.date_of_enrollment.year - self.date_of_birth.year - (
@@ -279,7 +278,29 @@ class Client(models.Model):
         try:
             return self.clienttransfer_set.filter(destination_implementing_partner=self.implementing_partner,
                                                   transfer_status=ClientTransferStatus.objects.get(
-                                                      code__exact=2)).exists()
+                                                      code__exact=TRANSFER_ACCEPTED_STATUS)).exists()
+        except:
+            return False
+
+    def is_a_transfer_out(self, user_ip):
+        try:
+            return self.clienttransfer_set.filter(transfer_status=ClientTransferStatus.objects.get(
+                                                      code__exact=TRANSFER_ACCEPTED_STATUS), source_implementing_partner=user_ip).exists()
+        except:
+            return False
+
+    def is_editable_by_ip(self, user_ip):
+        editable = False
+        try:
+            if self.is_a_transfer_out(user_ip):
+                editable = False
+
+            elif self.is_a_transfer_in:
+                editable = False
+
+            else:
+                editable = True
+            return editable
         except:
             return False
 
@@ -361,9 +382,9 @@ class ReferralStatusManager(models.Manager):
 
 class ReferralStatus(models.Model):
     objects = ReferralStatusManager()
-    code = models.IntegerField(null=False, blank=False, unique=True, verbose_name='Referral Code'
+    code = models.IntegerField(null=False, blank=False, verbose_name='Referral Code'
                                )
-    name = models.CharField(null=False, blank=False, max_length=20, unique=True,
+    name = models.CharField(null=False, blank=False, max_length=20,
                             default='Pending', verbose_name='Referral Name')
 
     def __str__(self):
@@ -438,6 +459,22 @@ class Intervention(models.Model):
     class Meta(object):
         verbose_name = 'Intervention'
         verbose_name_plural = 'Interventions'
+
+    def is_editable_by_ip(self, user_ip):
+        editable = False
+        try:
+            if self.client.is_a_transfer_out(user_ip):
+                editable = False
+
+            elif self.client.is_a_transfer_in:
+                if self.implementing_partner == user_ip:
+                    editable = True
+
+            else:
+                editable = True
+            return editable
+        except:
+            return False
 
     def clean_fields(self, exclude=None):
         super(Intervention, self).clean_fields(exclude)
