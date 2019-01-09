@@ -915,6 +915,13 @@ def save_intervention(request):
                     # using defer() miraculously solved serialization problem of datetime properties.
                     intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created'). \
                         get(id__exact=intervention.id)
+
+                    is_editable_by_ip = {}
+                    if intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner):
+                        is_editable_by_ip[intervention.pk] = True
+                    else:
+                        is_editable_by_ip[intervention.pk] = False
+
                     response_data = {
                         'status': 'success',
                         'message': 'Intervention successfully saved',
@@ -925,7 +932,8 @@ def save_intervention(request):
                         'permissions': json.dumps({
                             'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
                             'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
-                        })
+                        }),
+                        'is_editable_by_ip': is_editable_by_ip
                     }
                     return JsonResponse(response_data)
                 else:  # Invalid Intervention Type
