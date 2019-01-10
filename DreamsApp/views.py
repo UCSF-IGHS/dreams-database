@@ -917,10 +917,7 @@ def save_intervention(request):
                         get(id__exact=intervention.id)
 
                     is_editable_by_ip = {}
-                    if intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner):
-                        is_editable_by_ip[intervention.pk] = True
-                    else:
-                        is_editable_by_ip[intervention.pk] = False
+                    is_editable_by_ip[intervention.pk] = intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner)
 
                     response_data = {
                         'status': 'success',
@@ -1018,10 +1015,7 @@ def get_intervention_list(request):
 
             is_editable_by_ip = {}
             for i in list_of_interventions:
-                if i.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner):
-                    is_editable_by_ip[i.pk] = True
-                else:
-                    is_editable_by_ip[i.pk] = False
+                is_editable_by_ip[i.pk] = i.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner)
 
             response_data = {
                 'iv_types': serializers.serialize('json', list_of_related_iv_types),
