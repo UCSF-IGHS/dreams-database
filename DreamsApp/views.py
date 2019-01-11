@@ -2013,7 +2013,7 @@ def download_enrollment_export(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        export_file_name = urllib.parse.quote(("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        export_file_name = urllib.parse.quote(("/tmp/raw_enrolment_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
@@ -2041,7 +2041,7 @@ def download_raw_intervention_export(request):
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
         export_file_name = urllib.parse.quote(
-            ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            ("/tmp/raw_intervention_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
@@ -2097,7 +2097,7 @@ def downloadIndividualLayeringReport(request):
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
         export_file_name = urllib.parse.quote(
-            ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            ("/tmp/services_received_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
@@ -2708,7 +2708,7 @@ def download_raw_intervention_transferred_in_report(request):
         to_intervention_date = request.POST.get('to_intervention_date')
 
         export_file_name = urllib.parse.quote(
-            ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            ("/tmp/raw_intervention_transferred_in_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
