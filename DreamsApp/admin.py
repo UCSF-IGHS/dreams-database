@@ -1,9 +1,8 @@
-# coding=utf-8
+
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 from DreamsApp.forms import *
-
-from models import *
+from DreamsApp.models import *
 # Register your models here.
 from django.forms import CheckboxSelectMultiple
 from django.core.urlresolvers import reverse
