@@ -16,7 +16,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
@@ -28,19 +27,35 @@ DEBUG = True   # Changed to False for custom error messaging!
 
 ALLOWED_HOSTS = ['127.0.0.1', '*']
 
-
 # Application definition
-
-INSTALLED_APPS = [
+PREREQ_APPS = [
+    'modeltranslation',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'widget_tweaks',
+    #'debug_toolbar',
+    'ckeditor',
+    'ckeditor_uploader',
+    'widget_tweaks'
+]
+
+PROJECT_APPS = [
+    'xf.xf_crud',
+    'xf.xf_system',
+    'xf.uc_dashboards',
+    'crispy_forms',
+    'xf.uc_dashboards.templatetags.getattribute',
+    'xf.uc_dashboards.templatetags.dashgent_filters',
+    'xf.uc_dashboards.templatetags.iif',
+    #'this_dashboard',
+    'Dreams',
     'DreamsApp',
 ]
+
+INSTALLED_APPS = PREREQ_APPS + PROJECT_APPS
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -53,7 +68,6 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'DreamsApp.middlewares.AutoLogoutMiddleware.SessionExpiredMiddleware',
     'DreamsApp.middlewares.CurrentUserMiddleware.CurrentUserMiddleware',
-
 ]
 
 ROOT_URLCONF = 'Dreams.urls'
@@ -76,24 +90,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Dreams.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/1.9/ref/settings/#databases
-
-# DATABASES = {
-#       'default': {
-#           'ENGINE': 'django.db.backends.sqlite3',
-#           'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#       }
-# }
-
 DATABASES = {
       'default': {
           'ENGINE': 'django.db.backends.sqlite3',
           'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
       }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
@@ -119,7 +121,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en-gb'
 
 TIME_ZONE = 'Africa/Nairobi'
 
@@ -127,8 +129,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = False
-
+USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
@@ -137,10 +138,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, "../static")
 
 STATIC_URL = '/static/'
 
-#MEDIA_ROOT = './manuals/'
-
 TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR,  'templates'),
+    os.path.join(BASE_DIR, 'templates'),
     'DreamsApp',
 )
 
@@ -149,13 +148,26 @@ TEMPLATE_DIRS = (
 # e.g manage.py loaddata initial_data.json
 FIXTURE_DIRS = ()
 
+MEDIA_ROOT = '/media/'
+MEDIA_URL = '/media/'
+CKEDITOR_UPLOAD_PATH = ''
+CKEDITOR_JQUERY_URL = os.path.join(STATIC_URL, 'gla/vendors/jquery/dist/jquery.min.js')
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',
+        'skin': 'moono-lisa',
+        'width': '100%'
+    },
+}
 
-# Just in case
-# DEFAULT_FROM_EMAIL = 'dreams.globalhealthapp@gmail.com'
-# SERVER_EMAIL = 'dreams.globalhealthapp@gmail.com'
-# EMAIL_BACKEND='django_smtp_ssl.SSLEmailBackend'  # 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_USE_SSL = True
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 465 # 587
-# EMAIL_HOST_USER = 'dreams.globalhealthapp@gmail.com'
-# EMAIL_HOST_PASSWORD = 'dreamsdev123#'
+gettext = lambda s: s
+
+LANGUAGES = (
+    ('en-gb', gettext('English')),
+    ('pt', gettext('Portuguese')),
+    ('nl', gettext('Dutch')),
+)
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'en-gb'
+
+LANGUAGE_COOKIE_NAME = "lc"

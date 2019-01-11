@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from DreamsApp.models import *
 import datetime
-from DreamsApp.xf_test_case.xf_test_case import XFTestCase
+from xf.xf_system.tests.test_xf_test_case import XFTestCase
 
 
 class TestExternalOrganisationOtherTestCase(XFTestCase):
@@ -14,7 +14,7 @@ class TestExternalOrganisationOtherTestCase(XFTestCase):
 
     def tearDown(self):
         del self.EXTERNAL_ORGANISATION
-        self.EXTERNAL_ORGANISATION_OTHER
+        del self.EXTERNAL_ORGANISATION_OTHER
 
     def test_external_organisation_other_is_required_if_external_organisation_is_other(self):
         external_organisation_other_is_required_if_external_organisation_is_other = {
