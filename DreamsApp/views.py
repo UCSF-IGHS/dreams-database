@@ -2007,7 +2007,7 @@ def intervention_export_page(request):
         raise PermissionDenied
 
 
-def download_enrollment_export(request):
+def download_raw_enrollment_export(request):
     try:
         ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
@@ -2090,7 +2090,7 @@ def individual_service_layering_export_page(request):
         raise PermissionDenied
 
 
-def downloadIndividualLayeringReport(request):
+def download_services_received_export(request):
     try:
         ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
@@ -2702,7 +2702,7 @@ def intervention_export_transferred_in_page(request):
         raise PermissionDenied
 
 
-def download_raw_intervention_transferred_in_report(request):
+def download_raw_intervention_transferred_in_export(request):
     try:
         from_intervention_date = request.POST.get('from_intervention_date')
         to_intervention_date = request.POST.get('to_intervention_date')
