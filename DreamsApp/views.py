@@ -732,6 +732,22 @@ def get_external_organisation(request):
         return HttpResponseServerError(tb)
 
 
+def get_unsuccessful_followup_attempts(request):
+    try:
+        if is_valid_get_request(request):
+            response_data = {}
+            client_id = int(request.GET.get('current_client_id'))
+            unsuccessful_follow_up_attempts = ClientLTFU.objects.filter(client_id__exact=client_id,
+                                                                        result_of_followup=ClientLTFUTResultType.objects.filter(name='Lost')).all()
+            response_data['unsuccessful_follow_up_attempts'] = len(unsuccessful_follow_up_attempts)
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
 def get_exit_reasons(request):
     try:
         if is_valid_get_request(request):
@@ -749,6 +765,8 @@ def get_exit_reasons(request):
 def is_valid_get_request(request):
     return request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active
 
+def is_valid_post_request(request):
+    return request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active
 
 def get_intervention_types(request):
     try:

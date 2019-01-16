@@ -364,16 +364,21 @@ $(document).ready(function () {
             }
         });
     }
-
-    var followupAttempts = 0;
+    
     function fetchFollowUpAttempts() {
+        var currentClientId = $('#current_client_id').val();
+        var followupAttempts = 0;
         $.ajax({
-            url: "/getValidUnsuccessfulFollowUpAttempts",
+            url: "/getUnsuccessfulFollowUpAttempts",
             type: "GET",
             dataType: 'json',
             async: false,
+            data: {
+                current_client_id: currentClientId
+            },
             success: function (data) {
-                followupAttempts = $.parseJSON(data.valid_unsuccessful_follow_up_attempts);
+                console.log(data);
+                followupAttempts = $.parseJSON(data.unsuccessful_follow_up_attempts);
             },
             error: function (xhr, errmsg, err) {
                 $('span#exit_reason_validation').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg + " <a href='#' class='close'>&times;</a></div>");

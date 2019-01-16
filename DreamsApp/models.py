@@ -1467,11 +1467,33 @@ class ClientLTFUType(models.Model):
         verbose_name_plural = 'LTFU Types'
 
 
+class ClientLTFUResultTypeManager(models.Manager):
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
+class ClientLTFUTResultType(models.Model):
+    objects = ClientLTFUResultTypeManager()
+
+    code = models.CharField(max_length=10, default='', null=False, blank=False)
+    name = models.CharField(max_length=100, default='', null=False, blank=False)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    def natural_key(self):
+        return (self.name,)
+
+    class Meta(object):
+        verbose_name = 'LTFU Result Type'
+        verbose_name_plural = 'LTFU Result Types'
+
+
 class ClientLTFU(models.Model):
     client = models.ForeignKey(Client, null=False, blank=False, related_name='client_ltfu')
     date_of_followup = models.DateField(blank=False, null=False, verbose_name='Date of Followup')
     type_of_followup = models.ForeignKey(ClientLTFUType, null=False, blank=False, related_name='ltfu_type')
-    result_of_followup = models.CharField(blank=False, null=False, max_length=255, verbose_name='Result of Followup')
+    result_of_followup = models.ForeignKey(ClientLTFUTResultType, blank=False, null=False, related_name='result_of_followup')
     comment = models.CharField(null=True, blank=True, max_length=255, verbose_name='Comment')
 
     def __str__(self):
