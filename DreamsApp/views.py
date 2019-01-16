@@ -2007,13 +2007,13 @@ def intervention_export_page(request):
         raise PermissionDenied
 
 
-def download_enrollment_export(request):
+def download_raw_enrollment_export(request):
     try:
         ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        export_file_name = urllib.parse.quote(("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        export_file_name = urllib.parse.quote(("/tmp/raw_enrolment_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
@@ -2041,7 +2041,7 @@ def download_raw_intervention_export(request):
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
         export_file_name = urllib.parse.quote(
-            ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            ("/tmp/raw_intervention_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
@@ -2090,14 +2090,14 @@ def individual_service_layering_export_page(request):
         raise PermissionDenied
 
 
-def downloadIndividualLayeringReport(request):
+def download_services_received_export(request):
     try:
         ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
         export_file_name = urllib.parse.quote(
-            ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            ("/tmp/services_received_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
@@ -2702,13 +2702,13 @@ def intervention_export_transferred_in_page(request):
         raise PermissionDenied
 
 
-def download_raw_intervention_transferred_in_report(request):
+def download_raw_intervention_transferred_in_export(request):
     try:
         from_intervention_date = request.POST.get('from_intervention_date')
         to_intervention_date = request.POST.get('to_intervention_date')
 
         export_file_name = urllib.parse.quote(
-            ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            ("/tmp/raw_intervention_transferred_in_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
