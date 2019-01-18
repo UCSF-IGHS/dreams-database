@@ -1,5 +1,6 @@
-# coding=utf-8
 import os
+import traceback
+
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
@@ -14,16 +15,21 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.db import connection as db_conn_2, transaction
-import urllib
+import urllib.parse
 import json
 from datetime import date, timedelta, datetime as dt
 from openpyxl import Workbook
 from openpyxl.styles import Font
+
+from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
-from Dreams_Utils_Plain import *
+from DreamsApp.service_layer import *
 
 
+TRANSFER_INITIATED_STATUS = 1
 TRANSFER_ACCEPTED_STATUS = 2
+TRANSFER_REJECTED_STATUS = 3
+TRANSFER_ENDED_STATUS = 4
 
 
 def get_enrollment_form_config_data(request):
@@ -308,8 +314,8 @@ def client_profile(request):
         search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
             'search_client_term', '')
         if client_id is not None and client_id != 0:
-            ip = request.user.implementingpartneruser.implementing_partner
             try:
+                ip = request.user.implementingpartneruser.implementing_partner
                 if ip:
                     ip_code = ip.code
                 else:
@@ -636,7 +642,7 @@ def unexit_client(request):
         except Exception as e:
             response_data = {
                 'status': 'failed',
-                'message': 'Invalid client Id: ' + e.message
+                'message': 'Invalid client Id: ' + str(e)
             }
             return JsonResponse(response_data, status=500)
     else:
@@ -874,7 +880,7 @@ def save_intervention(request):
                         return JsonResponse(response_data)
                 else:
                     if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
-                                                                                                datetime.time()):
+                                                                                                datetime.now().time()):
                         response_data = {
                             'status': 'fail',
                             'message': "Error: The intervention date must be after the client's enrollment date. "
@@ -927,6 +933,10 @@ def save_intervention(request):
                     # using defer() miraculously solved serialization problem of datetime properties.
                     intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created'). \
                         get(id__exact=intervention.id)
+
+                    is_editable_by_ip = {}
+                    is_editable_by_ip[intervention.pk] = intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner)
+
                     response_data = {
                         'status': 'success',
                         'message': 'Intervention successfully saved',
@@ -937,7 +947,8 @@ def save_intervention(request):
                         'permissions': json.dumps({
                             'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
                             'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
-                        })
+                        }),
+                        'is_editable_by_ip': is_editable_by_ip
                     }
                     return JsonResponse(response_data)
                 else:  # Invalid Intervention Type
@@ -1020,16 +1031,9 @@ def get_intervention_list(request):
                                                                       dt.now()]
                                                                      )
 
-
-
-
-
             is_editable_by_ip = {}
             for i in list_of_interventions:
-                if i.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner):
-                    is_editable_by_ip[i.pk] = True
-                else:
-                    is_editable_by_ip[i.pk] = False
+                is_editable_by_ip[i.pk] = i.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner)
 
             response_data = {
                 'iv_types': serializers.serialize('json', list_of_related_iv_types),
@@ -1115,7 +1119,7 @@ def update_intervention(request):
                                 return JsonResponse(response_data)
                         else:
                             if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
-                                    intervention.client.date_of_enrollment, datetime.time()):
+                                    intervention.client.date_of_enrollment, datetime.now().time()):
                                 response_data = {
                                     'status': 'fail',
                                     'message': "Error: The intervention date must be after the client's enrollment date. "
@@ -2021,13 +2025,13 @@ def intervention_export_page(request):
         raise PermissionDenied
 
 
-def download_enrollment_export(request):
+def download_raw_enrollment_export(request):
     try:
         ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        export_file_name = urllib.quote(("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        export_file_name = urllib.parse.quote(("/tmp/raw_enrolment_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
@@ -2054,8 +2058,8 @@ def download_raw_intervention_export(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        export_file_name = urllib.quote(
-            ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        export_file_name = urllib.parse.quote(
+            ("/tmp/raw_intervention_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
@@ -2104,14 +2108,14 @@ def individual_service_layering_export_page(request):
         raise PermissionDenied
 
 
-def downloadIndividualLayeringReport(request):
+def download_services_received_export(request):
     try:
         ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        export_file_name = urllib.quote(
-            ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        export_file_name = urllib.parse.quote(
+            ("/tmp/services_received_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
@@ -2174,7 +2178,7 @@ def viewBaselineData(request):
             except Client.DoesNotExist:
                 traceback.format_exc()
         else:
-            print 'POST not allowed'
+            print ('POST not allowed')
 
         ip = None
         try:
@@ -2300,7 +2304,7 @@ def update_edu_and_employment_data(request):
                 }
                 return JsonResponse(response_data, status=200)
             else:
-                print form.errors
+                print (form.errors)
         else:
             response_data = {
                 'status': 'fail',
@@ -2489,10 +2493,10 @@ def transfer_client(request):
                 if transfer_form.is_valid():
                     num_of_pending_transfers = ClientTransfer.objects.filter(client=transfer_form.instance.client,
                                                                              transfer_status=ClientTransferStatus.objects.get(
-                                                                                 code__exact=1)).count()
+                                                                                 code__exact=TRANSFER_INITIATED_STATUS)).count()
 
                     if num_of_pending_transfers > 0:
-                        print "{} pending transfers for client".format(num_of_pending_transfers)
+                        print ("{} pending transfers for client".format(num_of_pending_transfers))
                         response_data = {
                             'status': 'fail',
                             'message': "Transfer failed, there's a pending transfer for this client.",
@@ -2500,7 +2504,7 @@ def transfer_client(request):
                     else:
                         client_transfer = transfer_form.save(commit=False)
 
-                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
                         client_transfer.source_implementing_partner = ip
                         client_transfer.initiated_by = request.user
                         client_transfer.save()
@@ -2525,16 +2529,17 @@ def transfer_client(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message,
+            'message': e,
         }
         return JsonResponse(json.dumps(response_data), safe=False)
 
 
 def client_transfers(request, *args, **kwargs):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        can_accept_or_reject = False
-
         transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
+
+        transfer_perm = TransferServiceLayer(request.user)
+        can_accept_or_reject = transfer_perm.can_accept_or_reject_transfer()
 
         try:
             ip = request.user.implementingpartneruser.implementing_partner
@@ -2543,14 +2548,8 @@ def client_transfers(request, *args, **kwargs):
             else:
                 c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip)
 
-            if request.user.has_perm('DreamsApp.change_clienttransfer'):
-                can_accept_or_reject = True
-
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             c_transfers = ClientTransfer.objects.all()
-
-            if request.user.is_superuser:
-                can_accept_or_reject = True
 
         page = request.GET.get('page', 1)
         paginator = Paginator(c_transfers, 20)
@@ -2587,9 +2586,15 @@ def accept_client_transfer(request):
                 if client_transfer_id != "":
                     client_transfer = ClientTransfer.objects.get(id__exact=client_transfer_id)
 
+                    transfer_perm = TransferServiceLayer(request.user, client_transfer=client_transfer)
+                    can_accept_transfer = transfer_perm.can_accept_transfer()
+
+                    if not can_accept_transfer:
+                        raise PermissionDenied
+
                     if client_transfer is not None:
                         current_datetime = dt.now()
-                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=2)
+                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
 
                         client_transfer.transfer_status = accepted_client_transfer_status
                         client_transfer.start_date = current_datetime
@@ -2605,10 +2610,14 @@ def accept_client_transfer(request):
                         c_transfers = ClientTransfer.objects.filter(client=client_transfer.client, end_date=None,
                                                                     transfer_status=accepted_client_transfer_status)
 
+                        can_complete_transfer = transfer_perm.can_complete_transfer()
+                        if not can_complete_transfer:
+                            raise PermissionDenied
+
                         with transaction.atomic():
                             for c_transfer in c_transfers:
                                 c_transfer.end_date = current_datetime
-                                c_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=4)
+                                c_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ENDED_STATUS)
                                 c_transfer.save()
                             client.save()
                             client_transfer.save()
@@ -2624,7 +2633,6 @@ def accept_client_transfer(request):
         else:
             raise PermissionDenied
     except Exception as e:
-        print traceback.format_exc(e)
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
@@ -2644,7 +2652,13 @@ def reject_client_transfer(request):
                     client_transfer = None
 
                 if client_transfer is not None:
-                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=3)
+                    transfer_perm = TransferServiceLayer(request.user, client_transfer=client_transfer)
+                    can_reject_transfer = transfer_perm.can_reject_transfer()
+
+                    if not can_reject_transfer:
+                        raise PermissionDenied
+
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_REJECTED_STATUS)
                     client_transfer.completed_by = request.user
                     client_transfer.end_date = dt.now()
                     client_transfer.save()
@@ -2656,7 +2670,6 @@ def reject_client_transfer(request):
         else:
             raise PermissionDenied
     except Exception as e:
-        print traceback.format_exc(e)
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
@@ -2666,7 +2679,7 @@ def reject_client_transfer(request):
 
 def get_client_transfers_count(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             client_transfers_count = ClientTransfer.objects.filter(
@@ -2707,13 +2720,13 @@ def intervention_export_transferred_in_page(request):
         raise PermissionDenied
 
 
-def download_raw_intervention_transferred_in_report(request):
+def download_raw_intervention_transferred_in_export(request):
     try:
         from_intervention_date = request.POST.get('from_intervention_date')
         to_intervention_date = request.POST.get('to_intervention_date')
 
-        export_file_name = urllib.quote(
-            ("/tmp/output-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        export_file_name = urllib.parse.quote(
+            ("/tmp/raw_intervention_transferred_in_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
@@ -2829,7 +2842,7 @@ def void_client(request):
             raise PermissionDenied
     except Exception as e:
         traceback.format_exc()
-        return get_response_data(0, e.message)
+        return get_response_data(0, e)
 
 
 def get_response_data(status, message, **kwargs):
@@ -2838,7 +2851,7 @@ def get_response_data(status, message, **kwargs):
         'message': message
     }
 
-    for k, v in kwargs.iteritems():
+    for k, v in kwargs.values():
         response[k] = v
 
     return JsonResponse(json.dumps(response), safe=False)

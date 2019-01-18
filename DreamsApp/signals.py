@@ -29,7 +29,7 @@ def create_audit_log(sender, instance, created, *args, **kwargs):
     audit.save()
 
     exclude_fields = ["date_changed", "password"]
-    for k, v in instance._original_data.iteritems():
+    for k, v in instance._original_data.items():
         if v != instance.__dict__[k] and k not in exclude_fields:
             audit_trail = AuditTrail()
             audit_trail.audit = audit
@@ -55,7 +55,7 @@ def create_delete_audit_log(sender, instance, *args, **kwargs):
     audit.search_text = None
     audit.save()
 
-    for k, v in instance._original_data.iteritems():
+    for k, v in instance._original_data.items():
         audit_trail = AuditTrail()
         audit_trail.audit = audit
         audit_trail.column = k

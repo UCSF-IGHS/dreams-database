@@ -15,5 +15,5 @@ class Migration(migrations.Migration):
         call_command("loaddata", "exit_reasons.json")
 
     dependencies = [
-        ('DreamsApp', '0037_auto_20181113_1212'),
+        ('DreamsApp', '0038_auto_20181205_1646'),
     ]

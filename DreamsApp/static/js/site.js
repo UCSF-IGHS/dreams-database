@@ -6,7 +6,7 @@ $(document).ready(function () {
     $('#external-organization-select').change(function () {
         var selectedExternalOrganization = $(this).find(':selected');
         var otherOption = "Other";
-        if (selectedExternalOrganization.text() == otherOption) {
+        if(selectedExternalOrganization.text() == otherOption) {
             $('div#other_external_organization').show();
         } else {
             $('div#other_external_organization').hide();
@@ -172,7 +172,6 @@ $(document).ready(function () {
                 // Show error dialog
                 // Then return
                 $('#client_search_errors').html("* MISSING DREAMS ID: Please enter a valid DREAMS ID.").removeClass("hidden").addClass("shown");
-                ;
                 return;
             }
         }
