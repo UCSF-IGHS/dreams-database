@@ -326,6 +326,7 @@ def client_profile(request):
             try:
                 client_found = Client.objects.get(id=client_id)
                 is_editable_by_ip = client_found.is_editable_by_ip(ip)
+                can_add_intervention = client_found.can_add_intervention(ip)
 
                 if client_found is not None:
                     # get cash transfer details
@@ -346,7 +347,8 @@ def client_profile(request):
                                                                                                    initial={
                                                                                                        'client':
                                                                                                            client_found}),
-                                                               'is_editable_by_ip': is_editable_by_ip
+                                                               'is_editable_by_ip': is_editable_by_ip,
+                                                               'can_add_intervention': can_add_intervention
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
@@ -358,7 +360,8 @@ def client_profile(request):
                                'search_client_term': search_client_term,
                                'user': request.user,
                                'transfer_form': ClientTransferForm(ip_code=ip_code, initial={'client': client_found}),
-                               'is_editable_by_ip': is_editable_by_ip
+                               'is_editable_by_ip': is_editable_by_ip,
+                               'can_add_intervention': can_add_intervention
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -917,7 +920,12 @@ def save_intervention(request):
                         get(id__exact=intervention.id)
 
                     is_editable_by_ip = {}
-                    is_editable_by_ip[intervention.pk] = intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner)
+                    is_editable_by_ip[intervention.pk] = intervention.is_editable_by_ip(
+                        request.user.implementingpartneruser.implementing_partner)
+
+                    is_visible_by_ip = {}
+                    is_visible_by_ip[intervention.pk] = intervention.is_visible_by_ip(
+                        request.user.implementingpartneruser.implementing_partner)
 
                     response_data = {
                         'status': 'success',
@@ -930,7 +938,8 @@ def save_intervention(request):
                             'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
                             'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
                         }),
-                        'is_editable_by_ip': is_editable_by_ip
+                        'is_editable_by_ip': is_editable_by_ip,
+                        'is_visible_by_ip': is_visible_by_ip
                     }
                     return JsonResponse(response_data)
                 else:  # Invalid Intervention Type
@@ -1014,8 +1023,10 @@ def get_intervention_list(request):
                                                                      )
 
             is_editable_by_ip = {}
+            is_visible_by_ip = {}
             for i in list_of_interventions:
                 is_editable_by_ip[i.pk] = i.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner)
+                is_visible_by_ip[i.pk] = i.is_visible_by_ip(request.user.implementingpartneruser.implementing_partner)
 
             response_data = {
                 'iv_types': serializers.serialize('json', list_of_related_iv_types),
@@ -1026,7 +1037,8 @@ def get_intervention_list(request):
                     'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
                     'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
                 }),
-                'is_editable_by_ip': is_editable_by_ip
+                'is_editable_by_ip': is_editable_by_ip,
+                'is_visible_by_ip': is_visible_by_ip
             }
             return JsonResponse(response_data)
         else:

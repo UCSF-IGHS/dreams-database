@@ -304,6 +304,21 @@ class Client(models.Model):
         except:
             return False
 
+    def can_add_intervention(self, user_ip):
+        can_add_intervention = False
+        try:
+            if self.is_a_transfer_out(user_ip):
+                can_add_intervention = False
+
+            elif self.is_a_transfer_in:
+                can_add_intervention = True
+
+            else:
+                can_add_intervention = True
+            return can_add_intervention
+        except:
+            return False
+
     @property
     def can_be_transferred(self):
         try:
@@ -473,6 +488,22 @@ class Intervention(models.Model):
             else:
                 editable = True
             return editable
+        except:
+            return False
+
+    def is_visible_by_ip(self, user_ip):
+        visible = False
+        try:
+            if self.client.is_a_transfer_out(user_ip):
+                if self.implementing_partner == user_ip:
+                    visible = True
+
+            elif self.client.is_a_transfer_in:
+                visible = True
+
+            else:
+                visible = True
+            return visible
         except:
             return False
 

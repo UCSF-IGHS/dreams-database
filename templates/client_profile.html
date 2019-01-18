@@ -268,7 +268,7 @@
                               </div>
                           </th>
 
-                          {% if perms.DreamsApp.add_intervention and is_editable_by_ip == True %}
+                          {% if perms.DreamsApp.add_intervention and can_add_intervention == True %}
                               <th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="1001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
                           {% endif %}
                       </tr>
@@ -313,7 +313,8 @@
                                        <input id="filter_2001" type="text" class="form-control filter" data-target_tbody="#interventions_2001_tbody" data-intervention_category_code="2001" data-tab_intervention_table_id="#interventions_2001_table" placeholder="Type to search...">
                                    </div>
                               </th>
-                              {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="2001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
+                              {% if perms.DreamsApp.add_intervention and can_add_intervention == True %}
+                                  <th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="2001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
                               {% endif %}
                           </tr>
                       </thead>
@@ -357,7 +358,9 @@
                                        <input id="filter_3001" type="text" class="form-control filter" data-target_tbody="#interventions_3001_tbody" data-intervention_category_code="3001" data-tab_intervention_table_id="#interventions_3001_table" placeholder="Type to search...">
                                    </div>
                               </th>
-                              {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="3001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>{% endif %}
+                              {% if perms.DreamsApp.add_intervention and can_add_intervention == True %}
+                                  <th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="3001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
+                              {% endif %}
                           </tr>
                       </thead>
                   </table>
@@ -399,7 +402,9 @@
                                        <input id="filter_4001" type="text" class="form-control filter" data-target_tbody="#interventions_4001_tbody" data-intervention_category_code="4001" data-tab_intervention_table_id="#interventions_4001_table" placeholder="Type to search...">
                                   </div>
                               </th>
-                              {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="4001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>{% endif %}
+                              {% if perms.DreamsApp.add_intervention and can_add_intervention == True %}
+                                  <th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="4001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
+                              {% endif %}
                           </tr>
                       </thead>
                   </table>
@@ -442,7 +447,9 @@
                                        <input id="filter_5001" type="text" class="form-control filter" data-target_tbody="#interventions_5001_tbody" data-intervention_category_code="5001" data-tab_intervention_table_id="#interventions_5001_table" placeholder="Type to search...">
                                   </div>
                               </th>
-                              {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="5001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>{% endif %}
+                              {% if perms.DreamsApp.add_intervention and can_add_intervention == True %}
+                                  <th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="5001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
+                              {% endif %}
                           </tr>
                       </thead>
                   </table>
