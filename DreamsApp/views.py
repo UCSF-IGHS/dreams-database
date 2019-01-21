@@ -327,6 +327,7 @@ def client_profile(request):
                 client_found = Client.objects.get(id=client_id)
                 is_editable_by_ip = client_found.is_editable_by_ip(ip)
                 can_add_intervention = client_found.can_add_intervention(ip)
+                client_status = client_found.get_client_status(ip)
 
                 if client_found is not None:
                     # get cash transfer details
@@ -348,7 +349,8 @@ def client_profile(request):
                                                                                                        'client':
                                                                                                            client_found}),
                                                                'is_editable_by_ip': is_editable_by_ip,
-                                                               'can_add_intervention': can_add_intervention
+                                                               'can_add_intervention': can_add_intervention,
+                                                               'client_status': client_status
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
@@ -361,7 +363,8 @@ def client_profile(request):
                                'user': request.user,
                                'transfer_form': ClientTransferForm(ip_code=ip_code, initial={'client': client_found}),
                                'is_editable_by_ip': is_editable_by_ip,
-                               'can_add_intervention': can_add_intervention
+                               'can_add_intervention': can_add_intervention,
+                               'client_status': client_status
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -1009,7 +1012,7 @@ def get_intervention_list(request):
                 .order_by('-intervention_date', '-date_created', '-date_changed')
 
             client_found = Client.objects.get(id=client_id)
-            client_is_transferred_out = client_found.is_a_transfer_out(request.user.implementingpartneruser.implementing_partner)
+            client_is_transferred_out = client_found.transferred_out(request.user.implementingpartneruser.implementing_partner)
 
             if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 if client_is_transferred_out:
@@ -2189,6 +2192,7 @@ def viewBaselineData(request):
                 client_found = Client.objects.get(id=client_id)
                 if client_found is not None:
                     is_editable_by_ip = client_found.is_editable_by_ip(ip)
+                    client_status = client_found.get_client_status(ip)
 
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
@@ -2207,7 +2211,8 @@ def viewBaselineData(request):
                                                                          'transfer_form': ClientTransferForm(
                                                                              ip_code=ip_code,
                                                                              initial={'client': client_found}),
-                                                                         'is_editable_by_ip': is_editable_by_ip
+                                                                         'is_editable_by_ip': is_editable_by_ip,
+                                                                         'client_status': client_status
                                                                          })
             except Client.DoesNotExist:
                 traceback.format_exc()
@@ -2501,6 +2506,7 @@ def transfer_client(request):
                         client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
                         client_transfer.source_implementing_partner = ip
                         client_transfer.initiated_by = request.user
+                        client_transfer.start_date = dt.now()
                         client_transfer.save()
 
                         client = transfer_form.instance.client
@@ -2587,12 +2593,11 @@ def accept_client_transfer(request):
                         raise PermissionDenied
 
                     if client_transfer is not None:
-                        current_datetime = dt.now()
                         accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
 
                         client_transfer.transfer_status = accepted_client_transfer_status
-                        client_transfer.start_date = current_datetime
                         client_transfer.completed_by = request.user
+                        client_transfer.end_date = dt.now()
 
                         # Update the client to receive interventions from this new ip.
                         client = Client.objects.get(id__exact=client_transfer.client.id)
@@ -2600,19 +2605,7 @@ def accept_client_transfer(request):
                             ip = client_transfer.destination_implementing_partner
                         client.implementing_partner = ip
 
-                        # client transfers for current client being transferred,with no end_date and status accepted
-                        c_transfers = ClientTransfer.objects.filter(client=client_transfer.client, end_date=None,
-                                                                    transfer_status=accepted_client_transfer_status)
-
-                        can_complete_transfer = transfer_perm.can_complete_transfer()
-                        if not can_complete_transfer:
-                            raise PermissionDenied
-
                         with transaction.atomic():
-                            for c_transfer in c_transfers:
-                                c_transfer.end_date = current_datetime
-                                c_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ENDED_STATUS)
-                                c_transfer.save()
                             client.save()
                             client_transfer.save()
 
