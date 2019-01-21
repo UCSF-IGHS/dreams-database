@@ -297,24 +297,25 @@ $(document).ready(function () {
                 // Clear table
                 $(table_id + '  tbody').empty();
                 $.each(ivs, function (index, iv) {
-                    var iv_type = {}
-                    $.each(ivTypes, function (index, obj) {
+                    if (data.is_visible_by_ip[iv.pk] == true) {
+                        var iv_type = {}
+                        $.each(ivTypes, function (index, obj) {
+                            if (obj.pk == iv.fields.intervention_type) {
+                                iv_type = obj;
+                                return false;
+                            }
+                        });
+                        var hts_result = iv_type.fields.has_hts_result ? getResultName(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result) : "";
+                        var pregnancy_result = iv_type.fields.has_pregnancy_result ? getResultName(pregnancy_results, iv_type.fields.has_pregnancy_result, iv.fields.pregnancy_test_result) : "";
+                        iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
+                        iv.fields.no_of_sessions_attended = iv.fields.no_of_sessions_attended == null ? "" : iv.fields.no_of_sessions_attended;
 
-                        if (obj.pk == iv.fields.intervention_type) {
-                            iv_type = obj;
-                            return false;
+                        if (data.is_editable_by_ip[iv.pk] == false) {
+                            permissions = null;
                         }
-                    });
-                    var hts_result = iv_type.fields.has_hts_result ? getResultName(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result) : "";
-                    var pregnancy_result = iv_type.fields.has_pregnancy_result ? getResultName(pregnancy_results, iv_type.fields.has_pregnancy_result, iv.fields.pregnancy_test_result) : "";
-                    iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
-                    iv.fields.no_of_sessions_attended = iv.fields.no_of_sessions_attended == null ? "" : iv.fields.no_of_sessions_attended;
 
-                    if (data.is_editable_by_ip[iv.pk] == false) {
-                        permissions = null;
+                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, false, permissions);
                     }
-
-                    insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, false, permissions);
                 });
 
                 // hide spinner
