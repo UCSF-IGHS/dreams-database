@@ -13,7 +13,7 @@
                   <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" id="exampleModalLabel">NEW INTERVENTION</h4>
-                        <h5>For: {{ client.get_full_name }}</h5>
+                        <h5>For: {{ client.get_full_name  }}</h5>
                   </div>
                   <div class="modal-body">
 
@@ -172,7 +172,7 @@
         </div>
         <div class="row">
             <div class="col-xs-12 col-sm-5">
-            <p><strong>Client: </strong> {{ client.get_full_name }} <span class="client_exit_voided_status">{{ client.get_client_status }}</span></p>
+            <p><strong>Client: </strong> {{ client.get_full_name }} <span class="client_exit_voided_status">{{ client_status }}</span></p>
             <p><strong>DREAMS ID: </strong> {{ client.dreams_id }}</p>
             <p><strong>Date Birth: </strong> {{ client.date_of_birth }} (Current Age {{ client.get_current_age }})</p>
 

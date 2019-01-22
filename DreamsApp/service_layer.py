@@ -29,9 +29,8 @@ class TransferServiceLayer:
 
         if self.user is not None and self.client_transfer is not None:
             destination_ip = self.client_transfer.destination_implementing_partner
-            initiated_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
 
-            if self.client_transfer.transfer_status == initiated_transfer_status:
+            if self.client_transfer.transfer_status.pk == TRANSFER_INITIATED_STATUS:
                 if self.user.is_superuser:
                     action_allowed = True
                 else:
@@ -46,9 +45,8 @@ class TransferServiceLayer:
 
         if self.user is not None and self.client_transfer is not None:
             destination_ip = self.client_transfer.destination_implementing_partner
-            initiated_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
 
-            if self.client_transfer.transfer_status == initiated_transfer_status:
+            if self.client_transfer.transfer_status.pk == TRANSFER_INITIATED_STATUS:
                 if self.user.is_superuser:
                     action_allowed = True
                 else:
@@ -63,9 +61,8 @@ class TransferServiceLayer:
 
         if self.user is not None and self.client_transfer is not None:
             destination_ip = self.client_transfer.destination_implementing_partner
-            initiated_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
 
-            if self.client_transfer.transfer_status == initiated_transfer_status:
+            if self.client_transfer.transfer_status.pk == TRANSFER_ACCEPTED_STATUS:
                 if self.user.is_superuser:
                     action_allowed = True
                 else:
@@ -74,3 +71,19 @@ class TransferServiceLayer:
                         action_allowed = True
 
         return action_allowed
+
+    def client_transfer_status(self, user_ip, client, implementing_partner_query, transfer_status):
+        try:
+            clients_transferred = client.clienttransfer_set.filter(client_id=client.pk).order_by('-id')
+            if clients_transferred.exists():
+                client_transfer_found = clients_transferred.first()
+
+                if implementing_partner_query == "source_implementing_partner":
+                    return client_transfer_found.transfer_status.pk == transfer_status if client_transfer_found.source_implementing_partner == user_ip else False
+
+                elif implementing_partner_query == "destination_implementing_partner":
+                    return client_transfer_found.transfer_status.pk == transfer_status if client_transfer_found.destination_implementing_partner == user_ip else False
+
+            return False
+        except:
+            return False
