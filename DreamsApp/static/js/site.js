@@ -3250,7 +3250,9 @@ $(document).ready(function () {
         e.preventDefault();
         var el = $(this);
         $("#accept-transfer-modal #accept_client_transfer_id").val($(el).data('id'));
-        $("#accept-transfer-modal #accept_client_name").val($(el).data('client-name'));
+        $("#accept-transfer-modal #accept_client_name").text($(el).data('client-name'));
+        $("#accept-transfer-modal #accept_client_dreams_id").text($(el).data('client-dreams-id'));
+        $("#accept-transfer-modal #accept_client_date_of_birth").text($(el).data('client-date-of-birth'));
         $("#accept-transfer-modal").show();
     });
 
@@ -3258,7 +3260,9 @@ $(document).ready(function () {
         e.preventDefault();
         var el = $(this);
         $("#reject-transfer-modal #reject_client_transfer_id").val($(el).data('id'));
-        $("#reject-transfer-modal #reject_client_name").val($(el).data('client-name'));
+        $("#reject-transfer-modal #reject_client_name").text($(el).data('client-name'));
+        $("#reject-transfer-modal #reject_client_dreams_id").text($(el).data('client-dreams-id'));
+        $("#reject-transfer-modal #reject_client_date_of_birth").text($(el).data('client-date-of-birth'));
         $("#reject-transfer-modal").show();
     });
 
