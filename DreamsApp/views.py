@@ -654,7 +654,6 @@ def unexit_client(request):
 
 
 def exit_client(request):
-
     OTHER_CODE = 6
 
     if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
@@ -662,7 +661,7 @@ def exit_client(request):
         try:
             client_id = int(str(request.POST.get('client_id', '0')))
             reason_for_exit = ExitReason.objects.get(id__exact=int(request.POST.get('reason_for_exit', '')))
-            date_of_exit = request.POST.get('date_of_exit', datetime.datetime.now())
+            date_of_exit = request.POST.get('date_of_exit', datetime.now())
             exit_comment = request.POST.get('exitComment')
 
             if reason_for_exit is not None:
