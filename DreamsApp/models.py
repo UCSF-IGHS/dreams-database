@@ -1453,8 +1453,8 @@ class ClientLTFUTypeManager(models.Manager):
 class ClientLTFUType(models.Model):
     objects = ClientLTFUTypeManager()
 
-    code = models.CharField(max_length=10, default='', null=False, blank=False)
-    name = models.CharField(max_length=100, default='', null=False, blank=False)
+    code = models.CharField(max_length=10, null=False, blank=False)
+    name = models.CharField(max_length=100, null=False, blank=False)
 
     def __str__(self):
         return '{}'.format(self.name)
@@ -1472,11 +1472,11 @@ class ClientLTFUResultTypeManager(models.Manager):
         return self.get(name=name)
 
 
-class ClientLTFUTResultType(models.Model):
+class ClientLTFUResultType(models.Model):
     objects = ClientLTFUResultTypeManager()
 
-    code = models.CharField(max_length=10, default='', null=False, blank=False)
-    name = models.CharField(max_length=100, default='', null=False, blank=False)
+    code = models.CharField(max_length=10, null=False, blank=False)
+    name = models.CharField(max_length=100, null=False, blank=False)
 
     def __str__(self):
         return '{}'.format(self.name)
@@ -1492,8 +1492,8 @@ class ClientLTFUTResultType(models.Model):
 class ClientLTFU(models.Model):
     client = models.ForeignKey(Client, null=False, blank=False, related_name='client_ltfu')
     date_of_followup = models.DateField(blank=False, null=False, verbose_name='Date of Followup')
-    type_of_followup = models.ForeignKey(ClientLTFUType, null=False, blank=False, related_name='ltfu_type')
-    result_of_followup = models.ForeignKey(ClientLTFUTResultType, blank=False, null=False, related_name='result_of_followup')
+    type_of_followup = models.ForeignKey(ClientLTFUType, null=False, blank=False, related_name='type_of_followup')
+    result_of_followup = models.ForeignKey(ClientLTFUResultType, blank=False, null=False, related_name='result_of_followup')
     comment = models.CharField(null=True, blank=True, max_length=255, verbose_name='Comment')
 
     def __str__(self):

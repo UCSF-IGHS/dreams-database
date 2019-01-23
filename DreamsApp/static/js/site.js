@@ -363,10 +363,10 @@ $(document).ready(function () {
             }
         });
     }
-    
+
+    var followupAttempts = 0;
     function fetchFollowUpAttempts() {
-        var currentClientId = $('#current_client_id').val();
-        var followupAttempts = 0;
+        var currentClientId = $('#baseline_current_client_id').val();
         $.ajax({
             url: "/getUnsuccessfulFollowUpAttempts",
             type: "GET",
@@ -376,7 +376,6 @@ $(document).ready(function () {
                 current_client_id: currentClientId
             },
             success: function (data) {
-                console.log(data);
                 followupAttempts = $.parseJSON(data.unsuccessful_follow_up_attempts);
             },
             error: function (xhr, errmsg, err) {
@@ -1892,7 +1891,7 @@ $(document).ready(function () {
 
     $.validator.addMethod('checkFollowUpAttempts', function (value) {
         if (value == LOST_TO_FOLLOW_UP_CODE) {
-            return (followupAttempts.length < MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS);
+            return (followupAttempts >= MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS);
         }
         return true;
     }, 'Client does not have 4 follow up attempts');
