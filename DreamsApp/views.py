@@ -24,12 +24,8 @@ from openpyxl.styles import Font
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
 from DreamsApp.service_layer import *
-
-
-TRANSFER_INITIATED_STATUS = 1
-TRANSFER_ACCEPTED_STATUS = 2
-TRANSFER_REJECTED_STATUS = 3
-TRANSFER_ENDED_STATUS = 4
+from DreamsApp.service_layer import TransferServiceLayer
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer
 
 
 def get_enrollment_form_config_data(request):
@@ -216,7 +212,7 @@ def clients(request):
 
                         transfer_out = ClientTransfer.objects.filter(source_implementing_partner=ip).filter(
                             transfer_status=ClientTransferStatus.objects.get(
-                                                      code__exact=TRANSFER_ACCEPTED_STATUS))
+                                                      code__exact=TransferServiceLayer.TRANSFER_ACCEPTED_STATUS))
 
                         transfer_out_clients = search_result.filter(pk__in=transfer_out.values_list('client'))
 
@@ -268,11 +264,11 @@ def clients(request):
                 cur_date = datetime.now()
                 dt_format = "%Y-%m-%d"
                 try:
-                    max_dob = cur_date.replace(year=cur_date.year - 10).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - 25).strftime(dt_format)
+                    max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
+                    min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
                 except ValueError:
-                    max_dob = cur_date.replace(year=cur_date.year - 10, day=cur_date.day - 1).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - 25, day=cur_date.day - 1).strftime(dt_format)
+                    max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
+                    min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
 
                 response_data = {
                     'page': 'clients',
@@ -394,7 +390,19 @@ def save_client(request):
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
                 client_form = DemographicsForm(request.POST)
+
                 if client_form.is_valid():
+                    if not ClientEnrolmentServiceLayer.is_within_enrolment_dates(client_form.date_of_birth):
+                        response_data = {
+                            'status': 'fail',
+                            'message': "The client is not within the accepted age range",
+                            'client_id': None,
+                            'can_manage_client': request.user.has_perm('auth.can_manage_client'),
+                            'can_change_client': request.user.has_perm('auth.can_change_client'),
+                            'can_delete_client': request.user.has_perm('auth.can_delete_client')
+                        }
+                        return JsonResponse(json.dumps(response_data), safe=False)
+
                     client = client_form.save()
 
                     # Check client dreams_id
@@ -494,6 +502,14 @@ def edit_client(request):
 
                 if client.implementing_partner != request.user.implementingpartneruser.implementing_partner:
                     # user and client IPs dont match. Return error message
+                    response_data = {
+                        'status': 'failed',
+                        'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
+                        'client_id': client.id
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
+                if not ClientEnrolmentServiceLayer.is_within_enrolment_dates(request.POST.get('date_of_birth', dt.now)):
                     response_data = {
                         'status': 'failed',
                         'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
@@ -2491,7 +2507,7 @@ def transfer_client(request):
                 if transfer_form.is_valid():
                     num_of_pending_transfers = ClientTransfer.objects.filter(client=transfer_form.instance.client,
                                                                              transfer_status=ClientTransferStatus.objects.get(
-                                                                                 code__exact=TRANSFER_INITIATED_STATUS)).count()
+                                                                                 code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)).count()
 
                     if num_of_pending_transfers > 0:
                         print ("{} pending transfers for client".format(num_of_pending_transfers))
@@ -2502,7 +2518,7 @@ def transfer_client(request):
                     else:
                         client_transfer = transfer_form.save(commit=False)
 
-                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
+                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)
                         client_transfer.source_implementing_partner = ip
                         client_transfer.initiated_by = request.user
                         client_transfer.start_date = dt.now()
@@ -2592,7 +2608,7 @@ def accept_client_transfer(request):
                         raise PermissionDenied
 
                     if client_transfer is not None:
-                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
+                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_ACCEPTED_STATUS)
 
                         client_transfer.transfer_status = accepted_client_transfer_status
                         client_transfer.completed_by = request.user
@@ -2644,7 +2660,7 @@ def reject_client_transfer(request):
                     if not can_reject_transfer:
                         raise PermissionDenied
 
-                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_REJECTED_STATUS)
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_REJECTED_STATUS)
                     client_transfer.completed_by = request.user
                     client_transfer.end_date = dt.now()
                     client_transfer.save()
@@ -2665,7 +2681,7 @@ def reject_client_transfer(request):
 
 def get_client_transfers_count(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             client_transfers_count = ClientTransfer.objects.filter(
