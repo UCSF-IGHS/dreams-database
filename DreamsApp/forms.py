@@ -1,7 +1,7 @@
-# coding=utf-8
+
 from django.forms import ModelForm, HiddenInput, BooleanField
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from models import *
+from DreamsApp.models import *
 
 # DreamsApp imports
 from DreamsApp.models import Grievance, ImplementingPartner, ClientCashTransferDetails, Client, ClientIndividualAndHouseholdData, \
@@ -37,7 +37,7 @@ class ClientCashTransferDetailsForm(ModelForm):
 
 
 class DemographicsForm(ModelForm):
-    ovc_checkbox = BooleanField()
+    ovc_checkbox = BooleanField(required=False, label="Is OVC Client?")
 
     def __init__(self, *args, **kwargs):
         super(DemographicsForm, self).__init__(*args, **kwargs)

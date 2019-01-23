@@ -549,3 +549,24 @@ fieldset#external_organization_more_section {
     border-radius: 0.5em;
     margin-bottom: 1em;
  }
+
+fieldset#ltfu {
+    border: 1px solid #ccc;
+    padding: 0em 2em 0 2em;
+    border-radius: 0.5em;
+    margin-bottom: 1em;
+    width: 105.3%;
+    left: -3%;
+    position: relative;
+}
+
+fieldset#ltfu div.form-group:not(:last-child) {
+    margin-bottom: 0;
+}
+
+.transfer-dialogue-link {
+    pointer-events: none;
+    cursor: default;
+    color: black;
+    font-weight: bold;
+}

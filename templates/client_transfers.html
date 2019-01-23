@@ -8,7 +8,9 @@
                 <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
                     {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
                 <div class="pull-right">
-                    <a class="btn btn-primary" href="{% url 'export_client_transfers' transferred_in=transferred_in|stringformat:'d' %}" target="_blank">Export to Excel</a>
+                    <a class="btn btn-primary"
+                       href="{% url 'export_client_transfers' transferred_in=transferred_in|stringformat:'d' %}"
+                       target="_blank">Export to Excel</a>
                 </div>
                 <h6>Client Transfers</h6>
             </div>
@@ -19,7 +21,7 @@
                 <div{% if message.tags %}
                     class=" msg alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} alert-danger {% else %} alert-{{ message.tags }} {% endif %} "{% endif %}>{{ message }}</div>
                 <script>
-                    setTimeout(function(){
+                    setTimeout(function () {
                         $('.msg').addClass('hidden').text("")
                     }, 3000);
                 </script>
@@ -33,50 +35,60 @@
             <th>Source Implementing Partner</th>
             <th>Transfer Reason</th>
             {% if can_accept_or_reject and transferred_in %}
-            <th>Action</th>
+                <th>Action</th>
             {% endif %}
             {% if not transferred_in %}
-            <th>Status</th>
+                <th>Status</th>
             {% endif %}
             </thead>
             <tbody id="dp-patient-list-body">
             {% if client_transfers %}
                 {% for client_transfer in client_transfers %}
-                <tr>
-                    <td>{{ client_transfer.client.dreams_id }}</td>
-                    <td>{{ client_transfer.source_implementing_partner.name }}</td>
-                    <td>{{ client_transfer.transfer_reason }}</td>
-                    {% if can_accept_or_reject and transferred_in %}
-                    <td>
-                        {% if client_transfer.can_be_accepted_or_rejected %}
-                            <a id="accept-{{ client_transfer.id }}" name="accept-transfer-modal" class='glyphicon glyphicon-ok badge btn btn-success'
-                               arial-label='Arial-Hidden'
-                               style="padding-bottom: 8px;" data-toggle="modal" data-target="#accept-transfer-modal"
-                               data-id="{{ client_transfer.id }}" data-client-name="{{ client_transfer.client.get_full_name }}">
-                                Accept
-                            </a> &nbsp;&nbsp;
-                            <a id="reject-{{ client_transfer.id }}" name="reject-transfer-modal" class='glyphicon glyphicon-remove badge btn btn-danger'
-                               arial-label='Arial-Hidden' style="padding-bottom: 8px;" data-toggle="modal"
-                               data-target="#reject-transfer-modal"
-                               data-id="{{ client_transfer.id }}" data-client-name="{{ client_transfer.client.get_full_name }}">
-                                Reject
-                            </a>
-                        {% else %}
-                            <span>{{ client_transfer.transfer_status.name }}</span>
+                    <tr>
+                        <td>{{ client_transfer.client.dreams_id }}</td>
+                        <td>{{ client_transfer.source_implementing_partner.name }}</td>
+                        <td>{{ client_transfer.transfer_reason }}</td>
+                        {% if can_accept_or_reject and transferred_in %}
+                            <td>
+                                {% if client_transfer.can_be_accepted_or_rejected %}
+                                    <a id="accept-{{ client_transfer.id }}" name="accept-transfer-modal"
+                                       class='glyphicon glyphicon-ok badge btn btn-success'
+                                       arial-label='Arial-Hidden'
+                                       style="padding-bottom: 8px;" data-toggle="modal"
+                                       data-target="#accept-transfer-modal"
+                                       data-id="{{ client_transfer.id }}"
+                                       data-client-name="{{ client_transfer.client.get_full_name }}"
+                                       data-client-dreams-id="{{ client_transfer.client.dreams_id }}"
+                                       data-client-date-of-birth="{{ client_transfer.client.date_of_birth }}">
+                                        Accept
+                                    </a> &nbsp;&nbsp;
+                                    <a id="reject-{{ client_transfer.id }}" name="reject-transfer-modal"
+                                       class='glyphicon glyphicon-remove badge btn btn-danger'
+                                       arial-label='Arial-Hidden' style="padding-bottom: 8px;" data-toggle="modal"
+                                       data-target="#reject-transfer-modal"
+                                       data-id="{{ client_transfer.id }}"
+                                       data-client-name="{{ client_transfer.client.get_full_name }}"
+                                       data-client-dreams-id="{{ client_transfer.client.dreams_id }}"
+                                       data-client-date-of-birth="{{ client_transfer.client.date_of_birth }}">
+                                        Reject
+                                    </a>
+                                {% else %}
+                                    <span>{{ client_transfer.transfer_status.name }}</span>
+                                {% endif %}
+                            </td>
                         {% endif %}
-                    </td>
-                    {% endif %}
-                    {% if not transferred_in %}
-                    <td>{{ client_transfer.transfer_status.name }}</td>
-                    {% endif %}
-                </tr>
+                        {% if not transferred_in %}
+                            <td>{{ client_transfer.transfer_status.name }}</td>
+                        {% endif %}
+                    </tr>
                 {% endfor %}
             {% else %}
-                <tr><td colspan="4"> No pending transfers.</td> </tr>
+                <tr>
+                    <td colspan="4"> No pending transfers.</td>
+                </tr>
             {% endif %}
             </tbody>
         </table>
-
 
         <!-- Pagination section -->
         <div class="pagination">
@@ -108,17 +120,23 @@
                     </div>
                     <form method="POST" action="{% url 'accept_client_transfer' %}" id="accept_client_transfer_form">
                         <div class="modal-body">
-
                             {% csrf_token %}
 
                             <input id="accept_client_transfer_id" type="hidden" name="id" value="">
 
                             <div class="form-group form-inline">
-                                <label for="client_name" class="control-label enrolment-label">Client</label>
-                                <input id="accept_client_name" class="form-control" type="text" value=""
-                                       readonly="readonly"/>
+                                <label for="client_name" class="control-label enrolment-label">Client:</label>
+                                <a id="accept_client_name" class="transfer-dialogue-link"></a>
                             </div>
-
+                            <div class="form-group form-inline">
+                                <label for="client_dreams_id" class="control-label enrolment-label">DREAMS ID:</label>
+                                 <a id="accept_client_dreams_id" class="transfer-dialogue-link"></a>
+                            </div>
+                            <div class="form-group form-inline">
+                                <label for="client_date_of_birth" class="control-label enrolment-label">Date of
+                                    Birth:</label>
+                                <a id="accept_client_date_of_birth" class="transfer-dialogue-link"></a>
+                            </div>
                         </div>
 
                         <div class="modal-footer">
@@ -133,7 +151,6 @@
             </div>
         </div>
 
-
         <!-- Beginning Reject Transfer Modal -->
         <div class="modal fade" id="reject-transfer-modal" tabindex="-1" role="dialog">
             <div class="modal-dialog">
@@ -145,15 +162,22 @@
                     </div>
                     <form method="POST" action="{% url 'reject_client_transfer' %}" id="reject_client_transfer_form">
                         <div class="modal-body">
-
                             {% csrf_token %}
 
                             <input id="reject_client_transfer_id" type="hidden" name="id" value="">
 
                             <div class="form-group form-inline">
-                                <label for="client_name" class="control-label enrolment-label">Client</label>
-                                <input id="reject_client_name" class="form-control" type="text" value=""
-                                       readonly="readonly"/>
+                                <label for="client_name" class="control-label enrolment-label">Client:</label>
+                                <a id="reject_client_name" class="transfer-dialogue-link"></a>
+                            </div>
+                            <div class="form-group form-inline">
+                                <label for="client_dreams_id" class="control-label enrolment-label">DREAMS ID:</label>
+                                <a id="reject_client_dreams_id" class="transfer-dialogue-link"></a>
+                            </div>
+                            <div class="form-group form-inline">
+                                <label for="client_date_of_birth" class="control-label enrolment-label">Date of
+                                    Birth:</label>
+                                <a id="reject_client_date_of_birth" class="transfer-dialogue-link"></a>
                             </div>
 
                             <div class="form-group form-inline">
@@ -161,7 +185,6 @@
                                 <textarea id="reject_reason" name="reject_reason" class="form-control" rows="10"
                                           cols="40" required></textarea>
                             </div>
-
                         </div>
 
                         <div class="modal-footer">
@@ -175,7 +198,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
 {% endblock %}

@@ -1,134 +1,152 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
-
     <!-- Beginning modal-->
-        <!-- Modal -->
+    <!-- Modal -->
     <div class="modal fade" id="intervention-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
          xmlns="http://www.w3.org/1999/html">
-          <div class="modal-dialog" role="document">
+        <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <form id="intervention-entry-form" method="post" action="#">
-                  <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" id="exampleModalLabel">NEW INTERVENTION</h4>
                         <h5>For: {{ client.get_full_name }}</h5>
-                  </div>
-                  <div class="modal-body">
+                    </div>
+                    <div class="modal-body">
 
                         {% csrf_token %}
                         <!-- Permanently hidden Fields -->
 
                         <input class="hidden validate-intervention-form-field" name="client" value="{{ client.id }}"/>
                         <input class="hidden validate-intervention-form-field" name="created_by" value="{{ user.id }}"/>
-                        <input class="hidden validate-intervention-form-field" name="intervention_id" id="intervention_id" value=""/>
-                        <input class="hidden validate-intervention-form-field" name="changed_by" id="changed_by" value="{{ user.id }}"/>
+                        <input class="hidden validate-intervention-form-field" name="intervention_id"
+                               id="intervention_id" value=""/>
+                        <input class="hidden validate-intervention-form-field" name="changed_by" id="changed_by"
+                               value="{{ user.id }}"/>
 
                         <!-- End of Permanently hidden fields -->
 
                         <div class="form-group">
-                          <label for="intervention-type-select">Intervention Type</label>
-                          <select id="intervention-type-select" name="intervention_type_code" class="form-control validate-intervention-form-field" >
-                          </select>
+                            <label for="intervention-type-select">Intervention Type</label>
+                            <select id="intervention-type-select" name="intervention_type_code"
+                                    class="form-control validate-intervention-form-field">
+                            </select>
                             <div id="div_out_of_age_bracket_warning" class="custom-has-error hide">
-                                <label class="control-label">Warning!, the client's age is outside the selected intervention type's age bracket </label>
+                                <label class="control-label">Warning!, the client's age is outside the selected
+                                    intervention type's age bracket </label>
                             </div>
                         </div>
 
                         <div class="form-group hidden" id="other_specify_section">
                             <label for="other_specify" class="control-label">Specify Intervention</label>
-                            <input type="text" class="form-control validate-intervention-form-field" id="other_specify" name="other_specify">
+                            <input type="text" class="form-control validate-intervention-form-field" id="other_specify"
+                                   name="other_specify">
                         </div>
 
                         <div class="form-group hidden" id="external_organization_section">
-                              <label id="external_organization_label" for="external-organization-checkbox">Provided by External
-                                  Organization</label>
-                              <input type="checkbox" id="external-organization-checkbox"
-                                     name="external_organization_checkbox" class="form-control">
-                              </input>
-                          </div>
+                            <label id="external_organization_label" for="external-organization-checkbox">Provided by
+                                External
+                                Organization</label>
+                            <input type="checkbox" id="external-organization-checkbox"
+                                   name="external_organization_checkbox" class="form-control">
+                            </input>
+                        </div>
 
-                      <fieldset id="external_organization_more_section" class="hidden">
-                          <div class="form-group">
-                              <label for="external-organization-select">Intervention Provided by External Organization:</label>
-                              <select id="external-organization-select" name="external_organization_code"
-                                      class="form-control">
-                              </select>
-                          </div>
+                        <fieldset id="external_organization_more_section" class="hidden">
+                            <div class="form-group">
+                                <label for="external-organization-select">Intervention Provided by External
+                                    Organization:</label>
+                                <select id="external-organization-select" name="external_organization_code"
+                                        class="form-control">
+                                </select>
+                            </div>
 
-                          <div class="form-group" id="other_external_organization">
-                              <label for="other-external-organization">Please specify</label>
-                              <input type="text" id="other-external-organization"
-                                     name="other_external_organization_code" class="form-control">
-                              </input>
-                          </div>
-                      </fieldset>
+                            <div class="form-group" id="other_external_organization">
+                                <label for="other-external-organization">Please specify</label>
+                                <input type="text" id="other-external-organization"
+                                       name="other_external_organization_code" class="form-control">
+                                </input>
+                            </div>
+                        </fieldset>
 
-                       <div class="form-group has-feedback hidden" id="intervention_date_section">
+                        <div class="form-group has-feedback hidden" id="intervention_date_section">
                             <label for="date-of-completion" class="control-label">Date: </label>
-                            <input type="text" class="form-control validate-intervention-form-field" id="date-of-completion"  placeholder="Select date " style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
-                            <input type="text" class="form-control validate-intervention-form-field hidden" id="date-of-completion-formatted" name="intervention_date"/>
+                            <input type="text" class="form-control validate-intervention-form-field"
+                                   id="date-of-completion" placeholder="Select date " style="cursor: pointer;"><span
+                                class="add-on"><i class="icon-th"></i></span></p>
+                            <input type="text" class="form-control validate-intervention-form-field hidden"
+                                   id="date-of-completion-formatted" name="intervention_date"/>
                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
-
                         </div>
 
-                         <div class="form-group hidden" id="hts_result_section">
-                          <label for="intervention-type-select">HTS Test Result</label>
-                          <select id="hts-result-select" name="hts_result" class="form-control validate-intervention-form-field">
-                              <option value="">Select Option</option>
-                              <option value="201">Negative</option>
-                              <option value="202">Positive</option>
-                              <option value="203">Known Positive</option>
-                          </select>
+                        <div class="form-group hidden" id="hts_result_section">
+                            <label for="intervention-type-select">HTS Test Result</label>
+                            <select id="hts-result-select" name="hts_result"
+                                    class="form-control validate-intervention-form-field">
+                                <option value="">Select Option</option>
+                                <option value="201">Negative</option>
+                                <option value="202">Positive</option>
+                                <option value="203">Known Positive</option>
+                            </select>
                         </div>
 
-                         <div class="form-group hidden" id="ccc_number_section">
+                        <div class="form-group hidden" id="ccc_number_section">
                             <label for="ccc-number" class="control-label">CCC Number</label>
-                            <input type="text" class="form-control validate-intervention-form-field" id="ccc-number" name="client_ccc_number"></input>
+                            <input type="text" class="form-control validate-intervention-form-field" id="ccc-number"
+                                   name="client_ccc_number"></input>
                         </div>
 
-                         <div class="form-group hidden" id="pregnancy_test_section">
-                          <label for="intervention-type-select">Pregnancy Test Result</label>
-                          <select id="pregnancy-result-select" name="pregnancy_test_result" class="form-control validate-intervention-form-field">
-                              <option value="">Select Option</option>
-                              <option value="101">Not Pregnant</option>
-                              <option value="102">Pregnant</option>
-                          </select>
+                        <div class="form-group hidden" id="pregnancy_test_section">
+                            <label for="intervention-type-select">Pregnancy Test Result</label>
+                            <select id="pregnancy-result-select" name="pregnancy_test_result"
+                                    class="form-control validate-intervention-form-field">
+                                <option value="">Select Option</option>
+                                <option value="101">Not Pregnant</option>
+                                <option value="102">Pregnant</option>
+                            </select>
                         </div>
 
-                         <div class="form-group hidden" id="no_of_sessions_section">
-                            <label for="number-of-ss-sessions-attended" class="control-label">Number of SS Sessions Attended</label>
-                            <input type="number" class="form-control validate-intervention-form-field" id="number-of-ss-sessions-attended" value="1" min="1" name="no_of_sessions_attended">
+                        <div class="form-group hidden" id="no_of_sessions_section">
+                            <label for="number-of-ss-sessions-attended" class="control-label">Number of SS Sessions
+                                Attended</label>
+                            <input type="number" class="form-control validate-intervention-form-field"
+                                   id="number-of-ss-sessions-attended" value="1" min="1" name="no_of_sessions_attended">
                         </div>
 
-                         <div class="form-group hidden" id="notes_section">
-                           <label for="comments-text" class="control-label">Comments/Notes</label>
-                           <textarea class="form-control validate-intervention-form-field" id="comments-text" name="comment"></textarea>
+                        <div class="form-group hidden" id="notes_section">
+                            <label for="comments-text" class="control-label">Comments/Notes</label>
+                            <textarea class="form-control validate-intervention-form-field" id="comments-text"
+                                      name="comment"></textarea>
                         </div>
 
-                         <div class="form-group" id="notes_section">
+                        <div class="form-group" id="notes_section">
                             <span id="error-space" class="label error-space" style="color: red;"></span>
                         </div>
-                         Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
+                        Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
 
-                  </div>
-                  <div class="modal-footer">
+                    </div>
+                    <div class="modal-footer">
 
-                      <button id="btn_cancel_intervention" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
+                        <button id="btn_cancel_intervention" type="button" class="btn btn-sm btn-default"
+                                data-dismiss="modal"> Cancel
+                        </button>
 
-                      {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
-                      <button id="btn_save_intervention" type="submit" class="btn btn-sm btn-primary" > Save Intervention </button>
-                      {% endif %}
+                        {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
+                            <button id="btn_save_intervention" type="submit" class="btn btn-sm btn-primary"> Save
+                                Intervention
+                            </button>
+                        {% endif %}
 
-                      <span class="processing-indicator hidden">
+                        <span class="processing-indicator hidden">
                           <br/><br/>
                           <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving intervention... </span>
                       </span>
-                  </div>
+                    </div>
                 </form>
             </div>
-          </div>
+        </div>
     </div>
     <!-- End modal-->
 
@@ -141,337 +159,453 @@
     <!-- Beginning Confirm Delete Modal -->
 
     <div class="modal fade" id="confirm-delete-mordal" tabindex="-1" role="dialog">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title">Confirm Intervention Delete Action</h4>
-          </div>
-          <div class="modal-body">
-              <form method="POST" action="#" id="intervention_delete_form">
-                  {% csrf_token %}
-                  <p>Are you sure you want to delete this Intervention entry? Changes cannot be undone.</p>
-                  <input type="hidden" name="intervention_delete_id" id="intervention_delete_id" value=""/>
-              </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
-            <button type="button" class="btn btn-sm btn-danger" id="btn_delete_intervention_confirmation">Delete Intervention</button>
-          </div>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Confirm Intervention Delete Action</h4>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="#" id="intervention_delete_form">
+                        {% csrf_token %}
+                        <p>Are you sure you want to delete this Intervention entry? Changes cannot be undone.</p>
+                        <input type="hidden" name="intervention_delete_id" id="intervention_delete_id" value=""/>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel</button>
+                    <button type="button" class="btn btn-sm btn-danger" id="btn_delete_intervention_confirmation">Delete
+                        Intervention
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
     <!-- End Confirm Delete Modal -->
 
     <!-- Start of Client profile section -->
-<div class="wrapper-container">
-    <div class=" statusBox">
-        <div>
-            <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
-        </div>
-        <div class="row">
-            <div class="col-xs-12 col-sm-5">
-            <p><strong>Client: </strong> {{ client.get_full_name }} <span class="client_exit_voided_status">{{ client.get_client_status }}</span></p>
-            <p><strong>DREAMS ID: </strong> {{ client.dreams_id }}</p>
-            <p><strong>Date Birth: </strong> {{ client.date_of_birth }} (Current Age {{ client.get_current_age }})</p>
+    <div class="wrapper-container">
+        <div class=" statusBox">
+            <div>
+                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
+                    {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-sm-5">
+                    <p><strong>Client: </strong> {{ client.get_full_name }} <span
+                            class="client_exit_voided_status">{{ client_status }}</span></p>
+                    <p><strong>DREAMS ID: </strong> {{ client.dreams_id }}</p>
+                    <p><strong>Date Birth: </strong> {{ client.date_of_birth }} (Current
+                        Age {{ client.get_current_age }})</p>
 
-        </div><!--/col-->
-            <div class="col-xs-12 col-sm-4">
-                <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }} (Age at enrollment: {{ client.get_age_at_enrollment }})</p>
-                 <p><strong>Phone Number: </strong>
-                    <span>{% if client.phone_number != None%}{{ client.phone_number }}{% endif %} {% if client.phone_number == None and client.guardian_phone_number != None and client.guardian_phone_number != '' %}(Guardian){{ client.guardian_phone_number }}{% endif %}</span>
-                </p>
-                <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
-            </div><!--/col-->
-            <div class="col-xs-12 col-sm-3">
-                <p><strong>Actions: </strong> <br>
-                    <p class="underline_hover"  data-client_id='{{ client.id }}' style="cursor:pointer;" onclick="window.location='/client_baseline_info?client_id={{ client.id }}&search_client_term={{ search_client_term }}'" data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-pencil"></span> Edit Enrollment Data</p>
-                    {% if perms.DreamsApp.can_exit_client %}
-                    <p class="underline_hover" id="p_exit_client"  data-client_id='{{ client.id }}' data-search_client_term='{{ search_client_term }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-exit-modal" title="Exit Client">
-                        <span class="glyphicon glyphicon-log-out"></span> <span class="client_status_action_text"> {{ client.get_client_status_action_text }} </span>
+                </div><!--/col-->
+                <div class="col-xs-12 col-sm-4">
+                    <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }} (Age at
+                        enrollment: {{ client.get_age_at_enrollment }})</p>
+                    <p><strong>Phone Number: </strong>
+                        <span>{% if client.phone_number != None %}{{ client.phone_number }}{% endif %}
+                            {% if client.phone_number == None and client.guardian_phone_number != None and client.guardian_phone_number != '' %}
+                                (Guardian){{ client.guardian_phone_number }}{% endif %}</span>
                     </p>
-                    {% endif %}
-                    {% if perms.DreamsApp.add_clienttransfer %}
-                        {% if client.can_be_transferred and not client.voided %}
-                            <p class="underline_hover" id="p_transfer_client" data-client_id='{{ client.id }}'
+                    <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
+                </div><!--/col-->
+                <div class="col-xs-12 col-sm-3">
+                    <p><strong>Actions: </strong> <br>
+
+                        {% if 'Transferred Out' in client_status %}
+                            <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
+                               onclick="window.location='/client_baseline_info?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
+                               data-toggle="tooltip" title="Edit Enrollment"><span
+                                    class="glyphicon glyphicon-pencil"></span> View Enrollment Data</p>
+                        {% else %}
+                            <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
+                               onclick="window.location='/client_baseline_info?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
+                               data-toggle="tooltip" title="Edit Enrollment"><span
+                                    class="glyphicon glyphicon-pencil"></span> Edit Enrollment Data</p>
+                        {% endif %}
+
+                    {% if 'Transferred Out' not in client_status %}
+                        {% if perms.DreamsApp.can_exit_client %}
+                            <p class="underline_hover" id="p_exit_client" data-client_id='{{ client.id }}'
                                data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
-                               data-toggle="modal" data-target="#client-transfer-modal" title="Transfer Client">
-                                <span class="glyphicon glyphicon-transfer"></span> Transfer Client
+                               data-toggle="modal"
+                               data-target="#client-exit-modal" title="Exit Client">
+                                <span class="glyphicon glyphicon-log-out"></span> <span
+                                    class="client_status_action_text">
+                        {% if client.exited %}
+                            Undo Exit
+                        {% else %}
+                            Exit
+                        {% endif %}
+                        </span>
                             </p>
-                        {% elif not client.can_be_transferred %}
-                            <p>
-                                <span>In Transfer</span>
+                        {% endif %}
+                        {% if perms.DreamsApp.add_clienttransfer %}
+                            {% if client.can_be_transferred and not client.voided %}
+                                <p class="underline_hover" id="p_transfer_client" data-client_id='{{ client.id }}'
+                                   data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                                   data-toggle="modal" data-target="#client-transfer-modal" title="Transfer Client">
+                                    <span class="glyphicon glyphicon-transfer"></span> Transfer Client
+                                </p>
+                            {% elif not client.can_be_transferred %}
+                                <p>
+                                    <span>In Transfer</span>
+                                </p>
+                            {% endif %}
+                        {% endif %}
+                        {% if perms.DreamsApp.can_void_client and not client.voided %}
+                            <p class="underline_hover" id="p_void_client" data-client_id='{{ client.id }}'
+                               style="cursor:pointer;" data-toggle="modal" data-target="#client-void-modal"
+                               title="Void Client">
+                                <span class="glyphicon glyphicon-minus-sign"></span> Void Client
                             </p>
                         {% endif %}
                     {% endif %}
-                    {% if perms.DreamsApp.can_void_client and not client.voided %}
-                    <p class="underline_hover" id="p_void_client"  data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-void-modal" title="Void Client">
-                        <span class="glyphicon glyphicon-minus-sign"></span> Void Client
                     </p>
-                    {% endif %}
-                </p>
-            </div><!--/col-->
-            <!--<div class="col-xs-12 col-sm-2 hidden">
+                </div><!--/col-->
+                <!--<div class="col-xs-12 col-sm-2 hidden">
                 <p><strong> </strong> <br>
                     {% if perms.DreamsApp.change_clientcashtransferdetails %}
-                    <p class="underline_hover" data-toggle="modal" data-target="#cash-transfer-details-modal" data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="tooltip" title="Edit cash transfer details"><span class="glyphicon glyphicon-pencil"></span> Cash Transfer Details</p>
+                    <p class="underline_hover" data-toggle="modal" data-target="#cash-transfer-details-modal" data-client_id='
+                    {{ client.id }}' style="cursor:pointer;" data-toggle="tooltip" title="Edit cash transfer details"><span class="glyphicon glyphicon-pencil"></span> Cash Transfer Details</p>
                     {% endif %}
                 </p>
             </div><!--/col-->
+            </div>
         </div>
 
-    </div>
+        {% if messages %}
+            {% for message in messages %}
+                <div{% if message.tags %}
+                    class="msg alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} alert-danger {% else %} alert-{{ message.tags }} {% endif %} "{% endif %}>{{ message }}</div>
+                <script>
+                    setTimeout(function () {
+                        $('.msg').addClass('hidden').text("")
+                    }, 3000);
+                </script>
+            {% endfor %}
+        {% endif %}
 
-    {% if messages %}
-        {% for message in messages %}
-            <div{% if message.tags %}
-                class="msg alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} alert-danger {% else %} alert-{{ message.tags }} {% endif %} "{% endif %}>{{ message }}</div>
-            <script>
-                setTimeout(function(){
-                    $('.msg').addClass('hidden').text("")
-                }, 3000);
-            </script>
-        {% endfor %}
-    {% endif %}
+        <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert"></div>
+        <!-- End of Client profile section -->
+        <div class="dreams-profile-tab-control" id="dreams-profile-tab-control">
+            <ul class="nav nav-tabs">
+                <li role="presentation"><a href="#behavioural-interventions" aria-controls="behavioural-interventions"
+                                           role="tab" data-toggle="tab" data-intervention_category_code="1001"
+                                           data-tab_intervention_table_id="#interventions_1001_table">Behavioural</a>
+                </li>
+                <li role="presentation"><a href="#biomedical-interventions" aria-controls="biomedical-interventions"
+                                           role="tab" data-toggle="tab" data-intervention_category_code="2001"
+                                           data-tab_intervention_table_id="#interventions_2001_table">Bio-medical</a>
+                </li>
+                <li role="presentation"><a href="#post-gbv-care" aria-controls="post-gbv-care" role="tab"
+                                           data-toggle="tab" data-intervention_category_code="3001"
+                                           data-tab_intervention_table_id="#interventions_3001_table">Post-GBV Care</a>
+                </li>
+                <li role="presentation"><a href="#social-protection" aria-controls="social-protection" role="tab"
+                                           data-toggle="tab" data-intervention_category_code="4001"
+                                           data-tab_intervention_table_id="#interventions_4001_table">Social
+                    protection</a></li>
+                <li role="presentation"><a href="#other-interventions" aria-controls="other-interventions" role="tab"
+                                           data-toggle="tab" data-intervention_category_code="5001"
+                                           data-tab_intervention_table_id="#interventions_5001_table">Other</a></li>
+                <li style="float: right;"><a class="no-hover"
+                                             href="/clients?search_client_term={{ search_client_term }}"><span
+                        class="glyphicon glyphicon-triangle-left"> </span> Back to Clients</a></li>
+            </ul>
 
-    <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert"></div>
-    <!-- End of Client profile section -->
-    <div class="dreams-profile-tab-control" id="dreams-profile-tab-control">
-        <ul class="nav nav-tabs">
-            <li role="presentation"><a href="#behavioural-interventions" aria-controls="behavioural-interventions" role="tab" data-toggle="tab" data-intervention_category_code="1001" data-tab_intervention_table_id="#interventions_1001_table">Behavioural</a></li>
-            <li role="presentation"><a href="#biomedical-interventions" aria-controls="biomedical-interventions" role="tab" data-toggle="tab" data-intervention_category_code="2001" data-tab_intervention_table_id="#interventions_2001_table">Bio-medical</a></li>
-            <li role="presentation"><a href="#post-gbv-care" aria-controls="post-gbv-care" role="tab" data-toggle="tab" data-intervention_category_code="3001" data-tab_intervention_table_id="#interventions_3001_table">Post-GBV Care</a></li>
-            <li role="presentation"><a href="#social-protection" aria-controls="social-protection" role="tab" data-toggle="tab" data-intervention_category_code="4001" data-tab_intervention_table_id="#interventions_4001_table">Social protection</a></li>
-            <li role="presentation"><a href="#other-interventions" aria-controls="other-interventions" role="tab" data-toggle="tab" data-intervention_category_code="5001" data-tab_intervention_table_id="#interventions_5001_table">Other</a></li>
-            <li style="float: right;"><a class="no-hover" href="/clients?search_client_term={{ search_client_term }}"><span class="glyphicon glyphicon-triangle-left"> </span> Back to Clients</a> </li>
-        </ul>
+            <div class="tab-content dp-tab-content">
+                <br/>
+                <div role="tabpanel" id="behavioural-interventions" class="tab-pane fade in active client_profile_tab"
+                     data-tabpanel_id="#behavioural-interventions" data-intervention_category_code="1001">
 
-        <div class="tab-content dp-tab-content">
-            <br/>
-            <div role="tabpanel" id="behavioural-interventions" class="tab-pane fade in active client_profile_tab" data-tabpanel_id="#behavioural-interventions" data-intervention_category_code="1001">
+                    <table class="fit-item">
+                        <thead>
+                        <tr>
+                            <th>
+                                <div class="form-group" style="margin-right: 5px;">
+                                    <input id="filter_1001" type="text" class="form-control filter"
+                                           data-target_tbody="#interventions_1001_tbody"
+                                           data-intervention_category_code="1001"
+                                           data-tab_intervention_table_id="#interventions_1001_table"
+                                           placeholder="Type to search...">
+                                </div>
+                            </th>
 
-               <table class="fit-item" >
-                  <thead>
-                      <tr>
-                          <th>
-                              <div class="form-group" style="margin-right: 5px;">
-                                   <input id="filter_1001" type="text" class="form-control filter"  data-target_tbody="#interventions_1001_tbody" data-intervention_category_code="1001" data-tab_intervention_table_id="#interventions_1001_table" placeholder="Type to search...">
-                              </div>
-                          </th>
-                          {% if perms.DreamsApp.add_intervention %}
-                              <th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="1001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
-                          {% endif %}
-                      </tr>
-                  </thead>
-               </table>
+                            {% if perms.DreamsApp.add_intervention and can_add_intervention == True %}
+                                <th width="130">
+                                    <button class="btn btn-sm btn-primary" data-toggle="modal"
+                                            data-target="#intervention-modal" data-whatever="1001"
+                                            style="height: 35px; margin-top: -15px;"><i
+                                            class="glyphicon glyphicon-plus"></i> Add Intervention
+                                    </button>
+                                </th>
+                            {% endif %}
+                        </tr>
+                        </thead>
+                    </table>
 
-               <div class="alert hidden dp-action-alert" id="action_alert_1001" role="alert"></div>
+                    <div class="alert hidden dp-action-alert" id="action_alert_1001" role="alert"></div>
 
-               <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
-                  <div class="panel-body" style="margin: 0px;padding: 0px;">
+                    <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
+                        <div class="panel-body" style="margin: 0px;padding: 0px;">
 
-                      <table class="table table-striped " id="interventions_1001_table" data-cols="4">
-                          <thead class="dp-table-head-black">
-                              <tr>
-                                  <th>Intervention Type</th>
-                                  <th>Date Completed</th>
-                                  <th>Comment/Notes</th>
-                                  {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
-                                  <th class="actions-col">Actions</th>
-                                  {% endif %}
-                              </tr>
-                          </thead>
-                          <tbody class="searchable" id="interventions_1001_tbody">
-                          </tbody>
-                      </table>
-                      <div class="spinner hidden fit-item">
-                            <i class='fa fa-spinner fa-spin'></i>
-                            <p style="font-size: large">Loading interventions</p>
-                      </div>
-                  </div>
-                  </div>
-
-            </div>
-
-            <div role="tabpanel" id="biomedical-interventions" class="tab-pane fade client_profile_tab" data-tabpanel_id="#biomedical-interventions" data-intervention_category_code="2001">
-
-                  <table class="fit-item" >
-                      <thead class="">
-                          <tr>
-                              <th>
-                                  <div class="form-group " style="margin-right: 5px;">
-                                       <input id="filter_2001" type="text" class="form-control filter" data-target_tbody="#interventions_2001_tbody" data-intervention_category_code="2001" data-tab_intervention_table_id="#interventions_2001_table" placeholder="Type to search...">
-                                   </div>
-                              </th>
-                              {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="2001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>
-                              {% endif %}
-                          </tr>
-                      </thead>
-                  </table>
-
-                <div class="alert hidden dp-action-alert" id="action_alert_2001" role="alert"></div>
-
-                <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
-                      <div class="panel-body" style="margin: 0px;padding: 0px;">
-                            <table class="table table-striped" id="interventions_2001_table" data-cols="6">
-                              <thead class="dp-table-head-black">
-                                  <tr>
-                                      <th>Intervention Type</th>
-                                      <th>Date Tested/ Linked to CCC</th>
-                                      <th>Test Result</th>
-                                      <th>CCC Number</th>
-                                      <th>Comment/Notes</th>
-                                       {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
-                                      <th class="actions-col">Actions</th>
-                                      {% endif %}
-                                  </tr>
-                              </thead>
-                              <tbody class="searchable" id="interventions_2001_tbody">
-                              </tbody>
+                            <table class="table table-striped " id="interventions_1001_table" data-cols="4">
+                                <thead class="dp-table-head-black">
+                                <tr>
+                                    <th>Intervention Type</th>
+                                    <th>Date Completed</th>
+                                    <th>Comment/Notes</th>
+                                    {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
+                                        <th class="actions-col">Actions</th>
+                                    {% endif %}
+                                </tr>
+                                </thead>
+                                <tbody class="searchable" id="interventions_1001_tbody">
+                                </tbody>
                             </table>
                             <div class="spinner hidden fit-item">
                                 <i class='fa fa-spinner fa-spin'></i>
                                 <p style="font-size: large">Loading interventions</p>
                             </div>
-                      </div>
-                  </div>
-            </div>
+                        </div>
+                    </div>
 
-            <div role="tabpanel" id="post-gbv-care" class="tab-pane fade client_profile_tab" data-tabpanel_id="#post-gbv-care" data-intervention_category_code="3001">
+                </div>
 
-                  <table class="fit-item">
-                      <thead>
-                          <tr>
-                              <th>
-                                  <div class="form-group" style="margin-right: 5px;">
-                                       <input id="filter_3001" type="text" class="form-control filter" data-target_tbody="#interventions_3001_tbody" data-intervention_category_code="3001" data-tab_intervention_table_id="#interventions_3001_table" placeholder="Type to search...">
-                                   </div>
-                              </th>
-                              {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="3001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>{% endif %}
-                          </tr>
-                      </thead>
-                  </table>
+                <div role="tabpanel" id="biomedical-interventions" class="tab-pane fade client_profile_tab"
+                     data-tabpanel_id="#biomedical-interventions" data-intervention_category_code="2001">
 
-                <div class="alert hidden dp-action-alert" id="action_alert_3001 " role="alert"></div>
+                    <table class="fit-item">
+                        <thead class="">
+                        <tr>
+                            <th>
+                                <div class="form-group " style="margin-right: 5px;">
+                                    <input id="filter_2001" type="text" class="form-control filter"
+                                           data-target_tbody="#interventions_2001_tbody"
+                                           data-intervention_category_code="2001"
+                                           data-tab_intervention_table_id="#interventions_2001_table"
+                                           placeholder="Type to search...">
+                                </div>
+                            </th>
+                            {% if perms.DreamsApp.add_intervention and can_add_intervention == True %}
+                                <th width="130">
+                                    <button class="btn btn-sm btn-primary" data-toggle="modal"
+                                            data-target="#intervention-modal" data-whatever="2001"
+                                            style="height: 35px; margin-top: -15px;"><i
+                                            class="glyphicon glyphicon-plus"></i> Add Intervention
+                                    </button>
+                                </th>
+                            {% endif %}
+                        </tr>
+                        </thead>
+                    </table>
 
-                <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
-                    <div class="panel-body" style="margin: 0px;padding: 0px;">
-                      <table class="table table-striped" id="interventions_3001_table" data-cols="4">
-                          <thead class="dp-table-head-black">
-                              <tr>
-                                  <th>Intervention Type</th>
-                                  <th>Date Given</th>
-                                  <th>Comment/Notes</th>
-                                   {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
-                                  <th class="actions-col">Actions</th>
-                                  {% endif %}
-                              </tr>
-                         </thead>
-                         <tbody class="searchable" id="interventions_3001_tbody">
+                    <div class="alert hidden dp-action-alert" id="action_alert_2001" role="alert"></div>
 
-                         </tbody>
-                      </table>
-                      <div class="spinner hidden fit-item">
-                        <i class='fa fa-spinner fa-spin'></i>
-                        <p style="font-size: large">Loading interventions</p>
-                      </div>
-                   </div>
-               </div>
-            </div>
-
-            <div role="tabpanel" id="social-protection" class="tab-pane fade client_profile_tab" data-tabpanel_id="#social-protection" data-intervention_category_code="4001">
-
-                  <table class="fit-item" >
-                      <thead>
-                          <tr>
-                              <th>
-                                  <div class="form-group" style="margin-right: 5px;">
-                                       <input id="filter_4001" type="text" class="form-control filter" data-target_tbody="#interventions_4001_tbody" data-intervention_category_code="4001" data-tab_intervention_table_id="#interventions_4001_table" placeholder="Type to search...">
-                                  </div>
-                              </th>
-                              {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="4001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>{% endif %}
-                          </tr>
-                      </thead>
-                  </table>
-
-                <div class="alert hidden dp-action-alert" id="action_alert_4001"  role="alert"></div>
-
-                  <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
-                      <div class="panel-body" style="margin: 0px;padding: 0px;">
-                          <table class="table table-striped" id="interventions_4001_table" data-cols="4">
-                              <thead class="dp-table-head-black">
-                                  <tr>
-                                      <th>Intervention Type</th>
-                                      <th>Date Completed</th>
-                                      <th>Comment/Notes</th>
-                                       {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
-                                      <th class="actions-col">Actions</th>
-                                      {% endif %}
-                                  </tr>
-                             </thead>
-                             <tbody class="searchable" id="interventions_4001_tbody">
-
-                             </tbody>
-                          </table>
-                          <div class="spinner hidden fit-item">
+                    <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
+                        <div class="panel-body" style="margin: 0px;padding: 0px;">
+                            <table class="table table-striped" id="interventions_2001_table" data-cols="6">
+                                <thead class="dp-table-head-black">
+                                <tr>
+                                    <th>Intervention Type</th>
+                                    <th>Date Tested/ Linked to CCC</th>
+                                    <th>Test Result</th>
+                                    <th>CCC Number</th>
+                                    <th>Comment/Notes</th>
+                                    {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
+                                        <th class="actions-col">Actions</th>
+                                    {% endif %}
+                                </tr>
+                                </thead>
+                                <tbody class="searchable" id="interventions_2001_tbody">
+                                </tbody>
+                            </table>
+                            <div class="spinner hidden fit-item">
                                 <i class='fa fa-spinner fa-spin'></i>
                                 <p style="font-size: large">Loading interventions</p>
                             </div>
-                      </div>
-                  </div>
+                        </div>
+                    </div>
+                </div>
 
-              </div>
+                <div role="tabpanel" id="post-gbv-care" class="tab-pane fade client_profile_tab"
+                     data-tabpanel_id="#post-gbv-care" data-intervention_category_code="3001">
 
-            <div role="tabpanel" id="other-interventions" class="tab-pane fade client_profile_tab" data-tabpanel_id="#other-interventions" data-intervention_category_code="5001">
+                    <table class="fit-item">
+                        <thead>
+                        <tr>
+                            <th>
+                                <div class="form-group" style="margin-right: 5px;">
+                                    <input id="filter_3001" type="text" class="form-control filter"
+                                           data-target_tbody="#interventions_3001_tbody"
+                                           data-intervention_category_code="3001"
+                                           data-tab_intervention_table_id="#interventions_3001_table"
+                                           placeholder="Type to search...">
+                                </div>
+                            </th>
+                            {% if perms.DreamsApp.add_intervention and can_add_intervention == True %}
+                                <th width="130">
+                                    <button class="btn btn-sm btn-primary" data-toggle="modal"
+                                            data-target="#intervention-modal" data-whatever="3001"
+                                            style="height: 35px; margin-top: -15px;"><i
+                                            class="glyphicon glyphicon-plus"></i> Add Intervention
+                                    </button>
+                                </th>
+                            {% endif %}
+                        </tr>
+                        </thead>
+                    </table>
 
-                  <table class="fit-item" >
-                      <thead>
-                          <tr>
-                              <th>
-                                  <div class="form-group" style="margin-right: 5px;">
-                                       <input id="filter_5001" type="text" class="form-control filter" data-target_tbody="#interventions_5001_tbody" data-intervention_category_code="5001" data-tab_intervention_table_id="#interventions_5001_table" placeholder="Type to search...">
-                                  </div>
-                              </th>
-                              {% if perms.DreamsApp.add_intervention %}<th width="130"><button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#intervention-modal" data-whatever="5001" style="height: 35px; margin-top: -15px;"><i class="glyphicon glyphicon-plus"></i> Add Intervention</button></th>{% endif %}
-                          </tr>
-                      </thead>
-                  </table>
+                    <div class="alert hidden dp-action-alert" id="action_alert_3001 " role="alert"></div>
 
-                <div class="alert hidden dp-action-alert" id="action_alert_5001" role="alert"></div>
+                    <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
+                        <div class="panel-body" style="margin: 0px;padding: 0px;">
+                            <table class="table table-striped" id="interventions_3001_table" data-cols="4">
+                                <thead class="dp-table-head-black">
+                                <tr>
+                                    <th>Intervention Type</th>
+                                    <th>Date Given</th>
+                                    <th>Comment/Notes</th>
+                                    {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
+                                        <th class="actions-col">Actions</th>
+                                    {% endif %}
+                                </tr>
+                                </thead>
+                                <tbody class="searchable" id="interventions_3001_tbody">
 
-                  <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
-                      <div class="panel-body" style="margin: 0px;padding: 0px;">
-                          <table class="table table-striped" id="interventions_5001_table" data-cols="5">
-                              <thead class="dp-table-head-black">
-                                  <tr>
-                                      <th>Intervention Type</th>
-                                      <th>Date Completed</th>
-                                      <th>Number of SS Sessions Attended</th>
-                                      <th>Comment/Notes</th>
-                                       {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
-                                      <th class="actions-col">Actions</th>
-                                      {% endif %}
-                                  </tr>
-                             </thead>
-                             <tbody class="searchable" id="interventions_5001_tbody">
-                             </tbody>
-                          </table>
-                          <div class="spinner hidden fit-item">
+                                </tbody>
+                            </table>
+                            <div class="spinner hidden fit-item">
                                 <i class='fa fa-spinner fa-spin'></i>
                                 <p style="font-size: large">Loading interventions</p>
                             </div>
-                      </div>
-                  </div>
+                        </div>
+                    </div>
+                </div>
 
-              </div>
+                <div role="tabpanel" id="social-protection" class="tab-pane fade client_profile_tab"
+                     data-tabpanel_id="#social-protection" data-intervention_category_code="4001">
+
+                    <table class="fit-item">
+                        <thead>
+                        <tr>
+                            <th>
+                                <div class="form-group" style="margin-right: 5px;">
+                                    <input id="filter_4001" type="text" class="form-control filter"
+                                           data-target_tbody="#interventions_4001_tbody"
+                                           data-intervention_category_code="4001"
+                                           data-tab_intervention_table_id="#interventions_4001_table"
+                                           placeholder="Type to search...">
+                                </div>
+                            </th>
+                            {% if perms.DreamsApp.add_intervention and can_add_intervention == True %}
+                                <th width="130">
+                                    <button class="btn btn-sm btn-primary" data-toggle="modal"
+                                            data-target="#intervention-modal" data-whatever="4001"
+                                            style="height: 35px; margin-top: -15px;"><i
+                                            class="glyphicon glyphicon-plus"></i> Add Intervention
+                                    </button>
+                                </th>
+                            {% endif %}
+                        </tr>
+                        </thead>
+                    </table>
+
+                    <div class="alert hidden dp-action-alert" id="action_alert_4001" role="alert"></div>
+
+                    <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
+                        <div class="panel-body" style="margin: 0px;padding: 0px;">
+                            <table class="table table-striped" id="interventions_4001_table" data-cols="4">
+                                <thead class="dp-table-head-black">
+                                <tr>
+                                    <th>Intervention Type</th>
+                                    <th>Date Completed</th>
+                                    <th>Comment/Notes</th>
+                                    {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
+                                        <th class="actions-col">Actions</th>
+                                    {% endif %}
+                                </tr>
+                                </thead>
+                                <tbody class="searchable" id="interventions_4001_tbody">
+
+                                </tbody>
+                            </table>
+                            <div class="spinner hidden fit-item">
+                                <i class='fa fa-spinner fa-spin'></i>
+                                <p style="font-size: large">Loading interventions</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div role="tabpanel" id="other-interventions" class="tab-pane fade client_profile_tab"
+                     data-tabpanel_id="#other-interventions" data-intervention_category_code="5001">
+
+                    <table class="fit-item">
+                        <thead>
+                        <tr>
+                            <th>
+                                <div class="form-group" style="margin-right: 5px;">
+                                    <input id="filter_5001" type="text" class="form-control filter"
+                                           data-target_tbody="#interventions_5001_tbody"
+                                           data-intervention_category_code="5001"
+                                           data-tab_intervention_table_id="#interventions_5001_table"
+                                           placeholder="Type to search...">
+                                </div>
+                            </th>
+                            {% if perms.DreamsApp.add_intervention and can_add_intervention == True %}
+                                <th width="130">
+                                    <button class="btn btn-sm btn-primary" data-toggle="modal"
+                                            data-target="#intervention-modal" data-whatever="5001"
+                                            style="height: 35px; margin-top: -15px;"><i
+                                            class="glyphicon glyphicon-plus"></i> Add Intervention
+                                    </button>
+                                </th>
+                            {% endif %}
+                        </tr>
+                        </thead>
+                    </table>
+
+                    <div class="alert hidden dp-action-alert" id="action_alert_5001" role="alert"></div>
+
+                    <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
+                        <div class="panel-body" style="margin: 0px;padding: 0px;">
+                            <table class="table table-striped" id="interventions_5001_table" data-cols="5">
+                                <thead class="dp-table-head-black">
+                                <tr>
+                                    <th>Intervention Type</th>
+                                    <th>Date Completed</th>
+                                    <th>Number of SS Sessions Attended</th>
+                                    <th>Comment/Notes</th>
+                                    {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
+                                        <th class="actions-col">Actions</th>
+                                    {% endif %}
+                                </tr>
+                                </thead>
+                                <tbody class="searchable" id="interventions_5001_tbody">
+                                </tbody>
+                            </table>
+                            <div class="spinner hidden fit-item">
+                                <i class='fa fa-spinner fa-spin'></i>
+                                <p style="font-size: large">Loading interventions</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
+
+        <input id="current_client_id" class="hidden" type="text" name="client_id" value="{{ client.id }}">
+        <input id="current_client_age" class="hidden" type="text" name="client_age"
+               value="{{ client.get_current_age }}">
+        <input type="hidden" id="current_date"
+               value="{{ client.date_of_enrollment.year|default:2015 }}, {{ client.date_of_enrollment.month|default:10 }}, {{ client.date_of_enrollment.day|default:1 }}">
+        <br/>
+
     </div>
-
-    <input id="current_client_id" class="hidden" type="text" name="client_id" value="{{ client.id }}">
-    <input id="current_client_age" class="hidden" type="text" name="client_age" value="{{ client.get_current_age }}">
-    <input type="hidden" id="current_date" value="{{ client.date_of_enrollment.year|default:2015 }}, {{ client.date_of_enrollment.month|default:10 }}, {{ client.date_of_enrollment.day|default:1 }}">
-    <br/>
-
-</div>
 {% endblock %}
