@@ -625,7 +625,7 @@ def unexit_client(request):
         try:
             client_id = int(str(request.POST.get('client_id', '0')))
             reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
-            date_of_exit = request.POST.get('date_of_unexit', datetime.datetime.now())
+            date_of_exit = request.POST.get('date_of_unexit', datetime.now())
             client = Client.objects.filter(id=client_id).first()
             client.exited = not client.exited
             client.reason_exited = reason_for_exit
