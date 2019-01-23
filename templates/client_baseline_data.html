@@ -10,62 +10,83 @@
         <!-- Start of Client profile section -->
         <div class=" statusBox">
             <div>
-                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
+                    {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
             </div>
             <div class="row">
                 <div class="col-xs-12 col-sm-5">
-                    <p><strong>Client: </strong><span id="shown_client_name"> {{ client.get_full_name }} <span class="client_exit_voided_status">{{ client.get_client_status }}</span></p>
+                    <p><strong>Client: </strong><span id="shown_client_name"> {{ client.get_full_name }} <span
+                            class="client_exit_voided_status">{{ client_status }}</span></p>
                     <p><strong>DREAMS ID: </strong><span id="shown_client_dreams_id"> {{ client.dreams_id }}</span></p>
-                    <p><strong>Date Birth: </strong><span id="shown_client_dob"> {{ client.date_of_birth }}</span> (Current Age <span id="shown_client_age">{{ client.get_current_age }}</span> )</p>
+                    <p><strong>Date Birth: </strong><span id="shown_client_dob"> {{ client.date_of_birth }}</span>
+                        (Current Age <span id="shown_client_age">{{ client.get_current_age }}</span> )</p>
 
                 </div><!--/col-->
                 <div class="col-xs-12 col-sm-4">
-                    <p><strong>Date Enrolled: </strong> <span id="shown_client_doe">{{ client.date_of_enrollment }} (Age at enrollment: {{ client.get_age_at_enrollment }})</span></p>
-                     <p><strong>Phone Number: </strong>
-                        <span id="shown_client_phone">{% if client.phone_number != None%}{{ client.phone_number }}{% endif %}</span>
+                    <p><strong>Date Enrolled: </strong> <span id="shown_client_doe">{{ client.date_of_enrollment }} (Age at enrollment: {{ client.get_age_at_enrollment }})</span>
                     </p>
-                    <p><strong>Marital status: </strong> <span id="shown_client_marital_status">{{ client.marital_status }}</span></p>
+                    <p><strong>Phone Number: </strong>
+                        <span id="shown_client_phone">{% if client.phone_number != None %}
+                            {{ client.phone_number }}{% endif %}</span>
+                    </p>
+                    <p><strong>Marital status: </strong> <span
+                            id="shown_client_marital_status">{{ client.marital_status }}</span></p>
                 </div><!--/col-->
                 <div class="col-xs-12 col-sm-3">
-                <p><strong>Actions: </strong> <br>
-                    <p class="underline_hover"  data-client_id='{{ client.id }}' style="cursor:pointer;" onclick="window.location='/client?client_id={{ client.id }}&search_client_term={{ search_client_term }}'" data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-pencil"></span> Service Uptake</p>
-                    {% if perms.DreamsApp.can_exit_client %}
-                        {% if client.exited %}
-                                <p class="underline_hover" id="p_exit_client"  data-client_id='{{ client.id }}' data-search_client_term='{{ search_client_term }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-unexit-modal" title="Exit Client">
-                                    <span class="glyphicon glyphicon-log-out"></span> <span class="client_status_action_text">Undo Exit Client</span>
+                    <p><strong>Actions: </strong> <br>
+                    <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
+                       onclick="window.location='/client?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
+                       data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-pencil"></span>
+                        Service Uptake</p>
+
+                    {% if 'Transferred Out' not in client_status %}
+                        {% if perms.DreamsApp.can_exit_client %}
+                            {% if client.exited %}
+                                <p class="underline_hover" id="p_exit_client" data-client_id='{{ client.id }}'
+                                   data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                                   data-toggle="modal" data-target="#client-unexit-modal" title="Exit Client">
+                                    <span class="glyphicon glyphicon-log-out"></span> <span
+                                        class="client_status_action_text">Undo Exit Client</span>
                                 </p>
-                            {%  else %}
-                                <p class="underline_hover" id="p_unexit_client"  data-client_id='{{ client.id }}' data-search_client_term='{{ search_client_term }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-exit-modal" title="Exit Client">
-                                    <span class="glyphicon glyphicon-log-out"></span> <span class="client_status_action_text">Exit Client</span>
+                            {% else %}
+                                <p class="underline_hover" id="p_unexit_client" data-client_id='{{ client.id }}'
+                                   data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                                   data-toggle="modal" data-target="#client-exit-modal" title="Exit Client">
+                                    <span class="glyphicon glyphicon-log-out"></span> <span
+                                        class="client_status_action_text">Exit Client</span>
                                 </p>
                             {% endif %}
-                    {% endif %}
-                    {% if perms.DreamsApp.add_clienttransfer %}
-                        {% if client.can_be_transferred and not client.voided %}
-                            <p class="underline_hover" id="p_transfer_client" data-client_id='{{ client.id }}'
-                               data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
-                               data-toggle="modal" data-target="#client-transfer-modal" title="Transfer Client">
-                                <span class="glyphicon glyphicon-transfer"></span> Transfer Client
-                            </p>
-                        {% elif not client.can_be_transferred %}
-                            <p>
-                                <span>In Transfer</span>
+                        {% endif %}
+                        {% if perms.DreamsApp.add_clienttransfer %}
+                            {% if client.can_be_transferred and not client.voided %}
+                                <p class="underline_hover" id="p_transfer_client" data-client_id='{{ client.id }}'
+                                   data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                                   data-toggle="modal" data-target="#client-transfer-modal" title="Transfer Client">
+                                    <span class="glyphicon glyphicon-transfer"></span> Transfer Client
+                                </p>
+                            {% elif not client.can_be_transferred %}
+                                <p>
+                                    <span>In Transfer</span>
+                                </p>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if perms.DreamsApp.can_void_client and not client.voided %}
+                            <p class="underline_hover" id="p_void_client" data-client_id='{{ client.id }}'
+                               style="cursor:pointer;" data-toggle="modal" data-target="#client-void-modal"
+                               title="Void Client">
+                                <span class="glyphicon glyphicon-minus-sign"></span> Void Client
                             </p>
                         {% endif %}
                     {% endif %}
-
-                    {% if perms.DreamsApp.can_void_client and not client.voided %}
-                    <p class="underline_hover" id="p_void_client"  data-client_id='{{ client.id }}' style="cursor:pointer;" data-toggle="modal" data-target="#client-void-modal" title="Void Client">
-                        <span class="glyphicon glyphicon-minus-sign"></span> Void Client
                     </p>
-                    {% endif %}
-                </p>
+                </div>
             </div>
 
         </div>
-
-        </div>
-        <a class="no-hover" href="/clients?search_client_term={{ search_client_term }}" style="float: right;margin-bottom: 5px;margin-top: -5px;margin-right: 10px;"><span class="glyphicon glyphicon-triangle-left"> </span> Back to Clients list</a>
+        <a class="no-hover" href="/clients?search_client_term={{ search_client_term }}"
+           style="float: right;margin-bottom: 5px;margin-top: -5px;margin-right: 10px;"><span
+                class="glyphicon glyphicon-triangle-left"> </span> Back to Clients list</a>
         <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert" style="margin-top: 15px;"></div>
         <!-- End of Client profile section -->
         <div class="dreams-profile-tab-control" id="dreams-enrollment-tab-control">
@@ -93,7 +114,6 @@
                 <li role="presentation"><a href="#participation_in_program" aria-controls="participation_in_program"
                                            role="tab" data-toggle="tab">Programs</a>
                 </li>
-
             </ul>
             <div id="results"></div>
             <div class="tab-content dp-tab-content">
@@ -109,530 +129,524 @@
                 </div>
 
                 <div role="tabpanel" id="education_and_employment" class="tab-pane fade client_profile_tab"
-                     data-tabpanel_id="#education_and_employment" >
+                     data-tabpanel_id="#education_and_employment">
                     {% include 'education_and_employment_form.html' %}
                 </div>
 
                 <div role="tabpanel" id="hiv_testing" class="tab-pane fade client_profile_tab"
-                     data-tabpanel_id="#hiv_testing" >
+                     data-tabpanel_id="#hiv_testing">
                     {% include 'client_hiv_testing_form.html' %}
                 </div>
 
                 <div role="tabpanel" id="sexuality" class="tab-pane fade client_profile_tab"
-                     data-tabpanel_id="#sexuality" >
+                     data-tabpanel_id="#sexuality">
                     {% include 'client_sexuality_form.html' %}
                 </div>
                 <div role="tabpanel" id="reproductive_health" class="tab-pane fade client_profile_tab"
-                     data-tabpanel_id="#reproductive_health" >
+                     data-tabpanel_id="#reproductive_health">
                     {% include 'client_reproductive_health_form.html' %}
                 </div>
 
                 <div role="tabpanel" id="gbv" class="tab-pane fade client_profile_tab" data-tabpanel_id="#gbv"
-                     >
+                >
                     {% include 'client_gbv_form.html' %}
                 </div>
 
                 <div role="tabpanel" id="drug_use" class="tab-pane fade client_profile_tab" data-tabpanel_id="#drug_use"
-                     >
+                >
                     {% include 'client_drug_use_form.html' %}
                 </div>
 
                 <div role="tabpanel" id="participation_in_program" class="tab-pane fade client_profile_tab"
-                     data-tabpanel_id="#participation_in_program" >
+                     data-tabpanel_id="#participation_in_program">
                     {% include 'client_programme_participation_form.html' %}
                 </div>
-                <input id="baseline_current_client_id" class="hidden" type="text"  value="{{ client.id }}">
-
+                <input id="baseline_current_client_id" class="hidden" type="text" value="{{ client.id }}">
             </div>
         </div>
 
         <br/>
 
-    <script>
-
-        $(document).ready(function () {
-            function concatWithSpace(stringArray) {
-                var concatString = '';
-                $.each(stringArray, function (index, stringVal) {
-                    if (concatString != '')
+        <script>
+            $(document).ready(function () {
+                function concatWithSpace(stringArray) {
+                    var concatString = '';
+                    $.each(stringArray, function (index, stringVal) {
+                        if (concatString != '')
                             concatString += " " + $.trim(stringVal)
-                    else
-                        concatString += $.trim(stringVal)
-                })
-                return concatString;
-            }
-            //Handle demographics tab
-            $('#form_demographics').on('submit', function (event) {
-                event.preventDefault()
-                if(!$(event.target).valid()) // Check if form is valid
-                    return false;   // return, form is not valid
-                // enable disabled fields
-                var form = $('#form_demographics');
-                $('#demo_current_client_id').val($('#baseline_current_client_id').val());
+                        else
+                            concatString += $.trim(stringVal)
+                    })
+                    return concatString;
+                }
 
-                $.ajax({
-                    type: "POST",
-                    url: form.attr('action'),
-                    data: $(this).serialize(),
-                    success: function (data) {
-                        if(data.status == 'success'){
-                            var client_age = data.client_age;
-                            //$('#demo_replacement').replaceWith(data);
-                            $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                           .text('saved successfully')
-                           .trigger('madeVisible')
-                            // Updating client details
-                            // Full name
-                            var clientFullName = concatWithSpace([$('#id_first_name').val() , $('#id_middle_name').val() , $('#id_last_name').val()])
-                            $('#shown_client_name').html(clientFullName);
-                            // Dreams id -- this can never change
-                            $('#shown_client_dob').html($('#id_date_of_birth').val())
-                            $('#shown_client_age').html(client_age)
-                            $('#shown_client_doe').html($('#id_date_of_enrollment').val())
-                            $('#shown_client_phone').html($('#id_phone_number').val())
-                            $('#shown_client_marital_status').html($('#id_marital_status option:selected').text())
-                        }
-                        else {
+                //Handle demographics tab
+                $('#form_demographics').on('submit', function (event) {
+                    event.preventDefault()
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;   // return, form is not valid
+                    // enable disabled fields
+                    var form = $('#form_demographics');
+                    $('#demo_current_client_id').val($('#baseline_current_client_id').val());
+
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                var client_age = data.client_age;
+                                //$('#demo_replacement').replaceWith(data);
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
+                                    .trigger('madeVisible')
+                                // Updating client details
+                                // Full name
+                                var clientFullName = concatWithSpace([$('#id_first_name').val(), $('#id_middle_name').val(), $('#id_last_name').val()])
+                                $('#shown_client_name').html(clientFullName);
+                                // Dreams id -- this can never change
+                                $('#shown_client_dob').html($('#id_date_of_birth').val())
+                                $('#shown_client_age').html(client_age)
+                                $('#shown_client_doe').html($('#id_date_of_enrollment').val())
+                                $('#shown_client_phone').html($('#id_phone_number').val())
+                                $('#shown_client_marital_status').html($('#id_marital_status option:selected').text())
+                            }
+                            else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                    .text('Could not save changes')
+                                    .trigger('madeVisible')
+                            }
+
+                        },
+                        error: function (xhr, errmsg, err) {
                             $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                           .text('Could not save changes')
-                           .trigger('madeVisible')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+
                         }
-
-                    },
-                    error: function (xhr, errmsg, err) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                       .text('Could not save changes')
-                       .trigger('madeVisible')
-
-                    }
-                });
-
-            });
-
-
-            //Handle Individual and household tab
-            $('#form_ind_household').on('submit', function (event) {
-                event.preventDefault();
-                if(!$(event.target).valid()) // Check if form is valid
-                    return false;
-
-                var form = $('#form_ind_household');
-                $.ajax({
-                    type: "POST",
-                    url: form.attr('action'),
-                    data: $(this).serialize(),
-                   success: function (data) {
-                        //$('#household_replacement').replaceWith(data);
-                       if(data.status == 'success') {
-                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                   .text('saved successfully')
-                                   .trigger('madeVisible')
-                       }
-                       else {
-                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                       }
-                    },
-                    error: function (xhr, errmsg, err) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                       .text('Could not save changes')
-                       .trigger('madeVisible')
-
-                    }
-                });
-
-            });
-
-
-            //Handle Education and employment tab
-            $('#form_edu_and_employment').on('submit', function (event) {
-                event.preventDefault();
-
-                if(!$(event.target).valid()) // Check if form is valid
-                    return false;
-                var form = $('#form_edu_and_employment');
-                $.ajax({
-                    type: "POST",
-                    url: form.attr('action'),
-                    data: $(this).serialize(),
-                     success: function (data) {
-                        if(data.status == 'success') {
-                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                   .text('saved successfully')
-                                   .trigger('madeVisible')
-                       }
-                       else {
-                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                       }
-                    },
-                    error: function (xhr, errmsg, err) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                       .text('Could not save changes')
-                       .trigger('madeVisible')
-
-                    }
-                });
-
-            });
-
-
-            //Handle HIV Testing tab
-            $('#form_hiv_testing').on('submit', function (event) {
-                event.preventDefault();
-
-                if(!$(event.target).valid()) // Check if form is valid
-                    return false;
-                var form = $('#form_hiv_testing');
-                $.ajax({
-                    type: "POST",
-                    url: form.attr('action'),
-                    data: $(this).serialize(),
-                     success: function (data) {
-                        if(data.status == 'success') {
-                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                   .text('saved successfully')
-                                   .trigger('madeVisible')
-                       }
-                       else {
-                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                       }
-                    },
-                    error: function (xhr, errmsg, err) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                       .text('Could not save changes')
-                       .trigger('madeVisible')
-
-                    }
-                });
-
-            });
-
-
-            //Handle Sexuality Tab
-            $('#form_sexuality').on('submit', function (event) {
-                event.preventDefault();
-
-                if(!$(event.target).valid()) // Check if form is valid
-                    return false;
-
-                var form = $('#form_sexuality');
-                $.ajax({
-                    type: "POST",
-                    url: form.attr('action'),
-                    data: $(this).serialize(),
-                     success: function (data) {
-                        if(data.status == 'success') {
-                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                   .text('saved successfully')
-                                   .trigger('madeVisible')
-                       }
-                       else {
-                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                       }
-                    },
-                    error: function (xhr, errmsg, err) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                       .text('Could not save changes')
-                       .trigger('madeVisible')
-
-                    }
-                });
-
-            });
-
-
-            //Handle Reproductive Health Tab
-            $('#form_rep_health').on('submit', function (event) {
-                event.preventDefault();
-
-                if(!$(event.target).valid()) // Check if form is valid
-                    return false;
-                var form = $('#form_rep_health');
-                $.ajax({
-                    type: "POST",
-                    url: form.attr('action'),
-                    data: $(this).serialize(),
-                     success: function (data) {
-                        if(data.status == 'success') {
-                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                   .text('saved successfully')
-                                   .trigger('madeVisible')
-                       }
-                       else {
-                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                       }
-                    },
-                    error: function (xhr, errmsg, err) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                       .text('Could not save changes')
-                       .trigger('madeVisible')
-
-                    }
-                });
-
-            });
-
-
-            //Handle GBV Tab
-            $('#form_gbv').on('submit', function (event) {
-                event.preventDefault();
-
-                if(!$(event.target).valid()) // Check if form is valid
-                    return false;
-
-                var form = $('#form_gbv');
-                $.ajax({
-                    type: "POST",
-                    url: form.attr('action'),
-                    data: $(this).serialize(),
-                     success: function (data) {
-                        if(data.status == 'success') {
-                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                   .text('saved successfully')
-                                   .trigger('madeVisible')
-                       }
-                       else {
-                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                       }
-                    },
-                    error: function (xhr, errmsg, err) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                       .text('Could not save changes')
-                       .trigger('madeVisible')
-
-                    }
-                });
-
-            });
-
-
-            //Handle Drug Use tab
-            $('#form_drug_use').on('submit', function (event) {
-                event.preventDefault();
-
-                if(!$(event.target).valid()) // Check if form is valid
-                    return false;
-
-                var form = $('#form_drug_use');
-                $.ajax({
-                    type: "POST",
-                    url: form.attr('action'),
-                    data: $(this).serialize(),
-                     success: function (data) {
-                        if(data.status == 'success') {
-                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                   .text('saved successfully')
-                                   .trigger('madeVisible')
-                       }
-                       else {
-                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                       }
-                    },
-                    error: function (xhr, errmsg, err) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                       .text('Could not save changes')
-                       .trigger('madeVisible')
-
-                    }
-                });
-
-            });
-
-
-            //Handle Participation in programmes tab
-            $('#form_programme_participation').on('submit', function (event) {
-                event.preventDefault();
-
-                if(!$(event.target).valid()) // Check if form is valid
-                    return false;
-
-                var form = $('#form_programme_participation');
-                $.ajax({
-                    type: "POST",
-                    url: form.attr('action'),
-                    data: $(this).serialize(),
-                     success: function (data) {
-                        if(data.status == 'success') {
-                           $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                   .text('saved successfully')
-                                   .trigger('madeVisible')
-                       }
-                       else {
-                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                       }
-                    },
-                    error: function (xhr, errmsg, err) {
-                        $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                       .text('Could not save changes')
-                       .trigger('madeVisible')
-
-                    }
-                });
-
-            });
-
-            $('.listen-to-change').on('change keyup', function () {
-
-                var val = $(this).val();
-                var show_if_true = $(this).data('show_if_true'); // class to show
-                var hide_if_true = $(this).data('hide_if_true'); // class to show
-                var hide_if_false = $(this).data('hide_if_false'); // class to hide
-                var show_value = $(this).data('show_value'); // value to determine show/hide
-
-                if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != ''){
-                    var hide_classes = hide_if_false.split(" ");
-                    hide_if_false = hide_classes;
-                }
-
-                if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != ''){
-                    var hide_on_show_classes = hide_if_true.split(" ");
-                    hide_if_true = hide_on_show_classes;
-                }
-
-
-
-
-                if(val == show_value || show_value=='any'){
-                    $('.'+show_if_true).removeClass('hidden');
-
-                    if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
-                        for (var i = 0; i < hide_if_true.length; i++) {
-                            var class_name = hide_if_true[i];
-                            $('.' + class_name).addClass('hidden');
-                            $('.' + class_name).find('input,select').each(function () {
-                                $(this).val('');
-                                $(this).attr('checked', false);
-                            });
-                        }
-                    }
-
-                } else {
-
-                    $('.'+show_if_true).addClass('hidden');
-
-                    $('.'+show_if_true).find('input,select').each(function(){
-                        $(this).val('');
-                        $(this).attr('checked',false);
                     });
 
-                    if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
-                        for (var i = 0; i < hide_if_false.length; i++) {
-                            var class_name = hide_if_false[i];
-                            $('.' + class_name).addClass('hidden');
-                            $('.' + class_name).find('input,select').each(function () {
-                                $(this).val('');
-                                $(this).attr('checked', false);
-                            });
+                });
+
+
+                //Handle Individual and household tab
+                $('#form_ind_household').on('submit', function (event) {
+                    event.preventDefault();
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+
+                    var form = $('#form_ind_household');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            //$('#household_replacement').replaceWith(data);
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
+                                    .trigger('madeVisible')
+                            }
+                            else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                            }
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
 
                         }
+                    });
+
+                });
+
+
+                //Handle Education and employment tab
+                $('#form_edu_and_employment').on('submit', function (event) {
+                    event.preventDefault();
+
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+                    var form = $('#form_edu_and_employment');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
+                                    .trigger('madeVisible')
+                            }
+                            else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                            }
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+
+                        }
+                    });
+
+                });
+
+
+                //Handle HIV Testing tab
+                $('#form_hiv_testing').on('submit', function (event) {
+                    event.preventDefault();
+
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+                    var form = $('#form_hiv_testing');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
+                                    .trigger('madeVisible')
+                            }
+                            else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                            }
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+
+                        }
+                    });
+
+                });
+
+
+                //Handle Sexuality Tab
+                $('#form_sexuality').on('submit', function (event) {
+                    event.preventDefault();
+
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+
+                    var form = $('#form_sexuality');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
+                                    .trigger('madeVisible')
+                            }
+                            else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                            }
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+
+                        }
+                    });
+
+                });
+
+
+                //Handle Reproductive Health Tab
+                $('#form_rep_health').on('submit', function (event) {
+                    event.preventDefault();
+
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+                    var form = $('#form_rep_health');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
+                                    .trigger('madeVisible')
+                            }
+                            else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                            }
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+
+                        }
+                    });
+
+                });
+
+
+                //Handle GBV Tab
+                $('#form_gbv').on('submit', function (event) {
+                    event.preventDefault();
+
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+
+                    var form = $('#form_gbv');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
+                                    .trigger('madeVisible')
+                            }
+                            else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                            }
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+
+                        }
+                    });
+
+                });
+
+
+                //Handle Drug Use tab
+                $('#form_drug_use').on('submit', function (event) {
+                    event.preventDefault();
+
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+
+                    var form = $('#form_drug_use');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
+                                    .trigger('madeVisible')
+                            }
+                            else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                            }
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+
+                        }
+                    });
+
+                });
+
+
+                //Handle Participation in programmes tab
+                $('#form_programme_participation').on('submit', function (event) {
+                    event.preventDefault();
+
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+
+                    var form = $('#form_programme_participation');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
+                                    .trigger('madeVisible')
+                            }
+                            else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
+                            }
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+
+                        }
+                    });
+
+                });
+
+                $('.listen-to-change').on('change keyup', function () {
+
+                    var val = $(this).val();
+                    var show_if_true = $(this).data('show_if_true'); // class to show
+                    var hide_if_true = $(this).data('hide_if_true'); // class to show
+                    var hide_if_false = $(this).data('hide_if_false'); // class to hide
+                    var show_value = $(this).data('show_value'); // value to determine show/hide
+
+                    if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
+                        var hide_classes = hide_if_false.split(" ");
+                        hide_if_false = hide_classes;
                     }
 
                     if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
-                        for (var i = 0; i < hide_if_true.length; i++) {
-                            var class_name = hide_if_true[i];
-                            $('.' + class_name).removeClass('hidden');
+                        var hide_on_show_classes = hide_if_true.split(" ");
+                        hide_if_true = hide_on_show_classes;
+                    }
+
+
+                    if (val == show_value || show_value == 'any') {
+                        $('.' + show_if_true).removeClass('hidden');
+
+                        if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                            for (var i = 0; i < hide_if_true.length; i++) {
+                                var class_name = hide_if_true[i];
+                                $('.' + class_name).addClass('hidden');
+                                $('.' + class_name).find('input,select').each(function () {
+                                    $(this).val('');
+                                    $(this).attr('checked', false);
+                                });
+                            }
                         }
-                    }
-                }
-            });
 
-            $('.multi-select').on('change', function () {
-
-                var selected = $(this).val();
-                var show_value = $(this).data('show_value');
-                var show_if_true = $(this).data('show_if_true');
-
-                for (var i=0; i<selected.length; i++){
-                    if(selected[i]==show_value){
-                        $('.'+show_if_true).removeClass('hidden');
                     } else {
-                        $('.'+show_if_true).addClass('hidden');
-                    }
-                }
-                console.log(selected);
-            });
 
-            $('.if-not-listener').on('change', function () {
+                        $('.' + show_if_true).addClass('hidden');
 
-                var selected = $(this).val();
-                var if_not_value = $(this).data('if_not_value');
-                var if_not_show_class = $(this).data('if_not_show_class');
+                        $('.' + show_if_true).find('input,select').each(function () {
+                            $(this).val('');
+                            $(this).attr('checked', false);
+                        });
 
-                if(selected==if_not_value){
-                    $('.'+if_not_show_class).addClass('hidden');
-                } else {
-                    $('.'+if_not_show_class).removeClass('hidden');
-                }
-            });
+                        if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
+                            for (var i = 0; i < hide_if_false.length; i++) {
+                                var class_name = hide_if_false[i];
+                                $('.' + class_name).addClass('hidden');
+                                $('.' + class_name).find('input,select').each(function () {
+                                    $(this).val('');
+                                    $(this).attr('checked', false);
+                                });
 
-            $('.multi-value-listener').on('change', function () {
+                            }
+                        }
 
-                var selected = $(this).val();
-                var group_value = $(this).data('group_value');
-                var group_get_value_class = $(this).data('group_get_value_class');
-                var group_show_class = $(this).data('group_show_class');
-                var group_hide_class = $(this).data('group_hide_class');
-                var result = false;
-                $('.'+group_get_value_class +' :selected').each(function () {
-                    if($(this).val() == 1){
-                        result = true;
-                        return false;
+                        if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                            for (var i = 0; i < hide_if_true.length; i++) {
+                                var class_name = hide_if_true[i];
+                                $('.' + class_name).removeClass('hidden');
+                            }
+                        }
                     }
                 });
 
-                if(result){
-                    $('.'+group_show_class).removeClass('hidden');
-                    $('.'+group_hide_class).addClass('hidden');
+                $('.multi-select').on('change', function () {
+
+                    var selected = $(this).val();
+                    var show_value = $(this).data('show_value');
+                    var show_if_true = $(this).data('show_if_true');
+
+                    for (var i = 0; i < selected.length; i++) {
+                        if (selected[i] == show_value) {
+                            $('.' + show_if_true).removeClass('hidden');
+                        } else {
+                            $('.' + show_if_true).addClass('hidden');
+                        }
+                    }
+                    console.log(selected);
+                });
+
+                $('.if-not-listener').on('change', function () {
+
+                    var selected = $(this).val();
+                    var if_not_value = $(this).data('if_not_value');
+                    var if_not_show_class = $(this).data('if_not_show_class');
+
+                    if (selected == if_not_value) {
+                        $('.' + if_not_show_class).addClass('hidden');
+                    } else {
+                        $('.' + if_not_show_class).removeClass('hidden');
+                    }
+                });
+
+                $('.multi-value-listener').on('change', function () {
+
+                    var selected = $(this).val();
+                    var group_value = $(this).data('group_value');
+                    var group_get_value_class = $(this).data('group_get_value_class');
+                    var group_show_class = $(this).data('group_show_class');
+                    var group_hide_class = $(this).data('group_hide_class');
+                    var result = false;
+                    $('.' + group_get_value_class + ' :selected').each(function () {
+                        if ($(this).val() == 1) {
+                            result = true;
+                            return false;
+                        }
+                    });
+
+                    if (result) {
+                        $('.' + group_show_class).removeClass('hidden');
+                        $('.' + group_hide_class).addClass('hidden');
+                    } else {
+                        $('.' + group_show_class).addClass('hidden');
+                        $('.' + group_hide_class).removeClass('hidden');
+                    }
+                });
+
+                $('.sexual-partner-info').on('change keyup', function () {
+
+                    var value = parseInt($(this).val().trim());
+                    $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
+                    switch (true) {
+                        case (value == 1):
+                            $('.last-partner').removeClass('hidden');
+                            $('.sexual-partners').removeClass('hidden');
+                            break;
+                        case (value == 2):
+                            $('.second-last-partner, .last-partner').removeClass('hidden');
+                            $('.sexual-partners').removeClass('hidden');
+                            break;
+                        case (value > 2):
+                            $('.third-last-partner, .second-last-partner, .last-partner').removeClass('hidden');
+                            $('.sexual-partners').removeClass('hidden');
+                            break;
+                        default:
+                            $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
+                            $('.sexual-partners').addClass('hidden');
+                    }
+
+                });
+
+            });
+
+            function skip_pattern(target_element, target_value, element_list_to_manipulate, hide_class) {
+
+                var option = $('#' + target_element).val();
+                console.log(option + ' against: ' + target_value);
+                if (option == target_value) {
+                    for (var i = 0; i < element_list_to_manipulate.length; i++) {
+                        console.log(element_list_to_manipulate[i])
+                        $('#' + element_list_to_manipulate[i]).removeClass(hide_class);
+                    }
                 } else {
-                    $('.'+group_show_class).addClass('hidden');
-                    $('.'+group_hide_class).removeClass('hidden');
-                }
-            });
-
-            $('.sexual-partner-info').on('change keyup', function () {
-
-                var value = parseInt($(this).val().trim());
-                $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
-                switch(true){
-                    case (value == 1):
-                        $('.last-partner').removeClass('hidden');
-                        $('.sexual-partners').removeClass('hidden');
-                        break;
-                    case (value == 2):
-                        $('.second-last-partner, .last-partner').removeClass('hidden');
-                        $('.sexual-partners').removeClass('hidden');
-                        break;
-                    case (value > 2):
-                        $('.third-last-partner, .second-last-partner, .last-partner').removeClass('hidden');
-                        $('.sexual-partners').removeClass('hidden');
-                        break;
-                    default:
-                        $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
-                        $('.sexual-partners').addClass('hidden');
-                }
-
-            });
-
-        });
-
-        function skip_pattern(target_element, target_value, element_list_to_manipulate, hide_class) {
-
-           var option = $('#'+target_element).val();
-            console.log(option + ' against: ' + target_value);
-            if (option == target_value) {
-                for (var i =0; i< element_list_to_manipulate.length; i++ ) {
-                    console.log(element_list_to_manipulate[i])
-                    $('#'+element_list_to_manipulate[i]).removeClass(hide_class);
-                }
-            } else {
-                 for (var i =0; i< element_list_to_manipulate.length; i++ ) {
-                    console.log(element_list_to_manipulate[i])
-                    $('#'+element_list_to_manipulate[i]).addClass(hide_class);
+                    for (var i = 0; i < element_list_to_manipulate.length; i++) {
+                        console.log(element_list_to_manipulate[i])
+                        $('#' + element_list_to_manipulate[i]).addClass(hide_class);
+                    }
                 }
             }
-
-
-        }
-
-    </script>
+        </script>
     </div>
 {% endblock %}

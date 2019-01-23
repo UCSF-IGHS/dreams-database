@@ -19,15 +19,5 @@
       "code": 3,
       "name": "Rejected"
     }
-  },
-  {
-    "model": "DreamsApp.clienttransferstatus",
-    "fields" : {
-      "code": 4,
-      "name": "Ended"
-    }
   }
 ]
-
-
-

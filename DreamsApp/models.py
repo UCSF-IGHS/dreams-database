@@ -8,9 +8,14 @@ from datetime import datetime
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.html import format_html
+from DreamsApp.service_layer import TransferServiceLayer
 
 
+DEFAULT_AGE_AT_ENROLMENT = 10
+TRANSFER_INITIATED_STATUS = 1
 TRANSFER_ACCEPTED_STATUS = 2
+TRANSFER_REJECTED_STATUS = 3
+
 
 class MaritalStatus(models.Model):
     code = models.CharField(verbose_name='Marital Status Code', max_length=10, null=False, blank=False)
@@ -238,7 +243,7 @@ class Client(models.Model):
         except:
             return "Invalid Client Name"
 
-    def get_client_status(self):
+    def get_client_status(self, user_ip):
         status = ''
         try:
             if self.voided:
@@ -247,10 +252,25 @@ class Client(models.Model):
                 if status != '':
                     status += ' & '
                 status += 'Exited'
-            if self.is_a_transfer_in:
+
+            client = self
+            if TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TRANSFER_INITIATED_STATUS):
+                if status != '':
+                    status += ' & '
+                status += 'Transfer Initiated'
+            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "destination_implementing_partner", TRANSFER_ACCEPTED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transferred In'
+            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TRANSFER_ACCEPTED_STATUS):
+                if status != '':
+                    status += ' & '
+                status += 'Transferred Out'
+            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TRANSFER_REJECTED_STATUS):
+                if status != '':
+                    status += ' & '
+                status += 'Transfer Rejected'
+
             if status != '':
                 status = status[:0] + '( ' + status[0:]
                 last_index = len(status)
@@ -265,42 +285,58 @@ class Client(models.Model):
                 (self.date_of_enrollment.month, self.date_of_enrollment.day) < (
                     self.date_of_birth.month, self.date_of_birth.day))
         except:
-            return 10
+            return DEFAULT_AGE_AT_ENROLMENT
 
     def get_current_age(self):
         try:
             return datetime.now().year - self.date_of_birth.year - ((datetime.now().month, datetime.now().day) < (self.date_of_birth.month, self.date_of_birth.day))
         except:
-            return 10
+            return DEFAULT_AGE_AT_ENROLMENT
 
-    @property
-    def is_a_transfer_in(self):
+    def transferred_in(self, user_ip):
         try:
-            return self.clienttransfer_set.filter(destination_implementing_partner=self.implementing_partner,
-                                                  transfer_status=ClientTransferStatus.objects.get(
-                                                      code__exact=TRANSFER_ACCEPTED_STATUS)).exists()
+            client = self
+            return TransferServiceLayer.client_transfer_status(self, user_ip, client,
+                                                               "destination_implementing_partner",
+                                                               TRANSFER_ACCEPTED_STATUS)
         except:
             return False
 
-    def is_a_transfer_out(self, user_ip):
+    def transferred_out(self, user_ip):
         try:
-            return self.clienttransfer_set.filter(transfer_status=ClientTransferStatus.objects.get(
-                                                      code__exact=TRANSFER_ACCEPTED_STATUS), source_implementing_partner=user_ip).exists()
+            client = self
+            return TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner",
+                                                               TRANSFER_ACCEPTED_STATUS)
         except:
             return False
 
     def is_editable_by_ip(self, user_ip):
         editable = False
         try:
-            if self.is_a_transfer_out(user_ip):
+            if self.transferred_out(user_ip):
                 editable = False
 
-            elif self.is_a_transfer_in:
-                editable = False
+            elif self.transferred_in(user_ip):
+                editable = True
 
             else:
                 editable = True
             return editable
+        except:
+            return False
+
+    def can_add_intervention(self, user_ip):
+        can_add_intervention = False
+        try:
+            if self.transferred_out(user_ip):
+                can_add_intervention = False
+
+            elif self.transferred_in(user_ip):
+                can_add_intervention = True
+
+            else:
+                can_add_intervention = True
+            return can_add_intervention
         except:
             return False
 
@@ -463,16 +499,32 @@ class Intervention(models.Model):
     def is_editable_by_ip(self, user_ip):
         editable = False
         try:
-            if self.client.is_a_transfer_out(user_ip):
+            if self.client.transferred_out(user_ip):
                 editable = False
 
-            elif self.client.is_a_transfer_in:
+            elif self.client.transferred_in(user_ip):
                 if self.implementing_partner == user_ip:
                     editable = True
 
             else:
                 editable = True
             return editable
+        except:
+            return False
+
+    def is_visible_by_ip(self, user_ip):
+        visible = False
+        try:
+            if self.client.transferred_out(user_ip):
+                if self.implementing_partner == user_ip:
+                    visible = True
+
+            elif self.client.transferred_in(user_ip):
+                visible = True
+
+            else:
+                visible = True
+            return visible
         except:
             return False
 

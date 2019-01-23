@@ -297,24 +297,25 @@ $(document).ready(function () {
                 // Clear table
                 $(table_id + '  tbody').empty();
                 $.each(ivs, function (index, iv) {
-                    var iv_type = {}
-                    $.each(ivTypes, function (index, obj) {
+                    if (data.is_visible_by_ip[iv.pk] == true) {
+                        var iv_type = {}
+                        $.each(ivTypes, function (index, obj) {
+                            if (obj.pk == iv.fields.intervention_type) {
+                                iv_type = obj;
+                                return false;
+                            }
+                        });
+                        var hts_result = iv_type.fields.has_hts_result ? getResultName(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result) : "";
+                        var pregnancy_result = iv_type.fields.has_pregnancy_result ? getResultName(pregnancy_results, iv_type.fields.has_pregnancy_result, iv.fields.pregnancy_test_result) : "";
+                        iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
+                        iv.fields.no_of_sessions_attended = iv.fields.no_of_sessions_attended == null ? "" : iv.fields.no_of_sessions_attended;
 
-                        if (obj.pk == iv.fields.intervention_type) {
-                            iv_type = obj;
-                            return false;
+                        if (data.is_editable_by_ip[iv.pk] == false) {
+                            permissions = null;
                         }
-                    });
-                    var hts_result = iv_type.fields.has_hts_result ? getResultName(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result) : "";
-                    var pregnancy_result = iv_type.fields.has_pregnancy_result ? getResultName(pregnancy_results, iv_type.fields.has_pregnancy_result, iv.fields.pregnancy_test_result) : "";
-                    iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
-                    iv.fields.no_of_sessions_attended = iv.fields.no_of_sessions_attended == null ? "" : iv.fields.no_of_sessions_attended;
 
-                    if (data.is_editable_by_ip[iv.pk] == false) {
-                        permissions = null;
+                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, false, permissions);
                     }
-
-                    insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, false, permissions);
                 });
 
                 // hide spinner
@@ -3249,7 +3250,9 @@ $(document).ready(function () {
         e.preventDefault();
         var el = $(this);
         $("#accept-transfer-modal #accept_client_transfer_id").val($(el).data('id'));
-        $("#accept-transfer-modal #accept_client_name").val($(el).data('client-name'));
+        $("#accept-transfer-modal #accept_client_name").text($(el).data('client-name'));
+        $("#accept-transfer-modal #accept_client_dreams_id").text($(el).data('client-dreams-id'));
+        $("#accept-transfer-modal #accept_client_date_of_birth").text($(el).data('client-date-of-birth'));
         $("#accept-transfer-modal").show();
     });
 
@@ -3257,7 +3260,9 @@ $(document).ready(function () {
         e.preventDefault();
         var el = $(this);
         $("#reject-transfer-modal #reject_client_transfer_id").val($(el).data('id'));
-        $("#reject-transfer-modal #reject_client_name").val($(el).data('client-name'));
+        $("#reject-transfer-modal #reject_client_name").text($(el).data('client-name'));
+        $("#reject-transfer-modal #reject_client_dreams_id").text($(el).data('client-dreams-id'));
+        $("#reject-transfer-modal #reject_client_date_of_birth").text($(el).data('client-date-of-birth'));
         $("#reject-transfer-modal").show();
     });
 
