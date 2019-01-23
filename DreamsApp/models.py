@@ -317,7 +317,7 @@ class Client(models.Model):
                 editable = False
 
             elif self.transferred_in(user_ip):
-                editable = False
+                editable = True
 
             else:
                 editable = True

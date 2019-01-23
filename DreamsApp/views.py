@@ -2228,7 +2228,6 @@ def update_demographics_data(request):
     client_id = int(request.POST['client'], 0)
     instance = Client.objects.get(id=client_id)
     if request.is_ajax():
-        # template = 'client_demographics_ajax_form.html'
         if request.method == 'POST':
             county_of_residence = instance.county_of_residence
             sub_county = instance.sub_county
