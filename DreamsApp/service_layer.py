@@ -3,11 +3,11 @@ from django.contrib.auth.models import User
 from DreamsApp.models import *
 
 
-TRANSFER_INITIATED_STATUS = 1
-TRANSFER_ACCEPTED_STATUS = 2
-
-
 class TransferServiceLayer:
+    TRANSFER_INITIATED_STATUS = 1
+    TRANSFER_ACCEPTED_STATUS = 2
+    TRANSFER_REJECTED_STATUS = 3
+
     def __init__(self, user, client_transfer=None):
         self.user: User = user
         self.client_transfer: ClientTransfer = client_transfer
@@ -30,7 +30,7 @@ class TransferServiceLayer:
         if self.user is not None and self.client_transfer is not None:
             destination_ip = self.client_transfer.destination_implementing_partner
 
-            if self.client_transfer.transfer_status.pk == TRANSFER_INITIATED_STATUS:
+            if self.client_transfer.transfer_status.pk == self.TRANSFER_INITIATED_STATUS:
                 if self.user.is_superuser:
                     action_allowed = True
                 else:
@@ -46,7 +46,7 @@ class TransferServiceLayer:
         if self.user is not None and self.client_transfer is not None:
             destination_ip = self.client_transfer.destination_implementing_partner
 
-            if self.client_transfer.transfer_status.pk == TRANSFER_INITIATED_STATUS:
+            if self.client_transfer.transfer_status.pk == self.TRANSFER_INITIATED_STATUS:
                 if self.user.is_superuser:
                     action_allowed = True
                 else:
@@ -62,7 +62,7 @@ class TransferServiceLayer:
         if self.user is not None and self.client_transfer is not None:
             destination_ip = self.client_transfer.destination_implementing_partner
 
-            if self.client_transfer.transfer_status.pk == TRANSFER_ACCEPTED_STATUS:
+            if self.client_transfer.transfer_status.pk == self.TRANSFER_ACCEPTED_STATUS:
                 if self.user.is_superuser:
                     action_allowed = True
                 else:
@@ -87,3 +87,18 @@ class TransferServiceLayer:
             return False
         except:
             return False
+
+
+class ClientEnrolmentServiceLayer:
+    MINIMUM_ENROLMENT_AGE = 9
+    MAXIMUM_ENROLMENT_AGE = 24
+
+    def __init__(self, user):
+        self.user: User = user
+        self.dt_format = "%Y-%m-%d"
+
+    def is_within_enrolment_dates(self, date_of_birth):
+        date_of_birth = datetime.strptime(str(date_of_birth), '%Y-%m-%d')
+        max_dob = datetime.now().replace(year=datetime.now().year - self.MINIMUM_ENROLMENT_AGE).strftime(self.dt_format)
+        min_dob = datetime.now().replace(year=datetime.now().year - self.MAXIMUM_ENROLMENT_AGE).strftime(self.dt_format)
+        return True if date_of_birth >= datetime.strptime(str(min_dob), '%Y-%m-%d') and date_of_birth <= datetime.strptime(str(max_dob), '%Y-%m-%d') else False

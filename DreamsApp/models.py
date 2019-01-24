@@ -9,12 +9,7 @@ from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.html import format_html
 from DreamsApp.service_layer import TransferServiceLayer
-
-
-DEFAULT_AGE_AT_ENROLMENT = 10
-TRANSFER_INITIATED_STATUS = 1
-TRANSFER_ACCEPTED_STATUS = 2
-TRANSFER_REJECTED_STATUS = 3
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer
 
 
 class MaritalStatus(models.Model):
@@ -254,19 +249,19 @@ class Client(models.Model):
                 status += 'Exited'
 
             client = self
-            if TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TRANSFER_INITIATED_STATUS):
+            if TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TransferServiceLayer.TRANSFER_INITIATED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transfer Initiated'
-            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "destination_implementing_partner", TRANSFER_ACCEPTED_STATUS):
+            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "destination_implementing_partner", TransferServiceLayer.TRANSFER_ACCEPTED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transferred In'
-            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TRANSFER_ACCEPTED_STATUS):
+            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TransferServiceLayer.TRANSFER_ACCEPTED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transferred Out'
-            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TRANSFER_REJECTED_STATUS):
+            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TransferServiceLayer.TRANSFER_REJECTED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transfer Rejected'
@@ -285,20 +280,20 @@ class Client(models.Model):
                 (self.date_of_enrollment.month, self.date_of_enrollment.day) < (
                     self.date_of_birth.month, self.date_of_birth.day))
         except:
-            return DEFAULT_AGE_AT_ENROLMENT
+            return ClientEnrolmentServiceLayer.MINIMUM_AGE_AT_ENROLMENT
 
     def get_current_age(self):
         try:
             return datetime.now().year - self.date_of_birth.year - ((datetime.now().month, datetime.now().day) < (self.date_of_birth.month, self.date_of_birth.day))
         except:
-            return DEFAULT_AGE_AT_ENROLMENT
+            return ClientEnrolmentServiceLayer.MINIMUM_AGE_AT_ENROLMENT
 
     def transferred_in(self, user_ip):
         try:
             client = self
             return TransferServiceLayer.client_transfer_status(self, user_ip, client,
                                                                "destination_implementing_partner",
-                                                               TRANSFER_ACCEPTED_STATUS)
+                                                               TransferServiceLayer.TRANSFER_ACCEPTED_STATUS)
         except:
             return False
 
@@ -306,7 +301,7 @@ class Client(models.Model):
         try:
             client = self
             return TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner",
-                                                               TRANSFER_ACCEPTED_STATUS)
+                                                               TransferServiceLayer.TRANSFER_ACCEPTED_STATUS)
         except:
             return False
 
