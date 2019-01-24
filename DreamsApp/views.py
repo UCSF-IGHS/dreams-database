@@ -631,7 +631,7 @@ def unexit_client(request):
         try:
             client_id = int(str(request.POST.get('client_id', '0')))
             reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
-            date_of_exit = request.POST.get('date_of_unexit', datetime.datetime.now())
+            date_of_exit = request.POST.get('date_of_unexit', datetime.now())
             client = Client.objects.filter(id=client_id).first()
             client.exited = not client.exited
             client.reason_exited = reason_for_exit
@@ -660,7 +660,6 @@ def unexit_client(request):
 
 
 def exit_client(request):
-
     OTHER_CODE = 6
 
     if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
@@ -668,7 +667,7 @@ def exit_client(request):
         try:
             client_id = int(str(request.POST.get('client_id', '0')))
             reason_for_exit = ExitReason.objects.get(id__exact=int(request.POST.get('reason_for_exit', '')))
-            date_of_exit = request.POST.get('date_of_exit', datetime.datetime.now())
+            date_of_exit = request.POST.get('date_of_exit', datetime.now())
             exit_comment = request.POST.get('exitComment')
 
             if reason_for_exit is not None:
@@ -744,6 +743,23 @@ def get_external_organisation(request):
         return HttpResponseServerError(tb)
 
 
+def get_unsuccessful_followup_attempts(request):
+    try:
+        if is_valid_get_request(request):
+            response_data = {}
+            client_id = int(request.GET.get('current_client_id'))
+            client = Client.objects.get(id=client_id)
+            unsuccessful_follow_up_attempts = ClientLTFU.objects.filter(client=client,
+                                                                        result_of_followup=ClientLTFUResultType.objects.filter(name='Lost').first()).all()
+            response_data['unsuccessful_follow_up_attempts'] = len(unsuccessful_follow_up_attempts)
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
 def get_exit_reasons(request):
     try:
         if is_valid_get_request(request):
@@ -761,6 +777,8 @@ def get_exit_reasons(request):
 def is_valid_get_request(request):
     return request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active
 
+def is_valid_post_request(request):
+    return request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active
 
 def get_intervention_types(request):
     try:
