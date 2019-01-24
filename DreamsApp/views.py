@@ -389,10 +389,13 @@ def save_client(request):
                         'can_delete_client': request.user.has_perm('auth.can_delete_client')
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
+
                 client_form = DemographicsForm(request.POST)
 
                 if client_form.is_valid():
-                    if not ClientEnrolmentServiceLayer.is_within_enrolment_dates(client_form.date_of_birth):
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+
+                    if not client_enrolment_service_layer.is_within_enrolment_dates(client_form.cleaned_data['date_of_birth']):
                         response_data = {
                             'status': 'fail',
                             'message': "The client is not within the accepted age range",
@@ -464,7 +467,7 @@ def save_client(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message,
+            'message': str(e),
             'client_id': None,
             'can_manage_client': request.user.has_perm('auth.can_manage_client'),
             'can_change_client': request.user.has_perm('auth.can_change_client'),
@@ -509,10 +512,13 @@ def edit_client(request):
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
 
-                if not ClientEnrolmentServiceLayer.is_within_enrolment_dates(request.POST.get('date_of_birth', dt.now)):
+                client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                date_of_birth = datetime.strptime(request.POST.get('date_of_birth', dt.now), '%Y-%m-%d')
+
+                if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth):
                     response_data = {
                         'status': 'failed',
-                        'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
+                        'message': 'Client is not within accepted date range',
                         'client_id': client.id
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
@@ -706,7 +712,7 @@ def exit_client(request):
         except Exception as e:
             response_data = {
                 'status': 'failed',
-                'message': 'Invalid client Id: ' + e.message
+                'message': 'Invalid client Id: ' + str(e)
             }
             return JsonResponse(response_data, status=500)
     else:
@@ -866,7 +872,7 @@ def save_intervention(request):
                         return JsonResponse(response_data)
                 except Exception as e:
                     """An error has occurred. Throw exception. This will be handled elsewhere"""
-                    raise Exception(e.message)
+                    raise Exception(str(e))
 
                 intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
 
@@ -2210,6 +2216,20 @@ def viewBaselineData(request):
                     is_editable_by_ip = client_found.is_editable_by_ip(ip)
                     client_status = client_found.get_client_status(ip)
 
+                    dt_format = "%Y-%m-%d"
+                    try:
+                        max_dob = datetime.now().replace(
+                            year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
+                        min_dob = datetime.now().replace(
+                            year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
+                    except ValueError:
+                        max_dob = datetime.now().replace(
+                            year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE,
+                            day=datetime.now().day - 1).strftime(dt_format)
+                        min_dob = datetime.now().replace(
+                            year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE,
+                            day=datetime.now().day - 1).strftime(dt_format)
+
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
                                                                          'client': client_found,
@@ -2228,7 +2248,9 @@ def viewBaselineData(request):
                                                                              ip_code=ip_code,
                                                                              initial={'client': client_found}),
                                                                          'is_editable_by_ip': is_editable_by_ip,
-                                                                         'client_status': client_status
+                                                                         'client_status': client_status,
+                                                                         'max_dob': max_dob,
+                                                                         'min_dob': min_dob
                                                                          })
             except Client.DoesNotExist:
                 traceback.format_exc()
@@ -2250,6 +2272,16 @@ def update_demographics_data(request):
             implementing_partner = instance.implementing_partner
             dreams_id = instance.dreams_id
             form = DemographicsForm(request.POST, instance=instance)
+
+            client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+            if not client_enrolment_service_layer.is_within_enrolment_dates(instance.date_of_birth):
+                response_data = {
+                'status': 'fail',
+                'errors': ['Client is not within accepted age range'],
+                'client_age': instance.get_current_age()
+                }
+                return JsonResponse(response_data, status=500)
+
             if form.is_valid():
                 form.instance.implementing_partner = implementing_partner
                 form.instance.county_of_residence = county_of_residence
@@ -2544,7 +2576,7 @@ def transfer_client(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e,
+            'message': str(e),
         }
         return JsonResponse(json.dumps(response_data), safe=False)
 

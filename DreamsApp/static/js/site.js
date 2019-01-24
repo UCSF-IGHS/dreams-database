@@ -709,7 +709,6 @@ $(document).ready(function () {
             showSection(false, '#no_of_sessions_section')
             showSection(false, '#notes_section')
         }
-
     });
 
     function prePopulateInterventionModal(iv, iv_type) {
