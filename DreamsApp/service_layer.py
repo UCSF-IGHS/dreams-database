@@ -102,4 +102,4 @@ class ClientEnrolmentServiceLayer:
         date_of_birth = datetime.strptime(str(date_of_birth), self.dt_format).date()
         max_dob = datetime.now().date() - relativedelta(years=int(self.MINIMUM_ENROLMENT_AGE))
         min_dob = datetime.now().date() - relativedelta(years=int(self.MAXIMUM_ENROLMENT_AGE))
-        return True if date_of_birth >= min_dob and date_of_birth <= max_dob else False
+        return date_of_birth >= min_dob and date_of_birth <= max_dob
