@@ -1,4 +1,5 @@
 
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 from DreamsApp.models import *
 
@@ -98,7 +99,7 @@ class ClientEnrolmentServiceLayer:
         self.dt_format = "%Y-%m-%d"
 
     def is_within_enrolment_dates(self, date_of_birth):
-        date_of_birth = datetime.strptime(str(date_of_birth), '%Y-%m-%d')
-        max_dob = datetime.now().replace(year=datetime.now().year - self.MINIMUM_ENROLMENT_AGE).strftime(self.dt_format)
-        min_dob = datetime.now().replace(year=datetime.now().year - self.MAXIMUM_ENROLMENT_AGE).strftime(self.dt_format)
-        return True if date_of_birth >= datetime.strptime(str(min_dob), '%Y-%m-%d') and date_of_birth <= datetime.strptime(str(max_dob), '%Y-%m-%d') else False
+        date_of_birth = datetime.strptime(str(date_of_birth), self.dt_format).date()
+        max_dob = datetime.now().date() - relativedelta(years=int(self.MINIMUM_ENROLMENT_AGE))
+        min_dob = datetime.now().date() - relativedelta(years=int(self.MAXIMUM_ENROLMENT_AGE))
+        return True if date_of_birth >= min_dob and date_of_birth <= max_dob else False
