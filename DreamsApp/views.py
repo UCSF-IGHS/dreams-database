@@ -326,6 +326,7 @@ def follow_ups(request):
 
                 page = request.GET.get('page', 1)
                 paginator = Paginator(client_follow_ups, 20)
+                follow_up_types = ClientFollowUpType.objects.all()
 
                 try:
                     displayed_follow_ups = paginator.page(page)
@@ -340,7 +341,8 @@ def follow_ups(request):
                                             'client': client,
                                             'user': request.user,
                                             'follow_up_perms': follow_up_perms,
-                                            'follow_ups': displayed_follow_ups
+                                            'follow_ups': displayed_follow_ups,
+                                            'follow_up_types': follow_up_types
                                         })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -805,6 +807,8 @@ def get_exit_reasons(request):
 def is_valid_get_request(request):
     return request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active
 
+def is_valid_post_request(request):
+    return request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active
 
 def get_intervention_types(request):
     try:
@@ -1117,6 +1121,44 @@ def get_intervention(request):
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
+
+
+def add_follow_up(request):
+    try:
+        if is_valid_post_request(request):
+            client_id = int(request.POST['client'], 0)
+            client = Client.objects.get(id=client_id)
+
+            follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
+            follow_up_result_type = request.POST.get('follow_up_result_type')
+            follow_up_date = request.POST.get('follow_up_date')
+            follow_up_comments = request.POST.get('follow_up_comments')
+
+            follow_up = ClientFollowUp()
+            follow_up.client = client
+            follow_up.date_of_followup = follow_up_date
+            follow_up.type_of_followup = follow_up_type
+            follow_up.result_of_followup = follow_up_result_type
+            follow_up.comment = follow_up_comments
+            follow_up.save()
+
+            response_data = {
+                'status': 'success',
+                'message': 'Follow up details added'
+            }
+            return JsonResponse(response_data, status=200)
+
+    except Exception as e:
+        if type(e) is ValidationError:
+            errormsg = '; '.join(ValidationError(e).messages)
+        else:
+            errormsg = str(e)
+
+        response_data = {
+            'status': 'fail',
+            'message': "An error has occurred: " + errormsg
+        }
+        return JsonResponse(response_data)
 
 
 # Updates an intervention

@@ -753,6 +753,42 @@ $(document).ready(function () {
         }
     }
 
+    $('#follow-up-entry-form').submit(function (e) {
+        var followUpType = $('select#follow_up_type').val();
+        var followUpResultType = $('select#follow_up_result_type').val();
+        var followUpDate = $('input#follow_up_date').val();
+        var followUpComments = $('textarea#follow_up_comments').val();
+
+        $('button#btn_save_follow_up').attr('disabled', 'disabled')
+        $('#follow-up-entry-form .processing-indicator').removeClass('hidden');
+
+        if (validateFollowUpForm(followUpType, followUpResultType, followUpDate, followUpComments)) {
+            var csrftoken = getCookie('csrftoken');
+            $.ajax({
+                url: '/addFollowUp',
+                type: "POST",
+                dataType: 'json',
+                data: $('#follow-up-entry-form').serialize(),
+                success: function (data) {
+                    var status = data.status
+                    var message = data.message
+                    var alert_id = '#action_alert_'
+
+                }, error: function (xhr, errmsg, err) {
+
+                }
+            });
+        } else {
+            alert('There was an error with the submitted follow up fields. Please try again.')
+            $('button#btn_save_follow_up').removeAttr("disabled");
+            $('#follow-up-entry-form .processing-indicator').addClass('hidden');
+        }
+        console.log('Follow up type: ' + followUpType + ' follow up result type: ' + followUpResultType
+        + ' Follow up date: ' + followUpDate + ' follow up comments: ' + followUpComments)
+        event.preventDefault();
+        event.stopPropagation();
+    });
+
     $('#intervention-entry-form').submit(function (event) {
         event.preventDefault();
         $('#btn_save_intervention').attr("disabled", "disabled");
@@ -930,6 +966,12 @@ $(document).ready(function () {
             }
         });
     });
+
+    function validateFollowUpForm(followUpType, followUpResultType, followUpDate, followUpComments) {
+        return followUpType != null && followUpResultType != null
+                && followUpDate != null && followUpComments != null
+                && followUpComments.trim() != ''
+    }
 
     function validateClientForm(clientForm) {
         var errors = 0;

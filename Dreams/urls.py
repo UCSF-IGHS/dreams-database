@@ -90,6 +90,7 @@ urlpatterns = [
     url(r'^export-client-transfers/(?P<transferred_in>[0-1])$', views.export_client_transfers,
         name='export_client_transfers'),
     url(r'^download-audit-logs', views.download_audit_logs, name='download_audit_logs'),
+    url(r'^addFollowUp$', views.add_follow_up),
 
     # url(r'^$', views.user_login, name='login'),
     url(r'^', views.error_404, name='error_404'),
