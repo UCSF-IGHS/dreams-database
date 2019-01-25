@@ -786,8 +786,7 @@ $(document).ready(function () {
             $('button#btn_save_follow_up').removeAttr("disabled");
             $('#follow-up-entry-form .processing-indicator').addClass('hidden');
         }
-        console.log('Follow up type: ' + followUpType + ' follow up result type: ' + followUpResultType
-        + ' Follow up date: ' + followUpDate + ' follow up comments: ' + followUpComments)
+
         event.preventDefault();
         event.stopPropagation();
     });
@@ -1453,7 +1452,7 @@ $(document).ready(function () {
     });
 
     function deleteFollowUp(follow_up_id) {
-        console.log('Delete follow up id called...');
+
     }
 
     function toggleUserStatus(ip_user_id, activate, target) {
