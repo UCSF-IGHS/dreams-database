@@ -569,7 +569,7 @@ class Intervention(models.Model):
             if self.external_organisation.name == "Other" and (
                     self.external_organisation_other is None or self.external_organisation_other == ""):
                 validation_errors[
-                    'external_organisation_other'] = 'External organisation other is required if external organisation is Other'
+                    'external_organisation_other'] = 'External organisation should be specified if other is selected.'
 
     def validate_model_intervention_date(self, validation_errors):
         if hasattr(self, "external_organisation") and self.external_organisation is None:
