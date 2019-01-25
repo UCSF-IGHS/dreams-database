@@ -24,12 +24,8 @@ from openpyxl.styles import Font
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
 from DreamsApp.service_layer import *
-
-
-TRANSFER_INITIATED_STATUS = 1
-TRANSFER_ACCEPTED_STATUS = 2
-TRANSFER_REJECTED_STATUS = 3
-TRANSFER_ENDED_STATUS = 4
+from DreamsApp.service_layer import TransferServiceLayer
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer
 
 
 def get_enrollment_form_config_data(request):
@@ -216,7 +212,7 @@ def clients(request):
 
                         transfer_out = ClientTransfer.objects.filter(source_implementing_partner=ip).filter(
                             transfer_status=ClientTransferStatus.objects.get(
-                                                      code__exact=TRANSFER_ACCEPTED_STATUS))
+                                                      code__exact=TransferServiceLayer.TRANSFER_ACCEPTED_STATUS))
 
                         transfer_out_clients = search_result.filter(pk__in=transfer_out.values_list('client'))
 
@@ -268,11 +264,11 @@ def clients(request):
                 cur_date = datetime.now()
                 dt_format = "%Y-%m-%d"
                 try:
-                    max_dob = cur_date.replace(year=cur_date.year - 10).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - 25).strftime(dt_format)
+                    max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
+                    min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
                 except ValueError:
-                    max_dob = cur_date.replace(year=cur_date.year - 10, day=cur_date.day - 1).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - 25, day=cur_date.day - 1).strftime(dt_format)
+                    max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
+                    min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
 
                 response_data = {
                     'page': 'clients',
@@ -439,8 +435,23 @@ def save_client(request):
                         'can_delete_client': request.user.has_perm('auth.can_delete_client')
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
+
                 client_form = DemographicsForm(request.POST)
+
                 if client_form.is_valid():
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+
+                    if not client_enrolment_service_layer.is_within_enrolment_dates(client_form.cleaned_data['date_of_birth']):
+                        response_data = {
+                            'status': 'fail',
+                            'message': "The client is not within the accepted age range",
+                            'client_id': None,
+                            'can_manage_client': request.user.has_perm('auth.can_manage_client'),
+                            'can_change_client': request.user.has_perm('auth.can_change_client'),
+                            'can_delete_client': request.user.has_perm('auth.can_delete_client')
+                        }
+                        return JsonResponse(json.dumps(response_data), safe=False)
+
                     client = client_form.save()
 
                     # Check client dreams_id
@@ -502,7 +513,7 @@ def save_client(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message,
+            'message': str(e),
             'client_id': None,
             'can_manage_client': request.user.has_perm('auth.can_manage_client'),
             'can_change_client': request.user.has_perm('auth.can_change_client'),
@@ -543,6 +554,17 @@ def edit_client(request):
                     response_data = {
                         'status': 'failed',
                         'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
+                        'client_id': client.id
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
+                client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                date_of_birth = datetime.strptime(request.POST.get('date_of_birth', dt.now), '%Y-%m-%d')
+
+                if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth):
+                    response_data = {
+                        'status': 'failed',
+                        'message': 'Client is not within accepted date range',
                         'client_id': client.id
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
@@ -677,7 +699,7 @@ def unexit_client(request):
         try:
             client_id = int(str(request.POST.get('client_id', '0')))
             reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
-            date_of_exit = request.POST.get('date_of_unexit', datetime.datetime.now())
+            date_of_exit = request.POST.get('date_of_unexit', datetime.now())
             client = Client.objects.filter(id=client_id).first()
             client.exited = not client.exited
             client.reason_exited = reason_for_exit
@@ -706,7 +728,6 @@ def unexit_client(request):
 
 
 def exit_client(request):
-
     OTHER_CODE = 6
 
     if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
@@ -714,7 +735,7 @@ def exit_client(request):
         try:
             client_id = int(str(request.POST.get('client_id', '0')))
             reason_for_exit = ExitReason.objects.get(id__exact=int(request.POST.get('reason_for_exit', '')))
-            date_of_exit = request.POST.get('date_of_exit', datetime.datetime.now())
+            date_of_exit = request.POST.get('date_of_exit', datetime.now())
             exit_comment = request.POST.get('exitComment')
 
             if reason_for_exit is not None:
@@ -736,7 +757,7 @@ def exit_client(request):
         except Exception as e:
             response_data = {
                 'status': 'failed',
-                'message': 'Invalid client Id: ' + e.message
+                'message': 'Invalid client Id: ' + str(e)
             }
             return JsonResponse(response_data, status=500)
     else:
@@ -782,6 +803,23 @@ def get_external_organisation(request):
             response_data = {}
             external_orgs = serializers.serialize('json', ExternalOrganisation.objects.all())
             response_data["external_orgs"] = external_orgs
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
+def get_unsuccessful_followup_attempts(request):
+    try:
+        if is_valid_get_request(request):
+            response_data = {}
+            client_id = int(request.GET.get('current_client_id'))
+            client = Client.objects.get(id=client_id)
+            unsuccessful_follow_up_attempts = ClientLTFU.objects.filter(client=client,
+                                                                        result_of_followup=ClientLTFUResultType.objects.filter(name='Lost').first()).all()
+            response_data['unsuccessful_follow_up_attempts'] = len(unsuccessful_follow_up_attempts)
             return JsonResponse(response_data)
         else:
             raise PermissionDenied
@@ -898,7 +936,7 @@ def save_intervention(request):
                         return JsonResponse(response_data)
                 except Exception as e:
                     """An error has occurred. Throw exception. This will be handled elsewhere"""
-                    raise Exception(e.message)
+                    raise Exception(str(e))
 
                 intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
 
@@ -2280,6 +2318,20 @@ def viewBaselineData(request):
                     is_editable_by_ip = client_found.is_editable_by_ip(ip)
                     client_status = client_found.get_client_status(ip)
 
+                    dt_format = "%Y-%m-%d"
+                    try:
+                        max_dob = datetime.now().replace(
+                            year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
+                        min_dob = datetime.now().replace(
+                            year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
+                    except ValueError:
+                        max_dob = datetime.now().replace(
+                            year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE,
+                            day=datetime.now().day - 1).strftime(dt_format)
+                        min_dob = datetime.now().replace(
+                            year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE,
+                            day=datetime.now().day - 1).strftime(dt_format)
+
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
                                                                          'client': client_found,
@@ -2298,7 +2350,9 @@ def viewBaselineData(request):
                                                                              ip_code=ip_code,
                                                                              initial={'client': client_found}),
                                                                          'is_editable_by_ip': is_editable_by_ip,
-                                                                         'client_status': client_status
+                                                                         'client_status': client_status,
+                                                                         'max_dob': max_dob,
+                                                                         'min_dob': min_dob
                                                                          })
             except Client.DoesNotExist:
                 traceback.format_exc()
@@ -2320,6 +2374,16 @@ def update_demographics_data(request):
             implementing_partner = instance.implementing_partner
             dreams_id = instance.dreams_id
             form = DemographicsForm(request.POST, instance=instance)
+
+            client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+            if not client_enrolment_service_layer.is_within_enrolment_dates(instance.date_of_birth):
+                response_data = {
+                'status': 'fail',
+                'errors': ['Client is not within accepted age range'],
+                'client_age': instance.get_current_age()
+                }
+                return JsonResponse(response_data, status=500)
+
             if form.is_valid():
                 form.instance.implementing_partner = implementing_partner
                 form.instance.county_of_residence = county_of_residence
@@ -2577,7 +2641,7 @@ def transfer_client(request):
                 if transfer_form.is_valid():
                     num_of_pending_transfers = ClientTransfer.objects.filter(client=transfer_form.instance.client,
                                                                              transfer_status=ClientTransferStatus.objects.get(
-                                                                                 code__exact=TRANSFER_INITIATED_STATUS)).count()
+                                                                                 code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)).count()
 
                     if num_of_pending_transfers > 0:
                         print ("{} pending transfers for client".format(num_of_pending_transfers))
@@ -2588,7 +2652,7 @@ def transfer_client(request):
                     else:
                         client_transfer = transfer_form.save(commit=False)
 
-                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
+                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)
                         client_transfer.source_implementing_partner = ip
                         client_transfer.initiated_by = request.user
                         client_transfer.start_date = dt.now()
@@ -2614,7 +2678,7 @@ def transfer_client(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e,
+            'message': str(e),
         }
         return JsonResponse(json.dumps(response_data), safe=False)
 
@@ -2678,7 +2742,7 @@ def accept_client_transfer(request):
                         raise PermissionDenied
 
                     if client_transfer is not None:
-                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
+                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_ACCEPTED_STATUS)
 
                         client_transfer.transfer_status = accepted_client_transfer_status
                         client_transfer.completed_by = request.user
@@ -2730,7 +2794,7 @@ def reject_client_transfer(request):
                     if not can_reject_transfer:
                         raise PermissionDenied
 
-                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_REJECTED_STATUS)
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_REJECTED_STATUS)
                     client_transfer.completed_by = request.user
                     client_transfer.end_date = dt.now()
                     client_transfer.save()
@@ -2751,7 +2815,7 @@ def reject_client_transfer(request):
 
 def get_client_transfers_count(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             client_transfers_count = ClientTransfer.objects.filter(
