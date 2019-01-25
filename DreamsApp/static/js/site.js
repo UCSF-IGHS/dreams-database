@@ -1389,6 +1389,10 @@ $(document).ready(function () {
                 confirm_message = 'Are you sure you want to Delete this User? This action cannot be undone.'
                 callback_func = deleteUser
                 break;
+            case "delete_follow_up":
+                confirm_title = "Delete Follow Up"
+                confirm_message = "Are you sure you want to delete this follow up?"
+                callback_func = deleteFollowUp
             default:
                 break;
         }
@@ -1402,6 +1406,10 @@ $(document).ready(function () {
             $(event.target).off('click'); // Works like a charm
         });
     });
+
+    function deleteFollowUp(follow_up_id) {
+        console.log('Delete follow up id called...');
+    }
 
     function toggleUserStatus(ip_user_id, activate, target) {
         // deactivate using ajax

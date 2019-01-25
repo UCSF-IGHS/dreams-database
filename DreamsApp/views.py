@@ -308,31 +308,40 @@ def clients(request):
 
 def follow_ups(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        client_id = request.GET.get('client_id', '') if request.method == 'GET' else request.POST.get(
-            'client_id', '')
-        search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
-            'search_client_term', '')
+        client_id = request.GET.get('client_id', '') if request.method == 'GET' else request.POST.get('client_id', '')
         if client_id is not None and client_id != 0:
             try:
-                ip_code = request.user.implementingpartneruser.implementing_partner.code
-            except Exception as e:
-                ip_code = None
+                try:
+                    client = Client.objects.get(id=client_id)
+                    client_follow_ups = ClientFollowUp.objects.filter(client=client)
+                except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+                    client_follow_ups = ClientFollowUp.objects.all()
 
-            try:
-                client_found = Client.objects.get(id=client_id)
+                follow_up_service_layer = FollowUpsServiceLayer(request.user)
+                follow_up_perms = {
+                    'can_create_follow_up': follow_up_service_layer.can_create_followup(),
+                    'can_delete_follow_up': follow_up_service_layer.can_delete_followup(),
+                    'can_edit_follow_up': follow_up_service_layer.can_edit_followup()
+                }
+
+                page = request.GET.get('page', 1)
+                paginator = Paginator(client_follow_ups, 20)
+
+                try:
+                    displayed_follow_ups = paginator.page(page)
+                except PageNotAnInteger:
+                    displayed_follow_ups = paginator.page(1)
+                except EmptyPage:
+                    displayed_follow_ups = paginator.page(paginator.num_pages)
+
                 return render(request, 'client_follow_ups.html', {
-                                                               'page': 'clients',
-                                                               'page_title': 'DREAMS Client Service Uptake',
-                                                               'client': client_found,
-                                                               'search_client_term': search_client_term,
-                                                               'user': request.user,
-                                                               'transfer_form': ClientTransferForm(ip_code=ip_code,
-                                                                                                   initial={
-                                                                                                       'client':
-                                                                                                           client_found})
-                                                               })
-            except Exception as e:
-                pass
+                                            'page': 'Follow Ups',
+                                            'page_title': 'Client Follow Ups Page',
+                                            'client': client,
+                                            'user': request.user,
+                                            'follow_up_perms': follow_up_perms,
+                                            'follow_ups': displayed_follow_ups
+                                        })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
             except Exception as e:
