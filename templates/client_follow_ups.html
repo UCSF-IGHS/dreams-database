@@ -2,6 +2,10 @@
 
 {% block content %}
 
+    {% include 'includes/client_exit_form.html' %}
+    {% include 'includes/client_unexit_form.html' %}
+    {% include 'includes/client_transfer_form.html' %}
+    {% include 'includes/client_void_form.html' %}
 
     <!-- Beginning add follow up modal-->
     <div class="modal fade" id="follow-up-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -254,7 +258,7 @@
                                    data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
                                    data-toggle="modal" data-target="#client-unexit-modal" title="Exit Client">
                                     <span class="glyphicon glyphicon-log-out"></span> <span
-                                        class="client_status_action_text">Undo Exit Client</span>
+                                        class="client_status_action_text">Undo Client Exit</span>
                                 </p>
                             {% else %}
                                 <p class="underline_hover" id="p_unexit_client" data-client_id='{{ client.id }}'

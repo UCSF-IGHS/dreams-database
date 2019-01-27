@@ -1,6 +1,6 @@
 $(document).ready(function () {
 
-    const MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS = 4, LOST_TO_FOLLOW_UP_CODE = 5, OTHER_CODE = 6;
+    const MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS = 4, LOST_TO_FOLLOW_UP_CODE = 'Lost to follow-up', OTHER_CODE = 'Other';
 
     $('div#other_external_organization').hide();
     $('#external-organization-select').change(function () {
@@ -2052,13 +2052,6 @@ $(document).ready(function () {
         return true;
     }, ' ');
 
-    $.validator.addMethod('checkFollowUpAttempts', function (value) {
-        if (value == LOST_TO_FOLLOW_UP_CODE) {
-            return (followupAttempts >= MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS);
-        }
-        return true;
-    }, 'Client does not have 4 follow up attempts');
-
     $('#grievances-form').validate({
         rules: {
             date: {
@@ -3155,7 +3148,6 @@ $(document).ready(function () {
     $("#form_client_exit").validate({
         rules: { 
             reason_for_exit: {
-                checkFollowUpAttempts: true,
                 required: true
             },
             date_of_exit: {
@@ -3206,15 +3198,21 @@ $(document).ready(function () {
 
     });
 
-
     $('select[name=reason_for_exit]').change(function () {
-        var selectedOption = $(this).find(':selected').val();
-        if(selectedOption == OTHER_CODE) {
+        var selectedOption = $(this).find(':selected').text();
+        if (selectedOption == OTHER_CODE) {
             $('div#reason_for_exit_other_section').removeClass('hidden');
             $('fieldset#ltfu').addClass('hidden');
+        } else if (selectedOption == LOST_TO_FOLLOW_UP_CODE) {
+            if (followupAttempts < MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS) {
+                console.log('error');
+                $('label#reason_for_exit_error').text('Warning: client has less than 4 follow up attempts');
+                $('label#reason_for_exit_error').show();
+            }
         } else {
             $('fieldset#ltfu').addClass('hidden');
             $('div#reason_for_exit_other_section').addClass('hidden');
+            $('label#reason_for_exit_error').hide();
         }
     });
 
