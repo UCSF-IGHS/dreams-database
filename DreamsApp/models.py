@@ -1514,21 +1514,6 @@ class ClientFollowUpType(models.Model):
         verbose_name_plural = 'Follow Up Types'
 
 
-class ClientFollowUp(models.Model):
-    client = models.ForeignKey(Client, null=False, blank=False, related_name='client_follow_up')
-    date_of_followup = models.DateField(blank=False, null=False, verbose_name='Date of Followup')
-    type_of_followup = models.ForeignKey(ClientFollowUpType, null=False, blank=False, related_name='follow_up_type')
-    result_of_followup = models.CharField(blank=False, null=False, max_length=255, verbose_name='Result of Followup')
-    comment = models.CharField(null=True, blank=True, max_length=255, verbose_name='Comment')
-
-    def __str__(self):
-        return '{}'.format(self.client.dreams_id)
-
-    class Meta(object):
-        verbose_name = 'Client Follow Up'
-        verbose_name_plural = 'Client Follow Ups'
-
-
 class ClientLTFUResultTypeManager(models.Manager):
     def get_by_natural_key(self, name):
         return self.get(name=name)
@@ -1549,4 +1534,19 @@ class ClientLTFUResultType(models.Model):
     class Meta(object):
         verbose_name = 'LTFU Result Type'
         verbose_name_plural = 'LTFU Result Types'
+
+
+class ClientFollowUp(models.Model):
+    client = models.ForeignKey(Client, null=False, blank=False, related_name='client_follow_up')
+    date_of_followup = models.DateField(blank=False, null=False, verbose_name='Date of Followup')
+    type_of_followup = models.ForeignKey(ClientFollowUpType, null=False, blank=False, related_name='follow_up_type')
+    result_of_followup = models.ForeignKey(ClientLTFUResultType, null=False, related_name='result_of_followup')
+    comment = models.CharField(null=True, blank=True, max_length=255, verbose_name='Comment')
+
+    def __str__(self):
+        return '{}'.format(self.client.dreams_id)
+
+    class Meta(object):
+        verbose_name = 'Client Follow Up'
+        verbose_name_plural = 'Client Follow Ups'
 

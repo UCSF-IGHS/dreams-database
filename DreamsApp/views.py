@@ -1203,8 +1203,46 @@ def add_follow_up(request):
         return JsonResponse(response_data)
 
 
-# Updates an intervention
-# use /ivUpdate/ to access the method
+def update_follow_up(request):
+    try:
+        if is_valid_post_request(request):
+            follow_up_id = int(request.POST['follow_up_id'])
+            follow_up = ClientFollowUp.objects.get(id=follow_up_id)
+
+            if follow_up is not None:
+                follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
+                follow_up_result_type = ClientLTFUResultType.objects.filter(id__exact=request.POST.get('follow_up_result_type')).first()
+                follow_up_date = request.POST.get('follow_up_date')
+                follow_up_comments = request.POST.get('follow_up_comments')
+
+                follow_up.date_of_followup = follow_up_date
+                follow_up.type_of_followup = follow_up_type
+                follow_up.result_of_followup = follow_up_result_type
+                follow_up.comment = follow_up_comments
+                follow_up.save()
+
+                response_data = {
+                    'status': 'success',
+                    'message': 'Follow up details updated'
+                }
+                return JsonResponse(response_data)
+            else:
+                response_data = {
+                    'status': 'fail',
+                    'message': "Error follow up not found"
+                }
+                return JsonResponse(response_data)
+    except Exception as e:
+        if type(e) is ValidationError:
+            errormsg = '; '.join(ValidationError(e).messages)
+        else:
+            errormsg = str(e)
+
+        response_data = {
+            'status': 'fail',
+            'message': "An error has occurred: " + errormsg
+        }
+        return JsonResponse(response_data)
 
 
 def update_intervention(request):
@@ -1363,6 +1401,7 @@ def delete_follow_up(request):
                        "Please contact the System Administrator if this error persists."
         }
         return JsonResponse(response_data)
+
 
 def delete_intervention(request):
     try:

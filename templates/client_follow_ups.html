@@ -103,6 +103,7 @@
           <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <form id="edit-follow-up-entry-form" method="post" action="#">
+                  <input type="hidden" id="follow_up_id" name="follow_up_id" />
                   <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" id="exampleModalLabel">EDIT FOLLOW UP</h4>
@@ -178,7 +179,7 @@
                   <div class="modal-footer">
 
                       <button id="btn_cancel_follow_up" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
-                      <button id="btn_save_follow_up" type="submit" class="btn btn-sm btn-primary" > Save Follow Up </button>
+                      <button id="btn_edit_follow_up" type="submit" class="btn btn-sm btn-primary" > Edit Follow Up </button>
 
                       <span class="processing-indicator hidden">
                           <br/><br/>
@@ -357,7 +358,7 @@
                                                     style="padding-bottom: 8px;"
                                                     data-toggle="modal"
                                                     data-target="#edit-follow-up-modal"
-                                                    data-id="{{ follow_up.id }}"
+                                                    data-follow_up_id="{{ follow_up.id }}"
                                                     data-follow-up-name="{{ follow_up.type_of_followup }}"
                                                     data-follow-up-result="{{ follow_up.result_of_followup }}"
                                                     data-follow-up-date="{{ follow_up.date_of_followup }}"

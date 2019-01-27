@@ -940,11 +940,13 @@ $(document).ready(function () {
     });
 
     $('button.edit-follow-up').click(function(event) {
+        var follow_up_id = $(this).attr('data-follow_up_id');
         var follow_up_name = $(this).attr('data-follow-up-name');
         var follow_up_result = $(this).attr('data-follow-up-result');
         var follow_up_date = $(this).attr('data-follow-up-date');
         var follow_up_comments = $(this).attr('data-follow-up-comments');
 
+        $('form#edit-follow-up-entry-form input[type=hidden]#follow_up_id').val(follow_up_id);
         $('form#edit-follow-up-entry-form select#follow_up_type option').each(function () {
             if ($(this).val() == follow_up_name) {
                 $(this).prop("selected", true);
@@ -965,6 +967,40 @@ $(document).ready(function () {
     $('button.confirm-follow-up-delete').click(function(event) {
         var follow_up_id = $(this).attr('data-follow_up_id');
        $('input[type=hidden]#follow_up_id').val(follow_up_id);
+    });
+
+    $('#btn_edit_follow_up').click(function (event) {
+        var btn = $(event.target);
+
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url: '/editFollowUp',
+            type: "POST",
+            dataType: 'json',
+            data: $('#edit-follow-up-entry-form').serialize(),
+            success: function (data) {
+                var alert_id = '#action_alert_follow_ups';
+                if (data.status == "success") {
+                    $(alert_id).removeClass('hidden').addClass('alert-success')
+                                .text('Follow Up has been updated successfully!')
+                                .trigger('madeVisible');
+                    window.location.reload();
+                }
+                else {
+                    $(alert_id).removeClass('hidden')
+                        .addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible');
+                }
+                $('#edit-follow-up-modal').modal('hide');
+            }, error: function (xhr, errmsg, err) {
+                $('#action_alert_follow_ups').removeClass('hidden')
+                                                .addClass('alert-danger')
+                                                .text(errmsg)
+                                                .trigger('madeVisible');
+                $('#edit-follow-up-modal').modal('hide');
+            }
+        });
     });
 
     $('#btn_delete_follow_up_confirmation').click(function (event) {
