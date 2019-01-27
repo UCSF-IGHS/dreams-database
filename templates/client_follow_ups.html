@@ -3,8 +3,7 @@
 {% block content %}
 
 
-    <!-- Beginning modal-->
-        <!-- Modal -->
+    <!-- Beginning add follow up modal-->
     <div class="modal fade" id="follow-up-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
          xmlns="http://www.w3.org/1999/html">
           <div class="modal-dialog" role="document">
@@ -41,9 +40,105 @@
                         <div class="form-group" id="result_specify_section">
                             <label for="follow_up_result_type" class="control-label">Result</label>
                             <select id="follow_up_result_type" name="follow_up_result_type" class="form-control validate-follow-up-form-field" >
-                                <!-- TO DO -->
-                                <option>Lost</option>
-                                <option>Found</option>
+                                {% if follow_up_result_types %}
+                                    {% for follow_up_result_type in follow_up_result_types %}
+                                        <option value="{{ follow_up_result_type.id }}">{{ follow_up_result_type.name }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+
+                      <div class="form-group has-feedback date" id="follow_up_date_section">
+                          <label for="follow_up_date" class="control-label">Date</label>
+                          <input type="text" class="form-control validate-follow-up-form-field" id="follow_up_date" placeholder="Select date " style="cursor: pointer;">
+                          <span class="add-on"><i class="icon-th"></i></span></p>
+                          <input type="text" class="form-control validate-follow-up-form-field hidden" id="follow_up_date" name="follow_up_date"/>
+                          <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                          <script>
+                              $(function () {
+                                  var localToday = new Date();
+                                  $("input#follow_up_date").datepicker({
+                                      minDate: (new Date(2015, 10, 1)),
+                                      maxDate: "+0Y +0M +0D",
+                                      dateFormat: 'yy-mm-dd',
+                                      changeMonth: true,
+                                      changeYear: true,
+                                      defaultDate: localToday
+                                  });
+                                  $("input#follow_up_date").datepicker("setDate", localToday);
+                              });
+
+                          </script>
+                      </div>
+
+                       <div class="form-group" id="comment_section">
+                           <label for="follow_up_comments" class="control-label">Comments</label>
+                           <textarea class="form-control validate-follow-up-form-field" id="follow_up_comments" name="follow_up_comments"></textarea>
+                        </div>
+
+                        <div class="form-group" id="notes_section">
+                            <span id="error-space" class="label error-space" style="color: red;"></span>
+                        </div>
+                         Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
+                  </div>
+                  <div class="modal-footer">
+
+                      <button id="btn_cancel_follow_up" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
+                      <button id="btn_save_follow_up" type="submit" class="btn btn-sm btn-primary" > Save Follow Up </button>
+
+                      <span class="processing-indicator hidden">
+                          <br/><br/>
+                          <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving follow up... </span>
+                      </span>
+                  </div>
+                </form>
+            </div>
+          </div>
+    </div>
+    <!-- End modal-->
+
+    <!-- Beginning edit follow up modal-->
+    <div class="modal fade" id="edit-follow-up-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="edit-follow-up-entry-form" method="post" action="#">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel">EDIT FOLLOW UP</h4>
+                        <h5>For: {{ client.get_full_name }}</h5>
+                  </div>
+                  <div class="modal-body">
+
+                        {% csrf_token %}
+                        <!-- Permanently hidden Fields -->
+
+                        <input class="hidden validate-follow-up-form-field" name="client" value="{{ client.id }}"/>
+                        <input class="hidden validate-follow-up-form-field" name="created_by" value="{{ user.id }}"/>
+                        <input class="hidden validate-follow-up-form-field" name="changed_by" id="changed_by" value="{{ user.id }}"/>
+
+                        <!-- End of Permanently hidden fields -->
+
+                        <div class="form-group">
+                          <label for="follow_up_type">Follow Up Type</label>
+                          <select id="follow_up_type" name="follow_up_type" class="form-control validate-follow-up-form-field" >
+                              {% if follow_up_types %}
+                                {% for follow_up_type in follow_up_types %}
+                                    <option value="{{ follow_up_type.id }}">{{ follow_up_type.name }}</option>
+                                {% endfor %}
+                              {% endif %}
+
+                          </select>
+                        </div>
+
+                        <div class="form-group" id="result_specify_section">
+                            <label for="follow_up_result_type" class="control-label">Result</label>
+                            <select id="follow_up_result_type" name="follow_up_result_type" class="form-control validate-follow-up-form-field">
+                                {% if follow_up_result_types %}
+                                    {% for follow_up_result_type in follow_up_result_types %}
+                                        <option value="{{ follow_up_result_type.id }}">{{ follow_up_result_type.name }}</option>
+                                    {% endfor %}
+                                {% endif %}
                             </select>
                         </div>
 
@@ -108,7 +203,7 @@
           <div class="modal-body">
               <form method="POST" action="#" id="follow_up_delete_form">
                   {% csrf_token %}
-                  <p>Are you sure you want to delete this Follow Up entry? Changes cannot be undone.</p>
+                  <p>Are you sure you want to delete this follow up entry? Changes cannot be undone.</p>
                   <input type="hidden" name="follow_up_delete_id" id="follow_up_delete_id" value=""/>
               </form>
           </div>
@@ -253,13 +348,14 @@
                                 <td>{{ follow_up.type_of_followup.name }}</td>
                                 <td>{{ follow_up.date_of_followup }}</td>
                                 <td>{{ follow_up.result_of_followup }}</td>
-                                <td>{{ follow_up.comment | slice:":10" }}</td>
+                                <td>{{ follow_up.comment | slice:":30" }}</td>
                                 <td>
                                     {% if perms.DreamsApp.can_edit_followup %}
-                                         <a id="edit-{{ follow_up.id }}" name="edit-follow-up-modal"
+                                         <button id="edit-follow-up" name="edit-follow-up"
                                                     class='glyphicon glyphicon-ok badge btn btn-success user-action'
                                                     arial-label='Arial-Hidden'
-                                                    style="padding-bottom: 8px;" data-toggle="modal"
+                                                    style="padding-bottom: 8px;"
+                                                    data-toggle="modal"
                                                     data-target="#edit-follow-up-modal"
                                                     data-id="{{ follow_up.id }}"
                                                     data-follow-up-name="{{ follow_up.type_of_followup }}"
@@ -267,18 +363,20 @@
                                                     data-follow-up-date="{{ follow_up.date_of_followup }}"
                                                     data-follow-up-comments="{{ follow_up.comment }}">
                                                     Edit
-                                                </a> &nbsp;&nbsp;
+                                                </button> &nbsp;&nbsp;
                                     {% endif %}
                                     {% if perms.DreamsApp.can_delete_followup %}
-                                        <a id="delete-{{ follow_up.id }}" name="delete-follow-up-modal"
+                                        <button id="confirm-follow-up-delete" name="confirm-follow-up-delete"
                                                     class='glyphicon glyphicon-ok badge btn btn-success user-action'
                                                     arial-label='Arial-Hidden'
-                                                    style="padding-bottom: 8px;" data-toggle="modal"
+                                                    style="padding-bottom: 8px;"
+                                                    data-toggle="modal"
+                                                    data-target="#confirm-follow-up-delete-modal"
                                                     data-user_action="delete_follow_up"
                                                     data-follow_up_id="{{ follow_up.id }}"
                                                     data-confirm-follow-up-delete="Are you sure that you want to delete this follow up?">
                                                     Delete
-                                                    </a> &nbsp;&nbsp;
+                                                    </button> &nbsp;&nbsp;
                                     {% endif %}
                                 </td>
                             </tr>

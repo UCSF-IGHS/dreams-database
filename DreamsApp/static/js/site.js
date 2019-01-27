@@ -939,6 +939,31 @@ $(document).ready(function () {
         }, 1000);
     });
 
+    $('button#edit-follow-up').click(function(event) {
+        var follow_up_name = $(this).attr('data-follow-up-name');
+        var follow_up_result = $(this).attr('data-follow-up-result');
+        var follow_up_date = $(this).attr('data-follow-up-date');
+        var follow_up_comments = $(this).attr('data-follow-up-comments');
+
+        $('form#edit-follow-up-entry-form select#follow_up_type option').each(function () {
+            console.log('Val: ' + $(this).text());
+            if ($(this).val() == follow_up_name) {
+                $(this).prop("selected", true);
+            }
+        });
+
+        $('form#edit-follow-up-entry-form select#follow_up_result_type option').each(function () {
+            console.log('Valw: ' + $(this).val());
+            if ($(this).val() == follow_up_result) {
+                $(this).prop("selected", true);
+            }
+        });
+
+        $('form#edit-follow-up-entry-form textarea#follow_up_date').text(follow_up_date);
+        $('form#edit-follow-up-entry-form textarea#follow_up_comments').text(follow_up_comments);
+        $('#edit-follow-up-modal').show();
+    });
+
     $('#btn_delete_intervention_confirmation').click(function (event) {
         var btn = $(event.target);
         // do an ajax post delete

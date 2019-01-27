@@ -320,6 +320,7 @@ def follow_ups(request):
                 page = request.GET.get('page', 1)
                 paginator = Paginator(client_follow_ups, 20)
                 follow_up_types = ClientFollowUpType.objects.all()
+                follow_up_result_types = ClientLTFUResultType.objects.all()
 
                 try:
                     displayed_follow_ups = paginator.page(page)
@@ -335,7 +336,8 @@ def follow_ups(request):
                     'user': request.user,
                     'follow_up_perms': follow_up_perms,
                     'follow_ups': displayed_follow_ups,
-                    'follow_up_types': follow_up_types
+                    'follow_up_types': follow_up_types,
+                    'follow_up_result_types': follow_up_result_types
                 })
             except Client.DoesNotExist:
                 response_data = {
