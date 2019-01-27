@@ -1071,7 +1071,7 @@ def save_intervention(request):
 
         response_data = {
             'status': 'fail',
-            'message': "An error has occurred: " + errormsg
+            'message': errormsg
         }
         return JsonResponse(response_data)
 
