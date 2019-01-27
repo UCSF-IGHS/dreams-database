@@ -367,7 +367,7 @@ $(document).ready(function () {
 
     var followupAttempts = 0;
     function fetchFollowUpAttempts() {
-        var currentClientId = $('#baseline_current_client_id').val();
+        var currentClientId = $('#current_client_id').val();
         $.ajax({
             url: "/getUnsuccessfulFollowUpAttempts",
             type: "GET",
@@ -982,7 +982,7 @@ $(document).ready(function () {
                 var alert_id = '#action_alert_follow_ups';
                 if (data.status == "success") {
                     $(alert_id).removeClass('hidden').addClass('alert-success')
-                                .text('Follow Up has been updated successfully!')
+                                .text('Follow Up has been deleted successfully!')
                                 .trigger('madeVisible');
                     window.location.reload();
                 }
@@ -992,13 +992,13 @@ $(document).ready(function () {
                         .text(data.message)
                         .trigger('madeVisible');
                 }
-                $('#edit-follow-up-modal').modal('hide');
+                $('#confirm-follow-up-delete-modal').modal('hide');
             }, error: function (xhr, errmsg, err) {
                 $('#action_alert_follow_ups').removeClass('hidden')
                                                 .addClass('alert-danger')
                                                 .text(errmsg)
                                                 .trigger('madeVisible');
-                $('#edit-follow-up-modal').modal('hide');
+                $('#confirm-follow-up-delete-modal').modal('hide');
             }
         });
     });
@@ -3234,7 +3234,7 @@ $(document).ready(function () {
         if(reasonForUndoneExit == '' || dateOfUndoneExit == '')
             return
 
-        var client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
+        var client_id = $('#current_client_id').val();
         if (typeof client_id == undefined || isNaN(client_id) || client_id == ''){
             return;
         }
@@ -3298,7 +3298,7 @@ $(document).ready(function () {
         if (reasonForExit == '' || dateOfExit == '')
             return
 
-        var client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
+        var client_id = $('#current_client_id').val();
         if (typeof client_id == undefined || isNaN(client_id) || client_id == '') {
             return;
         }

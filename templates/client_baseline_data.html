@@ -165,7 +165,7 @@
                      data-tabpanel_id="#participation_in_program">
                     {% include 'client_programme_participation_form.html' %}
                 </div>
-                <input id="baseline_current_client_id" class="hidden" type="text" value="{{ client.id }}">
+                <input id="current_client_id" class="hidden" type="text" value="{{ client.id }}">
             </div>
         </div>
 
@@ -191,7 +191,7 @@
                         return false;   // return, form is not valid
                     // enable disabled fields
                     var form = $('#form_demographics');
-                    $('#demo_current_client_id').val($('#baseline_current_client_id').val());
+                    $('#demo_current_client_id').val($('#current_client_id').val());
 
                     $.ajax({
                         type: "POST",
