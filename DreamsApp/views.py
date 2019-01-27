@@ -822,7 +822,7 @@ def get_unsuccessful_followup_attempts(request):
             client_id = int(request.GET.get('current_client_id'))
             client = Client.objects.get(id=client_id)
             unsuccessful_follow_up_attempts = ClientFollowUp.objects.filter(client=client,
-                                                                        result_of_followup=ClientLTFUResultType.objects.filter(name='Lost').first()).all()
+                                                                            result_of_followup=ClientLTFUResultType.objects.filter(name='Lost').first()).all()
             response_data['unsuccessful_follow_up_attempts'] = len(unsuccessful_follow_up_attempts)
             return JsonResponse(response_data)
         else:
