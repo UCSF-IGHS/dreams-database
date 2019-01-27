@@ -939,21 +939,19 @@ $(document).ready(function () {
         }, 1000);
     });
 
-    $('button#edit-follow-up').click(function(event) {
+    $('button.edit-follow-up').click(function(event) {
         var follow_up_name = $(this).attr('data-follow-up-name');
         var follow_up_result = $(this).attr('data-follow-up-result');
         var follow_up_date = $(this).attr('data-follow-up-date');
         var follow_up_comments = $(this).attr('data-follow-up-comments');
 
         $('form#edit-follow-up-entry-form select#follow_up_type option').each(function () {
-            console.log('Val: ' + $(this).text());
             if ($(this).val() == follow_up_name) {
                 $(this).prop("selected", true);
             }
         });
 
         $('form#edit-follow-up-entry-form select#follow_up_result_type option').each(function () {
-            console.log('Valw: ' + $(this).val());
             if ($(this).val() == follow_up_result) {
                 $(this).prop("selected", true);
             }
@@ -962,6 +960,50 @@ $(document).ready(function () {
         $('form#edit-follow-up-entry-form textarea#follow_up_date').text(follow_up_date);
         $('form#edit-follow-up-entry-form textarea#follow_up_comments').text(follow_up_comments);
         $('#edit-follow-up-modal').show();
+    });
+
+    $('button.confirm-follow-up-delete').click(function(event) {
+        var follow_up_id = $(this).attr('data-follow_up_id');
+       $('input[type=hidden]#follow_up_id').val(follow_up_id);
+    });
+
+    $('#btn_delete_follow_up_confirmation').click(function (event) {
+        var btn = $(event.target);
+
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url: '/deleteFollowUp',
+            type: "POST",
+            dataType: 'json',
+            data: $('#follow_up_delete_form').serialize(),
+            success: function (data) {
+                var alert_id = '#action_alert_follow_ups';
+                if (data.status == "success") {
+                    $('tr#follow_up_' + data.follow_up_id).remove();
+                    $(alert_id).removeClass('hidden').addClass('alert-success')
+                                .text('Follow Up has been deleted successfully!')
+                                .trigger('madeVisible');
+                    var tbody_id = '#follow_ups_table_tbody';
+                    if ($(tbody_id + ' tr').length < 1) {
+                        var col_span = $('#follow_ups_table' + ' thead tr')[0].cells.length;
+                        $(tbody_id).append("<tr class='zero_message_row'><td colspan='" + col_span + "' style='text-align: center'>No client follow ups.</td></tr>");
+                    }
+                }
+                else {
+                    $(alert_id).removeClass('hidden')
+                        .addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible');
+                }
+                $('#confirm-follow-up-delete-modal').modal('hide');
+            }, error: function (xhr, errmsg, err) {
+                $('#action_alert_follow_ups').removeClass('hidden')
+                                                .addClass('alert-danger')
+                                                .text(errmsg)
+                                                .trigger('madeVisible');
+                $('#confirm-follow-up-delete-modal').modal('hide');
+            }
+        });
     });
 
     $('#btn_delete_intervention_confirmation').click(function (event) {

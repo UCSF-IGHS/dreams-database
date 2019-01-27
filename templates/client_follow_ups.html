@@ -204,7 +204,7 @@
               <form method="POST" action="#" id="follow_up_delete_form">
                   {% csrf_token %}
                   <p>Are you sure you want to delete this follow up entry? Changes cannot be undone.</p>
-                  <input type="hidden" name="follow_up_delete_id" id="follow_up_delete_id" value=""/>
+                  <input type="hidden" name="follow_up_id" id="follow_up_id" value=""/>
               </form>
           </div>
           <div class="modal-footer">
@@ -297,7 +297,7 @@
         {% endfor %}
     {% endif %}
 
-    <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert"></div>
+    <div class="alert hidden dp-action-alert" id="action_alert_follow_ups" role="alert"></div>
     <!-- End of Client profile section -->
 
     <div class="dreams-profile-tab-control" id="dreams-profile-tab-control">
@@ -308,8 +308,8 @@
                 <th>
                     <div class="form-group" style="margin-right: 5px;">
                         <input id="filter_1001" type="text" class="form-control filter"
-                               data-target_tbody="#follow_ups_1001_tbody" data-follow_up_category_code="1001"
-                               data-tab_follow_up_table_id="#follow_ups_1001_table"
+                               data-target_tbody="#follow_ups_table_tbody" data-follow_up_category_code="1001"
+                               data-tab_follow_up_table_id="#follow_ups_table"
                                placeholder="Type to search...">
                     </div>
                 </th>
@@ -329,7 +329,7 @@
 
         <div class="panel panel-default" id="follow-up-table-container">
             <div class="panel-body" style="margin: 0px;padding: 0px;">
-                <table class="table table-striped " id="follow_ups_1001_table" data-cols="4">
+                <table class="table table-striped " id="follow_ups_table" data-cols="4">
                     <thead class="dp-table-head-black">
                     <tr>
                         <th>Follow Up Type</th>
@@ -341,18 +341,18 @@
                         {% endif %}
                     </tr>
                     </thead>
-                    <tbody class="searchable" id="follow_ups_1001_tbody">
+                    <tbody class="searchable" id="follow_ups_table_tbody">
                     {% if follow_ups %}
                         {% for follow_up in follow_ups %}
-                            <tr>
+                            <tr id="follow_up_{{ follow_up.id }}">
                                 <td>{{ follow_up.type_of_followup.name }}</td>
                                 <td>{{ follow_up.date_of_followup }}</td>
                                 <td>{{ follow_up.result_of_followup }}</td>
                                 <td>{{ follow_up.comment | slice:":30" }}</td>
                                 <td>
                                     {% if perms.DreamsApp.can_edit_followup %}
-                                         <button id="edit-follow-up" name="edit-follow-up"
-                                                    class='glyphicon glyphicon-ok badge btn btn-success user-action'
+                                         <button name="edit-follow-up"
+                                                    class='glyphicon glyphicon-ok badge btn btn-success user-action edit-follow-up'
                                                     arial-label='Arial-Hidden'
                                                     style="padding-bottom: 8px;"
                                                     data-toggle="modal"
@@ -366,8 +366,8 @@
                                                 </button> &nbsp;&nbsp;
                                     {% endif %}
                                     {% if perms.DreamsApp.can_delete_followup %}
-                                        <button id="confirm-follow-up-delete" name="confirm-follow-up-delete"
-                                                    class='glyphicon glyphicon-ok badge btn btn-success user-action'
+                                        <button name="confirm-follow-up-delete"
+                                                    class='glyphicon glyphicon-ok badge btn btn-success user-action confirm-follow-up-delete'
                                                     arial-label='Arial-Hidden'
                                                     style="padding-bottom: 8px;"
                                                     data-toggle="modal"
@@ -383,7 +383,7 @@
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="5"> No client follow ups.</td>
+                            <td colspan="5" style="text-align: center"> No client follow ups.</td>
                         </tr>
                     {% endif %}
 

@@ -42,6 +42,7 @@ urlpatterns = [
     url(r'^ivGet$', views.get_intervention),
     url(r'^ivUpdate$', views.update_intervention),
     url(r'^ivDelete$', views.delete_intervention),
+    url(r'^deleteFollowUp$', views.delete_follow_up),
     url(r'^intervention$', views.testajax),
     url(r'^getSubCounties$', views.get_sub_counties),
     url(r'^getWards$', views.get_wards),

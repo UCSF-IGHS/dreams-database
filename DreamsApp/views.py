@@ -1172,7 +1172,7 @@ def add_follow_up(request):
             client = Client.objects.get(id=client_id)
 
             follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
-            follow_up_result_type = request.POST.get('follow_up_result_type')
+            follow_up_result_type = ClientLTFUResultType.objects.filter(id__exact=request.POST.get('follow_up_result_type')).first()
             follow_up_date = request.POST.get('follow_up_date')
             follow_up_comments = request.POST.get('follow_up_comments')
 
@@ -1330,6 +1330,39 @@ def update_intervention(request):
         }
         return JsonResponse(response_data)
 
+
+def delete_follow_up(request):
+    try:
+        if is_valid_post_request(request):
+            follow_up_id = int(request.POST.get('follow_up_id'))
+
+            if follow_up_id is not None and type(follow_up_id) is int:
+                follow_up = ClientFollowUp.objects.filter(pk=follow_up_id).first()
+
+                if follow_up is not None:
+                    ClientFollowUp.objects.filter(pk=follow_up_id).delete()
+                    log_custom_actions(request.user.id, "DreamsApp_clientfollowup", follow_up_id, "DELETE", None)
+
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Follow up has been successfully deleted',
+                        'follow_up_id': follow_up_id
+                    }
+                    return JsonResponse(response_data)
+                else:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Follow up not found'
+                    }
+                    return JsonResponse(response_data)
+
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': "An error occurred while processing request. "
+                       "Please contact the System Administrator if this error persists."
+        }
+        return JsonResponse(response_data)
 
 def delete_intervention(request):
     try:
