@@ -773,14 +773,23 @@ $(document).ready(function () {
                 dataType: 'json',
                 data: $('#follow-up-entry-form').serialize(),
                 success: function (data) {
-                    console.log('Data: ' + data);
                     var status = data.status;
                     var message = data.message;
-                    alert(message);
-                    if (status == '200')
+                    if (status == 'success') {
+                        $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-success')
+                            .text(message)
+                            .trigger('madeVisible');
                         window.location.reload()
+                    } else {
+                        $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(message)
+                        .trigger('madeVisible');
+                        $("#follow-up-modal").modal('hide');
+                    }
                 }, error: function (xhr, errmsg, err) { 
-                    alert(errmsg);
+                    $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-danger')
+                        .text('An error occurred while processing client details. Contact system administratior if this persists')
+                        .trigger('madeVisible');
                 }
             });
         } else {
