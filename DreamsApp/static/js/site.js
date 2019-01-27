@@ -773,12 +773,14 @@ $(document).ready(function () {
                 dataType: 'json',
                 data: $('#follow-up-entry-form').serialize(),
                 success: function (data) {
-                    var status = data.status
-                    var message = data.message
-                    var alert_id = '#action_alert_'
-
-                }, error: function (xhr, errmsg, err) {
-
+                    console.log('Data: ' + data);
+                    var status = data.status;
+                    var message = data.message;
+                    alert(message);
+                    if (status == '200')
+                        window.location.reload()
+                }, error: function (xhr, errmsg, err) { 
+                    alert(errmsg);
                 }
             });
         } else {

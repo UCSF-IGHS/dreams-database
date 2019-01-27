@@ -307,11 +307,8 @@ def follow_ups(request):
         client_id = request.GET.get('client_id', '') if request.method == 'GET' else request.POST.get('client_id', '')
         if client_id is not None and client_id != 0:
             try:
-                try:
-                    client = Client.objects.get(id=client_id)
-                    client_follow_ups = ClientFollowUp.objects.filter(client=client)
-                except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-                    client_follow_ups = ClientFollowUp.objects.all()
+                client = Client.objects.get(id=client_id)
+                client_follow_ups = ClientFollowUp.objects.filter(client=client)
 
                 follow_up_service_layer = FollowUpsServiceLayer(request.user)
                 follow_up_perms = {
@@ -332,16 +329,21 @@ def follow_ups(request):
                     displayed_follow_ups = paginator.page(paginator.num_pages)
 
                 return render(request, 'client_follow_ups.html', {
-                                            'page': 'Follow Ups',
-                                            'page_title': 'Client Follow Ups Page',
-                                            'client': client,
-                                            'user': request.user,
-                                            'follow_up_perms': follow_up_perms,
-                                            'follow_ups': displayed_follow_ups,
-                                            'follow_up_types': follow_up_types
-                                        })
+                    'page': 'Follow Ups',
+                    'page_title': 'Client Follow Ups Page',
+                    'client': client,
+                    'user': request.user,
+                    'follow_up_perms': follow_up_perms,
+                    'follow_ups': displayed_follow_ups,
+                    'follow_up_types': follow_up_types
+                })
             except Client.DoesNotExist:
-                return render(request, 'login.html')
+                response_data = {
+                    'status': 'failed',
+                    'message': 'Operation not allowed. Client does not exist',
+                    'client_id': client.id
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
             except Exception as e:
                 return render(request, 'login.html')
     else:
