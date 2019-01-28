@@ -55,6 +55,32 @@
                                 </ul>
                             </li>
                         {% endif %}
+                        {% if perms.DreamsApp.can_add_referral %}
+                            <li class="dropdown {% if page == 'referrals' %}active{% endif %}">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                                   aria-haspopup="true" aria-expanded="false">
+                                    <span>Referrals</span>
+                                    <span id="client-referrals-count-span" class="badge btn btn-danger"
+                                                  style="vertical-align: baseline; display: none;"
+                                                  data-count-url="{% url 'get_client_referrals_count' %}"></span>
+                                    <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="" href="{% url 'client_referrals' referred_in=1 %}" style="">
+                                            <span>Referral In</span>
+                                            <span class="client-referrals-count-span badge btn btn-default"
+                                                  style="vertical-align: baseline; display: none;color: #000;"></span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="" href="{% url 'client_referrals' referred_in=0 %}" style="">
+                                            <span>Referral Out</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        {% endif %}
 
                         {% if perms.DreamsApp.can_manage_audit %}
                             <li class="{% if page == 'logs' %}active{% endif %}"><a href="/logs">Logs </a></li>

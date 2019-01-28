@@ -26,6 +26,7 @@ from DreamsApp.forms import *
 from DreamsApp.service_layer import *
 from DreamsApp.service_layer import TransferServiceLayer
 from DreamsApp.service_layer import ClientEnrolmentServiceLayer
+from DreamsApp.service_layer import ReferralServiceLayer
 
 
 def get_enrollment_form_config_data(request):
@@ -2633,6 +2634,40 @@ def client_transfers(request, *args, **kwargs):
         return redirect('login')
 
 
+def client_referrals(request, *args, **kwargs):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        referred_in = bool(int(kwargs.pop('referred_in', 1)))
+
+        refer_perm = ReferralServiceLayer(request.user)
+        can_accept_or_reject = refer_perm.can_accept_or_reject_referral()
+
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            if referred_in:
+                c_referrals = Referral.objects.filter(receiving_ip=ip).order_by('-date_created', 'referral_status')
+            else:
+                c_referrals = Referral.objects.filter(referring_ip=ip).order_by('-date_created', 'referral_status')
+
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            c_referrals = Referral.objects.all()
+
+        page = request.GET.get('page', 1)
+        paginator = Paginator(c_referrals, 20)
+
+        try:
+            referrals = paginator.page(page)
+        except PageNotAnInteger:
+            referrals = paginator.page(1)
+        except EmptyPage:
+            referrals = paginator.page(paginator.num_pages)
+
+        return render(request, "client_referrals.html",
+                      {'client_referrals': referrals, 'can_accept_or_reject': can_accept_or_reject,
+                       'referred_in': referred_in, 'page': 'referrals'})
+    else:
+        return redirect('login')
+
+
 def accept_client_transfer(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
@@ -2748,6 +2783,25 @@ def get_client_transfers_count(request):
         return HttpResponse(0)
 
 
+def get_client_referrals_count(request):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        initiated_referral_status = ReferralStatus.objects.get(code__exact=ReferralServiceLayer.REFERRAL_PENDING_STATUS)
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            client_referral_count = Referral.objects.filter(
+                destination_implementing_partner=ip,
+                referral_status=initiated_referral_status).count()
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            client_referral_count = Referral.objects.filter(
+                referral_status=initiated_referral_status).count()
+        except Exception:
+            client_referral_count = 0
+
+        return HttpResponse(client_referral_count)
+    else:
+        return HttpResponse(0)
+
+
 def intervention_export_transferred_in_page(request):
     if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_export_raw_data'):
@@ -2848,6 +2902,56 @@ def export_client_transfers(request, *args, **kwargs):
 
         wb.save(response)
         return response
+    else:
+        return redirect('login')
+
+
+def export_client_referrals(request, *args, **kwargs):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+
+        # transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
+        # columns = ("client__dreams_id", "source_implementing_partner__name",
+        #            "destination_implementing_partner__name", "transfer_reason", "transfer_status__name",)
+        #
+        # try:
+        #     ip = request.user.implementingpartneruser.implementing_partner
+        #     if transferred_in:
+        #         c_transfers = ClientTransfer.objects.values_list(*columns).filter(destination_implementing_partner=ip)
+        #     else:
+        #         c_transfers = ClientTransfer.objects.values_list(*columns).filter(source_implementing_partner=ip)
+        # except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+        #     c_transfers = ClientTransfer.objects.values_list(*columns)
+        #
+        # header = ['Dreams ID', 'Source Implementing Partner', 'Destination Implementing Partner', 'Transfer Reason',
+        #           'Status']
+        #
+        # wb = Workbook()
+        # ws = wb.active
+        # ws.append(header)
+        #
+        # for c_transfer in c_transfers:
+        #     ws.append(c_transfer)
+        #
+        # dims = {}
+        # for row in ws.rows:
+        #     for cell in row:
+        #         if cell.value:
+        #             dims[cell.column] = max(dims.get(cell.column, 0), len(str(cell.value)))
+        #
+        # for col, value in dims.items():
+        #     ws.column_dimensions[col].width = value
+        #
+        # ft = Font(bold=True)
+        # for cell in ws["1:1"]:
+        #     cell.font = ft
+        #
+        # file_name = "Client_Transfers_{}.xlsx".format("In" if transferred_in else "Out")
+        # response = HttpResponse(content_type='application/ms-excel')
+        # response['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
+        #
+        # wb.save(response)
+        # return response
+        return None
     else:
         return redirect('login')
 

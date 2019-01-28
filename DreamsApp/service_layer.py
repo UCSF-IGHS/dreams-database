@@ -103,3 +103,19 @@ class ClientEnrolmentServiceLayer:
         max_dob = datetime.now().date() - relativedelta(years=int(self.MINIMUM_ENROLMENT_AGE))
         min_dob = datetime.now().date() - relativedelta(years=int(self.MAXIMUM_ENROLMENT_AGE))
         return date_of_birth >= min_dob and date_of_birth <= max_dob
+
+
+class ReferralServiceLayer:
+    REFERRAL_PENDING_STATUS = 1
+    REFERRAL_COMPLETED_STATUS = 2
+    REFERRAL_REJECTED_STATUS = 3
+    REFERRAL_EXPIRED_STATUS = 4
+
+    def __init__(self, user):
+        self.user = user
+
+    def can_accept_or_reject_referral(self):
+        if self.user is not None:
+            return self.user.is_superuser or self.user.has_perm('DreamsApp.change_referral')
+        else:
+            return False
