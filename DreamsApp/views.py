@@ -2909,48 +2909,6 @@ def export_client_transfers(request, *args, **kwargs):
 def export_client_referrals(request, *args, **kwargs):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
 
-        # transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
-        # columns = ("client__dreams_id", "source_implementing_partner__name",
-        #            "destination_implementing_partner__name", "transfer_reason", "transfer_status__name",)
-        #
-        # try:
-        #     ip = request.user.implementingpartneruser.implementing_partner
-        #     if transferred_in:
-        #         c_transfers = ClientTransfer.objects.values_list(*columns).filter(destination_implementing_partner=ip)
-        #     else:
-        #         c_transfers = ClientTransfer.objects.values_list(*columns).filter(source_implementing_partner=ip)
-        # except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-        #     c_transfers = ClientTransfer.objects.values_list(*columns)
-        #
-        # header = ['Dreams ID', 'Source Implementing Partner', 'Destination Implementing Partner', 'Transfer Reason',
-        #           'Status']
-        #
-        # wb = Workbook()
-        # ws = wb.active
-        # ws.append(header)
-        #
-        # for c_transfer in c_transfers:
-        #     ws.append(c_transfer)
-        #
-        # dims = {}
-        # for row in ws.rows:
-        #     for cell in row:
-        #         if cell.value:
-        #             dims[cell.column] = max(dims.get(cell.column, 0), len(str(cell.value)))
-        #
-        # for col, value in dims.items():
-        #     ws.column_dimensions[col].width = value
-        #
-        # ft = Font(bold=True)
-        # for cell in ws["1:1"]:
-        #     cell.font = ft
-        #
-        # file_name = "Client_Transfers_{}.xlsx".format("In" if transferred_in else "Out")
-        # response = HttpResponse(content_type='application/ms-excel')
-        # response['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
-        #
-        # wb.save(response)
-        # return response
         return None
     else:
         return redirect('login')
