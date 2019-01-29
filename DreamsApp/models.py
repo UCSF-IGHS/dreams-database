@@ -189,7 +189,7 @@ class Client(models.Model):
     verification_document_other = models.CharField(max_length=50, verbose_name="Verification Document(Other)", blank=True, null=True)
     verification_doc_no = models.CharField(verbose_name='Verification Doc No', max_length=50, null=True, blank=True)
     date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True, blank=True)
-    age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=10, null=True, blank=True)
+    age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=MINIMUM_ENROLMENT_AGE, null=True, blank=True)
     marital_status = models.ForeignKey(MaritalStatus, verbose_name='Marital Status', null=True, blank=True)
 
     implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True, verbose_name='Implementing Partner')  # New
@@ -1360,7 +1360,7 @@ class InterventionTypeAlternative(models.Model):
 class ServicePackage(models.Model):
     name = models.CharField(verbose_name='Name', max_length=200, blank=False, null=False, default='')
     description = models.CharField(verbose_name='Description', max_length=250, blank=True, null=True, default='')
-    lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', default=10,
+    lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', default=MINIMUM_ENROLMENT_AGE,
                                                   validators=[MinValueValidator(MINIMUM_ENROLMENT_AGE), MaxValueValidator(MAXIMUM_ENROLMENT_AGE)])
     upper_age_limit = models.PositiveIntegerField(verbose_name= 'Upper age limit', default=MAXIMUM_ENROLMENT_AGE,
                                                   validators=[MinValueValidator(MINIMUM_ENROLMENT_AGE), MaxValueValidator(MAXIMUM_ENROLMENT_AGE)])
