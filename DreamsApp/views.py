@@ -261,14 +261,17 @@ def clients(request):
                 sub_counties = SubCounty.objects.filter(county_id=int(county_filter))
                 ward_filter = search_result_tuple[4] if search_result_tuple[4] != '' else '0'
                 wards = Ward.objects.filter(sub_county_id=int(sub_county_filter))
-                cur_date = datetime.now()
-                dt_format = "%Y-%m-%d"
-                try:
-                    max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
-                except ValueError:
-                    max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
+
+                #try:
+                client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+                max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
+                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
+                    #max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
+                    #min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
+                # except ValueError:
+                #     max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
+                #     min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
 
                 response_data = {
                     'page': 'clients',
@@ -2234,19 +2237,25 @@ def viewBaselineData(request):
                     is_editable_by_ip = client_found.is_editable_by_ip(ip)
                     client_status = client_found.get_client_status(ip)
 
-                    dt_format = "%Y-%m-%d"
-                    try:
-                        max_dob = datetime.now().replace(
-                            year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
-                        min_dob = datetime.now().replace(
-                            year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
-                    except ValueError:
-                        max_dob = datetime.now().replace(
-                            year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE,
-                            day=datetime.now().day - 1).strftime(dt_format)
-                        min_dob = datetime.now().replace(
-                            year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE,
-                            day=datetime.now().day - 1).strftime(dt_format)
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                    minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+                    max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
+                    min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
+
+                    # dt_format = "%Y-%m-%d"
+                    # try:
+                    #     max_dob = datetime.now().replace(
+                    #         year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
+                    #     min_dob = datetime.now().replace(
+                    #         year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
+                    # except ValueError:
+                    #     max_dob = datetime.now().replace(
+                    #         year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE,
+                    #         day=datetime.now().day - 1).strftime(dt_format)
+                    #     min_dob = datetime.now().replace(
+                    #         year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE,
+                    #         day=datetime.now().day - 1).strftime(dt_format)
 
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',

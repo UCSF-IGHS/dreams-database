@@ -91,15 +91,34 @@ class TransferServiceLayer:
 
 
 class ClientEnrolmentServiceLayer:
-    MINIMUM_ENROLMENT_AGE = 9
-    MAXIMUM_ENROLMENT_AGE = 24
+    parameters = ConfigurableParameter.objects.all()
+
+    ENROLMENT_CUTOFF_DATE = parameters.get(name='ENROLMENT_CUTOFF_DATE')
+    OLD_MINIMUM_ENROLMENT_AGE = parameters.get(name='OLD_MINIMUM_ENROLMENT_AGE')
+    NEW_MINIMUM_ENROLMENT_AGE = parameters.get(name='NEW_MINIMUM_ENROLMENT_AGE')
+    OLD_MAXIMUM_ENROLMENT_AGE = parameters.get(name='OLD_MAXIMUM_ENROLMENT_AGE')
+    NEW_MAXIMUM_ENROLMENT_AGE = parameters.get(name='NEW_MAXIMUM_ENROLMENT_AGE')
+
+    # ENROLMENT_CUTOFF_DATE = '2018-10-01'
+    # OLD_MINIMUM_ENROLMENT_AGE = 10
+    # NEW_MINIMUM_ENROLMENT_AGE = 9
+    # OLD_MAXIMUM_ENROLMENT_AGE = 24
+    # NEW_MAXIMUM_ENROLMENT_AGE = 24
 
     def __init__(self, user):
         self.user: User = user
         self.dt_format = "%Y-%m-%d"
 
+    def get_minimum_maximum_enrolment_age(self, enrolment_cutoff_date):
+        if datetime.now().date() >= datetime.strptime(str(enrolment_cutoff_date), self.dt_format).date():
+            return [self.NEW_MINIMUM_ENROLMENT_AGE, self.NEW_MAXIMUM_ENROLMENT_AGE]
+        else:
+            return [self.OLD_MINIMUM_ENROLMENT_AGE, self.OLD_MAXIMUM_ENROLMENT_AGE]
+
     def is_within_enrolment_dates(self, date_of_birth):
         date_of_birth = datetime.strptime(str(date_of_birth), self.dt_format).date()
-        max_dob = datetime.now().date() - relativedelta(years=int(self.MINIMUM_ENROLMENT_AGE))
-        min_dob = datetime.now().date() - relativedelta(years=int(self.MAXIMUM_ENROLMENT_AGE))
+        enrolment_cutoff_age = self.get_minimum_maximum_enrolment_age(self.ENROLMENT_CUTOFF_DATE)
+
+        max_dob = datetime.now().date() - relativedelta(years=int(enrolment_cutoff_age[0]))
+        min_dob = datetime.now().date() - relativedelta(years=int(enrolment_cutoff_age[1]))
         return date_of_birth >= min_dob and date_of_birth <= max_dob

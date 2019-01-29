@@ -12,6 +12,10 @@ from DreamsApp.service_layer import TransferServiceLayer
 from DreamsApp.service_layer import ClientEnrolmentServiceLayer
 
 
+MINIMUM_ENROLMENT_AGE = 9
+MAXIMUM_ENROLMENT_AGE = 24
+
+
 class MaritalStatus(models.Model):
     code = models.CharField(verbose_name='Marital Status Code', max_length=10, null=False, blank=False)
     name = models.CharField(max_length=100, null=False)
@@ -1357,9 +1361,9 @@ class ServicePackage(models.Model):
     name = models.CharField(verbose_name='Name', max_length=200, blank=False, null=False, default='')
     description = models.CharField(verbose_name='Description', max_length=250, blank=True, null=True, default='')
     lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', default=10,
-                                                  validators=[MinValueValidator(10), MaxValueValidator(24)])
-    upper_age_limit = models.PositiveIntegerField(verbose_name= 'Upper age limit', default=24,
-                                                  validators=[MinValueValidator(10), MaxValueValidator(24)])
+                                                  validators=[MinValueValidator(MINIMUM_ENROLMENT_AGE), MaxValueValidator(MAXIMUM_ENROLMENT_AGE)])
+    upper_age_limit = models.PositiveIntegerField(verbose_name= 'Upper age limit', default=MAXIMUM_ENROLMENT_AGE,
+                                                  validators=[MinValueValidator(MINIMUM_ENROLMENT_AGE), MaxValueValidator(MAXIMUM_ENROLMENT_AGE)])
     age_group = models.CharField(verbose_name='Age group', max_length=5, blank=True, null=True, default='-')
     intervention_type_alternatives = models.ManyToManyField(InterventionTypeAlternative,
                                                             verbose_name='Service package intervention types',
@@ -1417,14 +1421,12 @@ class InterventionPackage(models.Model):
 
 
 class InterventionTypePackage(models.Model):
-    MIN_AGE = 10
-    MAX_AGE = 24
     intervention_package = models.ForeignKey(InterventionPackage, null=False, blank=False)
     intervention_type = models.ForeignKey(InterventionType, null=False, blank=False)
     lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', blank=False, null=False,
-                                                  validators=[MinValueValidator(MIN_AGE), MaxValueValidator(MAX_AGE)])
+                                                  validators=[MinValueValidator(MINIMUM_ENROLMENT_AGE), MaxValueValidator(MAXIMUM_ENROLMENT_AGE)])
     upper_age_limit = models.PositiveIntegerField(verbose_name='Upper age limit', blank=False, null=False,
-                                                  validators=[MinValueValidator(MIN_AGE), MaxValueValidator(MAX_AGE)])
+                                                  validators=[MinValueValidator(MINIMUM_ENROLMENT_AGE), MaxValueValidator(MAXIMUM_ENROLMENT_AGE)])
 
     def __str__(self):
         return '{} is a member of {} package for age band {} to {}'.format(self.intervention_type.name,
@@ -1549,3 +1551,16 @@ class ClientLTFU(models.Model):
     class Meta(object):
         verbose_name = 'Client LTFU'
         verbose_name_plural = 'Client LTFUs'
+
+
+class ConfigurableParameter(models.Model):
+    code = models.IntegerField(verbose_name='Parameter Code', blank=True, null=True, unique=True)
+    name = models.CharField(verbose_name='Parameter Name', max_length=50, blank=False, null=False, unique=True)
+    value = models.CharField(verbose_name='Parameter Name', max_length=255, blank=False, null=False)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta:
+        verbose_name_plural = 'Configurable Parameters'
+        verbose_name = 'Configurable Parameter'
