@@ -2280,6 +2280,7 @@ def update_demographics_data(request):
             form = DemographicsForm(request.POST, instance=instance)
 
             client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+
             if not client_enrolment_service_layer.is_within_enrolment_dates(instance.date_of_birth):
                 response_data = {
                 'status': 'fail',

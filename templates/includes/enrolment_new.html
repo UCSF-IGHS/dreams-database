@@ -49,8 +49,8 @@
                                     <script>
                                         $(function () {
                                             $("#id_date_of_birth").datepicker({
-                                                minDate: ('{{ min_dob }}'),
-                                                maxDate: ('{{ max_dob }}'),
+                                                minDate: (new Date('{{ min_dob }}')),
+                                                maxDate: (new Date('{{ max_dob }}')),
                                                 dateFormat: 'yy-mm-dd',
                                                 changeMonth: true,
                                                 changeYear: true
