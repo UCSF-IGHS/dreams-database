@@ -2022,7 +2022,7 @@ def export_page(request):
                     if sub_grantees.exists():
                         ips = ips.union(sub_grantees)
 
-            context = {'page': 'export', 'page_title': 'DREAMS Data Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Client Raw Enrolment Export', 'ips': ips,
                        'counties': County.objects.all()}
 
             return render(request, 'dataExport.html', context)
@@ -2051,7 +2051,7 @@ def intervention_export_page(request):
                     if sub_grantees.exists():
                         ips = ips.union(sub_grantees)
 
-            context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Client Interventions Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'interventionDataExport.html', context)
         except ImplementingPartnerUser.DoesNotExist:
@@ -2133,7 +2133,7 @@ def individual_service_layering_export_page(request):
                     if sub_grantees.exists():
                         ips = ips.union(sub_grantees)
 
-            context = {'page': 'export', 'page_title': 'Service Layering Report Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Service Layering Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'individualServiceLayeringDataExport.html', context)
 
@@ -2762,7 +2762,7 @@ def intervention_export_transferred_in_page(request):
             if ips.count() > 0:
                 ips = ips.union(ImplementingPartner.objects.filter(parent_implementing_partner__in=ips))
 
-            context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Interventions Transferred In Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'interventionDataExportTransferredIn.html', context)
 
