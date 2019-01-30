@@ -23,9 +23,8 @@ from openpyxl.styles import Font
 
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
-from DreamsApp.service_layer import *
-from DreamsApp.service_layer import TransferServiceLayer
-from DreamsApp.service_layer import ClientEnrolmentServiceLayer
+from dateutil.relativedelta import relativedelta
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer
 
 
 def get_enrollment_form_config_data(request):
@@ -212,7 +211,7 @@ def clients(request):
 
                         transfer_out = ClientTransfer.objects.filter(source_implementing_partner=ip).filter(
                             transfer_status=ClientTransferStatus.objects.get(
-                                                      code__exact=TransferServiceLayer.TRANSFER_ACCEPTED_STATUS))
+                                                      code__exact=TRANSFER_ACCEPTED_STATUS))
 
                         transfer_out_clients = search_result.filter(pk__in=transfer_out.values_list('client'))
 
@@ -262,16 +261,10 @@ def clients(request):
                 ward_filter = search_result_tuple[4] if search_result_tuple[4] != '' else '0'
                 wards = Ward.objects.filter(sub_county_id=int(sub_county_filter))
 
-                #try:
                 client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
                 minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
-                max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
-                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
-                    #max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
-                    #min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
-                # except ValueError:
-                #     max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
-                #     min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
+                max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
+                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
 
                 response_data = {
                     'page': 'clients',
@@ -2240,22 +2233,8 @@ def viewBaselineData(request):
                     client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
                     minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                         client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
-                    max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
-                    min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
-
-                    # dt_format = "%Y-%m-%d"
-                    # try:
-                    #     max_dob = datetime.now().replace(
-                    #         year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
-                    #     min_dob = datetime.now().replace(
-                    #         year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
-                    # except ValueError:
-                    #     max_dob = datetime.now().replace(
-                    #         year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE,
-                    #         day=datetime.now().day - 1).strftime(dt_format)
-                    #     min_dob = datetime.now().replace(
-                    #         year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE,
-                    #         day=datetime.now().day - 1).strftime(dt_format)
+                    max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
+                    min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
 
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
@@ -2566,7 +2545,7 @@ def transfer_client(request):
                 if transfer_form.is_valid():
                     num_of_pending_transfers = ClientTransfer.objects.filter(client=transfer_form.instance.client,
                                                                              transfer_status=ClientTransferStatus.objects.get(
-                                                                                 code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)).count()
+                                                                                 code__exact=TRANSFER_INITIATED_STATUS)).count()
 
                     if num_of_pending_transfers > 0:
                         print ("{} pending transfers for client".format(num_of_pending_transfers))
@@ -2577,7 +2556,7 @@ def transfer_client(request):
                     else:
                         client_transfer = transfer_form.save(commit=False)
 
-                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)
+                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
                         client_transfer.source_implementing_partner = ip
                         client_transfer.initiated_by = request.user
                         client_transfer.start_date = dt.now()
@@ -2667,7 +2646,7 @@ def accept_client_transfer(request):
                         raise PermissionDenied
 
                     if client_transfer is not None:
-                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_ACCEPTED_STATUS)
+                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
 
                         client_transfer.transfer_status = accepted_client_transfer_status
                         client_transfer.completed_by = request.user
@@ -2719,7 +2698,7 @@ def reject_client_transfer(request):
                     if not can_reject_transfer:
                         raise PermissionDenied
 
-                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_REJECTED_STATUS)
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_REJECTED_STATUS)
                     client_transfer.completed_by = request.user
                     client_transfer.end_date = dt.now()
                     client_transfer.save()
@@ -2740,7 +2719,7 @@ def reject_client_transfer(request):
 
 def get_client_transfers_count(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             client_transfers_count = ClientTransfer.objects.filter(

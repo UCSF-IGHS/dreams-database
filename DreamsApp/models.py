@@ -7,13 +7,10 @@ from django.contrib.auth.models import User
 from datetime import datetime
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from DreamsApp.constants import *
 from django.utils.html import format_html
-from DreamsApp.service_layer import TransferServiceLayer
-from DreamsApp.service_layer import ClientEnrolmentServiceLayer
-
-
-MINIMUM_ENROLMENT_AGE = 9
-MAXIMUM_ENROLMENT_AGE = 24
+# from DreamsApp.service_layer import TransferServiceLayer
+# from DreamsApp.service_layer import ClientEnrolmentServiceLayer
 
 
 class MaritalStatus(models.Model):
@@ -252,20 +249,19 @@ class Client(models.Model):
                     status += ' & '
                 status += 'Exited'
 
-            client = self
-            if TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TransferServiceLayer.TRANSFER_INITIATED_STATUS):
+            if self.client_transfer_status(user_ip, self, "source_implementing_partner", TRANSFER_INITIATED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transfer Initiated'
-            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "destination_implementing_partner", TransferServiceLayer.TRANSFER_ACCEPTED_STATUS):
+            elif self.client_transfer_status(user_ip, self, "destination_implementing_partner", TRANSFER_ACCEPTED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transferred In'
-            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TransferServiceLayer.TRANSFER_ACCEPTED_STATUS):
+            elif self.client_transfer_status(user_ip, self, "source_implementing_partner", TRANSFER_ACCEPTED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transferred Out'
-            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TransferServiceLayer.TRANSFER_REJECTED_STATUS):
+            elif self.client_transfer_status(user_ip, self, "source_implementing_partner", TRANSFER_REJECTED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transfer Rejected'
@@ -281,31 +277,32 @@ class Client(models.Model):
     def get_age_at_enrollment(self):
         try:
             return self.date_of_enrollment.year - self.date_of_birth.year - (
-                (self.date_of_enrollment.month, self.date_of_enrollment.day) < (
-                    self.date_of_birth.month, self.date_of_birth.day))
+                    (self.date_of_enrollment.month, self.date_of_enrollment.day) < (
+                self.date_of_birth.month, self.date_of_birth.day))
         except:
-            return ClientEnrolmentServiceLayer.MINIMUM_AGE_AT_ENROLMENT
+            return MINIMUM_ENROLMENT_AGE
 
     def get_current_age(self):
         try:
-            return datetime.now().year - self.date_of_birth.year - ((datetime.now().month, datetime.now().day) < (self.date_of_birth.month, self.date_of_birth.day))
+            return datetime.now().year - self.date_of_birth.year - (
+                        (datetime.now().month, datetime.now().day) < (self.date_of_birth.month, self.date_of_birth.day))
         except:
-            return ClientEnrolmentServiceLayer.MINIMUM_AGE_AT_ENROLMENT
+            return MINIMUM_ENROLMENT_AGE
 
     def transferred_in(self, user_ip):
         try:
             client = self
-            return TransferServiceLayer.client_transfer_status(self, user_ip, client,
-                                                               "destination_implementing_partner",
-                                                               TransferServiceLayer.TRANSFER_ACCEPTED_STATUS)
+            return self.client_transfer_status(user_ip, client,
+                                               "destination_implementing_partner",
+                                               TRANSFER_ACCEPTED_STATUS)
         except:
             return False
 
     def transferred_out(self, user_ip):
         try:
             client = self
-            return TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner",
-                                                               TransferServiceLayer.TRANSFER_ACCEPTED_STATUS)
+            return self.client_transfer_status(user_ip, client, "source_implementing_partner",
+                                               TRANSFER_ACCEPTED_STATUS)
         except:
             return False
 
@@ -336,6 +333,22 @@ class Client(models.Model):
             else:
                 can_add_intervention = True
             return can_add_intervention
+        except:
+            return False
+
+    def client_transfer_status(self, user_ip, client, implementing_partner_query, transfer_status):
+        try:
+            clients_transferred = client.clienttransfer_set.filter(client_id=client.pk).order_by('-id')
+            if clients_transferred.exists():
+                client_transfer_found = clients_transferred.first()
+
+                if implementing_partner_query == "source_implementing_partner":
+                    return client_transfer_found.transfer_status.pk == transfer_status if client_transfer_found.source_implementing_partner == user_ip else False
+
+                elif implementing_partner_query == "destination_implementing_partner":
+                    return client_transfer_found.transfer_status.pk == transfer_status if client_transfer_found.destination_implementing_partner == user_ip else False
+
+            return False
         except:
             return False
 
