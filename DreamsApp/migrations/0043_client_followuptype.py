@@ -11,5 +11,5 @@ class Migration(migrations.Migration):
         call_command("loaddata", "client_followup_type.json")
 
     dependencies = [
-        ('DreamsApp', '0042_auto_20190129_1330'),
+        ('DreamsApp', '0042_auto_20190201_1039'),
     ]
