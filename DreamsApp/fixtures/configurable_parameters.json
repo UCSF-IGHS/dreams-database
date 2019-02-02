@@ -1,0 +1,42 @@
+[
+  {
+    "model": "DreamsApp.configurableparameter",
+    "fields" : {
+      "code": 1,
+      "name": "ENROLMENT_CUTOFF_DATE",
+      "value": "2018-10-1"
+    }
+  },
+  {
+    "model": "DreamsApp.configurableparameter",
+    "fields" : {
+     "code": 2,
+      "name": "OLD_MINIMUM_ENROLMENT_AGE",
+      "value": "10"
+    }
+  },
+  {
+    "model": "DreamsApp.configurableparameter",
+    "fields" : {
+     "code": 3,
+      "name": "NEW_MINIMUM_ENROLMENT_AGE",
+      "value": "9"
+    }
+  },
+  {
+    "model": "DreamsApp.configurableparameter",
+    "fields" : {
+     "code": 4,
+      "name": "OLD_MAXIMUM_ENROLMENT_AGE",
+      "value": "24"
+    }
+  },
+  {
+    "model": "DreamsApp.configurableparameter",
+    "fields" : {
+     "code": 5,
+      "name": "NEW_MAXIMUM_ENROLMENT_AGE",
+      "value": "24"
+    }
+  }
+]

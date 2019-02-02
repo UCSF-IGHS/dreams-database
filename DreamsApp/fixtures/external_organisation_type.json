@@ -1,0 +1,26 @@
+[
+  {
+    "model": "DreamsApp.externalorganisationtype",
+    "fields" : {
+      "name": "Facility"
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisationtype",
+    "fields" : {
+      "name": "OVC Partner"
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisationtype",
+    "fields" : {
+      "name": "Police Station"
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisationtype",
+    "fields" : {
+      "name": "Other"
+    }
+  }
+]

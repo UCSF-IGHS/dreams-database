@@ -1,9 +1,8 @@
-# coding=utf-8
+
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 from DreamsApp.forms import *
-
-from models import *
+from DreamsApp.models import *
 # Register your models here.
 from django.forms import CheckboxSelectMultiple
 from django.core.urlresolvers import reverse
@@ -72,7 +71,6 @@ admin.site.register(PeriodResponse)
 admin.site.register(CategoricalResponse)
 admin.site.register(AgeBracket)
 admin.site.register(InterventionPackage)
-
 admin.site.register(ClientIndividualAndHouseholdData) # verified
 admin.site.register(ClientEducationAndEmploymentData)
 admin.site.register(ClientHIVTestingData)
@@ -81,6 +79,7 @@ admin.site.register(ClientReproductiveHealthData)
 admin.site.register(ClientGenderBasedViolenceData)
 admin.site.register(ClientDrugUseData)
 admin.site.register(ClientParticipationInDreams)
+admin.site.register(ConfigurableParameter)
 
 
 class AuditAdmin(admin.ModelAdmin):

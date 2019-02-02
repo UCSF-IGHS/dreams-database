@@ -1,0 +1,42 @@
+[
+  {
+    "model": "DreamsApp.interventioncategory",
+    "pk": 1,
+    "fields" : {
+      "code": 1001,
+      "name": "BBEHAVIOURAL"
+    }
+  },
+  {
+    "model": "DreamsApp.interventioncategory",
+    "pk": 2,
+    "fields" : {
+      "code": 2001,
+      "name": "BIO-MEDICAL"
+    }
+  },
+  {
+    "model": "DreamsApp.interventioncategory",
+    "pk": 3,
+    "fields" : {
+      "code": 3001,
+      "name": "POST-GBV CARE"
+    }
+  },
+  {
+    "model": "DreamsApp.interventioncategory",
+    "pk": 4,
+    "fields" : {
+      "code": 4001,
+      "name": "SOCIAL PROTECTION"
+    }
+  },
+  {
+    "model": "DreamsApp.interventioncategory",
+    "pk": 5,
+    "fields" : {
+      "code": 5001,
+      "name": "OTHER INTERVENTIONS"
+    }
+  }
+]

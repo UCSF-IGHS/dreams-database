@@ -1,7 +1,6 @@
 [
   {
     "model": "DreamsApp.clienttransferstatus",
-    "pk": 1,
     "fields" : {
       "code": 1,
       "name": "Initiated"
@@ -9,7 +8,6 @@
   },
   {
     "model": "DreamsApp.clienttransferstatus",
-    "pk": 2,
     "fields" : {
       "code": 2,
       "name": "Accepted"
@@ -17,21 +15,9 @@
   },
   {
     "model": "DreamsApp.clienttransferstatus",
-    "pk": 3,
     "fields" : {
       "code": 3,
       "name": "Rejected"
     }
-  },
-  {
-    "model": "DreamsApp.clienttransferstatus",
-    "pk": 4,
-    "fields" : {
-      "code": 4,
-      "name": "Ended"
-    }
   }
 ]
-
-
-

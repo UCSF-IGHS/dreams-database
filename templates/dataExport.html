@@ -1,109 +1,17 @@
 {% extends 'base.html' %}
+{% load staticfiles %}
+
 {% block pageJs %}
-
-
-    <script type="text/javascript">
-        $(document).ready(function(){
-            $('#btn_download_enrollment_excel').click(function(){
-                var frm = $('#frm_download-excel')
-                var ips = $('#i_p').val();
-                if(ips == null || ips.length == 0){
-                    $('#ip_selection_alert').removeClass('hidden').addClass('alert-danger')
-                        .text("Please select Implementing Partner to Export Data")
-                        .trigger('madeVisible')
-                    return;
-                }
-                frm.submit();
-            });
-        });
-
-        function getCookie(name) {
-           var cookieValue = null;
-           if (document.cookie && document.cookie != '') {
-             var cookies = document.cookie.split(';');
-             for (var i = 0; i < cookies.length; i++) {
-             var cookie = jQuery.trim(cookies[i]);
-             // Does this cookie string begin with the name we want?
-             if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                 break;
-              }
-         }
-     }
-     return cookieValue;
-    }
-
-        function getInterventionUsingId() {
-
-            var csrftoken = getCookie('csrftoken');
-            var iv_id = $('#iv_id').val();
-
-            $.ajax({
-                url : "/ivGet/", // the endpoint
-                type : "POST", // http method
-                dataType: 'json',
-                data : {
-                    csrfmiddlewaretoken : csrftoken,
-                    intervention_id : iv_id
-                },
-                success : function(data) {
-                    alert(data);
-                    console.log(data);
-
-                },
-
-                // handle a non-successful response
-                error : function(xhr,errmsg,err) {
-                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-                }
-            });
-        }
-
-        function download_excel() {
-             var i_frame = document.getElementById('download_excel');
-             var csrftoken = getCookie('csrftoken');
-             var ips = $('#i_p').val();
-             var sub_county = $('#id_sub_county').val();
-             var ward = $('#id_ward').val();
-            $.ajax({
-                url : "/download-excel/", // the endpoint
-                type : "POST", // http method
-                dataType: 'json',
-                data : {
-                    csrfmiddlewaretoken : csrftoken,
-                    ips : ips,
-                    sub_county: sub_county,
-                    ward: ward
-                },
-                success : function(data) {
-                    alert(data);
-
-
-                },
-
-                // handle a non-successful response
-                error : function(xhr,errmsg,err) {
-                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-                }
-            });
-             //i_frame.src = "/download-excel/";
-        }
-
-    </script>
-
+    <script src="{% static 'js/raw_export.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-
     <div class="wrapper-container">
         <div class="statusBox"  style="">
             <div>
-                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
-                <h6>Raw Data Export &nbsp;</h6>
+                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
+                    {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+                <h6>{{ page_title }}&nbsp;</h6>
             </div>
             <div class="floatRightLinks">
                 <div class="rightItem">
@@ -121,7 +29,7 @@
         <div class=" alert hidden dp-action-alert fade in" id="ip_selection_alert" role="alert" style="margin-bottom: 10px;"></div>
 
         <div class="fit-item report-export-form-div">
-            <form id="frm_download-excel" method="post" class="" action="/download-excel/" target="_blank">
+            <form id="frm_download-report" method="post" class="" action="/download-enrollment-report/" target="_blank">
                 {% csrf_token %}
                 <div class="form-group">
                     <label>Select Implementing Partner</label>
@@ -132,45 +40,40 @@
                     </select>
                 </div>
 
+                <div class="form-group">
+                    <label for="county_of_residence">County</label>
+                    <select id="id_county_of_residence" name="county_of_residence" class="form-control clear_value">
+                        <option value="">Select County</option>
+                        {% for county in counties %}
+                            <option data-county_of_residence_id="{{ county.id }}" value="{{ county.id }}">{{ county.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            <div class="form-group">
-                            <label for="county_of_residence">County</label>
-                            <select id="id_county_of_residence" name="county_of_residence" class="form-control clear_value">
-                                <option value="">Select County</option>
-                                {% for county in counties %}
-                                    <option data-county_of_residence_id="{{ county.id }}" value="{{ county.id }}">{{ county.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                 <div class="form-group">
+                    <label for="sub_county">Sub-County</label>
+                    <select id="id_sub_county" name="sub_county" class="form-control clear_value" >
+                        <option value="">Select Sub-County</option>
+                        {% for sub_county in sub_counties %}
+                            <option value="{{ sub_county.id }}" data-sub_county_id="{{ sub_county.id }}" data-county_id="{{ sub_county.county.id }}">{{ sub_county.name }}</option>
+                        {% endfor %}
+                    </select>
+                 </div>
 
-                         <div class="form-group">
-                            <label for="sub_county">Sub-County</label>
-                            <select id="id_sub_county" name="sub_county" class="form-control clear_value" >
-                                <option value="">Select Sub-County</option>
-                                {% for sub_county in sub_counties %}
-                                <option value="{{ sub_county.id }}" data-sub_county_id="{{ sub_county.id }}" data-county_id="{{ sub_county.county.id }}">{{ sub_county.name }}</option>
-                                {% endfor %}
-                            </select>
-                         </div>
-
-                         <div class="form-group">
-                            <label for="ward">Ward</label>
-                            <select id="id_ward" name="ward" class="form-control clear_value" >
-                                <option value="">Select Ward</option>
-                                {% for ward in wards %}
-                                <option value="{{ ward.code }}">{{ ward.name }}</option>
-                                {% endfor %}
-
-                            </select>
-                         </div>
-
+                 <div class="form-group">
+                    <label for="ward">Ward</label>
+                    <select id="id_ward" name="ward" class="form-control clear_value" >
+                        <option value="">Select Ward</option>
+                        {% for ward in wards %}
+                            <option value="{{ ward.code }}">{{ ward.name }}</option>
+                        {% endfor %}
+                    </select>
+                 </div>
 
                 <div class="form-group">
-                    <input class="btn btn-sm btn-primary" type="button" id="btn_download_enrollment_excel" value="Download EXCEL">
+                    <input class="btn btn-sm btn-primary" type="button" id="btn_download_report" value="Download Report">
                 </div>
             </form>
         </div>
-
     </div>
-
 {% endblock %}

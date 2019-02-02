@@ -1,0 +1,62 @@
+[
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 1,
+    "fields" : {
+      "name": "Mwendo OVC",
+      "type": [
+        "OVC Partner"
+      ],
+      "code": "MWENDO-OVC",
+      "allow_specific": false
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 2,
+    "fields" : {
+     "name": "Case OVC",
+      "type": [
+        "OVC Partner"
+      ],
+      "code": "CASE-OVC",
+      "allow_specific": false
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 3,
+    "fields" : {
+     "name": "Nilinde (Plan International)",
+      "type": [
+        "OVC Partner"
+      ],
+      "code": "NILINDE-OVC",
+      "allow_specific": false
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 4,
+    "fields" : {
+     "name": "Other",
+      "type": [
+        "Other"
+      ],
+      "code": "OTHER",
+      "allow_specific": false
+    }
+  },
+  {
+    "model": "DreamsApp.externalorganisation",
+    "pk": 5,
+    "fields" : {
+     "name": "Ministry of Health (MoH)",
+      "type": [
+        "Facility"
+      ],
+      "code": "MoH-FACILITY",
+      "allow_specific": false
+    }
+  }
+]

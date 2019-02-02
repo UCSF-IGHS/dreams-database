@@ -1,0 +1,33 @@
+[
+  {
+    "model": "DreamsApp.implementingpartner",
+    "pk": 1,
+    "fields" : {
+      "code": 1,
+      "name": "Afya Jijini",
+      "parent_implementing_partner": null,
+      "implementing_partner_funder": 1
+
+    }
+  },
+  {
+    "model": "DreamsApp.implementingpartner",
+    "pk": 2,
+    "fields" : {
+      "code": 2,
+      "name": "AIHA",
+      "parent_implementing_partner": null,
+      "implementing_partner_funder": 1
+    }
+  },
+  {
+    "model": "DreamsApp.implementingpartner",
+    "pk": 3,
+    "fields" : {
+      "code": 3,
+      "name": "Afya Ziwani",
+      "parent_implementing_partner": null,
+      "implementing_partner_funder": 1
+    }
+  }
+]

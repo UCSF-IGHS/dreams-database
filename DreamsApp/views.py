@@ -1,4 +1,5 @@
-# coding=utf-8
+import os
+import traceback
 
 from django.contrib import messages
 from django.core.urlresolvers import reverse
@@ -14,19 +15,16 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.db import connection as db_conn_2, transaction
-
-from django.conf import settings
-
+import urllib.parse
 import json
-
 from datetime import date, timedelta, datetime as dt
-
 from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment
+from openpyxl.styles import Font
 
+from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
-from Dreams_Utils import *
-from Dreams_Utils_Plain import *
+from dateutil.relativedelta import relativedelta
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer
 
 
 def get_enrollment_form_config_data(request):
@@ -41,8 +39,6 @@ def get_enrollment_form_config_data(request):
             'marital_status': MaritalStatus.objects.all(),
             'counties': County.objects.all(),
             'current_ip': current_ip
-            #  'sub_counties': SubCounty.objects.all(),
-            #  'wards': Ward.objects.all()
         }
         return config_data
     except Exception as e:
@@ -79,11 +75,6 @@ def user_login(request):
             audit.table = "DreamsApp_client"
             audit.row_id = 0
             audit.action = "LOGIN"
-            #
-            # response_data = {
-            #     'status': 'success',
-            #     'message': 'Client Details Deleted successfuly.'
-            # }
 
             if user_name == '' or pass_word == '':
                 audit.search_text = "Missing login Credentials"
@@ -217,9 +208,18 @@ def clients(request):
                 if not request.user.has_perm("DreamsApp.can_view_cross_ip_data"):
                     try:
                         ip = request.user.implementingpartneruser.implementing_partner
-                        search_result = search_result.filter(implementing_partner_id=ip.id)
+
+                        transfer_out = ClientTransfer.objects.filter(source_implementing_partner=ip).filter(
+                            transfer_status=ClientTransferStatus.objects.get(
+                                                      code__exact=TRANSFER_ACCEPTED_STATUS))
+
+                        transfer_out_clients = search_result.filter(pk__in=transfer_out.values_list('client'))
+
+                        search_result = search_result.filter(implementing_partner_id=ip)
+                        search_result = search_result.union(transfer_out_clients)
+
                     except Exception as e:
-                        search_result = Client.objects.all()[:0]  # Return empty list.
+                        search_result = Client.objects.all()[:0]
             else:
                 search_result = Client.objects.all()[:0]
                 search_result_tuple = [search_result, 'False', '', '', '', '', '']
@@ -260,14 +260,11 @@ def clients(request):
                 sub_counties = SubCounty.objects.filter(county_id=int(county_filter))
                 ward_filter = search_result_tuple[4] if search_result_tuple[4] != '' else '0'
                 wards = Ward.objects.filter(sub_county_id=int(sub_county_filter))
-                cur_date = datetime.datetime.now()
-                dt_format = "%Y-%m-%d"
-                try:
-                    max_dob = cur_date.replace(year=cur_date.year - 10).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - 25).strftime(dt_format)
-                except ValueError:
-                    max_dob = cur_date.replace(year=cur_date.year - 10, day=cur_date.day - 1).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - 25, day=cur_date.day - 1).strftime(dt_format)
+
+                client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+                max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
+                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
 
                 response_data = {
                     'page': 'clients',
@@ -309,14 +306,21 @@ def client_profile(request):
         search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
             'search_client_term', '')
         if client_id is not None and client_id != 0:
-
             try:
-                ip_code = request.user.implementingpartneruser.implementing_partner.code
+                ip = request.user.implementingpartneruser.implementing_partner
+                if ip:
+                    ip_code = ip.code
+                else:
+                    ip_code = None
             except Exception as e:
                 ip_code = None
 
             try:
                 client_found = Client.objects.get(id=client_id)
+                is_editable_by_ip = client_found.is_editable_by_ip(ip)
+                can_add_intervention = client_found.can_add_intervention(ip)
+                client_status = client_found.get_client_status(ip)
+
                 if client_found is not None:
                     # get cash transfer details
                     cash_transfer_details = ClientCashTransferDetails.objects.get(client=client_found)
@@ -335,7 +339,10 @@ def client_profile(request):
                                                                'transfer_form': ClientTransferForm(ip_code=ip_code,
                                                                                                    initial={
                                                                                                        'client':
-                                                                                                           client_found})
+                                                                                                           client_found}),
+                                                               'is_editable_by_ip': is_editable_by_ip,
+                                                               'can_add_intervention': can_add_intervention,
+                                                               'client_status': client_status
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
@@ -346,7 +353,10 @@ def client_profile(request):
                                'ct_form': cash_transfer_details_form,
                                'search_client_term': search_client_term,
                                'user': request.user,
-                               'transfer_form': ClientTransferForm(ip_code=ip_code, initial={'client': client_found})
+                               'transfer_form': ClientTransferForm(ip_code=ip_code, initial={'client': client_found}),
+                               'is_editable_by_ip': is_editable_by_ip,
+                               'can_add_intervention': can_add_intervention,
+                               'client_status': client_status
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -375,8 +385,23 @@ def save_client(request):
                         'can_delete_client': request.user.has_perm('auth.can_delete_client')
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
+
                 client_form = DemographicsForm(request.POST)
+
                 if client_form.is_valid():
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+
+                    if not client_enrolment_service_layer.is_within_enrolment_dates(client_form.cleaned_data['date_of_birth']):
+                        response_data = {
+                            'status': 'fail',
+                            'message': "The client is not within the accepted age range",
+                            'client_id': None,
+                            'can_manage_client': request.user.has_perm('auth.can_manage_client'),
+                            'can_change_client': request.user.has_perm('auth.can_change_client'),
+                            'can_delete_client': request.user.has_perm('auth.can_delete_client')
+                        }
+                        return JsonResponse(json.dumps(response_data), safe=False)
+
                     client = client_form.save()
 
                     # Check client dreams_id
@@ -438,7 +463,7 @@ def save_client(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message,
+            'message': str(e),
             'client_id': None,
             'can_manage_client': request.user.has_perm('auth.can_manage_client'),
             'can_change_client': request.user.has_perm('auth.can_change_client'),
@@ -465,52 +490,16 @@ def edit_client(request):
             elif request.method == 'POST':
                 client_id = int(str(request.POST.get('client_id')))
                 client = Client.objects.filter(id=client_id).first()
-                # check if user is from enrolling IP
-                if client.implementing_partner == request.user.implementingpartneruser.implementing_partner:
-                    # process editing user
-                    client.implementing_partner = ImplementingPartner.objects.filter(
-                        code__exact=str(request.POST.get('implementing_partner', ''))).first()
-                    client.first_name = str(request.POST.get('first_name', ''))
-                    client.middle_name = str(request.POST.get('middle_name', ''))
-                    client.last_name = str(request.POST.get('last_name', ''))
-                    client.date_of_birth = str(request.POST.get('date_of_birth', dt.now))
-                    client.is_date_of_birth_estimated = bool(str(request.POST.get('is_date_of_birth_estimated')))
-                    client.verification_document = VerificationDocument.objects.filter(
-                        code__exact=str(request.POST.get('verification_document', ''))).first()
-                    client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
-                    client.date_of_enrollment = str(request.POST.get('date_of_enrollment', dt.now))
-                    client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
-                    client.marital_status = MaritalStatus.objects.filter(
-                        code__exact=str(request.POST.get('marital_status', ''))).first()
-                    client.phone_number = str(request.POST.get('phone_number', ''))
-                    client.dss_id_number = str(request.POST.get('dss_id_number', ''))
-                    client.county_of_residence = County.objects.filter(
-                        code__exact=request.POST.get('county_of_residence', '')).first()
-                    client.sub_county = SubCounty.objects.filter(code__exact=request.POST.get('sub_county', '')).first()
-                    client.ward = Ward.objects.filter(code__exact=request.POST.get('ward', 0)).first()
-                    client.informal_settlement = str(request.POST.get('informal_settlement', ''))
-                    client.village = str(request.POST.get('village', ''))
-                    client.landmark = str(request.POST.get('landmark', ''))
-                    client.dreams_id = str(request.POST.get('dreams_id', ''))
-                    client.guardian_name = str(request.POST.get('guardian_name', ''))
-                    client.relationship_with_guardian = str(request.POST.get('relationship_with_guardian', ''))
-                    client.guardian_phone_number = str(request.POST.get('guardian_phone_number', ''))
-                    client.guardian_national_id = str(request.POST.get('guardian_national_id', ''))
-                    client.save(user_id=request.user.id, action="UPDATE")
-                    if request.is_ajax():
-                        response_data = {
-                            'status': 'success',
-                            'message': 'Client Details Updated successfuly.',
-                            'client_id': client.id,
-                            'can_manage_client': request.user.has_perm('auth.can_manage_client'),
-                            'can_change_client': request.user.has_perm('auth.can_change_client'),
-                            'can_delete_client': request.user.has_perm('auth.can_delete_client')
-                        }
-                        return JsonResponse(json.dumps(response_data), safe=False)
-                    else:
-                        # redirect to page
-                        return redirect('clients')
-                else:
+
+                if not client.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner):
+                    response_data = {
+                        'status': 'failed',
+                        'message': 'Operation not allowed. Client is not editable by your Implementing partner',
+                        'client_id': client.id
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
+                if client.implementing_partner != request.user.implementingpartneruser.implementing_partner:
                     # user and client IPs dont match. Return error message
                     response_data = {
                         'status': 'failed',
@@ -518,6 +507,62 @@ def edit_client(request):
                         'client_id': client.id
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
+
+                client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                date_of_birth = datetime.strptime(request.POST.get('date_of_birth', dt.now), '%Y-%m-%d')
+
+                if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth):
+                    response_data = {
+                        'status': 'failed',
+                        'message': 'Client is not within accepted date range',
+                        'client_id': client.id
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
+                # process editing user
+                client.implementing_partner = ImplementingPartner.objects.filter(
+                    code__exact=str(request.POST.get('implementing_partner', ''))).first()
+                client.first_name = str(request.POST.get('first_name', ''))
+                client.middle_name = str(request.POST.get('middle_name', ''))
+                client.last_name = str(request.POST.get('last_name', ''))
+                client.date_of_birth = str(request.POST.get('date_of_birth', dt.now))
+                client.is_date_of_birth_estimated = bool(str(request.POST.get('is_date_of_birth_estimated')))
+                client.verification_document = VerificationDocument.objects.filter(
+                    code__exact=str(request.POST.get('verification_document', ''))).first()
+                client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
+                client.date_of_enrollment = str(request.POST.get('date_of_enrollment', dt.now))
+                client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
+                client.marital_status = MaritalStatus.objects.filter(
+                    code__exact=str(request.POST.get('marital_status', ''))).first()
+                client.phone_number = str(request.POST.get('phone_number', ''))
+                client.dss_id_number = str(request.POST.get('dss_id_number', ''))
+                client.county_of_residence = County.objects.filter(
+                    code__exact=request.POST.get('county_of_residence', '')).first()
+                client.sub_county = SubCounty.objects.filter(code__exact=request.POST.get('sub_county', '')).first()
+                client.ward = Ward.objects.filter(code__exact=request.POST.get('ward', 0)).first()
+                client.informal_settlement = str(request.POST.get('informal_settlement', ''))
+                client.village = str(request.POST.get('village', ''))
+                client.landmark = str(request.POST.get('landmark', ''))
+                client.dreams_id = str(request.POST.get('dreams_id', ''))
+                client.guardian_name = str(request.POST.get('guardian_name', ''))
+                client.relationship_with_guardian = str(request.POST.get('relationship_with_guardian', ''))
+                client.guardian_phone_number = str(request.POST.get('guardian_phone_number', ''))
+                client.guardian_national_id = str(request.POST.get('guardian_national_id', ''))
+                client.save(user_id=request.user.id, action="UPDATE")
+                if request.is_ajax():
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Client Details Updated successfuly.',
+                        'client_id': client.id,
+                        'can_manage_client': request.user.has_perm('auth.can_manage_client'),
+                        'can_change_client': request.user.has_perm('auth.can_change_client'),
+                        'can_delete_client': request.user.has_perm('auth.can_delete_client')
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+                else:
+                    # redirect to page
+                    return redirect('clients')
+
         else:
             raise PermissionDenied
     except Exception as e:
@@ -531,31 +576,42 @@ def delete_client(request):
             if request.method == 'GET' and request.is_ajax():
                 client_id = int(request.GET['client_id'])
                 client = Client.objects.filter(id__exact=client_id).first()
+
+                if not client.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner):
+                    response_data = {
+                        'status': 'failed',
+                        'message': 'Operation not allowed. Client is not editable by your Implementing partner',
+                        'client_id': client.id
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
                 # check if client and user IPs match
-                if client.implementing_partner == request.user.implementingpartneruser.implementing_partner:
-                    # check if client has interventions
-                    if Intervention.objects.filter(client=client).count() > 0:
-                        # Upating audit log
-                        log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", 'FAILED')
-                        response_data = {
-                            'status': 'fail',
-                            'message': 'This client cannot be deleted because they have interventions.'
-                        }
-                    else:
-                        client.delete()
-                        # Upating audit log
-                        log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", 'SUCCESS')
-                        response_data = {
-                            'status': 'success',
-                            'message': 'Client Details Deleted successfuly.'
-                        }
-                else:
+                if client.implementing_partner != request.user.implementingpartneruser.implementing_partner:
                     response_data = {
                         'status': 'failed',
                         'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
                         'client_id': client.id
                     }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
+                # check if client has interventions
+                if Intervention.objects.filter(client=client).count() > 0:
+                    # Upating audit log
+                    log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", 'FAILED')
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'This client cannot be deleted because they have interventions.'
+                    }
+                else:
+                    client.delete()
+                    # Upating audit log
+                    log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", 'SUCCESS')
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Client Details Deleted successfuly.'
+                    }
                 return JsonResponse(json.dumps(response_data), safe=False)
+
             elif request.method == 'POST':
                 raise PermissionDenied
         else:
@@ -583,18 +639,17 @@ def get_client_status(client):
         return 'Invalid Status'
 
 
-def get_client_status_action_text(client):
-    return 'Undo Exit' if client.exited else 'Exit Client'
+def is_not_null_or_empty(str):
+    return str is not None and str is not ""
 
 
-def client_exit_status_toggle(request):
-    """Exit or undo Exit depending on client's current status"""
+def unexit_client(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_exit_client'):
         try:
             client_id = int(str(request.POST.get('client_id', '0')))
-            reason_for_exit = str(request.POST.get('reason_for_exit', ''))
-            date_of_exit = request.POST.get('date_of_exit', datetime.datetime.now())
+            reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
+            date_of_exit = request.POST.get('date_of_unexit', datetime.now())
             client = Client.objects.filter(id=client_id).first()
             client.exited = not client.exited
             client.reason_exited = reason_for_exit
@@ -603,16 +658,15 @@ def client_exit_status_toggle(request):
             client.save()
             response_data = {
                 'status': 'success',
-                'message': 'Client' + ' Exited' if client.exited else 'Client Activated',
+                'message': 'Client Exit Undone',
                 'client_id': client.id,
-                'client_status': get_client_status(client),
-                'get_client_status_action_text': get_client_status_action_text(client)
+                'client_status': get_client_status(client)
             }
             return JsonResponse(response_data, status=200)
         except Exception as e:
             response_data = {
                 'status': 'failed',
-                'message': 'Invalid client Id: ' + e.message
+                'message': 'Invalid client Id: ' + str(e)
             }
             return JsonResponse(response_data, status=500)
     else:
@@ -623,6 +677,68 @@ def client_exit_status_toggle(request):
         return JsonResponse(response_data, status=500)
 
 
+def exit_client(request):
+    OTHER_CODE = 6
+
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+            'DreamsApp.can_exit_client'):
+        try:
+            client_id = int(str(request.POST.get('client_id', '0')))
+            reason_for_exit = ExitReason.objects.get(id__exact=int(request.POST.get('reason_for_exit', '')))
+            date_of_exit = request.POST.get('date_of_exit', datetime.now())
+            exit_comment = request.POST.get('exitComment')
+
+            if reason_for_exit is not None:
+                if reason_for_exit.code == OTHER_CODE:
+                    if is_not_null_or_empty(exit_comment):
+                        exited_client = other_client_exit(client_id, reason_for_exit, exit_comment, request.user, date_of_exit)
+                    else:
+                        raise Exception('Reason for exit missing')
+                else:
+                    exited_client = client_exit(client_id, reason_for_exit, request.user, date_of_exit)
+
+            response_data = {
+                'status': 'success',
+                'message': 'Client Exited',
+                'client_id': exited_client.id,
+                'client_status': get_client_status(exited_client)
+            }
+            return JsonResponse(response_data, status=200)
+        except Exception as e:
+            response_data = {
+                'status': 'failed',
+                'message': 'Invalid client Id: ' + str(e)
+            }
+            return JsonResponse(response_data, status=500)
+    else:
+        response_data = {
+            'status': 'failed',
+            'message': 'Permission Denied. Please contact System Administrator for help.'
+        }
+        return JsonResponse(response_data, status=500)
+
+
+def other_client_exit(client_id, reason_for_exit, exit_comment, exit_user, date_of_exit):
+    client = Client.objects.filter(id=client_id).first()
+    client.exited = True
+    client.exit_reason = reason_for_exit
+    client.reason_exited = exit_comment
+    client.exited_by = exit_user
+    client.date_exited = date_of_exit
+    client.save()
+    return client
+
+
+def client_exit(client_id, reason_for_exit, exit_user, date_of_exit):
+    client = Client.objects.filter(id=client_id).first()
+    client.exited = True
+    client.exit_reason = reason_for_exit
+    client.exited_by = exit_user
+    client.date_exited = date_of_exit
+    client.save()
+    return client
+
+
 def testajax(request):
     return render(request, 'testAjax.html')
 
@@ -630,6 +746,57 @@ def testajax(request):
 # Use /ivgetTypes/ in the post url to access the method
 # Handles post request for intervention types.
 # Receives category_code from request and searches for types in the database
+
+def get_external_organisation(request):
+    try:
+        if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            response_data = {}
+            external_orgs = serializers.serialize('json', ExternalOrganisation.objects.all())
+            response_data["external_orgs"] = external_orgs
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
+def get_unsuccessful_followup_attempts(request):
+    try:
+        if is_valid_get_request(request):
+            response_data = {}
+            client_id = int(request.GET.get('current_client_id'))
+            client = Client.objects.get(id=client_id)
+            unsuccessful_follow_up_attempts = ClientLTFU.objects.filter(client=client,
+                                                                        result_of_followup=ClientLTFUResultType.objects.filter(name='Lost').first()).all()
+            response_data['unsuccessful_follow_up_attempts'] = len(unsuccessful_follow_up_attempts)
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
+def get_exit_reasons(request):
+    try:
+        if is_valid_get_request(request):
+            response_data = {}
+            exit_reasons = serializers.serialize('json', ExitReason.objects.all())
+            response_data["exit_reasons"] = exit_reasons
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
+def is_valid_get_request(request):
+    return request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active
+
+def is_valid_post_request(request):
+    return request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active
 
 def get_intervention_types(request):
     try:
@@ -719,21 +886,35 @@ def save_intervention(request):
                         return JsonResponse(response_data)
                 except Exception as e:
                     """An error has occurred. Throw exception. This will be handled elsewhere"""
-                    raise Exception(e.message)
+                    raise Exception(str(e))
 
                 intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
-                if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
-                                                                                            datetime.time()):
-                    response_data = {
-                        'status': 'fail',
-                        'message': "Error: The intervention date must be after the client's enrollment date. "
-                    }
-                    return JsonResponse(response_data)
+
+                # check if external organisation is selected
+                external_organization_checkbox = request.POST.get('external_organization_checkbox')
+                external_organization_code = request.POST.get('external_organization_code')
+                other_external_organization_code = request.POST.get('other_external_organization_code')
+
+                if external_organization_checkbox:
+                    if not external_organization_code:
+                        response_data = {
+                            'status': 'fail',
+                            'message': "Error: External organisation must be selected if checkbox is checked."
+                        }
+                        return JsonResponse(response_data)
+                else:
+                    if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
+                                                                                                datetime.now().time()):
+                        response_data = {
+                            'status': 'fail',
+                            'message': "Error: The intervention date must be after the client's enrollment date. "
+                        }
+                        return JsonResponse(response_data)
 
                 if intervention_date > dt.now():
                     response_data = {
                         'status': 'fail',
-                        'message': "Error: The intervention date must be before the current date. "
+                        'message': "Error: The intervention date must be before or on the current date. "
                     }
                     return JsonResponse(response_data)
 
@@ -748,6 +929,13 @@ def save_intervention(request):
                     intervention.created_by = created_by
                     intervention.date_created = dt.now()
                     intervention.comment = request.POST.get('comment', '')
+
+                    if external_organization_checkbox:
+                        intervention.external_organisation = ExternalOrganisation.objects.get(pk=external_organization_code)
+                        if other_external_organization_code:
+                            intervention.external_organisation_other = other_external_organization_code
+                        else:
+                            intervention.external_organisation_other = None
 
                     if intervention_type.has_hts_result:
                         intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
@@ -769,6 +957,15 @@ def save_intervention(request):
                     # using defer() miraculously solved serialization problem of datetime properties.
                     intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created'). \
                         get(id__exact=intervention.id)
+
+                    is_editable_by_ip = {}
+                    is_editable_by_ip[intervention.pk] = intervention.is_editable_by_ip(
+                        request.user.implementingpartneruser.implementing_partner)
+
+                    is_visible_by_ip = {}
+                    is_visible_by_ip[intervention.pk] = intervention.is_visible_by_ip(
+                        request.user.implementingpartneruser.implementing_partner)
+
                     response_data = {
                         'status': 'success',
                         'message': 'Intervention successfully saved',
@@ -779,7 +976,9 @@ def save_intervention(request):
                         'permissions': json.dumps({
                             'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
                             'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
-                        })
+                        }),
+                        'is_editable_by_ip': is_editable_by_ip,
+                        'is_visible_by_ip': is_visible_by_ip
                     }
                     return JsonResponse(response_data)
                 else:  # Invalid Intervention Type
@@ -810,10 +1009,15 @@ def save_intervention(request):
         }
         return JsonResponse(response_data)
     except Exception as e:
-        # Return error with message
+        # check if validation error
+        if type(e) is ValidationError:
+            errormsg = '; '.join(ValidationError(e).messages)
+        else:
+            errormsg = str(e)
+
         response_data = {
             'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
+            'message': errormsg
         }
         return JsonResponse(response_data)
 
@@ -842,15 +1046,27 @@ def get_intervention_list(request):
                                                                                       intervention_type__in=iv_type_ids,
                                                                                       voided=False) \
                 .order_by('-intervention_date', '-date_created', '-date_changed')
+
+            client_found = Client.objects.get(id=client_id)
+            client_is_transferred_out = client_found.transferred_out(request.user.implementingpartneruser.implementing_partner)
+
             if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
-                list_of_interventions = list_of_interventions.filter(
-                    implementing_partner_id=request.user.implementingpartneruser.implementing_partner.id)
+                if client_is_transferred_out:
+                    list_of_interventions = list_of_interventions.filter(
+                        implementing_partner_id=request.user.implementingpartneruser.implementing_partner.id)
 
             if not request.user.has_perm('auth.can_view_older_records'):
                 list_of_interventions = list_of_interventions.filter(date_created__range=
                                                                      [dt.now() - timedelta(days=31),
                                                                       dt.now()]
                                                                      )
+
+            is_editable_by_ip = {}
+            is_visible_by_ip = {}
+            for i in list_of_interventions:
+                is_editable_by_ip[i.pk] = i.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner)
+                is_visible_by_ip[i.pk] = i.is_visible_by_ip(request.user.implementingpartneruser.implementing_partner)
+
             response_data = {
                 'iv_types': serializers.serialize('json', list_of_related_iv_types),
                 'interventions': serializers.serialize('json', list_of_interventions),
@@ -859,7 +1075,9 @@ def get_intervention_list(request):
                 'permissions': json.dumps({
                     'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
                     'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
-                })
+                }),
+                'is_editable_by_ip': is_editable_by_ip,
+                'is_visible_by_ip': is_visible_by_ip
             }
             return JsonResponse(response_data)
         else:
@@ -906,6 +1124,12 @@ def update_intervention(request):
                 intervention_id = int(request.POST.get('intervention_id'))
                 if intervention_id is not None and type(intervention_id) is int:
                     intervention = Intervention.objects.get(id__exact=intervention_id)
+
+                    if not intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner):
+                        raise Exception(
+                            'You do not have the rights to update this intervention.'
+                        )
+
                     # check if intervention belongs to the ip
                     if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
                         intervention.intervention_type = InterventionType.objects.get(
@@ -913,13 +1137,27 @@ def update_intervention(request):
                         intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
 
                         intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
-                        if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
-                                intervention.client.date_of_enrollment, datetime.time()):
-                            response_data = {
-                                'status': 'fail',
-                                'message': "Error: The intervention date must be after the client's enrollment date. "
-                            }
-                            return JsonResponse(response_data)
+
+                        # check if external organisation is selected
+                        external_organization_checkbox = request.POST.get('external_organization_checkbox')
+                        external_organization_code = request.POST.get('external_organization_code')
+                        other_external_organization_code = request.POST.get('other_external_organization_code')
+
+                        if external_organization_checkbox:
+                            if not external_organization_code:
+                                response_data = {
+                                    'status': 'fail',
+                                    'message': "Error: External organisation must be selected if checkbox is checked."
+                                }
+                                return JsonResponse(response_data)
+                        else:
+                            if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
+                                    intervention.client.date_of_enrollment, datetime.now().time()):
+                                response_data = {
+                                    'status': 'fail',
+                                    'message': "Error: The intervention date must be after the client's enrollment date. "
+                                }
+                                return JsonResponse(response_data)
 
                         intervention.name_specified = request.POST.get('other_specify',
                                                                        '') if intervention.intervention_type.is_specified else ''
@@ -943,6 +1181,13 @@ def update_intervention(request):
 
                         if i_type.has_no_of_sessions:
                             intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
+
+                        if external_organization_checkbox:
+                            intervention.external_organisation = ExternalOrganisation.objects.get(pk=external_organization_code)
+                            if other_external_organization_code:
+                                intervention.external_organisation_other = other_external_organization_code
+                            else:
+                                intervention.external_organisation_other = None
 
                         intervention.save(user_id=request.user.id, action="UPDATE")  # Logging
                         # using defer() miraculously solved serialization problem of datetime properties.
@@ -981,9 +1226,15 @@ def update_intervention(request):
             }
             return JsonResponse(response_data)
     except Exception as e:
+        # check if validation error
+        if type(e) is ValidationError:
+            errormsg = '; '.join(ValidationError(e).messages)
+        else:
+            errormsg = str(e)
+
         response_data = {
             'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
+            'message': "An error has occurred: " + errormsg
         }
         return JsonResponse(response_data)
 
@@ -999,10 +1250,18 @@ def delete_intervention(request):
                     # get intervention
                     # Check if intervention belongs to IP
                     intervention = Intervention.objects.filter(pk=intervention_id).first()
+
+                    if not intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner):
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'You do not have the rights to delete this intervention.'
+                        }
+                        return JsonResponse(response_data)
+
                     if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
                         intervention.voided = True
                         intervention.voided_by = request.user
-                        intervention.date_voided = datetime.datetime.now()
+                        intervention.date_voided = datetime.now()
                         intervention.save(user_id=request.user.id, action="UPDATE")  # Updating logs
                         # intervention.delete() # No deletion whatsoever
                         log_custom_actions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", None)
@@ -1741,32 +2000,27 @@ def cash_transfer_details_save(request):
         return JsonResponse(response_data)
 
 
-def download_excel(request):
-    enrolment = DreamsEnrollmentExcelDatabase()
-    rows = enrolment.get_export_rows()
-    for row in rows:
-        for k, v in row.items():
-            print k + " : ", v
-
-
 def export_page(request):
     if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_export_raw_data'):
 
         try:
-
+            ips = None
             if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
+
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
                     id=request.user.implementingpartneruser.implementing_partner.id)
 
-            else:
-                ips = None
+                if ips.count() > 0:
+                    sub_grantees = ImplementingPartner.objects.filter(parent_implementing_partner__in=ips)
+                    if sub_grantees.exists():
+                        ips = ips.union(sub_grantees)
 
-            print "IPs", ips
-            context = {'page': 'export', 'page_title': 'DREAMS Data Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Client Raw Enrolment Export', 'ips': ips,
                        'counties': County.objects.all()}
+
             return render(request, 'dataExport.html', context)
         except ImplementingPartnerUser.DoesNotExist:
             traceback.format_exc()
@@ -1781,18 +2035,19 @@ def intervention_export_page(request):
             'DreamsApp.can_export_raw_data'):
 
         try:
-
+            ips = None
             if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
                     id=request.user.implementingpartneruser.implementing_partner.id)
 
-            else:
-                ips = None
+                if ips.count() > 0:
+                    sub_grantees = ImplementingPartner.objects.filter(parent_implementing_partner__in=ips)
+                    if sub_grantees.exists():
+                        ips = ips.union(sub_grantees)
 
-            print "IPs", ips
-            context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Client Interventions Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'interventionDataExport.html', context)
         except ImplementingPartnerUser.DoesNotExist:
@@ -1803,17 +2058,15 @@ def intervention_export_page(request):
         raise PermissionDenied
 
 
-def downloadEXCEL(request):
+def download_raw_enrollment_export(request):
     try:
         ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        response = HttpResponse(content_type='application/ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=dreams_enrollment_interventions.xlsx'
-        export_doc = DreamsEnrollmentExcelTemplateRenderer()
+        export_file_name = urllib.parse.quote(("/tmp/raw_enrolment_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        export_doc = DreamsRawExportTemplateRenderer()
 
-        # Ensure can_view_phi_data has been created on Client contentType
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(
             codename='DreamsApp.can_view_phi_data').exists():
@@ -1821,25 +2074,27 @@ def downloadEXCEL(request):
         else:
             show_PHI = False
 
-        wb = export_doc.prepare_excel_doc(ip_list_str, sub_county, ward, show_PHI)
-        wb.save(response)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
+        export_doc.prepare_enrolment_export_doc(response, ip_list_str, sub_county, ward, show_PHI)
+
         return response
+
     except Exception as e:
         traceback.format_exc()
         return
 
 
-def downloadRawInterventionEXCEL(request):
+def download_raw_intervention_export(request):
     try:
         ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        response = HttpResponse(content_type='application/ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=dreams_interventions.xlsx'
-        export_doc = DreamsEnrollmentExcelTemplateRenderer()
+        export_file_name = urllib.parse.quote(
+            ("/tmp/raw_intervention_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        export_doc = DreamsRawExportTemplateRenderer()
 
-        # Ensure can_view_phi_data has been created on Client contentType
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(
             codename='DreamsApp.can_view_phi_data').exists():
@@ -1847,8 +2102,10 @@ def downloadRawInterventionEXCEL(request):
         else:
             show_PHI = False
 
-        wb = export_doc.get_intervention_excel_doc(ip_list_str, sub_county, ward, show_PHI)
-        wb.save(response)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
+        export_doc.get_intervention_excel_doc(response, ip_list_str, sub_county, ward, show_PHI)
+
         return response
     except Exception as e:
         traceback.format_exc()
@@ -1860,20 +2117,22 @@ def individual_service_layering_export_page(request):
             'DreamsApp.can_export_raw_data'):
 
         try:
-
+            ips = None
             if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
                     id=request.user.implementingpartneruser.implementing_partner.id)
 
-            else:
-                ips = None
+                if ips.count() > 0:
+                    sub_grantees = ImplementingPartner.objects.filter(parent_implementing_partner__in=ips)
+                    if sub_grantees.exists():
+                        ips = ips.union(sub_grantees)
 
-            print "IPs", ips
-            context = {'page': 'export', 'page_title': 'Service Layering Report Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Service Layering Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'individualServiceLayeringDataExport.html', context)
+
         except ImplementingPartnerUser.DoesNotExist:
             traceback.format_exc()
         except ImplementingPartner.DoesNotExist:
@@ -1882,17 +2141,16 @@ def individual_service_layering_export_page(request):
         raise PermissionDenied
 
 
-def downloadIndividualLayeringReport(request):
+def download_services_received_export(request):
     try:
         ip_list_str = request.POST.getlist('ips')
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        response = HttpResponse(content_type='application/ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=Dreams_Services_Received_Export.xlsx'
-        export_doc = DreamsEnrollmentExcelTemplateRenderer()
+        export_file_name = urllib.parse.quote(
+            ("/tmp/services_received_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        export_doc = DreamsRawExportTemplateRenderer()
 
-        # Ensure can_view_phi_data has been created on Client contentType
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(
             codename='DreamsApp.can_view_phi_data').exists():
@@ -1900,9 +2158,11 @@ def downloadIndividualLayeringReport(request):
         else:
             show_PHI = False
 
-        wb = export_doc.get_individual_layering_report(ip_list_str, sub_county, ward, show_PHI)
-        wb.save(response)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
+        export_doc.get_individual_layering_report(response, ip_list_str, sub_county, ward, show_PHI)
         return response
+
     except Exception as e:
         traceback.format_exc()
         return
@@ -1951,10 +2211,15 @@ def viewBaselineData(request):
             except Client.DoesNotExist:
                 traceback.format_exc()
         else:
-            print 'POST not allowed'
+            print ('POST not allowed')
 
+        ip = None
         try:
-            ip_code = request.user.implementingpartneruser.implementing_partner.code
+            ip = request.user.implementingpartneruser.implementing_partner
+            if ip:
+                ip_code = ip.code
+            else:
+                ip = None
         except Exception as e:
             ip_code = None
 
@@ -1962,6 +2227,15 @@ def viewBaselineData(request):
             try:
                 client_found = Client.objects.get(id=client_id)
                 if client_found is not None:
+                    is_editable_by_ip = client_found.is_editable_by_ip(ip)
+                    client_status = client_found.get_client_status(ip)
+
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                    minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+                    max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
+                    min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
+
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
                                                                          'client': client_found,
@@ -1978,7 +2252,11 @@ def viewBaselineData(request):
                                                                          'search_client_term': search_client_term,
                                                                          'transfer_form': ClientTransferForm(
                                                                              ip_code=ip_code,
-                                                                             initial={'client': client_found})
+                                                                             initial={'client': client_found}),
+                                                                         'is_editable_by_ip': is_editable_by_ip,
+                                                                         'client_status': client_status,
+                                                                         'max_dob': max_dob,
+                                                                         'min_dob': min_dob
                                                                          })
             except Client.DoesNotExist:
                 traceback.format_exc()
@@ -1994,13 +2272,23 @@ def update_demographics_data(request):
     client_id = int(request.POST['client'], 0)
     instance = Client.objects.get(id=client_id)
     if request.is_ajax():
-        # template = 'client_demographics_ajax_form.html'
         if request.method == 'POST':
             county_of_residence = instance.county_of_residence
             sub_county = instance.sub_county
             implementing_partner = instance.implementing_partner
             dreams_id = instance.dreams_id
             form = DemographicsForm(request.POST, instance=instance)
+
+            client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+
+            if not client_enrolment_service_layer.is_within_enrolment_dates(instance.date_of_birth):
+                response_data = {
+                'status': 'fail',
+                'errors': ['Client is not within accepted age range'],
+                'client_age': instance.get_current_age()
+                }
+                return JsonResponse(response_data, status=500)
+
             if form.is_valid():
                 form.instance.implementing_partner = implementing_partner
                 form.instance.county_of_residence = county_of_residence
@@ -2069,7 +2357,7 @@ def update_edu_and_employment_data(request):
                 }
                 return JsonResponse(response_data, status=200)
             else:
-                print form.errors
+                print (form.errors)
         else:
             response_data = {
                 'status': 'fail',
@@ -2258,10 +2546,10 @@ def transfer_client(request):
                 if transfer_form.is_valid():
                     num_of_pending_transfers = ClientTransfer.objects.filter(client=transfer_form.instance.client,
                                                                              transfer_status=ClientTransferStatus.objects.get(
-                                                                                 code__exact=1)).count()
+                                                                                 code__exact=TRANSFER_INITIATED_STATUS)).count()
 
                     if num_of_pending_transfers > 0:
-                        print "{} pending transfers for client".format(num_of_pending_transfers)
+                        print ("{} pending transfers for client".format(num_of_pending_transfers))
                         response_data = {
                             'status': 'fail',
                             'message': "Transfer failed, there's a pending transfer for this client.",
@@ -2269,10 +2557,15 @@ def transfer_client(request):
                     else:
                         client_transfer = transfer_form.save(commit=False)
 
-                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
                         client_transfer.source_implementing_partner = ip
                         client_transfer.initiated_by = request.user
+                        client_transfer.start_date = dt.now()
                         client_transfer.save()
+
+                        client = transfer_form.instance.client
+                        client.date_changed = dt.now()
+                        client.save()
 
                         response_data = {
                             'status': 'success',
@@ -2290,32 +2583,27 @@ def transfer_client(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': e.message,
+            'message': str(e),
         }
         return JsonResponse(json.dumps(response_data), safe=False)
 
 
 def client_transfers(request, *args, **kwargs):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        can_accept_or_reject = False
-
         transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
+
+        transfer_perm = TransferServiceLayer(request.user)
+        can_accept_or_reject = transfer_perm.can_accept_or_reject_transfer()
 
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if transferred_in:
-                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip)
+                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('-date_created', 'transfer_status')
             else:
-                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip)
-
-            if request.user.has_perm('DreamsApp.change_clienttransfer'):
-                can_accept_or_reject = True
+                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('-date_created', 'transfer_status')
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             c_transfers = ClientTransfer.objects.all()
-
-            if request.user.is_superuser:
-                can_accept_or_reject = True
 
         page = request.GET.get('page', 1)
         paginator = Paginator(c_transfers, 20)
@@ -2352,13 +2640,18 @@ def accept_client_transfer(request):
                 if client_transfer_id != "":
                     client_transfer = ClientTransfer.objects.get(id__exact=client_transfer_id)
 
+                    transfer_perm = TransferServiceLayer(request.user, client_transfer=client_transfer)
+                    can_accept_transfer = transfer_perm.can_accept_transfer()
+
+                    if not can_accept_transfer:
+                        raise PermissionDenied
+
                     if client_transfer is not None:
-                        current_datetime = dt.now()
-                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=2)
+                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
 
                         client_transfer.transfer_status = accepted_client_transfer_status
-                        client_transfer.start_date = current_datetime
                         client_transfer.completed_by = request.user
+                        client_transfer.end_date = dt.now()
 
                         # Update the client to receive interventions from this new ip.
                         client = Client.objects.get(id__exact=client_transfer.client.id)
@@ -2366,15 +2659,7 @@ def accept_client_transfer(request):
                             ip = client_transfer.destination_implementing_partner
                         client.implementing_partner = ip
 
-                        # client transfers for current client being transferred,with no end_date and status accepted
-                        c_transfers = ClientTransfer.objects.filter(client=client_transfer.client, end_date=None,
-                                                                    transfer_status=accepted_client_transfer_status)
-
                         with transaction.atomic():
-                            for c_transfer in c_transfers:
-                                c_transfer.end_date = current_datetime
-                                c_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=4)
-                                c_transfer.save()
                             client.save()
                             client_transfer.save()
 
@@ -2389,7 +2674,6 @@ def accept_client_transfer(request):
         else:
             raise PermissionDenied
     except Exception as e:
-        print traceback.format_exc(e)
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
@@ -2409,7 +2693,13 @@ def reject_client_transfer(request):
                     client_transfer = None
 
                 if client_transfer is not None:
-                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=3)
+                    transfer_perm = TransferServiceLayer(request.user, client_transfer=client_transfer)
+                    can_reject_transfer = transfer_perm.can_reject_transfer()
+
+                    if not can_reject_transfer:
+                        raise PermissionDenied
+
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_REJECTED_STATUS)
                     client_transfer.completed_by = request.user
                     client_transfer.end_date = dt.now()
                     client_transfer.save()
@@ -2421,7 +2711,6 @@ def reject_client_transfer(request):
         else:
             raise PermissionDenied
     except Exception as e:
-        print traceback.format_exc(e)
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
@@ -2431,7 +2720,7 @@ def reject_client_transfer(request):
 
 def get_client_transfers_count(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=1)
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             client_transfers_count = ClientTransfer.objects.filter(
@@ -2453,34 +2742,34 @@ def intervention_export_transferred_in_page(request):
             'DreamsApp.can_export_raw_data'):
 
         try:
+            ips = None
             if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
             elif request.user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
                     id=request.user.implementingpartneruser.implementing_partner.id)
-            else:
-                ips = None
+            if ips.count() > 0:
+                ips = ips.union(ImplementingPartner.objects.filter(parent_implementing_partner__in=ips))
 
-            print "IPs", ips
-            context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Interventions Transferred In Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'interventionDataExportTransferredIn.html', context)
+
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             traceback.format_exc()
     else:
         raise PermissionDenied
 
 
-def download_raw_intervention_transferred_in_report(request):
+def download_raw_intervention_transferred_in_export(request):
     try:
         from_intervention_date = request.POST.get('from_intervention_date')
         to_intervention_date = request.POST.get('to_intervention_date')
 
-        response = HttpResponse(content_type='application/ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=dreams_interventions.xlsx'
-        export_doc = DreamsEnrollmentExcelTemplateRenderer()
+        export_file_name = urllib.parse.quote(
+            ("/tmp/raw_intervention_transferred_in_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        export_doc = DreamsRawExportTemplateRenderer()
 
-        # Ensure can_view_phi_data has been created on Client contentType
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
                 or Permission.objects.filter(group__user=request.user).filter(
             codename='DreamsApp.can_view_phi_data').exists():
@@ -2493,13 +2782,14 @@ def download_raw_intervention_transferred_in_report(request):
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             ip = None
 
-        wb = export_doc.get_intervention_excel_transferred_in_doc(ip, from_intervention_date, to_intervention_date,
-                                                                  show_PHI)
-        wb.save(response)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
+        export_doc.get_intervention_excel_transferred_in_doc(response, ip, from_intervention_date, to_intervention_date,
+                                                             show_PHI)
         return response
+
     except Exception as e:
-        traceback.format_exc()
-        return
+        raise e
 
 
 def export_client_transfers(request, *args, **kwargs):
@@ -2541,8 +2831,9 @@ def export_client_transfers(request, *args, **kwargs):
         for cell in ws["1:1"]:
             cell.font = ft
 
+        file_name = "Client_Transfers_{}.xlsx".format("In" if transferred_in else "Out")
         response = HttpResponse(content_type='application/ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=Client_Transfers.xlsx'
+        response['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
 
         wb.save(response)
         return response
@@ -2592,7 +2883,7 @@ def void_client(request):
             raise PermissionDenied
     except Exception as e:
         traceback.format_exc()
-        return get_response_data(0, e.message)
+        return get_response_data(0, e)
 
 
 def get_response_data(status, message, **kwargs):
@@ -2601,7 +2892,7 @@ def get_response_data(status, message, **kwargs):
         'message': message
     }
 
-    for k, v in kwargs.iteritems():
+    for k, v in kwargs.values():
         response[k] = v
 
     return JsonResponse(json.dumps(response), safe=False)

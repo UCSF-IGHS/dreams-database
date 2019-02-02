@@ -1,0 +1,56 @@
+{% load staticfiles %}
+
+{% block client_unexit_form %}
+
+    <!-- Beginning Client Exit modal-->
+        <!-- Modal -->
+    <div class="modal fade " id="client-unexit-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html"
+         >
+        <form id="form_client_unexit" class="form-horizontal">
+        {% csrf_token %}
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header btn-default" style="border-radius: 4px 4px 0px 0px;">
+                    <button type="button" class="close" id="close__enrollment_modal" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel"><span class="glyphicon glyphicon-log-out"></span> UNDO CLIENT EXIT FORM</h4>
+                </div>
+                <div class="modal-body">
+                        <div style="margin: auto 15px;">
+                            <div class="form-group">
+                                 <label id="lbl_client_exit_activation_label" for="first_name" class="control-label">Reason to undo client exit</label>
+                                 <textarea class="form-control" id="id_reason_for_unexit" name="reason_for_unexit" ></textarea>
+                             </div>
+                            <div class="form-group has-feedback">
+                                 <label for="date_of_birth" class="control-label">Date:</label>
+                                 <input type="text" class="form-control clear_value" id="id_date_of_unexit" name="date_of_unexit" required placeholder="Select date of when exit was undone" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                                 <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                                 <script>
+                                    $(function() {
+                                        var localToday = new Date();
+                                        $( "#id_date_of_unexit" ).datepicker({
+                                              minDate: (new Date(2015, 10 , 1)),
+                                              maxDate:  "+0Y +0M +0D",
+                                              dateFormat: 'yy-mm-dd',
+                                              changeMonth: true,
+                                              changeYear: true,
+                                              defaultDate: localToday
+                                        });
+                                        $("#id_date_of_exit").datepicker("setDate", localToday);
+                                    });
+
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" aria-hidden="true"> Cancel </button>
+                    <button type="submit" id="btn_submit_unexit_client_form" class="btn btn-sm btn-primary" > Undo Client Exit </button>
+                  </div>
+            </div>
+          </div>
+        </form>
+    </div>
+    <!-- End Client Exit modal-->
+
+{% endblock %}

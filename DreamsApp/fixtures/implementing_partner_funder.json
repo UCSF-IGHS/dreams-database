@@ -1,0 +1,20 @@
+[
+  {
+    "model": "DreamsApp.implementingpartnerfunder",
+    "fields" : {
+      "name": "CDC"
+    }
+  },
+  {
+    "model": "DreamsApp.implementingpartnerfunder",
+    "fields" : {
+      "name": "USAID"
+    }
+  },
+  {
+    "model": "DreamsApp.implementingpartnerfunder",
+    "fields" : {
+      "name": "DOD"
+    }
+  }
+]
