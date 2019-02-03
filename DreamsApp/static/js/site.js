@@ -1001,6 +1001,9 @@ $(document).ready(function () {
                 $('#confirm-follow-up-delete-modal').modal('hide');
             }
         });
+
+        event.stopPropagation();
+        event.preventDefault();
     });
 
     $('#btn_delete_follow_up_confirmation').click(function (event) {
