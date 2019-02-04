@@ -3132,10 +3132,8 @@ $(document).ready(function () {
         $('#client-unexit-modal #id_reason_for_exit').val('');
         $("#client-unexit-modal #id_date_of_exit").datepicker("setDate", new Date());
 
-        // Action wording
         var clientStatus = $('.client_status_action_text').html()
         if ($.trim(clientStatus) == 'Exit Client') {
-            // Client is actively in the program.
             $('#lbl_client_exit_activation_label').html('Reason to Exit Client');
             $('#btn_submit_exit_client_form').val('Exit Client');
         }
@@ -3143,11 +3141,8 @@ $(document).ready(function () {
             $('#lbl_client_exit_activation_label').html('Reason to Activate Client');
             $('#btn_submit_exit_client_form').html('Activate Client');
         }
-        console.log(clientStatus)
     });
 
-
-    // Exit form validation
     $("#form_client_exit").validate({
         rules: { 
             reason_for_exit: {
@@ -3313,7 +3308,7 @@ $(document).ready(function () {
                 csrfmiddlewaretoken: csrftoken,
                 client_id: client_id,
                 reason_for_exit: reasonForExit,
-                exitComment: exitComment,
+                exit_comment: exitComment,
                 date_of_exit: dateOfExit
             },
             success: function (data) {

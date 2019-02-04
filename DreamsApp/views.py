@@ -740,7 +740,7 @@ def exit_client(request):
             client_id = int(str(request.POST.get('client_id', '0')))
             reason_for_exit = ExitReason.objects.get(id__exact=int(request.POST.get('reason_for_exit', '')))
             date_of_exit = request.POST.get('date_of_exit', datetime.now())
-            exit_comment = request.POST.get('exitComment')
+            exit_comment = request.POST.get('exit_comment')
 
             if reason_for_exit is not None:
                 if reason_for_exit.code == OTHER_CODE:
