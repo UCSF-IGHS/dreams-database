@@ -23,9 +23,8 @@ from openpyxl.styles import Font
 
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
-from DreamsApp.service_layer import *
-from DreamsApp.service_layer import TransferServiceLayer
-from DreamsApp.service_layer import ClientEnrolmentServiceLayer
+from dateutil.relativedelta import relativedelta
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer
 
 
 def get_enrollment_form_config_data(request):
@@ -212,7 +211,7 @@ def clients(request):
 
                         transfer_out = ClientTransfer.objects.filter(source_implementing_partner=ip).filter(
                             transfer_status=ClientTransferStatus.objects.get(
-                                                      code__exact=TransferServiceLayer.TRANSFER_ACCEPTED_STATUS))
+                                                      code__exact=TRANSFER_ACCEPTED_STATUS))
 
                         transfer_out_clients = search_result.filter(pk__in=transfer_out.values_list('client'))
 
@@ -261,14 +260,11 @@ def clients(request):
                 sub_counties = SubCounty.objects.filter(county_id=int(county_filter))
                 ward_filter = search_result_tuple[4] if search_result_tuple[4] != '' else '0'
                 wards = Ward.objects.filter(sub_county_id=int(sub_county_filter))
-                cur_date = datetime.now()
-                dt_format = "%Y-%m-%d"
-                try:
-                    max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
-                except ValueError:
-                    max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
+
+                client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+                max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
+                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
 
                 response_data = {
                     'page': 'clients',
@@ -459,7 +455,7 @@ def save_client(request):
                     client = client_form.save()
 
                     # Check client dreams_id
-                    if str(client.dreams_id) == '':
+                    if client.dreams_id is None or not client.dreams_id:
                         # Generate client dreams_id
                         cursor = db_conn_2.cursor()
                         try:
@@ -563,7 +559,7 @@ def edit_client(request):
                     return JsonResponse(json.dumps(response_data), safe=False)
 
                 client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
-                date_of_birth = datetime.strptime(request.POST.get('date_of_birth', dt.now), '%Y-%m-%d')
+                date_of_birth = datetime.strptime(request.POST.get('date_of_birth', dt.now()), '%Y-%m-%d').date()
 
                 if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth):
                     response_data = {
@@ -579,12 +575,12 @@ def edit_client(request):
                 client.first_name = str(request.POST.get('first_name', ''))
                 client.middle_name = str(request.POST.get('middle_name', ''))
                 client.last_name = str(request.POST.get('last_name', ''))
-                client.date_of_birth = str(request.POST.get('date_of_birth', dt.now))
+                client.date_of_birth = str(date_of_birth)
                 client.is_date_of_birth_estimated = bool(str(request.POST.get('is_date_of_birth_estimated')))
                 client.verification_document = VerificationDocument.objects.filter(
                     code__exact=str(request.POST.get('verification_document', ''))).first()
                 client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
-                client.date_of_enrollment = str(request.POST.get('date_of_enrollment', dt.now))
+                client.date_of_enrollment = str(datetime.strptime(request.POST.get('date_of_enrollment', dt.now()), '%Y-%m-%d').date())
                 client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
                 client.marital_status = MaritalStatus.objects.filter(
                     code__exact=str(request.POST.get('marital_status', ''))).first()
@@ -942,7 +938,7 @@ def save_intervention(request):
                     """An error has occurred. Throw exception. This will be handled elsewhere"""
                     raise Exception(str(e))
 
-                intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
+                intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
 
                 # check if external organisation is selected
                 external_organization_checkbox = request.POST.get('external_organization_checkbox')
@@ -957,15 +953,14 @@ def save_intervention(request):
                         }
                         return JsonResponse(response_data)
                 else:
-                    if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
-                                                                                                datetime.now().time()):
+                    if client.date_of_enrollment is not None and intervention_date < client.date_of_enrollment:
                         response_data = {
                             'status': 'fail',
                             'message': "Error: The intervention date must be after the client's enrollment date. "
                         }
                         return JsonResponse(response_data)
 
-                if intervention_date > dt.now():
+                if intervention_date > dt.now().date():
                     response_data = {
                         'status': 'fail',
                         'message': "Error: The intervention date must be before or on the current date. "
@@ -1266,7 +1261,7 @@ def update_intervention(request):
                             code__exact=int(request.POST.get('intervention_type_code')))
                         intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
 
-                        intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
+                        intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
 
                         # check if external organisation is selected
                         external_organization_checkbox = request.POST.get('external_organization_checkbox')
@@ -1281,8 +1276,7 @@ def update_intervention(request):
                                 }
                                 return JsonResponse(response_data)
                         else:
-                            if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
-                                    intervention.client.date_of_enrollment, datetime.now().time()):
+                            if intervention.client.date_of_enrollment is not None and intervention_date < intervention.client.date_of_enrollment:
                                 response_data = {
                                     'status': 'fail',
                                     'message': "Error: The intervention date must be after the client's enrollment date. "
@@ -1291,7 +1285,7 @@ def update_intervention(request):
 
                         intervention.name_specified = request.POST.get('other_specify',
                                                                        '') if intervention.intervention_type.is_specified else ''
-                        intervention.intervention_date = request.POST.get('intervention_date')
+                        intervention.intervention_date = str(intervention_date)
                         intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
                         intervention.date_changed = dt.now()
                         intervention.comment = request.POST.get('comment')
@@ -2182,7 +2176,7 @@ def export_page(request):
                     if sub_grantees.exists():
                         ips = ips.union(sub_grantees)
 
-            context = {'page': 'export', 'page_title': 'DREAMS Data Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Client Raw Enrolment Export', 'ips': ips,
                        'counties': County.objects.all()}
 
             return render(request, 'dataExport.html', context)
@@ -2211,7 +2205,7 @@ def intervention_export_page(request):
                     if sub_grantees.exists():
                         ips = ips.union(sub_grantees)
 
-            context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Client Interventions Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'interventionDataExport.html', context)
         except ImplementingPartnerUser.DoesNotExist:
@@ -2293,7 +2287,7 @@ def individual_service_layering_export_page(request):
                     if sub_grantees.exists():
                         ips = ips.union(sub_grantees)
 
-            context = {'page': 'export', 'page_title': 'Service Layering Report Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Service Layering Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'individualServiceLayeringDataExport.html', context)
 
@@ -2394,19 +2388,11 @@ def viewBaselineData(request):
                     is_editable_by_ip = client_found.is_editable_by_ip(ip)
                     client_status = client_found.get_client_status(ip)
 
-                    dt_format = "%Y-%m-%d"
-                    try:
-                        max_dob = datetime.now().replace(
-                            year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
-                        min_dob = datetime.now().replace(
-                            year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
-                    except ValueError:
-                        max_dob = datetime.now().replace(
-                            year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE,
-                            day=datetime.now().day - 1).strftime(dt_format)
-                        min_dob = datetime.now().replace(
-                            year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE,
-                            day=datetime.now().day - 1).strftime(dt_format)
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                    minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+                    max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
+                    min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
 
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
@@ -2452,6 +2438,7 @@ def update_demographics_data(request):
             form = DemographicsForm(request.POST, instance=instance)
 
             client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+
             if not client_enrolment_service_layer.is_within_enrolment_dates(instance.date_of_birth):
                 response_data = {
                 'status': 'fail',
@@ -2717,7 +2704,7 @@ def transfer_client(request):
                 if transfer_form.is_valid():
                     num_of_pending_transfers = ClientTransfer.objects.filter(client=transfer_form.instance.client,
                                                                              transfer_status=ClientTransferStatus.objects.get(
-                                                                                 code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)).count()
+                                                                                 code__exact=TRANSFER_INITIATED_STATUS)).count()
 
                     if num_of_pending_transfers > 0:
                         print ("{} pending transfers for client".format(num_of_pending_transfers))
@@ -2728,7 +2715,7 @@ def transfer_client(request):
                     else:
                         client_transfer = transfer_form.save(commit=False)
 
-                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)
+                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
                         client_transfer.source_implementing_partner = ip
                         client_transfer.initiated_by = request.user
                         client_transfer.start_date = dt.now()
@@ -2818,7 +2805,7 @@ def accept_client_transfer(request):
                         raise PermissionDenied
 
                     if client_transfer is not None:
-                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_ACCEPTED_STATUS)
+                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
 
                         client_transfer.transfer_status = accepted_client_transfer_status
                         client_transfer.completed_by = request.user
@@ -2870,7 +2857,7 @@ def reject_client_transfer(request):
                     if not can_reject_transfer:
                         raise PermissionDenied
 
-                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_REJECTED_STATUS)
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_REJECTED_STATUS)
                     client_transfer.completed_by = request.user
                     client_transfer.end_date = dt.now()
                     client_transfer.save()
@@ -2891,7 +2878,7 @@ def reject_client_transfer(request):
 
 def get_client_transfers_count(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             client_transfers_count = ClientTransfer.objects.filter(
@@ -2922,7 +2909,7 @@ def intervention_export_transferred_in_page(request):
             if ips.count() > 0:
                 ips = ips.union(ImplementingPartner.objects.filter(parent_implementing_partner__in=ips))
 
-            context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Interventions Transferred In Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'interventionDataExportTransferredIn.html', context)
 
