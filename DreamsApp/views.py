@@ -405,7 +405,7 @@ def save_client(request):
                     client = client_form.save()
 
                     # Check client dreams_id
-                    if str(client.dreams_id) == '':
+                    if client.dreams_id is None or str(client.dreams_id) == '':
                         # Generate client dreams_id
                         cursor = db_conn_2.cursor()
                         try:
