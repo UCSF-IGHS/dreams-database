@@ -87,10 +87,11 @@ class ClientEnrolmentServiceLayer:
         else:
             return [self.OLD_MINIMUM_ENROLMENT_AGE, self.OLD_MAXIMUM_ENROLMENT_AGE]
 
-    def is_within_enrolment_dates(self, date_of_birth):
+    def is_within_enrolment_dates(self, date_of_birth, date_of_enrolment):
         date_of_birth = datetime.strptime(str(date_of_birth), self.dt_format).date()
+        date_of_enrolment = datetime.strptime(str(date_of_enrolment), self.dt_format).date()
         enrolment_cutoff_age = self.get_minimum_maximum_enrolment_age(self.ENROLMENT_CUTOFF_DATE)
 
-        max_dob = datetime.now().date() - relativedelta(years=int(enrolment_cutoff_age[0]))
-        min_dob = datetime.now().date() - relativedelta(years=int(enrolment_cutoff_age[1]))
+        max_dob = date_of_enrolment - relativedelta(years=int(enrolment_cutoff_age[0]))
+        min_dob = date_of_enrolment - relativedelta(years=int(enrolment_cutoff_age[1]))
         return date_of_birth >= min_dob and date_of_birth <= max_dob

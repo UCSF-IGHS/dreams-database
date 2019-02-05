@@ -391,7 +391,7 @@ def save_client(request):
                 if client_form.is_valid():
                     client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
 
-                    if not client_enrolment_service_layer.is_within_enrolment_dates(client_form.cleaned_data['date_of_birth']):
+                    if not client_enrolment_service_layer.is_within_enrolment_dates(client_form.cleaned_data['date_of_birth'], client_form.cleaned_data['date_of_enrollment']):
                         response_data = {
                             'status': 'fail',
                             'message': "The client is not within the accepted age range",
@@ -509,9 +509,10 @@ def edit_client(request):
                     return JsonResponse(json.dumps(response_data), safe=False)
 
                 client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
-                date_of_birth = datetime.strptime(request.POST.get('date_of_birth', dt.now()), '%Y-%m-%d').date()
+                date_of_birth = datetime.strptime(request.POST.get('date_of_birth'), '%Y-%m-%d').date()
+                date_of_enrollment = datetime.strptime(request.POST.get('date_of_enrollment'), '%Y-%m-%d').date()
 
-                if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth):
+                if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth, date_of_enrollment):
                     response_data = {
                         'status': 'failed',
                         'message': 'Client is not within accepted date range',
@@ -2208,6 +2209,9 @@ def viewBaselineData(request):
                 search_client_term = request.GET.get('search_client_term', '')
             except Client.DoesNotExist:
                 traceback.format_exc()
+            except Exception as e:
+                traceback.format_exc()
+                print(str(e))
         else:
             print ('POST not allowed')
 
@@ -2227,12 +2231,13 @@ def viewBaselineData(request):
                 if client_found is not None:
                     is_editable_by_ip = client_found.is_editable_by_ip(ip)
                     client_status = client_found.get_client_status(ip)
-
+                    date_of_enrollment_str = demographics_form['date_of_enrollment'].value()
+                    date_of_enrollment = datetime.strptime(str(date_of_enrollment_str), '%Y-%m-%d').date() if date_of_enrollment_str is not None else dt.now().date()
                     client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
                     minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                         client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
-                    max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
-                    min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
+                    max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
+                    min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]))
 
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
@@ -2279,7 +2284,7 @@ def update_demographics_data(request):
 
             client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
 
-            if not client_enrolment_service_layer.is_within_enrolment_dates(instance.date_of_birth):
+            if not client_enrolment_service_layer.is_within_enrolment_dates(instance.date_of_birth, instance.date_of_enrollment):
                 response_data = {
                 'status': 'fail',
                 'errors': ['Client is not within accepted age range'],
@@ -2974,3 +2979,28 @@ def download_audit_logs(request):
             return HttpResponseServerError(tb)
     else:
         raise SuspiciousOperation
+
+
+def get_min_max_date_of_birth(request):
+    try:
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            date_of_enrollment_str = request.POST.get('date_of_enrollment')
+            date_of_enrollment = datetime.strptime(str(date_of_enrollment_str),
+                                                   '%Y-%m-%d').date() if date_of_enrollment_str is not None else dt.now().date()
+            client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+            minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+            max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
+            min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]))
+
+            response_data = {
+                "min_dob": min_dob,
+                "max_dob": max_dob
+            }
+            return JsonResponse(response_data)
+
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
