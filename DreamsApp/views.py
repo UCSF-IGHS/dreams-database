@@ -509,7 +509,7 @@ def edit_client(request):
                     return JsonResponse(json.dumps(response_data), safe=False)
 
                 client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
-                date_of_birth = datetime.strptime(request.POST.get('date_of_birth', dt.now), '%Y-%m-%d')
+                date_of_birth = datetime.strptime(request.POST.get('date_of_birth', dt.now()), '%Y-%m-%d').date()
 
                 if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth):
                     response_data = {
@@ -525,12 +525,12 @@ def edit_client(request):
                 client.first_name = str(request.POST.get('first_name', ''))
                 client.middle_name = str(request.POST.get('middle_name', ''))
                 client.last_name = str(request.POST.get('last_name', ''))
-                client.date_of_birth = str(request.POST.get('date_of_birth', dt.now))
+                client.date_of_birth = str(date_of_birth)
                 client.is_date_of_birth_estimated = bool(str(request.POST.get('is_date_of_birth_estimated')))
                 client.verification_document = VerificationDocument.objects.filter(
                     code__exact=str(request.POST.get('verification_document', ''))).first()
                 client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
-                client.date_of_enrollment = str(request.POST.get('date_of_enrollment', dt.now))
+                client.date_of_enrollment = str(datetime.strptime(request.POST.get('date_of_enrollment', dt.now()), '%Y-%m-%d').date())
                 client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
                 client.marital_status = MaritalStatus.objects.filter(
                     code__exact=str(request.POST.get('marital_status', ''))).first()
@@ -888,7 +888,7 @@ def save_intervention(request):
                     """An error has occurred. Throw exception. This will be handled elsewhere"""
                     raise Exception(str(e))
 
-                intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
+                intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
 
                 # check if external organisation is selected
                 external_organization_checkbox = request.POST.get('external_organization_checkbox')
@@ -903,15 +903,14 @@ def save_intervention(request):
                         }
                         return JsonResponse(response_data)
                 else:
-                    if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
-                                                                                                datetime.now().time()):
+                    if client.date_of_enrollment is not None and intervention_date < client.date_of_enrollment:
                         response_data = {
                             'status': 'fail',
                             'message': "Error: The intervention date must be after the client's enrollment date. "
                         }
                         return JsonResponse(response_data)
 
-                if intervention_date > dt.now():
+                if intervention_date > dt.now().date():
                     response_data = {
                         'status': 'fail',
                         'message': "Error: The intervention date must be before or on the current date. "
@@ -1136,7 +1135,7 @@ def update_intervention(request):
                             code__exact=int(request.POST.get('intervention_type_code')))
                         intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
 
-                        intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
+                        intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
 
                         # check if external organisation is selected
                         external_organization_checkbox = request.POST.get('external_organization_checkbox')
@@ -1151,8 +1150,7 @@ def update_intervention(request):
                                 }
                                 return JsonResponse(response_data)
                         else:
-                            if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
-                                    intervention.client.date_of_enrollment, datetime.now().time()):
+                            if intervention.client.date_of_enrollment is not None and intervention_date < intervention.client.date_of_enrollment:
                                 response_data = {
                                     'status': 'fail',
                                     'message': "Error: The intervention date must be after the client's enrollment date. "
@@ -1161,7 +1159,7 @@ def update_intervention(request):
 
                         intervention.name_specified = request.POST.get('other_specify',
                                                                        '') if intervention.intervention_type.is_specified else ''
-                        intervention.intervention_date = request.POST.get('intervention_date')
+                        intervention.intervention_date = str(intervention_date)
                         intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
                         intervention.date_changed = dt.now()
                         intervention.comment = request.POST.get('comment')
