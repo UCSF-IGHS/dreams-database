@@ -1217,7 +1217,6 @@ $(document).ready(function () {
                 $("#enrollment-modal").modal('hide');
             }
             else {
-                $("#enrollment-modal").modal('hide');
                 $('#client_actions_alert').removeClass('hidden').addClass('alert-danger')
                     .text(result.message)
                     .trigger('madeVisible')
