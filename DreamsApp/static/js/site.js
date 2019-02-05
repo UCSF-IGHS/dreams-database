@@ -14,6 +14,70 @@ $(document).ready(function () {
         }
     });
 
+     $('#form_demographics #id_date_of_enrollment').change(function(event){
+        event.preventDefault();
+
+        // Do ajax for login
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url: '/getMinMaxDateOfBirth', // the endpoint
+            type: "POST", // http method
+            dataType: 'json',
+            data: {
+                csrfmiddlewaretoken: csrftoken,
+                'date_of_enrollment': $(this).val(),
+            },
+            success: function (data) {
+                $("#form_demographics #id_date_of_birth").datepicker({
+                    minDate: (new Date(data.min_dob)),
+                    maxDate: (new Date(data.max_dob)),
+                    dateFormat: 'yy-mm-dd',
+                    changeMonth: true,
+                    changeYear: true
+                });
+            },
+
+            // handle a non-successful response
+            error: function (xhr, errmsg, err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    });
+
+    $('#enrollment-form #id_date_of_enrollment').change(function(event){
+        event.preventDefault();
+
+        // Do ajax for login
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url: '/getMinMaxDateOfBirth', // the endpoint
+            type: "POST", // http method
+            dataType: 'json',
+            data: {
+                csrfmiddlewaretoken: csrftoken,
+                'date_of_enrollment': $(this).val(),
+            },
+            success: function (data) {
+                $("#enrollment-form #id_date_of_birth").datepicker({
+                    minDate: (new Date(data.min_dob)),
+                    maxDate: (new Date(data.max_dob)),
+                    dateFormat: 'yy-mm-dd',
+                    changeMonth: true,
+                    changeYear: true
+                });
+            },
+
+            // handle a non-successful response
+            error: function (xhr, errmsg, err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    });
+
     $("#date-of-completion").datepicker({
         maxDate: '0y 0m 0d',
         minDate: (new Date($('#current_date').val())),
