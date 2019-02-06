@@ -1217,10 +1217,13 @@ $(document).ready(function () {
                 $("#enrollment-modal").modal('hide');
             }
             else {
-                $("#enrollment-modal").modal('hide');
                 $('#client_actions_alert').removeClass('hidden').addClass('alert-danger')
                     .text(result.message)
-                    .trigger('madeVisible')
+                    .trigger('madeVisible');
+
+                $('#enrolment_actions_alert').removeClass('hidden').addClass('alert-danger')
+                    .text(result.message)
+                    .trigger('madeVisible');
             }
         }).fail(function (xhr, errmsg, err) {
             $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')

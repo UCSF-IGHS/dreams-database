@@ -16,6 +16,10 @@
                         <h4 class="modal-title" id="exampleModalLabel"><span class="glyphicon glyphicon-file"></span>
                             CLIENT ENROLLMENT FORM</h4>
                     </div>
+
+                    <div class=" alert hidden dp-action-alert fade in" id="client_actions_alert" role="alert"
+                            style="margin-bottom: 15px;"></div>
+
                     <div class="modal-body">
                         <div style="margin: auto 15px;">
                             <input id="demo_current_client_id" class="hidden" type="text" name="client"/>
@@ -49,6 +53,12 @@
                                     <script>
                                         $(function () {
                                             $("#id_date_of_birth").datepicker({
+                                                beforeShow: function(input, inst) {
+                                                    $(document).off('focusin.bs.modal');
+                                                },
+                                                onClose:function(){
+                                                    $(document).on('focusin.bs.modal');
+                                                },
                                                 minDate: (new Date('{{ min_dob }}')),
                                                 maxDate: (new Date('{{ max_dob }}')),
                                                 dateFormat: 'yy-mm-dd',
@@ -69,6 +79,12 @@
                                     <script>
                                         $(function () {
                                             $("#id_date_of_enrollment").datepicker({
+                                                beforeShow: function(input, inst) {
+                                                    $(document).off('focusin.bs.modal');
+                                                },
+                                                onClose:function(){
+                                                    $(document).on('focusin.bs.modal');
+                                                },
                                                 maxDate: '0y 0m 0d',
                                                 minDate: (new Date(2015, 9, 1)),
                                                 dateFormat: 'yy-mm-dd',
@@ -218,5 +234,16 @@
                 </div>
             </div>
         </form>
-    </div>
+     </div>
+
+     {% if messages %}
+            <script>
+            var timeout = $(".dp-action-alert").hasClass('alert-danger') ? 15000 : 5000;
+            setTimeout(function(){
+            $(".dp-action-alert").removeClass('alert-info').removeClass('alert-success').removeClass('alert-danger')
+                .fadeOut('slow')
+                .text("")
+            }, timeout);
+            </script>
+        {% endif %}
 {% endblock %}

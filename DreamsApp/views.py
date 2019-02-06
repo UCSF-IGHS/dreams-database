@@ -392,9 +392,12 @@ def save_client(request):
                     client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
 
                     if not client_enrolment_service_layer.is_within_enrolment_dates(client_form.cleaned_data['date_of_birth'], client_form.cleaned_data['date_of_enrollment']):
+                        min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+
                         response_data = {
                             'status': 'fail',
-                            'message': "The client is not within the accepted age range",
+                            'message': "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                                min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
                             'client_id': None,
                             'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                             'can_change_client': request.user.has_perm('auth.can_change_client'),
@@ -513,9 +516,13 @@ def edit_client(request):
                 date_of_enrollment = datetime.strptime(request.POST.get('date_of_enrollment'), '%Y-%m-%d').date()
 
                 if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth, date_of_enrollment):
+                    min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+
                     response_data = {
                         'status': 'failed',
-                        'message': 'Client is not within accepted date range',
+                        'message': "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                            min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
                         'client_id': client.id
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
@@ -2285,10 +2292,15 @@ def update_demographics_data(request):
             client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
 
             if not client_enrolment_service_layer.is_within_enrolment_dates(instance.date_of_birth, instance.date_of_enrollment):
+                min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                    client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+
                 response_data = {
-                'status': 'fail',
-                'errors': ['Client is not within accepted age range'],
-                'client_age': instance.get_current_age()
+                    'status': 'fail',
+                    'errors': [
+                        "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                            min_max_age[0]) + " and " + str(min_max_age[1] + " years.")],
+                    'client_age': instance.get_current_age()
                 }
                 return JsonResponse(response_data, status=500)
 
