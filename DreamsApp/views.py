@@ -391,10 +391,13 @@ def save_client(request):
                 if client_form.is_valid():
                     client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
 
-                    if not client_enrolment_service_layer.is_within_enrolment_dates(client_form.cleaned_data['date_of_birth']):
+                    if not client_enrolment_service_layer.is_within_enrolment_dates(client_form.cleaned_data['date_of_birth'], client_form.cleaned_data['date_of_enrollment']):
+                        min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+
                         response_data = {
                             'status': 'fail',
-                            'message': "The client is not within the accepted age range",
+                            'message': "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                                min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
                             'client_id': None,
                             'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                             'can_change_client': request.user.has_perm('auth.can_change_client'),
@@ -509,12 +512,17 @@ def edit_client(request):
                     return JsonResponse(json.dumps(response_data), safe=False)
 
                 client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
-                date_of_birth = datetime.strptime(request.POST.get('date_of_birth', dt.now), '%Y-%m-%d')
+                date_of_birth = datetime.strptime(request.POST.get('date_of_birth'), '%Y-%m-%d').date()
+                date_of_enrollment = datetime.strptime(request.POST.get('date_of_enrollment'), '%Y-%m-%d').date()
 
-                if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth):
+                if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth, date_of_enrollment):
+                    min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+
                     response_data = {
                         'status': 'failed',
-                        'message': 'Client is not within accepted date range',
+                        'message': "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                            min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
                         'client_id': client.id
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
@@ -525,12 +533,12 @@ def edit_client(request):
                 client.first_name = str(request.POST.get('first_name', ''))
                 client.middle_name = str(request.POST.get('middle_name', ''))
                 client.last_name = str(request.POST.get('last_name', ''))
-                client.date_of_birth = str(request.POST.get('date_of_birth', dt.now))
+                client.date_of_birth = str(date_of_birth)
                 client.is_date_of_birth_estimated = bool(str(request.POST.get('is_date_of_birth_estimated')))
                 client.verification_document = VerificationDocument.objects.filter(
                     code__exact=str(request.POST.get('verification_document', ''))).first()
                 client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
-                client.date_of_enrollment = str(request.POST.get('date_of_enrollment', dt.now))
+                client.date_of_enrollment = str(datetime.strptime(request.POST.get('date_of_enrollment', dt.now()), '%Y-%m-%d').date())
                 client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
                 client.marital_status = MaritalStatus.objects.filter(
                     code__exact=str(request.POST.get('marital_status', ''))).first()
@@ -888,7 +896,7 @@ def save_intervention(request):
                     """An error has occurred. Throw exception. This will be handled elsewhere"""
                     raise Exception(str(e))
 
-                intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
+                intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
 
                 # check if external organisation is selected
                 external_organization_checkbox = request.POST.get('external_organization_checkbox')
@@ -903,15 +911,14 @@ def save_intervention(request):
                         }
                         return JsonResponse(response_data)
                 else:
-                    if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
-                                                                                                datetime.now().time()):
+                    if client.date_of_enrollment is not None and intervention_date < client.date_of_enrollment:
                         response_data = {
                             'status': 'fail',
                             'message': "Error: The intervention date must be after the client's enrollment date. "
                         }
                         return JsonResponse(response_data)
 
-                if intervention_date > dt.now():
+                if intervention_date > dt.now().date():
                     response_data = {
                         'status': 'fail',
                         'message': "Error: The intervention date must be before or on the current date. "
@@ -1136,7 +1143,7 @@ def update_intervention(request):
                             code__exact=int(request.POST.get('intervention_type_code')))
                         intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
 
-                        intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
+                        intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
 
                         # check if external organisation is selected
                         external_organization_checkbox = request.POST.get('external_organization_checkbox')
@@ -1151,8 +1158,7 @@ def update_intervention(request):
                                 }
                                 return JsonResponse(response_data)
                         else:
-                            if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
-                                    intervention.client.date_of_enrollment, datetime.now().time()):
+                            if intervention.client.date_of_enrollment is not None and intervention_date < intervention.client.date_of_enrollment:
                                 response_data = {
                                     'status': 'fail',
                                     'message': "Error: The intervention date must be after the client's enrollment date. "
@@ -1161,7 +1167,7 @@ def update_intervention(request):
 
                         intervention.name_specified = request.POST.get('other_specify',
                                                                        '') if intervention.intervention_type.is_specified else ''
-                        intervention.intervention_date = request.POST.get('intervention_date')
+                        intervention.intervention_date = str(intervention_date)
                         intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
                         intervention.date_changed = dt.now()
                         intervention.comment = request.POST.get('comment')
@@ -2210,6 +2216,9 @@ def viewBaselineData(request):
                 search_client_term = request.GET.get('search_client_term', '')
             except Client.DoesNotExist:
                 traceback.format_exc()
+            except Exception as e:
+                traceback.format_exc()
+                print(str(e))
         else:
             print ('POST not allowed')
 
@@ -2229,12 +2238,13 @@ def viewBaselineData(request):
                 if client_found is not None:
                     is_editable_by_ip = client_found.is_editable_by_ip(ip)
                     client_status = client_found.get_client_status(ip)
-
+                    date_of_enrollment_str = demographics_form['date_of_enrollment'].value()
+                    date_of_enrollment = datetime.strptime(str(date_of_enrollment_str), '%Y-%m-%d').date() if date_of_enrollment_str is not None else dt.now().date()
                     client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
                     minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                         client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
-                    max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
-                    min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
+                    max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
+                    min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]))
 
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
@@ -2281,11 +2291,16 @@ def update_demographics_data(request):
 
             client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
 
-            if not client_enrolment_service_layer.is_within_enrolment_dates(instance.date_of_birth):
+            if not client_enrolment_service_layer.is_within_enrolment_dates(instance.date_of_birth, instance.date_of_enrollment):
+                min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                    client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+
                 response_data = {
-                'status': 'fail',
-                'errors': ['Client is not within accepted age range'],
-                'client_age': instance.get_current_age()
+                    'status': 'fail',
+                    'errors': [
+                        "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                            min_max_age[0]) + " and " + str(min_max_age[1] + " years.")],
+                    'client_age': instance.get_current_age()
                 }
                 return JsonResponse(response_data, status=500)
 
@@ -2976,3 +2991,28 @@ def download_audit_logs(request):
             return HttpResponseServerError(tb)
     else:
         raise SuspiciousOperation
+
+
+def get_min_max_date_of_birth(request):
+    try:
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            date_of_enrollment_str = request.POST.get('date_of_enrollment')
+            date_of_enrollment = datetime.strptime(str(date_of_enrollment_str),
+                                                   '%Y-%m-%d').date() if date_of_enrollment_str is not None else dt.now().date()
+            client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+            minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+            max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
+            min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]))
+
+            response_data = {
+                "min_dob": min_dob,
+                "max_dob": max_dob
+            }
+            return JsonResponse(response_data)
+
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)

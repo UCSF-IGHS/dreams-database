@@ -45,6 +45,12 @@
                                                  <script>
                                                     $(function() {
                                                       $( "#doe_start_filter").datepicker({
+                                                          beforeShow: function(input, inst) {
+                                                              $(document).off('focusin.bs.modal');
+                                                          },
+                                                          onClose:function(){
+                                                              $(document).on('focusin.bs.modal');
+                                                          },
                                                           maxDate: '0y 0m 0d',
                                                           minDate:  (new Date(2015, 9 , 1)),
                                                           dateFormat: 'yy-mm-dd',
@@ -58,6 +64,12 @@
                                                  <script>
                                                     $(function() {
                                                       $( "#doe_end_filter").datepicker({
+                                                          beforeShow: function(input, inst) {
+                                                              $(document).off('focusin.bs.modal');
+                                                          },
+                                                          onClose:function(){
+                                                              $(document).on('focusin.bs.modal');
+                                                          },
                                                           maxDate: '0y 0m 0d',
                                                           minDate:  (new Date(2015, 9 , 1)),
                                                           dateFormat: 'yy-mm-dd',
