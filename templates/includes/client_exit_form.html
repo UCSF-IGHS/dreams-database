@@ -34,6 +34,12 @@
                                     $(function() {
                                         var localToday = new Date();
                                         $( "input.date" ).datepicker({
+                                              beforeShow: function (input, inst) {
+                                                  $(document).off('focusin.bs.modal');
+                                              },
+                                              onClose: function () {
+                                                  $(document).on('focusin.bs.modal');
+                                              },
                                               minDate: (new Date(2015, 10 , 1)),
                                               maxDate:  "+0Y +0M +0D",
                                               dateFormat: 'yy-mm-dd',
@@ -43,7 +49,6 @@
                                         });
                                         $("input.date").datepicker("setDate", localToday);
                                     });
-
                                 </script>
                             </div>
                         </div>
