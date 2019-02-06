@@ -79,6 +79,12 @@ $(document).ready(function () {
     });
 
     $("#date-of-completion").datepicker({
+         beforeShow: function (input, inst) {
+             $(document).off('focusin.bs.modal');
+         },
+         onClose: function () {
+             $(document).on('focusin.bs.modal');
+         },
         maxDate: '0y 0m 0d',
         minDate: (new Date($('#current_date').val())),
         changeMonth: true,
