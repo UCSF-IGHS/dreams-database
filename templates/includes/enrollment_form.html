@@ -48,6 +48,12 @@
                              <script>
                                  $(function () {
                                      $("#id_date_of_birth").datepicker({
+                                         beforeShow: function(input, inst) {
+                                             $(document).off('focusin.bs.modal');
+                                         },
+                                         onClose:function(){
+                                             $(document).on('focusin.bs.modal');
+                                         },
                                          minDate: (new Date('{{ min_dob }}')),
                                          maxDate: (new Date('{{ max_dob }}')),
                                          dateFormat: 'yy-mm-dd',
@@ -96,6 +102,12 @@
                              <script>
                                 $(function() {
                                   $( "#id_date_of_enrollment").datepicker({
+                                      beforeShow: function(input, inst) {
+                                          $(document).off('focusin.bs.modal');
+                                      },
+                                      onClose:function(){
+                                          $(document).on('focusin.bs.modal');
+                                      },
                                       maxDate: '0y 0m 0d',
                                       minDate:  (new Date(2015, 9 , 1)),
                                       dateFormat: 'yy-mm-dd',
