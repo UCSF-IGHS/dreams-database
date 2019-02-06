@@ -396,7 +396,7 @@ def save_client(request):
 
                         response_data = {
                             'status': 'fail',
-                            'message': "The client is not within the accepted age range. At the date of enrolment the client between " + str(
+                            'message': "The client is not within the accepted age range. At the date of enrolment the age client must be between " + str(
                                 min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
                             'client_id': None,
                             'can_manage_client': request.user.has_perm('auth.can_manage_client'),
@@ -521,7 +521,7 @@ def edit_client(request):
 
                     response_data = {
                         'status': 'failed',
-                        'message': "The client is not within the accepted age range. At the date of enrolment the client between " + str(
+                        'message': "The client is not within the accepted age range. At the date of enrolment the age client must be between " + str(
                             min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
                         'client_id': client.id
                     }
@@ -2298,7 +2298,7 @@ def update_demographics_data(request):
                 response_data = {
                     'status': 'fail',
                     'errors': [
-                        "The client is not within the accepted age range. At the date of enrolment the client between " + str(
+                        "The client is not within the accepted age range. At the date of enrolment the age client must be between " + str(
                             min_max_age[0]) + " and " + str(min_max_age[1] + " years.")],
                     'client_age': instance.get_current_age()
                 }
