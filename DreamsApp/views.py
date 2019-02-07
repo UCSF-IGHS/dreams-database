@@ -2289,22 +2289,22 @@ def update_demographics_data(request):
             dreams_id = instance.dreams_id
             form = DemographicsForm(request.POST, instance=instance)
 
-            client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
-
-            if not client_enrolment_service_layer.is_within_enrolment_dates(instance.date_of_birth, instance.date_of_enrollment):
-                min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
-                    client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
-
-                response_data = {
-                    'status': 'fail',
-                    'errors': [
-                        "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
-                            min_max_age[0]) + " and " + str(min_max_age[1] + " years.")],
-                    'client_age': instance.get_current_age()
-                }
-                return JsonResponse(response_data, status=500)
-
             if form.is_valid():
+                client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                if not client_enrolment_service_layer.is_within_enrolment_dates(form.instance.date_of_birth,
+                                                                                form.instance.date_of_enrollment):
+                    min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+
+                    response_data = {
+                        'status': 'fail',
+                        'errors': [
+                            "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                                min_max_age[0]) + " and " + str(min_max_age[1] + " years.")],
+                        'client_age': instance.get_current_age()
+                    }
+                    return JsonResponse(response_data, status=500)
+
                 form.instance.implementing_partner = implementing_partner
                 form.instance.county_of_residence = county_of_residence
                 form.instance.sub_county = sub_county
