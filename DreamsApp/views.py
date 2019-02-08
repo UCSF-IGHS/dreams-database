@@ -298,6 +298,56 @@ def clients(request):
         return HttpResponseServerError(tb)
 
 
+def follow_ups(request):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        client_id = request.GET.get('client_id', '') if request.method == 'GET' else request.POST.get('client_id', '')
+        if client_id is not None and client_id != 0:
+            try:
+                client = Client.objects.get(id=client_id)
+                client_follow_ups = ClientFollowUp.objects.filter(client=client)
+
+                follow_up_service_layer = FollowUpsServiceLayer(request.user)
+                follow_up_perms = {
+                    'can_create_follow_up': follow_up_service_layer.can_create_followup(),
+                    'can_delete_follow_up': follow_up_service_layer.can_delete_followup(),
+                    'can_edit_follow_up': follow_up_service_layer.can_edit_followup()
+                }
+
+                page = request.GET.get('page', 1)
+                paginator = Paginator(client_follow_ups, 20)
+                follow_up_types = ClientFollowUpType.objects.all()
+                follow_up_result_types = ClientLTFUResultType.objects.all()
+
+                try:
+                    displayed_follow_ups = paginator.page(page)
+                except PageNotAnInteger:
+                    displayed_follow_ups = paginator.page(1)
+                except EmptyPage:
+                    displayed_follow_ups = paginator.page(paginator.num_pages)
+
+                return render(request, 'client_follow_ups.html', {
+                    'page': 'Follow Ups',
+                    'page_title': 'Client Follow Ups Page',
+                    'client': client,
+                    'user': request.user,
+                    'follow_up_perms': follow_up_perms,
+                    'follow_ups': displayed_follow_ups,
+                    'follow_up_types': follow_up_types,
+                    'follow_up_result_types': follow_up_result_types
+                })
+            except Client.DoesNotExist:
+                response_data = {
+                    'status': 'failed',
+                    'message': 'Operation not allowed. Client does not exist',
+                    'client_id': client.id
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+            except Exception as e:
+                return render(request, 'login.html')
+    else:
+        raise PermissionDenied
+
+
 def client_profile(request):
     """ Returns client profile """
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
@@ -691,10 +741,10 @@ def exit_client(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_exit_client'):
         try:
-            client_id = int(str(request.POST.get('client_id', '0')))
+            client_id = int(str(request.POST.get('client_id')))
             reason_for_exit = ExitReason.objects.get(id__exact=int(request.POST.get('reason_for_exit', '')))
             date_of_exit = request.POST.get('date_of_exit', datetime.now())
-            exit_comment = request.POST.get('exitComment')
+            exit_comment = request.POST.get('exit_comment')
 
             if reason_for_exit is not None:
                 if reason_for_exit.code == OTHER_CODE:
@@ -775,8 +825,8 @@ def get_unsuccessful_followup_attempts(request):
             response_data = {}
             client_id = int(request.GET.get('current_client_id'))
             client = Client.objects.get(id=client_id)
-            unsuccessful_follow_up_attempts = ClientLTFU.objects.filter(client=client,
-                                                                        result_of_followup=ClientLTFUResultType.objects.filter(name='Lost').first()).all()
+            unsuccessful_follow_up_attempts = ClientFollowUp.objects.filter(client=client,
+                                                                            result_of_followup=ClientLTFUResultType.objects.filter(name='Lost').first()).all()
             response_data['unsuccessful_follow_up_attempts'] = len(unsuccessful_follow_up_attempts)
             return JsonResponse(response_data)
         else:
@@ -1118,8 +1168,84 @@ def get_intervention(request):
         return HttpResponseServerError(tb)
 
 
-# Updates an intervention
-# use /ivUpdate/ to access the method
+def add_follow_up(request):
+    try:
+        if is_valid_post_request(request):
+            client_id = int(request.POST['client'], 0)
+            client = Client.objects.get(id=client_id)
+
+            follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
+            follow_up_result_type = ClientLTFUResultType.objects.filter(id__exact=request.POST.get('follow_up_result_type')).first()
+            follow_up_date = request.POST.get('follow_up_date')
+            follow_up_comments = request.POST.get('follow_up_comments')
+
+            follow_up = ClientFollowUp()
+            follow_up.client = client
+            follow_up.date_of_followup = follow_up_date
+            follow_up.type_of_followup = follow_up_type
+            follow_up.result_of_followup = follow_up_result_type
+            follow_up.comment = follow_up_comments
+            follow_up.save()
+
+            response_data = {
+                'status': 'success',
+                'message': 'Follow up details added'
+            }
+            return JsonResponse(response_data, status=200)
+
+    except Exception as e:
+        if type(e) is ValidationError:
+            errormsg = '; '.join(ValidationError(e).messages)
+        else:
+            errormsg = str(e)
+
+        response_data = {
+            'status': 'fail',
+            'message': "An error has occurred: " + errormsg
+        }
+        return JsonResponse(response_data)
+
+
+def update_follow_up(request):
+    try:
+        if is_valid_post_request(request):
+            follow_up_id = int(request.POST['follow_up_id'])
+            follow_up = ClientFollowUp.objects.get(id=follow_up_id)
+
+            if follow_up is not None:
+                follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
+                follow_up_result_type = ClientLTFUResultType.objects.filter(id__exact=request.POST.get('follow_up_result_type')).first()
+                follow_up_date = request.POST.get('follow_up_date')
+                follow_up_comments = request.POST.get('follow_up_comments')
+
+                follow_up.date_of_followup = follow_up_date
+                follow_up.type_of_followup = follow_up_type
+                follow_up.result_of_followup = follow_up_result_type
+                follow_up.comment = follow_up_comments
+                follow_up.save()
+
+                response_data = {
+                    'status': 'success',
+                    'message': 'Follow up details updated'
+                }
+                return JsonResponse(response_data)
+            else:
+                response_data = {
+                    'status': 'fail',
+                    'message': "Error follow up not found"
+                }
+                return JsonResponse(response_data)
+    except Exception as e:
+        if type(e) is ValidationError:
+            errormsg = '; '.join(ValidationError(e).messages)
+        else:
+            errormsg = str(e)
+
+        response_data = {
+            'status': 'fail',
+            'message': "An error has occurred: " + errormsg
+        }
+        return JsonResponse(response_data)
 
 
 def update_intervention(request):
@@ -1241,6 +1367,40 @@ def update_intervention(request):
         response_data = {
             'status': 'fail',
             'message': "An error has occurred: " + errormsg
+        }
+        return JsonResponse(response_data)
+
+
+def delete_follow_up(request):
+    try:
+        if is_valid_post_request(request):
+            follow_up_id = int(request.POST.get('follow_up_id'))
+
+            if follow_up_id is not None and type(follow_up_id) is int:
+                follow_up = ClientFollowUp.objects.filter(pk=follow_up_id).first()
+
+                if follow_up is not None:
+                    ClientFollowUp.objects.filter(pk=follow_up_id).delete()
+                    log_custom_actions(request.user.id, "DreamsApp_clientfollowup", follow_up_id, "DELETE", None)
+
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Follow up has been successfully deleted',
+                        'follow_up_id': follow_up_id
+                    }
+                    return JsonResponse(response_data)
+                else:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Follow up not found'
+                    }
+                    return JsonResponse(response_data)
+
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': "An error occurred while processing request. "
+                       "Please contact the System Administrator if this error persists."
         }
         return JsonResponse(response_data)
 

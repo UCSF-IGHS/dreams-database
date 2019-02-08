@@ -1,0 +1,416 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    {% include 'includes/client_exit_form.html' %}
+    {% include 'includes/client_unexit_form.html' %}
+    {% include 'includes/client_transfer_form.html' %}
+    {% include 'includes/client_void_form.html' %}
+
+    <!-- Beginning add follow up modal-->
+    <div class="modal fade" id="follow-up-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="follow-up-entry-form" method="post" action="#">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel">ADD FOLLOW UP</h4>
+                        <h5>For: {{ client.get_full_name }}</h5>
+                  </div>
+                  <div class="modal-body">
+
+                        {% csrf_token %}
+                        <!-- Permanently hidden Fields -->
+
+                        <input class="hidden validate-follow-up-form-field" name="client" value="{{ client.id }}"/>
+                        <input class="hidden validate-follow-up-form-field" name="created_by" value="{{ user.id }}"/>
+                        <input class="hidden validate-follow-up-form-field" name="changed_by" id="changed_by" value="{{ user.id }}"/>
+
+                        <!-- End of Permanently hidden fields -->
+
+                        <div class="form-group">
+                          <label for="follow_up_type">Follow Up Type</label>
+                          <select id="follow_up_type" name="follow_up_type" class="form-control validate-follow-up-form-field" >
+                              {% if follow_up_types %}
+                                {% for follow_up_type in follow_up_types %}
+                                    <option value="{{ follow_up_type.id }}">{{ follow_up_type.name }}</option>
+                                {% endfor %}
+                              {% endif %}
+
+                          </select>
+                        </div>
+
+                        <div class="form-group" id="result_specify_section">
+                            <label for="follow_up_result_type" class="control-label">Result</label>
+                            <select id="follow_up_result_type" name="follow_up_result_type" class="form-control validate-follow-up-form-field" >
+                                {% if follow_up_result_types %}
+                                    {% for follow_up_result_type in follow_up_result_types %}
+                                        <option value="{{ follow_up_result_type.id }}">{{ follow_up_result_type.name }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+
+                      <div class="form-group has-feedback date" id="follow_up_date_section">
+                          <label for="follow_up_date" class="control-label">Date</label>
+                          <input type="text" class="form-control validate-follow-up-form-field" id="follow_up_date" placeholder="Select date " style="cursor: pointer;">
+                          <span class="add-on"><i class="icon-th"></i></span></p>
+                          <input type="text" class="form-control validate-follow-up-form-field hidden" id="follow_up_date" name="follow_up_date"/>
+                          <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                          <script>
+                              $(function () {
+                                  var localToday = new Date();
+                                  $("input#follow_up_date").datepicker({
+                                      minDate: (new Date(2015, 10, 1)),
+                                      maxDate: "+0Y +0M +0D",
+                                      dateFormat: 'yy-mm-dd',
+                                      changeMonth: true,
+                                      changeYear: true,
+                                      defaultDate: localToday
+                                  });
+                                  $("input#follow_up_date").datepicker("setDate", localToday);
+                              });
+
+                          </script>
+                      </div>
+
+                       <div class="form-group" id="comment_section">
+                           <label for="follow_up_comments" class="control-label">Comments</label>
+                           <textarea class="form-control validate-follow-up-form-field" id="follow_up_comments" name="follow_up_comments"></textarea>
+                        </div>
+
+                        <div class="form-group" id="notes_section">
+                            <span id="error-space" class="label error-space" style="color: red;"></span>
+                        </div>
+                         Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
+                  </div>
+                  <div class="modal-footer">
+
+                      <button id="btn_cancel_follow_up" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
+                      <button id="btn_save_follow_up" type="submit" class="btn btn-sm btn-primary" > Save Follow Up </button>
+
+                      <span class="processing-indicator hidden">
+                          <br/><br/>
+                          <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving follow up... </span>
+                      </span>
+                  </div>
+                </form>
+            </div>
+          </div>
+    </div>
+    <!-- End modal-->
+
+    <!-- Beginning edit follow up modal-->
+    <div class="modal fade" id="edit-follow-up-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="edit-follow-up-entry-form" method="post" action="#">
+                  <input type="hidden" id="follow_up_id" name="follow_up_id" />
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel">EDIT FOLLOW UP</h4>
+                        <h5>For: {{ client.get_full_name }}</h5>
+                  </div>
+                  <div class="modal-body">
+
+                        {% csrf_token %}
+                        <!-- Permanently hidden Fields -->
+
+                        <input class="hidden validate-follow-up-form-field" name="client" value="{{ client.id }}"/>
+                        <input class="hidden validate-follow-up-form-field" name="created_by" value="{{ user.id }}"/>
+                        <input class="hidden validate-follow-up-form-field" name="changed_by" id="changed_by" value="{{ user.id }}"/>
+
+                        <!-- End of Permanently hidden fields -->
+
+                        <div class="form-group">
+                          <label for="follow_up_type">Follow Up Type</label>
+                          <select id="follow_up_type" name="follow_up_type" class="form-control validate-follow-up-form-field" >
+                              {% if follow_up_types %}
+                                {% for follow_up_type in follow_up_types %}
+                                    <option value="{{ follow_up_type.id }}">{{ follow_up_type.name }}</option>
+                                {% endfor %}
+                              {% endif %}
+
+                          </select>
+                        </div>
+
+                        <div class="form-group" id="result_specify_section">
+                            <label for="follow_up_result_type" class="control-label">Result</label>
+                            <select id="follow_up_result_type" name="follow_up_result_type" class="form-control validate-follow-up-form-field">
+                                {% if follow_up_result_types %}
+                                    {% for follow_up_result_type in follow_up_result_types %}
+                                        <option value="{{ follow_up_result_type.id }}">{{ follow_up_result_type.name }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+
+                      <div class="form-group has-feedback date" id="follow_up_date_section">
+                          <label for="follow_up_date" class="control-label">Date</label>
+                          <input type="text" class="form-control validate-follow-up-form-field" id="follow_up_date" placeholder="Select date " style="cursor: pointer;">
+                          <span class="add-on"><i class="icon-th"></i></span></p>
+                          <input type="text" class="form-control validate-follow-up-form-field hidden" id="follow_up_date" name="follow_up_date"/>
+                          <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                          <script>
+                              $(function () {
+                                  var localToday = new Date();
+                                  $("input#follow_up_date").datepicker({
+                                      minDate: (new Date(2015, 10, 1)),
+                                      maxDate: "+0Y +0M +0D",
+                                      dateFormat: 'yy-mm-dd',
+                                      changeMonth: true,
+                                      changeYear: true,
+                                      defaultDate: localToday
+                                  });
+                                  $("input#follow_up_date").datepicker("setDate", localToday);
+                              });
+
+                          </script>
+                      </div>
+
+                       <div class="form-group" id="comment_section">
+                           <label for="follow_up_comments" class="control-label">Comments</label>
+                           <textarea class="form-control validate-follow-up-form-field" id="follow_up_comments" name="follow_up_comments"></textarea>
+                        </div>
+
+                        <div class="form-group" id="notes_section">
+                            <span id="error-space" class="label error-space" style="color: red;"></span>
+                        </div>
+                         Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
+                  </div>
+                  <div class="modal-footer">
+
+                      <button id="btn_cancel_follow_up" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
+                      <button id="btn_edit_follow_up" type="submit" class="btn btn-sm btn-primary" > Edit Follow Up </button>
+
+                      <span class="processing-indicator hidden">
+                          <br/><br/>
+                          <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving follow up... </span>
+                      </span>
+                  </div>
+                </form>
+            </div>
+          </div>
+    </div>
+    <!-- End modal-->
+
+    <!-- Beginning Confirm Delete Modal -->
+
+    <div class="modal fade" id="confirm-follow-up-delete-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Confirm Follow Up Delete Action</h4>
+          </div>
+          <div class="modal-body">
+              <form method="POST" action="#" id="follow_up_delete_form">
+                  {% csrf_token %}
+                  <p>Are you sure you want to delete this follow up entry? Changes cannot be undone.</p>
+                  <input type="hidden" name="follow_up_id" id="follow_up_id" value=""/>
+              </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
+            <button type="button" class="btn btn-sm btn-danger" id="btn_delete_follow_up_confirmation">Delete Follow Up</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- End Confirm Delete Modal -->
+
+    <!-- Start of Client Follow Up profile section -->
+<div class="wrapper-container">
+    <div class=" statusBox">
+        <div>
+            <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-5">
+            <p><strong>Client: </strong> {{ client.get_full_name }} <span class="client_exit_voided_status">{{ client.get_client_status }}</span></p>
+            <p><strong>DREAMS ID: </strong> {{ client.dreams_id }}</p>
+            <p><strong>Date Birth: </strong> {{ client.date_of_birth }} (Current Age {{ client.get_current_age }})</p>
+
+        </div><!--/col-->
+            <div class="col-xs-12 col-sm-4">
+                <p><strong>Date Enrolled: </strong> {{ client.date_of_enrollment }} (Age at enrollment: {{ client.get_age_at_enrollment }})</p>
+                <p><strong>Phone Number: </strong>
+                    <span>{% if client.phone_number != None %}{{ client.phone_number }}{% endif %}
+                        {% if client.phone_number == None and client.guardian_phone_number != None and client.guardian_phone_number != '' %}
+                            (Guardian) {{ client.guardian_phone_number }}{% endif %}</span>
+                </p>
+                <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
+            </div><!--/col-->
+            <div class="col-xs-12 col-sm-3">
+                <p><strong>Actions: </strong> <br>
+                    <p class="underline_hover"  data-client_id='{{ client.id }}' style="cursor:pointer;" onclick="window.location='/client_baseline_info?client_id={{ client.id }}&search_client_term={{ search_client_term }}'" data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-pencil"></span> Edit Enrollment Data</p>
+                    <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
+                       onclick="window.location='/client?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
+                       data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-folder-close"></span>
+                        Service Uptake
+                    </p>
+                    {% if perms.DreamsApp.can_exit_client %}
+                            {% if client.exited %}
+                                <p class="underline_hover" id="p_exit_client" data-client_id='{{ client.id }}'
+                                   data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                                   data-toggle="modal" data-target="#client-unexit-modal" title="Exit Client">
+                                    <span class="glyphicon glyphicon-log-out"></span> <span
+                                        class="client_status_action_text">Undo Client Exit</span>
+                                </p>
+                            {% else %}
+                                <p class="underline_hover" id="p_unexit_client" data-client_id='{{ client.id }}'
+                                   data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                                   data-toggle="modal" data-target="#client-exit-modal" title="Exit Client">
+                                    <span class="glyphicon glyphicon-log-out"></span> <span
+                                        class="client_status_action_text">Exit Client</span>
+                                </p>
+                            {% endif %}
+                        {% endif %}
+                        {% if perms.DreamsApp.add_clienttransfer %}
+                            {% if client.can_be_transferred and not client.voided %}
+                                <p class="underline_hover" id="p_transfer_client" data-client_id='{{ client.id }}'
+                                   data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                                   data-toggle="modal" data-target="#client-transfer-modal" title="Transfer Client">
+                                    <span class="glyphicon glyphicon-transfer"></span> Transfer Client
+                                </p>
+                            {% elif not client.can_be_transferred %}
+                                <p>
+                                    <span>In Transfer</span>
+                                </p>
+                            {% endif %}
+                        {% endif %}
+                        {% if perms.DreamsApp.can_void_client and not client.voided %}
+                            <p class="underline_hover" id="p_void_client" data-client_id='{{ client.id }}'
+                               style="cursor:pointer;" data-toggle="modal" data-target="#client-void-modal"
+                               title="Void Client">
+                                <span class="glyphicon glyphicon-minus-sign"></span> Void Client
+                            </p>
+                        {% endif %}
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div{% if message.tags %}
+                class="msg alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} alert-danger {% else %} alert-{{ message.tags }} {% endif %} "{% endif %}>{{ message }}</div>
+            <script>
+                setTimeout(function(){
+                    $('.msg').addClass('hidden').text("")
+                }, 3000);
+            </script>
+        {% endfor %}
+    {% endif %}
+
+    <div class="alert hidden dp-action-alert" id="action_alert_follow_ups" role="alert"></div>
+    <!-- End of Client profile section -->
+
+    <div class="dreams-profile-tab-control" id="dreams-profile-tab-control">
+        <br/>
+        <table class="fit-item">
+            <thead>
+            <tr>
+                <th>
+                    <div class="form-group" style="margin-right: 5px;">
+                        <input id="filter_1001" type="text" class="form-control filter"
+                               data-target_tbody="#follow_ups_table_tbody" data-follow_up_category_code="1001"
+                               data-tab_follow_up_table_id="#follow_ups_table"
+                               placeholder="Type to search...">
+                    </div>
+                </th>
+                {% if perms.DreamsApp.add_followup %}
+                    <th width="130">
+                        <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#follow-up-modal"
+                                data-whatever="1001" style="height: 35px; margin-top: -15px;"><i
+                                class="glyphicon glyphicon-plus"></i> Add Follow Up
+                        </button>
+                    </th>
+                {% endif %}
+            </tr>
+            </thead>
+        </table>
+
+        <div class="alert hidden dp-action-alert" id="client_follow_ups_alert" role="alert"></div>
+
+        <div class="panel panel-default" id="follow-up-table-container">
+            <div class="panel-body" style="margin: 0px;padding: 0px;">
+                <table class="table table-striped " id="follow_ups_table" data-cols="4">
+                    <thead class="dp-table-head-black">
+                    <tr>
+                        <th>Follow Up Type</th>
+                        <th>Date Completed</th>
+                        <th>Follow Up Result</th>
+                        <th>Comment/Notes</th>
+                        {% if perms.DreamsApp.change_follow_up or perms.DreamsApp.delete_follow_up %}
+                            <th class="actions-col">Actions</th>
+                        {% endif %}
+                    </tr>
+                    </thead>
+                    <tbody class="searchable" id="follow_ups_table_tbody">
+                    {% if follow_ups %}
+                        {% for follow_up in follow_ups %}
+                            <tr id="follow_up_{{ follow_up.id }}">
+                                <td>{{ follow_up.type_of_followup.name }}</td>
+                                <td>{{ follow_up.date_of_followup }}</td>
+                                <td>{{ follow_up.result_of_followup }}</td>
+                                <td>{{ follow_up.comment | slice:":30" }}</td>
+                                <td>
+                                    {% if perms.DreamsApp.can_edit_followup %}
+                                         <button name="edit-follow-up"
+                                                    class='glyphicon glyphicon-ok badge btn btn-success user-action edit-follow-up'
+                                                    arial-label='Arial-Hidden'
+                                                    style="padding-bottom: 8px;"
+                                                    data-toggle="modal"
+                                                    data-target="#edit-follow-up-modal"
+                                                    data-follow_up_id="{{ follow_up.id }}"
+                                                    data-follow-up-name="{{ follow_up.type_of_followup }}"
+                                                    data-follow-up-result="{{ follow_up.result_of_followup }}"
+                                                    data-follow-up-date="{{ follow_up.date_of_followup }}"
+                                                    data-follow-up-comments="{{ follow_up.comment }}">
+                                                    Edit
+                                                </button> &nbsp;&nbsp;
+                                    {% endif %}
+                                    {% if perms.DreamsApp.can_delete_followup %}
+                                        <button name="confirm-follow-up-delete"
+                                                    class='glyphicon glyphicon-ok badge btn btn-success user-action confirm-follow-up-delete'
+                                                    arial-label='Arial-Hidden'
+                                                    style="padding-bottom: 8px;"
+                                                    data-toggle="modal"
+                                                    data-target="#confirm-follow-up-delete-modal"
+                                                    data-user_action="delete_follow_up"
+                                                    data-follow_up_id="{{ follow_up.id }}"
+                                                    data-confirm-follow-up-delete="Are you sure that you want to delete this follow up?">
+                                                    Delete
+                                                    </button> &nbsp;&nbsp;
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center"> No client follow ups.</td>
+                        </tr>
+                    {% endif %}
+
+                    </tbody>
+                </table>
+                <div class="spinner hidden fit-item">
+                    <i class='fa fa-spinner fa-spin'></i>
+                    <p style="font-size: large">Loading Follow up</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input id="current_client_id" class="hidden" type="text" name="client_id" value="{{ client.id }}">
+    <input id="current_client_age" class="hidden" type="text" name="client_age" value="{{ client.get_current_age }}">
+    <input type="hidden" id="current_date" value="{{ client.date_of_enrollment.year|default:2015 }}, {{ client.date_of_enrollment.month|default:10 }}, {{ client.date_of_enrollment.day|default:1 }}">
+    <br/>
+
+</div>
+{% endblock %}

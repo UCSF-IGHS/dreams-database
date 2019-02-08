@@ -36,7 +36,7 @@
                     <p><strong>Actions: </strong> <br>
                     <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
                        onclick="window.location='/client?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
-                       data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-pencil"></span>
+                       data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-folder-close"></span>
                         Service Uptake</p>
 
                     {% if 'Transferred Out' not in client_status %}
@@ -79,6 +79,10 @@
                             </p>
                         {% endif %}
                     {% endif %}
+                    </p>
+
+                    <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;" onclick="window.location='/follow_ups?client_id={{ client.id }}'" data-toggle="tooltip" title="Follow Ups">
+                        <span class="glyphicon glyphicon-search"></span> Follow Ups
                     </p>
                 </div>
             </div>
@@ -161,7 +165,7 @@
                      data-tabpanel_id="#participation_in_program">
                     {% include 'client_programme_participation_form.html' %}
                 </div>
-                <input id="baseline_current_client_id" class="hidden" type="text" value="{{ client.id }}">
+                <input id="current_client_id" class="hidden" type="text" value="{{ client.id }}">
             </div>
         </div>
 
@@ -187,7 +191,7 @@
                         return false;   // return, form is not valid
                     // enable disabled fields
                     var form = $('#form_demographics');
-                    $('#demo_current_client_id').val($('#baseline_current_client_id').val());
+                    $('#demo_current_client_id').val($('#current_client_id').val());
 
                     $.ajax({
                         type: "POST",
