@@ -3278,6 +3278,7 @@ $(document).ready(function () {
             $('label#reason_for_exit_error').hide();
         } else if (selectedOption == LOST_TO_FOLLOW_UP_CODE) {
             $('div#reason_for_exit_other_section').addClass('hidden');
+            $('div#reason_for_exit_other_section textarea#reason_for_exit_other').val('');
             if (followupAttempts < MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS) {
                 console.log('error');
                 $('label#reason_for_exit_error').text('Warning: client has less than 4 follow up attempts');
