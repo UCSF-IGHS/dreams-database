@@ -3274,6 +3274,8 @@ $(document).ready(function () {
         if (selectedOption == OTHER_CODE) {
             $('div#reason_for_exit_other_section').removeClass('hidden');
             $('fieldset#ltfu').addClass('hidden');
+            $('label#reason_for_exit_error').text('');
+            $('label#reason_for_exit_error').hide();
         } else if (selectedOption == LOST_TO_FOLLOW_UP_CODE) {
             if (followupAttempts < MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS) {
                 console.log('error');
