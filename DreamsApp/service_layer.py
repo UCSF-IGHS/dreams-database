@@ -12,13 +12,16 @@ class FollowUpsServiceLayer:
 
 
     def can_create_followup(self):
-        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.add_followup')
+        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.add_clientfollowup')
 
     def can_delete_followup(self):
-        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.delete_followup')
+        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.delete_clientfollowup')
 
     def can_edit_followup(self):
-        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.edit_followup')
+        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.change_clientfollowup')
+
+    def can_view_followup(self):
+        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.view_clientfollowup')
 
 
 class TransferServiceLayer:

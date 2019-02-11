@@ -81,9 +81,11 @@
                     {% endif %}
                     </p>
 
-                    <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;" onclick="window.location='/follow_ups?client_id={{ client.id }}'" data-toggle="tooltip" title="Follow Ups">
-                        <span class="glyphicon glyphicon-search"></span> Follow Ups
-                    </p>
+                    {% if perms.DreamsApp.view_clientfollowup %}
+                        <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;" onclick="window.location='/follow_ups?client_id={{ client.id }}'" data-toggle="tooltip" title="Follow Ups">
+                            <span class="glyphicon glyphicon-search"></span> Follow Ups
+                        </p>
+                    {% endif %}
                 </div>
             </div>
 
