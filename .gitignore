@@ -114,3 +114,5 @@ bower_components
 # ignore settings file
 settings.py
 
+# mac temp files
+.DS_Store

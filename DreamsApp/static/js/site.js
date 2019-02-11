@@ -1,6 +1,6 @@
 $(document).ready(function () {
 
-    const MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS = 4, LOST_TO_FOLLOW_UP_CODE = 5, OTHER_CODE = 6;
+    const MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS = 4, LOST_TO_FOLLOW_UP_CODE = 'Lost to follow-up', OTHER_CODE = 'Other';
 
     $('div#other_external_organization').hide();
     $('#external-organization-select').change(function () {
@@ -437,7 +437,7 @@ $(document).ready(function () {
 
     var followupAttempts = 0;
     function fetchFollowUpAttempts() {
-        var currentClientId = $('#baseline_current_client_id').val();
+        var currentClientId = $('#current_client_id').val();
         $.ajax({
             url: "/getUnsuccessfulFollowUpAttempts",
             type: "GET",
@@ -826,6 +826,52 @@ $(document).ready(function () {
         }
     }
 
+    $('#follow-up-entry-form').submit(function (e) {
+        var followUpType = $('select#follow_up_type').val();
+        var followUpResultType = $('select#follow_up_result_type').val();
+        var followUpDate = $('input#follow_up_date').val();
+        var followUpComments = $('textarea#follow_up_comments').val();
+
+        $('button#btn_save_follow_up').attr('disabled', 'disabled')
+        $('#follow-up-entry-form .processing-indicator').removeClass('hidden');
+
+        if (validateFollowUpForm(followUpType, followUpResultType, followUpDate, followUpComments)) {
+            var csrftoken = getCookie('csrftoken');
+            $.ajax({
+                url: '/addFollowUp',
+                type: "POST",
+                dataType: 'json',
+                data: $('#follow-up-entry-form').serialize(),
+                success: function (data) {
+                    var status = data.status;
+                    var message = data.message;
+                    if (status == 'success') {
+                        $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-success')
+                            .text(message)
+                            .trigger('madeVisible');
+                        window.location.reload()
+                    } else {
+                        $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(message)
+                        .trigger('madeVisible');
+                        $("#follow-up-modal").modal('hide');
+                    }
+                }, error: function (xhr, errmsg, err) { 
+                    $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-danger')
+                        .text('An error occurred while processing client details. Contact system administratior if this persists')
+                        .trigger('madeVisible');
+                }
+            });
+        } else {
+            alert('There was an error with the submitted follow up fields. Please try again.')
+            $('button#btn_save_follow_up').removeAttr("disabled");
+            $('#follow-up-entry-form .processing-indicator').addClass('hidden');
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+    });
+
     $('#intervention-entry-form').submit(function (event) {
         event.preventDefault();
         $('#btn_save_intervention').attr("disabled", "disabled");
@@ -963,6 +1009,112 @@ $(document).ready(function () {
         }, 1000);
     });
 
+    $('button.edit-follow-up').click(function(event) {
+        var follow_up_id = $(this).attr('data-follow_up_id');
+        var follow_up_name = $(this).attr('data-follow-up-name');
+        var follow_up_result = $(this).attr('data-follow-up-result');
+        var follow_up_date = $(this).attr('data-follow-up-date');
+        var follow_up_comments = $(this).attr('data-follow-up-comments');
+
+        $('form#edit-follow-up-entry-form input[type=hidden]#follow_up_id').val(follow_up_id);
+        $('form#edit-follow-up-entry-form select#follow_up_type option').each(function () {
+            if ($(this).val() == follow_up_name) {
+                $(this).prop("selected", true);
+            }
+        });
+
+        $('form#edit-follow-up-entry-form select#follow_up_result_type option').each(function () {
+            if ($(this).val() == follow_up_result) {
+                $(this).prop("selected", true);
+            }
+        });
+
+        $('form#edit-follow-up-entry-form textarea#follow_up_date').text(follow_up_date);
+        $('form#edit-follow-up-entry-form textarea#follow_up_comments').text(follow_up_comments);
+        $('#edit-follow-up-modal').show();
+    });
+
+    $('button.confirm-follow-up-delete').click(function(event) {
+        var follow_up_id = $(this).attr('data-follow_up_id');
+       $('input[type=hidden]#follow_up_id').val(follow_up_id);
+    });
+
+    $('#btn_edit_follow_up').click(function (event) {
+        var btn = $(event.target);
+
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url: '/editFollowUp',
+            type: "POST",
+            dataType: 'json',
+            data: $('#edit-follow-up-entry-form').serialize(),
+            success: function (data) {
+                var alert_id = '#action_alert_follow_ups';
+                if (data.status == "success") {
+                    $(alert_id).removeClass('hidden').addClass('alert-success')
+                                .text('Follow Up has been deleted successfully!')
+                                .trigger('madeVisible');
+                    window.location.reload();
+                }
+                else {
+                    $(alert_id).removeClass('hidden')
+                        .addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible');
+                }
+                $('#confirm-follow-up-delete-modal').modal('hide');
+            }, error: function (xhr, errmsg, err) {
+                $('#action_alert_follow_ups').removeClass('hidden')
+                                                .addClass('alert-danger')
+                                                .text(errmsg)
+                                                .trigger('madeVisible');
+                $('#confirm-follow-up-delete-modal').modal('hide');
+            }
+        });
+
+        event.stopPropagation();
+        event.preventDefault();
+    });
+
+    $('#btn_delete_follow_up_confirmation').click(function (event) {
+        var btn = $(event.target);
+
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url: '/deleteFollowUp',
+            type: "POST",
+            dataType: 'json',
+            data: $('#follow_up_delete_form').serialize(),
+            success: function (data) {
+                var alert_id = '#action_alert_follow_ups';
+                if (data.status == "success") {
+                    $('tr#follow_up_' + data.follow_up_id).remove();
+                    $(alert_id).removeClass('hidden').addClass('alert-success')
+                                .text('Follow Up has been deleted successfully!')
+                                .trigger('madeVisible');
+                    var tbody_id = '#follow_ups_table_tbody';
+                    if ($(tbody_id + ' tr').length < 1) {
+                        var col_span = $('#follow_ups_table' + ' thead tr')[0].cells.length;
+                        $(tbody_id).append("<tr class='zero_message_row'><td colspan='" + col_span + "' style='text-align: center'>No client follow ups.</td></tr>");
+                    }
+                }
+                else {
+                    $(alert_id).removeClass('hidden')
+                        .addClass('alert-danger')
+                        .text(data.message)
+                        .trigger('madeVisible');
+                }
+                $('#confirm-follow-up-delete-modal').modal('hide');
+            }, error: function (xhr, errmsg, err) {
+                $('#action_alert_follow_ups').removeClass('hidden')
+                                                .addClass('alert-danger')
+                                                .text(errmsg)
+                                                .trigger('madeVisible');
+                $('#confirm-follow-up-delete-modal').modal('hide');
+            }
+        });
+    });
+
     $('#btn_delete_intervention_confirmation').click(function (event) {
         var btn = $(event.target);
         // do an ajax post delete
@@ -1003,6 +1155,12 @@ $(document).ready(function () {
             }
         });
     });
+
+    function validateFollowUpForm(followUpType, followUpResultType, followUpDate, followUpComments) {
+        return followUpType != null && followUpResultType != null
+                && followUpDate != null && followUpComments != null
+                && followUpComments.trim() != ''
+    }
 
     function validateClientForm(clientForm) {
         var errors = 0;
@@ -1465,6 +1623,10 @@ $(document).ready(function () {
                 confirm_message = 'Are you sure you want to Delete this User? This action cannot be undone.'
                 callback_func = deleteUser
                 break;
+            case "delete_follow_up":
+                confirm_title = "Delete Follow Up"
+                confirm_message = "Are you sure you want to delete this follow up?"
+                callback_func = deleteFollowUp
             default:
                 break;
         }
@@ -1478,6 +1640,10 @@ $(document).ready(function () {
             $(event.target).off('click'); // Works like a charm
         });
     });
+
+    function deleteFollowUp(follow_up_id) {
+
+    }
 
     function toggleUserStatus(ip_user_id, activate, target) {
         // deactivate using ajax
@@ -1961,13 +2127,6 @@ $(document).ready(function () {
             return false;
         return true;
     }, ' ');
-
-    $.validator.addMethod('checkFollowUpAttempts', function (value) {
-        if (value == LOST_TO_FOLLOW_UP_CODE) {
-            return (followupAttempts >= MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS);
-        }
-        return true;
-    }, 'Client does not have 4 follow up attempts');
 
     $('#grievances-form').validate({
         rules: {
@@ -3046,10 +3205,8 @@ $(document).ready(function () {
         $('#client-unexit-modal #id_reason_for_exit').val('');
         $("#client-unexit-modal #id_date_of_exit").datepicker("setDate", new Date());
 
-        // Action wording
         var clientStatus = $('.client_status_action_text').html()
         if ($.trim(clientStatus) == 'Exit Client') {
-            // Client is actively in the program.
             $('#lbl_client_exit_activation_label').html('Reason to Exit Client');
             $('#btn_submit_exit_client_form').val('Exit Client');
         }
@@ -3057,15 +3214,11 @@ $(document).ready(function () {
             $('#lbl_client_exit_activation_label').html('Reason to Activate Client');
             $('#btn_submit_exit_client_form').html('Activate Client');
         }
-        console.log(clientStatus)
     });
 
-
-    // Exit form validation
     $("#form_client_exit").validate({
         rules: { 
             reason_for_exit: {
-                checkFollowUpAttempts: true,
                 required: true
             },
             date_of_exit: {
@@ -3116,15 +3269,21 @@ $(document).ready(function () {
 
     });
 
-
     $('select[name=reason_for_exit]').change(function () {
-        var selectedOption = $(this).find(':selected').val();
-        if(selectedOption == OTHER_CODE) {
+        var selectedOption = $(this).find(':selected').text();
+        if (selectedOption == OTHER_CODE) {
             $('div#reason_for_exit_other_section').removeClass('hidden');
             $('fieldset#ltfu').addClass('hidden');
+        } else if (selectedOption == LOST_TO_FOLLOW_UP_CODE) {
+            if (followupAttempts < MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS) {
+                console.log('error');
+                $('label#reason_for_exit_error').text('Warning: client has less than 4 follow up attempts');
+                $('label#reason_for_exit_error').show();
+            }
         } else {
             $('fieldset#ltfu').addClass('hidden');
             $('div#reason_for_exit_other_section').addClass('hidden');
+            $('label#reason_for_exit_error').hide();
         }
     });
 
@@ -3144,7 +3303,7 @@ $(document).ready(function () {
         if(reasonForUndoneExit == '' || dateOfUndoneExit == '')
             return
 
-        var client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
+        var client_id = $('#current_client_id').val();
         if (typeof client_id == undefined || isNaN(client_id) || client_id == ''){
             return;
         }
@@ -3208,7 +3367,7 @@ $(document).ready(function () {
         if (reasonForExit == '' || dateOfExit == '')
             return
 
-        var client_id = $('#baseline_current_client_id').val() || $('#current_client_id').val();
+        var client_id = $('#current_client_id').val();
         if (typeof client_id == undefined || isNaN(client_id) || client_id == '') {
             return;
         }
@@ -3222,7 +3381,7 @@ $(document).ready(function () {
                 csrfmiddlewaretoken: csrftoken,
                 client_id: client_id,
                 reason_for_exit: reasonForExit,
-                exitComment: exitComment,
+                exit_comment: exitComment,
                 date_of_exit: dateOfExit
             },
             success: function (data) {

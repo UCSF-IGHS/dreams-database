@@ -570,3 +570,13 @@ fieldset#ltfu div.form-group:not(:last-child) {
     color: black;
     font-weight: bold;
 }
+
+input#filter_1001 {
+    width: 98%;
+    margin-left: 1em;
+}
+
+div#follow-up-table-container {
+    padding: 0;
+    margin: 0 1em 1em 1em;
+}

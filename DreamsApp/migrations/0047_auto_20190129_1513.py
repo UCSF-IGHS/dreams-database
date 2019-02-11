@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('DreamsApp', '0043_add_configurableparameter'),
+        ('DreamsApp', '0046_add_configurableparameter'),
     ]
 
     operations = [

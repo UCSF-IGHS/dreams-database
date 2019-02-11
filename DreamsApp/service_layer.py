@@ -4,7 +4,29 @@ from datetime import datetime
 from DreamsApp.models import *
 
 
+class FollowUpsServiceLayer:
+
+    def __init__(self, user, follow_up=None):
+        self.user: User = user
+        self.followup: ClientFollowUp = follow_up
+
+
+    def can_create_followup(self):
+        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.add_followup')
+
+    def can_delete_followup(self):
+        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.delete_followup')
+
+    def can_edit_followup(self):
+        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.edit_followup')
+
+
 class TransferServiceLayer:
+
+    TRANSFER_INITIATED_STATUS = 1
+    TRANSFER_ACCEPTED_STATUS = 2
+    TRANSFER_REJECTED_STATUS = 3
+
     def __init__(self, user, client_transfer=None):
         self.user: User = user
         self.client_transfer = client_transfer
