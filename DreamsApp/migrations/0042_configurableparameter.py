@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('DreamsApp', '0044_client_ltfuresulttype'),
+        ('DreamsApp', '0041_auto_20190123_1401'),
     ]
 
     operations = [
