@@ -2774,9 +2774,9 @@ def client_transfers(request, *args, **kwargs):
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if transferred_in:
-                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('-date_created', 'transfer_status')
+                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('transfer_status', '-date_created')
             else:
-                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('-date_created', 'transfer_status')
+                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('transfer_status', '-date_created')
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             c_transfers = ClientTransfer.objects.all()
