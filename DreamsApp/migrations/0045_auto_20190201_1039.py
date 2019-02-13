@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('DreamsApp', '0041_auto_20190123_1401'),
+        ('DreamsApp', '0044_auto_20190129_1513'),
     ]
 
     operations = [
