@@ -3068,7 +3068,7 @@ def get_response_data(status, message, **kwargs):
         'message': message
     }
 
-    for k, v in kwargs.values():
+    for k, v in kwargs.items():
         response[k] = v
 
     return JsonResponse(json.dumps(response), safe=False)
