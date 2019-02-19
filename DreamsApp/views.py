@@ -20,13 +20,10 @@ import json
 from datetime import date, timedelta, datetime as dt
 from openpyxl import Workbook
 from openpyxl.styles import Font
-
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
-from DreamsApp.service_layer import *
-from DreamsApp.service_layer import TransferServiceLayer
-from DreamsApp.service_layer import ClientEnrolmentServiceLayer
-from DreamsApp.service_layer import ReferralServiceLayer
+from dateutil.relativedelta import relativedelta
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, ReferralServiceLayer, FollowUpsServiceLayer
 
 
 def get_enrollment_form_config_data(request):
@@ -213,7 +210,7 @@ def clients(request):
 
                         transfer_out = ClientTransfer.objects.filter(source_implementing_partner=ip).filter(
                             transfer_status=ClientTransferStatus.objects.get(
-                                                      code__exact=TransferServiceLayer.TRANSFER_ACCEPTED_STATUS))
+                                                      code__exact=TRANSFER_ACCEPTED_STATUS))
 
                         transfer_out_clients = search_result.filter(pk__in=transfer_out.values_list('client'))
 
@@ -262,14 +259,11 @@ def clients(request):
                 sub_counties = SubCounty.objects.filter(county_id=int(county_filter))
                 ward_filter = search_result_tuple[4] if search_result_tuple[4] != '' else '0'
                 wards = Ward.objects.filter(sub_county_id=int(sub_county_filter))
-                cur_date = datetime.now()
-                dt_format = "%Y-%m-%d"
-                try:
-                    max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
-                except ValueError:
-                    max_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
-                    min_dob = cur_date.replace(year=cur_date.year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE, day=cur_date.day - 1).strftime(dt_format)
+
+                client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+                max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
+                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
 
                 response_data = {
                     'page': 'clients',
@@ -301,6 +295,57 @@ def clients(request):
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
+
+
+def follow_ups(request):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        client_id = request.GET.get('client_id', '') if request.method == 'GET' else request.POST.get('client_id', '')
+        if client_id is not None and client_id != 0:
+            try:
+                client = Client.objects.get(id=client_id)
+                client_follow_ups = ClientFollowUp.objects.filter(client=client)
+
+                follow_up_service_layer = FollowUpsServiceLayer(request.user)
+                follow_up_perms = {
+                    'can_create_follow_up': follow_up_service_layer.can_create_followup(),
+                    'can_delete_follow_up': follow_up_service_layer.can_delete_followup(),
+                    'can_edit_follow_up': follow_up_service_layer.can_edit_followup(),
+                    'can_view_follow_up': follow_up_service_layer.can_view_followup()
+                }
+
+                page = request.GET.get('page', 1)
+                paginator = Paginator(client_follow_ups, 20)
+                follow_up_types = ClientFollowUpType.objects.all()
+                follow_up_result_types = ClientLTFUResultType.objects.all()
+
+                try:
+                    displayed_follow_ups = paginator.page(page)
+                except PageNotAnInteger:
+                    displayed_follow_ups = paginator.page(1)
+                except EmptyPage:
+                    displayed_follow_ups = paginator.page(paginator.num_pages)
+
+                return render(request, 'client_follow_ups.html', {
+                    'page': 'Follow Ups',
+                    'page_title': 'Client Follow Ups Page',
+                    'client': client,
+                    'user': request.user,
+                    'follow_up_perms': follow_up_perms,
+                    'follow_ups': displayed_follow_ups,
+                    'follow_up_types': follow_up_types,
+                    'follow_up_result_types': follow_up_result_types
+                })
+            except Client.DoesNotExist:
+                response_data = {
+                    'status': 'failed',
+                    'message': 'Operation not allowed. Client does not exist',
+                    'client_id': client.id
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+            except Exception as e:
+                return render(request, 'login.html')
+    else:
+        raise PermissionDenied
 
 
 def client_profile(request):
@@ -396,10 +441,13 @@ def save_client(request):
                 if client_form.is_valid():
                     client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
 
-                    if not client_enrolment_service_layer.is_within_enrolment_dates(client_form.cleaned_data['date_of_birth']):
+                    if not client_enrolment_service_layer.is_within_enrolment_dates(client_form.cleaned_data['date_of_birth'], client_form.cleaned_data['date_of_enrollment']):
+                        min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+
                         response_data = {
                             'status': 'fail',
-                            'message': "The client is not within the accepted age range",
+                            'message': "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                                min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
                             'client_id': None,
                             'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                             'can_change_client': request.user.has_perm('auth.can_change_client'),
@@ -410,7 +458,7 @@ def save_client(request):
                     client = client_form.save()
 
                     # Check client dreams_id
-                    if str(client.dreams_id) == '':
+                    if client.dreams_id is None or not client.dreams_id:
                         # Generate client dreams_id
                         cursor = db_conn_2.cursor()
                         try:
@@ -514,12 +562,17 @@ def edit_client(request):
                     return JsonResponse(json.dumps(response_data), safe=False)
 
                 client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
-                date_of_birth = datetime.strptime(request.POST.get('date_of_birth', dt.now), '%Y-%m-%d')
+                date_of_birth = datetime.strptime(request.POST.get('date_of_birth'), '%Y-%m-%d').date()
+                date_of_enrollment = datetime.strptime(request.POST.get('date_of_enrollment'), '%Y-%m-%d').date()
 
-                if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth):
+                if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth, date_of_enrollment):
+                    min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+
                     response_data = {
                         'status': 'failed',
-                        'message': 'Client is not within accepted date range',
+                        'message': "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                            min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
                         'client_id': client.id
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
@@ -530,12 +583,12 @@ def edit_client(request):
                 client.first_name = str(request.POST.get('first_name', ''))
                 client.middle_name = str(request.POST.get('middle_name', ''))
                 client.last_name = str(request.POST.get('last_name', ''))
-                client.date_of_birth = str(request.POST.get('date_of_birth', dt.now))
+                client.date_of_birth = str(date_of_birth)
                 client.is_date_of_birth_estimated = bool(str(request.POST.get('is_date_of_birth_estimated')))
                 client.verification_document = VerificationDocument.objects.filter(
                     code__exact=str(request.POST.get('verification_document', ''))).first()
                 client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
-                client.date_of_enrollment = str(request.POST.get('date_of_enrollment', dt.now))
+                client.date_of_enrollment = str(datetime.strptime(request.POST.get('date_of_enrollment', dt.now()), '%Y-%m-%d').date())
                 client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
                 client.marital_status = MaritalStatus.objects.filter(
                     code__exact=str(request.POST.get('marital_status', ''))).first()
@@ -688,10 +741,10 @@ def exit_client(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_exit_client'):
         try:
-            client_id = int(str(request.POST.get('client_id', '0')))
+            client_id = int(str(request.POST.get('client_id')))
             reason_for_exit = ExitReason.objects.get(id__exact=int(request.POST.get('reason_for_exit', '')))
             date_of_exit = request.POST.get('date_of_exit', datetime.now())
-            exit_comment = request.POST.get('exitComment')
+            exit_comment = request.POST.get('exit_comment')
 
             if reason_for_exit is not None:
                 if reason_for_exit.code == OTHER_CODE:
@@ -772,8 +825,8 @@ def get_unsuccessful_followup_attempts(request):
             response_data = {}
             client_id = int(request.GET.get('current_client_id'))
             client = Client.objects.get(id=client_id)
-            unsuccessful_follow_up_attempts = ClientLTFU.objects.filter(client=client,
-                                                                        result_of_followup=ClientLTFUResultType.objects.filter(name='Lost').first()).all()
+            unsuccessful_follow_up_attempts = ClientFollowUp.objects.filter(client=client,
+                                                                            result_of_followup=ClientLTFUResultType.objects.filter(name='Lost').first()).all()
             response_data['unsuccessful_follow_up_attempts'] = len(unsuccessful_follow_up_attempts)
             return JsonResponse(response_data)
         else:
@@ -893,7 +946,7 @@ def save_intervention(request):
                     """An error has occurred. Throw exception. This will be handled elsewhere"""
                     raise Exception(str(e))
 
-                intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
+                intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
 
                 # check if external organisation is selected
                 external_organization_checkbox = request.POST.get('external_organization_checkbox')
@@ -908,15 +961,14 @@ def save_intervention(request):
                         }
                         return JsonResponse(response_data)
                 else:
-                    if client.date_of_enrollment is not None and intervention_date < dt.combine(client.date_of_enrollment,
-                                                                                                datetime.now().time()):
+                    if client.date_of_enrollment is not None and intervention_date < client.date_of_enrollment:
                         response_data = {
                             'status': 'fail',
                             'message': "Error: The intervention date must be after the client's enrollment date. "
                         }
                         return JsonResponse(response_data)
 
-                if intervention_date > dt.now():
+                if intervention_date > dt.now().date():
                     response_data = {
                         'status': 'fail',
                         'message': "Error: The intervention date must be before or on the current date. "
@@ -1116,8 +1168,84 @@ def get_intervention(request):
         return HttpResponseServerError(tb)
 
 
-# Updates an intervention
-# use /ivUpdate/ to access the method
+def add_follow_up(request):
+    try:
+        if is_valid_post_request(request):
+            client_id = int(request.POST['client'], 0)
+            client = Client.objects.get(id=client_id)
+
+            follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
+            follow_up_result_type = ClientLTFUResultType.objects.filter(id__exact=request.POST.get('follow_up_result_type')).first()
+            follow_up_date = request.POST.get('follow_up_date')
+            follow_up_comments = request.POST.get('follow_up_comments')
+
+            follow_up = ClientFollowUp()
+            follow_up.client = client
+            follow_up.date_of_followup = follow_up_date
+            follow_up.type_of_followup = follow_up_type
+            follow_up.result_of_followup = follow_up_result_type
+            follow_up.comment = follow_up_comments
+            follow_up.save()
+
+            response_data = {
+                'status': 'success',
+                'message': 'Follow up details added'
+            }
+            return JsonResponse(response_data, status=200)
+
+    except Exception as e:
+        if type(e) is ValidationError:
+            errormsg = '; '.join(ValidationError(e).messages)
+        else:
+            errormsg = str(e)
+
+        response_data = {
+            'status': 'fail',
+            'message': "An error has occurred: " + errormsg
+        }
+        return JsonResponse(response_data)
+
+
+def update_follow_up(request):
+    try:
+        if is_valid_post_request(request):
+            follow_up_id = int(request.POST['follow_up_id'])
+            follow_up = ClientFollowUp.objects.get(id=follow_up_id)
+
+            if follow_up is not None:
+                follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
+                follow_up_result_type = ClientLTFUResultType.objects.filter(id__exact=request.POST.get('follow_up_result_type')).first()
+                follow_up_date = request.POST.get('follow_up_date')
+                follow_up_comments = request.POST.get('follow_up_comments')
+
+                follow_up.date_of_followup = follow_up_date
+                follow_up.type_of_followup = follow_up_type
+                follow_up.result_of_followup = follow_up_result_type
+                follow_up.comment = follow_up_comments
+                follow_up.save()
+
+                response_data = {
+                    'status': 'success',
+                    'message': 'Follow up details updated'
+                }
+                return JsonResponse(response_data)
+            else:
+                response_data = {
+                    'status': 'fail',
+                    'message': "Error follow up not found"
+                }
+                return JsonResponse(response_data)
+    except Exception as e:
+        if type(e) is ValidationError:
+            errormsg = '; '.join(ValidationError(e).messages)
+        else:
+            errormsg = str(e)
+
+        response_data = {
+            'status': 'fail',
+            'message': "An error has occurred: " + errormsg
+        }
+        return JsonResponse(response_data)
 
 
 def update_intervention(request):
@@ -1141,7 +1269,7 @@ def update_intervention(request):
                             code__exact=int(request.POST.get('intervention_type_code')))
                         intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
 
-                        intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d')
+                        intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
 
                         # check if external organisation is selected
                         external_organization_checkbox = request.POST.get('external_organization_checkbox')
@@ -1156,8 +1284,7 @@ def update_intervention(request):
                                 }
                                 return JsonResponse(response_data)
                         else:
-                            if intervention.client.date_of_enrollment is not None and intervention_date < dt.combine(
-                                    intervention.client.date_of_enrollment, datetime.now().time()):
+                            if intervention.client.date_of_enrollment is not None and intervention_date < intervention.client.date_of_enrollment:
                                 response_data = {
                                     'status': 'fail',
                                     'message': "Error: The intervention date must be after the client's enrollment date. "
@@ -1166,7 +1293,7 @@ def update_intervention(request):
 
                         intervention.name_specified = request.POST.get('other_specify',
                                                                        '') if intervention.intervention_type.is_specified else ''
-                        intervention.intervention_date = request.POST.get('intervention_date')
+                        intervention.intervention_date = str(intervention_date)
                         intervention.changed_by = User.objects.get(id__exact=int(request.POST.get('changed_by')))
                         intervention.date_changed = dt.now()
                         intervention.comment = request.POST.get('comment')
@@ -1240,6 +1367,40 @@ def update_intervention(request):
         response_data = {
             'status': 'fail',
             'message': "An error has occurred: " + errormsg
+        }
+        return JsonResponse(response_data)
+
+
+def delete_follow_up(request):
+    try:
+        if is_valid_post_request(request):
+            follow_up_id = int(request.POST.get('follow_up_id'))
+
+            if follow_up_id is not None and type(follow_up_id) is int:
+                follow_up = ClientFollowUp.objects.filter(pk=follow_up_id).first()
+
+                if follow_up is not None:
+                    ClientFollowUp.objects.filter(pk=follow_up_id).delete()
+                    log_custom_actions(request.user.id, "DreamsApp_clientfollowup", follow_up_id, "DELETE", None)
+
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Follow up has been successfully deleted',
+                        'follow_up_id': follow_up_id
+                    }
+                    return JsonResponse(response_data)
+                else:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Follow up not found'
+                    }
+                    return JsonResponse(response_data)
+
+    except Exception as e:
+        response_data = {
+            'status': 'fail',
+            'message': "An error occurred while processing request. "
+                       "Please contact the System Administrator if this error persists."
         }
         return JsonResponse(response_data)
 
@@ -2023,7 +2184,7 @@ def export_page(request):
                     if sub_grantees.exists():
                         ips = ips.union(sub_grantees)
 
-            context = {'page': 'export', 'page_title': 'DREAMS Data Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Client Raw Enrolment Export', 'ips': ips,
                        'counties': County.objects.all()}
 
             return render(request, 'dataExport.html', context)
@@ -2052,7 +2213,7 @@ def intervention_export_page(request):
                     if sub_grantees.exists():
                         ips = ips.union(sub_grantees)
 
-            context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Client Interventions Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'interventionDataExport.html', context)
         except ImplementingPartnerUser.DoesNotExist:
@@ -2134,7 +2295,7 @@ def individual_service_layering_export_page(request):
                     if sub_grantees.exists():
                         ips = ips.union(sub_grantees)
 
-            context = {'page': 'export', 'page_title': 'Service Layering Report Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Service Layering Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'individualServiceLayeringDataExport.html', context)
 
@@ -2215,6 +2376,9 @@ def viewBaselineData(request):
                 search_client_term = request.GET.get('search_client_term', '')
             except Client.DoesNotExist:
                 traceback.format_exc()
+            except Exception as e:
+                traceback.format_exc()
+                print(str(e))
         else:
             print ('POST not allowed')
 
@@ -2234,20 +2398,13 @@ def viewBaselineData(request):
                 if client_found is not None:
                     is_editable_by_ip = client_found.is_editable_by_ip(ip)
                     client_status = client_found.get_client_status(ip)
-
-                    dt_format = "%Y-%m-%d"
-                    try:
-                        max_dob = datetime.now().replace(
-                            year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE).strftime(dt_format)
-                        min_dob = datetime.now().replace(
-                            year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE).strftime(dt_format)
-                    except ValueError:
-                        max_dob = datetime.now().replace(
-                            year=datetime.now().year - ClientEnrolmentServiceLayer.MINIMUM_ENROLMENT_AGE,
-                            day=datetime.now().day - 1).strftime(dt_format)
-                        min_dob = datetime.now().replace(
-                            year=datetime.now().year - ClientEnrolmentServiceLayer.MAXIMUM_ENROLMENT_AGE,
-                            day=datetime.now().day - 1).strftime(dt_format)
+                    date_of_enrollment_str = demographics_form['date_of_enrollment'].value()
+                    date_of_enrollment = datetime.strptime(str(date_of_enrollment_str), '%Y-%m-%d').date() if date_of_enrollment_str is not None else dt.now().date()
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                    minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+                    max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
+                    min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]))
 
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
@@ -2292,16 +2449,22 @@ def update_demographics_data(request):
             dreams_id = instance.dreams_id
             form = DemographicsForm(request.POST, instance=instance)
 
-            client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
-            if not client_enrolment_service_layer.is_within_enrolment_dates(instance.date_of_birth):
-                response_data = {
-                'status': 'fail',
-                'errors': ['Client is not within accepted age range'],
-                'client_age': instance.get_current_age()
-                }
-                return JsonResponse(response_data, status=500)
-
             if form.is_valid():
+                client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                if not client_enrolment_service_layer.is_within_enrolment_dates(form.instance.date_of_birth,
+                                                                                form.instance.date_of_enrollment):
+                    min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+
+                    response_data = {
+                        'status': 'fail',
+                        'errors': [
+                            "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                                min_max_age[0]) + " and " + str(min_max_age[1] + " years.")],
+                        'client_age': instance.get_current_age()
+                    }
+                    return JsonResponse(response_data, status=500)
+
                 form.instance.implementing_partner = implementing_partner
                 form.instance.county_of_residence = county_of_residence
                 form.instance.sub_county = sub_county
@@ -2558,7 +2721,7 @@ def transfer_client(request):
                 if transfer_form.is_valid():
                     num_of_pending_transfers = ClientTransfer.objects.filter(client=transfer_form.instance.client,
                                                                              transfer_status=ClientTransferStatus.objects.get(
-                                                                                 code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)).count()
+                                                                                 code__exact=TRANSFER_INITIATED_STATUS)).count()
 
                     if num_of_pending_transfers > 0:
                         print ("{} pending transfers for client".format(num_of_pending_transfers))
@@ -2569,7 +2732,7 @@ def transfer_client(request):
                     else:
                         client_transfer = transfer_form.save(commit=False)
 
-                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)
+                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
                         client_transfer.source_implementing_partner = ip
                         client_transfer.initiated_by = request.user
                         client_transfer.start_date = dt.now()
@@ -2610,9 +2773,9 @@ def client_transfers(request, *args, **kwargs):
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if transferred_in:
-                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('-date_created', 'transfer_status')
+                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('transfer_status', '-date_created')
             else:
-                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('-date_created', 'transfer_status')
+                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('transfer_status', '-date_created')
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             c_transfers = ClientTransfer.objects.all()
@@ -2693,7 +2856,7 @@ def accept_client_transfer(request):
                         raise PermissionDenied
 
                     if client_transfer is not None:
-                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_ACCEPTED_STATUS)
+                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
 
                         client_transfer.transfer_status = accepted_client_transfer_status
                         client_transfer.completed_by = request.user
@@ -2745,7 +2908,7 @@ def reject_client_transfer(request):
                     if not can_reject_transfer:
                         raise PermissionDenied
 
-                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_REJECTED_STATUS)
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_REJECTED_STATUS)
                     client_transfer.completed_by = request.user
                     client_transfer.end_date = dt.now()
                     client_transfer.save()
@@ -2766,7 +2929,7 @@ def reject_client_transfer(request):
 
 def get_client_transfers_count(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TransferServiceLayer.TRANSFER_INITIATED_STATUS)
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             client_transfers_count = ClientTransfer.objects.filter(
@@ -2816,7 +2979,7 @@ def intervention_export_transferred_in_page(request):
             if ips.count() > 0:
                 ips = ips.union(ImplementingPartner.objects.filter(parent_implementing_partner__in=ips))
 
-            context = {'page': 'export', 'page_title': 'DREAMS Interventions Export', 'ips': ips,
+            context = {'page': 'export', 'page_title': 'Interventions Transferred In Export', 'ips': ips,
                        'counties': County.objects.all()}
             return render(request, 'interventionDataExportTransferredIn.html', context)
 
@@ -2965,7 +3128,7 @@ def get_response_data(status, message, **kwargs):
         'message': message
     }
 
-    for k, v in kwargs.values():
+    for k, v in kwargs.items():
         response[k] = v
 
     return JsonResponse(json.dumps(response), safe=False)
@@ -3049,3 +3212,28 @@ def download_audit_logs(request):
             return HttpResponseServerError(tb)
     else:
         raise SuspiciousOperation
+
+
+def get_min_max_date_of_birth(request):
+    try:
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            date_of_enrollment_str = request.POST.get('date_of_enrollment')
+            date_of_enrollment = datetime.strptime(str(date_of_enrollment_str),
+                                                   '%Y-%m-%d').date() if date_of_enrollment_str is not None else dt.now().date()
+            client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+            minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+            max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
+            min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]))
+
+            response_data = {
+                "min_dob": min_dob,
+                "max_dob": max_dob
+            }
+            return JsonResponse(response_data)
+
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)

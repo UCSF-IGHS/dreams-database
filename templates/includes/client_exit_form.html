@@ -21,6 +21,7 @@
                                  <label id="reason_for_exit_label" for="reason_for_exit" class="control-label">Reason to exit client</label>
                                  <select class="form-control" id="reason_for_exit" name="reason_for_exit" >
                                  </select>
+                                 <label id="reason_for_exit_error" class="error text-danger" style="display: none;"></label>
                              </div>
                             <div id="reason_for_exit_other_section" class="form-group hidden">
                                  <label id="client_exit_activation_label" for="reason_for_exit_other" class="control-label">Comment</label>
@@ -34,6 +35,12 @@
                                     $(function() {
                                         var localToday = new Date();
                                         $( "input.date" ).datepicker({
+                                              beforeShow: function (input, inst) {
+                                                  $(document).off('focusin.bs.modal');
+                                              },
+                                              onClose: function () {
+                                                  $(document).on('focusin.bs.modal');
+                                              },
                                               minDate: (new Date(2015, 10 , 1)),
                                               maxDate:  "+0Y +0M +0D",
                                               dateFormat: 'yy-mm-dd',
@@ -43,7 +50,6 @@
                                         });
                                         $("input.date").datepicker("setDate", localToday);
                                     });
-
                                 </script>
                             </div>
                         </div>

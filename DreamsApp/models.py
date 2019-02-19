@@ -7,9 +7,10 @@ from django.contrib.auth.models import User
 from datetime import datetime
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from DreamsApp.constants import *
 from django.utils.html import format_html
-from DreamsApp.service_layer import TransferServiceLayer
-from DreamsApp.service_layer import ClientEnrolmentServiceLayer
+# from DreamsApp.service_layer import TransferServiceLayer
+# from DreamsApp.service_layer import ClientEnrolmentServiceLayer
 
 
 class MaritalStatus(models.Model):
@@ -185,7 +186,7 @@ class Client(models.Model):
     verification_document_other = models.CharField(max_length=50, verbose_name="Verification Document(Other)", blank=True, null=True)
     verification_doc_no = models.CharField(verbose_name='Verification Doc No', max_length=50, null=True, blank=True)
     date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True, blank=True)
-    age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=10, null=True, blank=True)
+    age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=MINIMUM_ENROLMENT_AGE, null=True, blank=True)
     marital_status = models.ForeignKey(MaritalStatus, verbose_name='Marital Status', null=True, blank=True)
 
     implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True, verbose_name='Implementing Partner')  # New
@@ -248,20 +249,19 @@ class Client(models.Model):
                     status += ' & '
                 status += 'Exited'
 
-            client = self
-            if TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TransferServiceLayer.TRANSFER_INITIATED_STATUS):
+            if self.client_transfer_status(user_ip, self, "source_implementing_partner", TRANSFER_INITIATED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transfer Initiated'
-            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "destination_implementing_partner", TransferServiceLayer.TRANSFER_ACCEPTED_STATUS):
+            elif self.client_transfer_status(user_ip, self, "destination_implementing_partner", TRANSFER_ACCEPTED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transferred In'
-            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TransferServiceLayer.TRANSFER_ACCEPTED_STATUS):
+            elif self.client_transfer_status(user_ip, self, "source_implementing_partner", TRANSFER_ACCEPTED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transferred Out'
-            elif TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner", TransferServiceLayer.TRANSFER_REJECTED_STATUS):
+            elif self.client_transfer_status(user_ip, self, "source_implementing_partner", TRANSFER_REJECTED_STATUS):
                 if status != '':
                     status += ' & '
                 status += 'Transfer Rejected'
@@ -277,31 +277,32 @@ class Client(models.Model):
     def get_age_at_enrollment(self):
         try:
             return self.date_of_enrollment.year - self.date_of_birth.year - (
-                (self.date_of_enrollment.month, self.date_of_enrollment.day) < (
-                    self.date_of_birth.month, self.date_of_birth.day))
+                    (self.date_of_enrollment.month, self.date_of_enrollment.day) < (
+                self.date_of_birth.month, self.date_of_birth.day))
         except:
-            return ClientEnrolmentServiceLayer.MINIMUM_AGE_AT_ENROLMENT
+            return MINIMUM_ENROLMENT_AGE
 
     def get_current_age(self):
         try:
-            return datetime.now().year - self.date_of_birth.year - ((datetime.now().month, datetime.now().day) < (self.date_of_birth.month, self.date_of_birth.day))
+            return datetime.now().year - self.date_of_birth.year - (
+                        (datetime.now().month, datetime.now().day) < (self.date_of_birth.month, self.date_of_birth.day))
         except:
-            return ClientEnrolmentServiceLayer.MINIMUM_AGE_AT_ENROLMENT
+            return MINIMUM_ENROLMENT_AGE
 
     def transferred_in(self, user_ip):
         try:
             client = self
-            return TransferServiceLayer.client_transfer_status(self, user_ip, client,
-                                                               "destination_implementing_partner",
-                                                               TransferServiceLayer.TRANSFER_ACCEPTED_STATUS)
+            return self.client_transfer_status(user_ip, client,
+                                               "destination_implementing_partner",
+                                               TRANSFER_ACCEPTED_STATUS)
         except:
             return False
 
     def transferred_out(self, user_ip):
         try:
             client = self
-            return TransferServiceLayer.client_transfer_status(self, user_ip, client, "source_implementing_partner",
-                                                               TransferServiceLayer.TRANSFER_ACCEPTED_STATUS)
+            return self.client_transfer_status(user_ip, client, "source_implementing_partner",
+                                               TRANSFER_ACCEPTED_STATUS)
         except:
             return False
 
@@ -332,6 +333,22 @@ class Client(models.Model):
             else:
                 can_add_intervention = True
             return can_add_intervention
+        except:
+            return False
+
+    def client_transfer_status(self, user_ip, client, implementing_partner_query, transfer_status):
+        try:
+            clients_transferred = client.clienttransfer_set.filter(client_id=client.pk).order_by('-id')
+            if clients_transferred.exists():
+                client_transfer_found = clients_transferred.first()
+
+                if implementing_partner_query == "source_implementing_partner":
+                    return client_transfer_found.transfer_status.pk == transfer_status if client_transfer_found.source_implementing_partner == user_ip else False
+
+                elif implementing_partner_query == "destination_implementing_partner":
+                    return client_transfer_found.transfer_status.pk == transfer_status if client_transfer_found.destination_implementing_partner == user_ip else False
+
+            return False
         except:
             return False
 
@@ -1356,10 +1373,10 @@ class InterventionTypeAlternative(models.Model):
 class ServicePackage(models.Model):
     name = models.CharField(verbose_name='Name', max_length=200, blank=False, null=False, default='')
     description = models.CharField(verbose_name='Description', max_length=250, blank=True, null=True, default='')
-    lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', default=10,
-                                                  validators=[MinValueValidator(10), MaxValueValidator(24)])
-    upper_age_limit = models.PositiveIntegerField(verbose_name= 'Upper age limit', default=24,
-                                                  validators=[MinValueValidator(10), MaxValueValidator(24)])
+    lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', default=MINIMUM_ENROLMENT_AGE,
+                                                  validators=[MinValueValidator(MINIMUM_ENROLMENT_AGE), MaxValueValidator(MAXIMUM_ENROLMENT_AGE)])
+    upper_age_limit = models.PositiveIntegerField(verbose_name= 'Upper age limit', default=MAXIMUM_ENROLMENT_AGE,
+                                                  validators=[MinValueValidator(MINIMUM_ENROLMENT_AGE), MaxValueValidator(MAXIMUM_ENROLMENT_AGE)])
     age_group = models.CharField(verbose_name='Age group', max_length=5, blank=True, null=True, default='-')
     intervention_type_alternatives = models.ManyToManyField(InterventionTypeAlternative,
                                                             verbose_name='Service package intervention types',
@@ -1417,14 +1434,12 @@ class InterventionPackage(models.Model):
 
 
 class InterventionTypePackage(models.Model):
-    MIN_AGE = 10
-    MAX_AGE = 24
     intervention_package = models.ForeignKey(InterventionPackage, null=False, blank=False)
     intervention_type = models.ForeignKey(InterventionType, null=False, blank=False)
     lower_age_limit = models.PositiveIntegerField(verbose_name='Lower age limit', blank=False, null=False,
-                                                  validators=[MinValueValidator(MIN_AGE), MaxValueValidator(MAX_AGE)])
+                                                  validators=[MinValueValidator(MINIMUM_ENROLMENT_AGE), MaxValueValidator(MAXIMUM_ENROLMENT_AGE)])
     upper_age_limit = models.PositiveIntegerField(verbose_name='Upper age limit', blank=False, null=False,
-                                                  validators=[MinValueValidator(MIN_AGE), MaxValueValidator(MAX_AGE)])
+                                                  validators=[MinValueValidator(MINIMUM_ENROLMENT_AGE), MaxValueValidator(MAXIMUM_ENROLMENT_AGE)])
 
     def __str__(self):
         return '{} is a member of {} package for age band {} to {}'.format(self.intervention_type.name,
@@ -1492,13 +1507,13 @@ class ClientTransfer(models.Model):
         verbose_name_plural = 'Client Transfers'
 
 
-class ClientLTFUTypeManager(models.Manager):
+class ClientFollowUpTypeManager(models.Manager):
     def get_by_natural_key(self, name):
         return self.get(name=name)
 
 
-class ClientLTFUType(models.Model):
-    objects = ClientLTFUTypeManager()
+class ClientFollowUpType(models.Model):
+    objects = ClientFollowUpTypeManager()
 
     code = models.CharField(max_length=10, null=False, blank=False)
     name = models.CharField(max_length=100, null=False, blank=False)
@@ -1510,8 +1525,8 @@ class ClientLTFUType(models.Model):
         return (self.name, )
 
     class Meta(object):
-        verbose_name = 'LTFU Type'
-        verbose_name_plural = 'LTFU Types'
+        verbose_name = 'Follow Up Type'
+        verbose_name_plural = 'Follow Up Types'
 
 
 class ClientLTFUResultTypeManager(models.Manager):
@@ -1536,16 +1551,29 @@ class ClientLTFUResultType(models.Model):
         verbose_name_plural = 'LTFU Result Types'
 
 
-class ClientLTFU(models.Model):
-    client = models.ForeignKey(Client, null=False, blank=False, related_name='client_ltfu')
+class ClientFollowUp(models.Model):
+    client = models.ForeignKey(Client, null=False, blank=False, related_name='client_follow_up')
     date_of_followup = models.DateField(blank=False, null=False, verbose_name='Date of Followup')
-    type_of_followup = models.ForeignKey(ClientLTFUType, null=False, blank=False, related_name='type_of_followup')
-    result_of_followup = models.ForeignKey(ClientLTFUResultType, blank=False, null=False, related_name='result_of_followup')
+    type_of_followup = models.ForeignKey(ClientFollowUpType, null=False, blank=False, related_name='follow_up_type')
+    result_of_followup = models.ForeignKey(ClientLTFUResultType, null=False, related_name='result_of_followup')
     comment = models.CharField(null=True, blank=True, max_length=255, verbose_name='Comment')
 
     def __str__(self):
         return '{}'.format(self.client.dreams_id)
 
     class Meta(object):
-        verbose_name = 'Client LTFU'
-        verbose_name_plural = 'Client LTFUs'
+        verbose_name = 'Client Follow Up'
+        verbose_name_plural = 'Client Follow Ups'
+
+
+class ConfigurableParameter(models.Model):
+    code = models.IntegerField(verbose_name='Parameter Code', blank=True, null=True, unique=True)
+    name = models.CharField(verbose_name='Parameter Name', max_length=50, blank=False, null=False, unique=True)
+    value = models.CharField(verbose_name='Parameter Name', max_length=255, blank=False, null=False)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta:
+        verbose_name_plural = 'Configurable Parameters'
+        verbose_name = 'Configurable Parameter'
