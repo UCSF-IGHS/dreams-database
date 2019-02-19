@@ -2779,7 +2779,7 @@ def client_transfers(request, *args, **kwargs):
                 c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('transfer_status', '-date_created')
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            c_transfers = ClientTransfer.objects.all()
+            c_transfers = ClientTransfer.objects.all().order_by('transfer_status', '-date_created')
 
         page = request.GET.get('page', 1)
         paginator = Paginator(c_transfers, 20)
