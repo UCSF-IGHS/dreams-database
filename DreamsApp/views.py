@@ -3068,14 +3068,6 @@ def export_client_transfers(request, *args, **kwargs):
         return redirect('login')
 
 
-def export_client_referrals(request, *args, **kwargs):
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-
-        return None
-    else:
-        return redirect('login')
-
-
 def void_client(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
