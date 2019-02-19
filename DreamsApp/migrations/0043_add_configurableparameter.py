@@ -15,5 +15,5 @@ class Migration(migrations.Migration):
         call_command("loaddata", "configurable_parameters.json")
 
     dependencies = [
-        ('DreamsApp', '0045_configurableparameter'),
+        ('DreamsApp', '0042_configurableparameter'),
     ]

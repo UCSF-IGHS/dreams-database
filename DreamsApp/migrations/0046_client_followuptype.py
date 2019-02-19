@@ -8,8 +8,8 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     def load_data(apps, schema_editor):
-        call_command("loaddata", "client_ltfu_resulttype.json")
+        call_command("loaddata", "client_followup_type.json")
 
     dependencies = [
-        ('DreamsApp', '0043_client_followuptype'),
+        ('DreamsApp', '0045_auto_20190201_1039'),
     ]

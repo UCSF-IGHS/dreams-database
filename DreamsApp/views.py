@@ -310,7 +310,8 @@ def follow_ups(request):
                 follow_up_perms = {
                     'can_create_follow_up': follow_up_service_layer.can_create_followup(),
                     'can_delete_follow_up': follow_up_service_layer.can_delete_followup(),
-                    'can_edit_follow_up': follow_up_service_layer.can_edit_followup()
+                    'can_edit_follow_up': follow_up_service_layer.can_edit_followup(),
+                    'can_view_follow_up': follow_up_service_layer.can_view_followup()
                 }
 
                 page = request.GET.get('page', 1)
@@ -2773,9 +2774,9 @@ def client_transfers(request, *args, **kwargs):
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if transferred_in:
-                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('-date_created', 'transfer_status')
+                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('transfer_status', '-date_created')
             else:
-                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('-date_created', 'transfer_status')
+                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('transfer_status', '-date_created')
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             c_transfers = ClientTransfer.objects.all()
@@ -3067,7 +3068,7 @@ def get_response_data(status, message, **kwargs):
         'message': message
     }
 
-    for k, v in kwargs.values():
+    for k, v in kwargs.items():
         response[k] = v
 
     return JsonResponse(json.dumps(response), safe=False)
