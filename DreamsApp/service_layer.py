@@ -132,7 +132,4 @@ class ReferralServiceLayer:
         self.user = user
 
     def can_accept_or_reject_referral(self):
-        if self.user is not None:
-            return self.user.is_superuser or self.user.has_perm('DreamsApp.change_referral')
-        else:
-            return False
+        return self.user is not None and (self.user.is_superuser or self.user.has_perm('DreamsApp.change_referral'))

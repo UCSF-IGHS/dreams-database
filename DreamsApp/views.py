@@ -2807,12 +2807,12 @@ def client_referrals(request, *args, **kwargs):
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if referred_in:
-                c_referrals = Referral.objects.filter(receiving_ip=ip).order_by('-date_created', 'referral_status')
+                c_referrals = Referral.objects.filter(receiving_ip=ip).order_by('referral_status', '-referral_date')
             else:
-                c_referrals = Referral.objects.filter(referring_ip=ip).order_by('-date_created', 'referral_status')
+                c_referrals = Referral.objects.filter(referring_ip=ip).order_by('referral_status', '-referral_date')
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            c_referrals = Referral.objects.all()
+            return render(request, 'login.html')
 
         page = request.GET.get('page', 1)
         paginator = Paginator(c_referrals, 20)
@@ -2951,16 +2951,15 @@ def get_client_referrals_count(request):
         initiated_referral_status = ReferralStatus.objects.get(code__exact=ReferralServiceLayer.REFERRAL_PENDING_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
-            client_referral_count = Referral.objects.filter(
-                destination_implementing_partner=ip,
+            client_referrals_count = Referral.objects.filter(
+                receiving_ip=ip,
                 referral_status=initiated_referral_status).count()
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            client_referral_count = Referral.objects.filter(
-                referral_status=initiated_referral_status).count()
+            client_referrals_count = 0
         except Exception:
-            client_referral_count = 0
+            client_referrals_count = 0
 
-        return HttpResponse(client_referral_count)
+        return HttpResponse(client_referrals_count)
     else:
         return HttpResponse(0)
 

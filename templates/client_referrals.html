@@ -7,12 +7,11 @@
             <div>
                 <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
                     {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
-                <div class="pull-right">
-                    <a class="btn btn-primary"
-                       href="{% url 'export_client_referrals' referred_in=referred_in|stringformat:'d' %}"
-                       target="_blank">Export to Excel</a>
-                </div>
-                <h6>Client Referrals</h6>
+                {% if referred_in %}
+                    <h6>Client Referrals In</h6>
+                {% else %}
+                    <h6>Client Referrals Out</h6>
+                {% endif %}
             </div>
         </div>
 
@@ -28,7 +27,96 @@
             {% endfor %}
         {% endif %}
 
+        <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table"
+               style="margin: 0px;border-radius: 5px;border: #efc636 solid 1px;">
+            <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
+            <th>Dreams ID</th>
+            <th>Referring IP</th>
+            <th>External Organisation</th>
+            <th>External Organisation Other</th>
+            <th>Intervention</th>
+            <th>Referral Date</th>
+            <th>Referral Expiration Date</th>
 
+            {% if can_accept_or_reject and referred_in %}
+                <th>Action</th>
+            {% endif %}
+            {% if not referred_in %}
+                <th>Status</th>
+            {% endif %}
+            </thead>
+            <tbody id="dp-patient-list-body">
+            {% if client_referrals %}
+                {% for client_referral in client_referrals %}
+                    <tr>
+                        <td>{{ client_referral.client.dreams_id }}</td>
+                        <td>{{ client_referral.referring_ip.name }}</td>
+                        <td>{{ client_referral.external_organisation.name }}</td>
+                        <td>{{ client_referral.external_organisation_other }}</td>
+                        <td>{{ client_referral.intervention_type.name }}</td>
+                        <td>{{ client_referral.referral_date }}</td>
+                        <td>{{ client_referral.referral_expiration_date }}</td>
+
+                        {% if can_accept_or_reject and referred_in %}
+                            <td>
+                                {% if client_referral.can_be_accepted_or_rejected %}
+                                    <a id="accept-{{ client_referral.id }}" name="accept-referral-modal"
+                                       class='glyphicon glyphicon-ok badge btn btn-success'
+                                       arial-label='Arial-Hidden'
+                                       style="padding-bottom: 8px;" data-toggle="modal"
+                                       data-target="#intervention-modal"
+                                       data-id="{{ client_referral.id }}"
+                                    >
+                                        Complete
+                                    </a> &nbsp;&nbsp;
+                                    <a id="reject-{{ client_referral.id }}" name="reject-referral-modal"
+                                       class='glyphicon glyphicon-remove badge btn btn-danger'
+                                       arial-label='Arial-Hidden' style="padding-bottom: 8px;" data-toggle="modal"
+                                       data-target="#reject-referral-modal"
+                                       data-id="{{ client_referral.id }}"
+                                    >
+                                        Reject
+                                    </a>
+                                {% else %}
+                                    <span>{{ client_referral.referral_status.name }}</span>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        {% if not referred_in %}
+                            <td>{{ client_referral.referral_status.name }}</td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="8"> No pending referrals.</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+
+        <!-- Pagination section -->
+        <div class="pagination">
+            <span class="step-links">
+                {% if client_referrals.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ client_referral.previous_page_number }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ client_referral.number }} of {{ client_referrals.paginator.num_pages }}.
+                </span>
+
+                {% if client_referrals.has_next %}
+                    <a href="?page={{ client_referrals.next_page_number }}">next</a>
+                    <a href="?page={{ client_referrals.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+
+        <!-- put div for #intervention-modal dialogue-->
+
+        <!-- put div for #reject-referral-modal dialogue-->
 
 
     </div>
