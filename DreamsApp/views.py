@@ -24,7 +24,7 @@ from openpyxl.styles import Font
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
 from dateutil.relativedelta import relativedelta
-from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, FollowUpsServiceLayer
 
 
 def get_enrollment_form_config_data(request):
