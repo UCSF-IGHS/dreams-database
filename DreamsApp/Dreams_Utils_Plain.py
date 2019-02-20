@@ -187,7 +187,7 @@ from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %
             else:
                 ip_list = ip_list[0]
                 if county:
-                    cursor.execute(single_ip_county_query)
+                    cursor.execute(single_ip_county_query, [county, ip_list])
                 elif sub_county:
                     cursor.execute(single_ip_sub_county_query, [sub_county, ip_list])
                 elif ward:
