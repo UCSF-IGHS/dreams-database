@@ -2797,40 +2797,6 @@ def client_transfers(request, *args, **kwargs):
         return redirect('login')
 
 
-def client_referrals(request, *args, **kwargs):
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        referred_in = bool(int(kwargs.pop('referred_in', 1)))
-
-        refer_perm = ReferralServiceLayer(request.user)
-        can_accept_or_reject = refer_perm.can_accept_or_reject_referral()
-
-        try:
-            ip = request.user.implementingpartneruser.implementing_partner
-            if referred_in:
-                c_referrals = Referral.objects.filter(receiving_ip=ip).order_by('referral_status', '-referral_date')
-            else:
-                c_referrals = Referral.objects.filter(referring_ip=ip).order_by('referral_status', '-referral_date')
-
-        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            return render(request, 'login.html')
-
-        page = request.GET.get('page', 1)
-        paginator = Paginator(c_referrals, 20)
-
-        try:
-            referrals = paginator.page(page)
-        except PageNotAnInteger:
-            referrals = paginator.page(1)
-        except EmptyPage:
-            referrals = paginator.page(paginator.num_pages)
-
-        return render(request, "client_referrals.html",
-                      {'client_referrals': referrals, 'can_accept_or_reject': can_accept_or_reject,
-                       'referred_in': referred_in, 'page': 'referrals'})
-    else:
-        return redirect('login')
-
-
 def accept_client_transfer(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
@@ -2942,24 +2908,6 @@ def get_client_transfers_count(request):
             client_transfers_count = 0
 
         return HttpResponse(client_transfers_count)
-    else:
-        return HttpResponse(0)
-
-
-def get_client_referrals_count(request):
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        initiated_referral_status = ReferralStatus.objects.get(code__exact=ReferralServiceLayer.REFERRAL_PENDING_STATUS)
-        try:
-            ip = request.user.implementingpartneruser.implementing_partner
-            client_referrals_count = Referral.objects.filter(
-                receiving_ip=ip,
-                referral_status=initiated_referral_status).count()
-        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            client_referrals_count = 0
-        except Exception:
-            client_referrals_count = 0
-
-        return HttpResponse(client_referrals_count)
     else:
         return HttpResponse(0)
 
