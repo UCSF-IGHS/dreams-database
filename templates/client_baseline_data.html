@@ -5,6 +5,7 @@
     {% include 'includes/client_unexit_form.html' %}
     {% include 'includes/client_transfer_form.html' %}
     {% include 'includes/client_void_form.html' %}
+    {% include 'includes/client_make_referral_form.html' %}
 
     <div class="wrapper-container enrolment-input-question">
         <!-- Start of Client profile section -->
@@ -84,6 +85,14 @@
                     {% if perms.DreamsApp.view_clientfollowup %}
                         <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;" onclick="window.location='/follow_ups?client_id={{ client.id }}'" data-toggle="tooltip" title="Follow Ups">
                             <span class="glyphicon glyphicon-search"></span> Follow Ups
+                        </p>
+                    {% endif %}
+                    {% if perms.DreamsApp.add_referral %}
+                        <p class="underline_hover" id="p_unexit_client" data-client_id='{{ client.id }}'
+                           data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                           data-toggle="modal" data-target="#client-make-referral-modal" title="Make Referral">
+                            <span class="glyphicon glyphicon-refresh"></span> <span
+                                class="client_status_action_text">Make Referral</span>
                         </p>
                     {% endif %}
                 </div>
