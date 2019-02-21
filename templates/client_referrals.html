@@ -7,6 +7,11 @@
             <div>
                 <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
                     {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+                <div class="pull-right">
+                    <a class="btn btn-primary"
+                       href="{% url 'export_client_referrals' referred_in=referred_in|stringformat:'d' %}"
+                       target="_blank">Export to CSV</a>
+                </div>
                 {% if referred_in %}
                     <h6>Client Referrals In</h6>
                 {% else %}

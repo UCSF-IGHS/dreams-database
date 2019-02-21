@@ -10,9 +10,13 @@
                 <div class="pull-right">
                     <a class="btn btn-primary"
                        href="{% url 'export_client_transfers' transferred_in=transferred_in|stringformat:'d' %}"
-                       target="_blank">Export to Excel</a>
+                       target="_blank">Export to CSV</a>
                 </div>
-                <h6>Client Transfers</h6>
+                {% if transferred_in %}
+                    <h6>Client Transfers In</h6>
+                {% else %}
+                    <h6>Client Transfers Out</h6>
+                {% endif %}
             </div>
         </div>
 
