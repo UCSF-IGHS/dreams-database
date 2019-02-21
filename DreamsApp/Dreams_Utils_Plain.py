@@ -36,23 +36,23 @@ class DreamsRawExportTemplateRenderer(object):
             if len(ip_list) > 1:
                 ip_list = tuple(ip_list)
 
-                if county:
-                    cursor.execute(multiple_ip_county_query, [county, ip_list])
+                if ward:
+                    cursor.execute(multiple_ip_ward_query, [ward, ip_list])
                 elif sub_county:
                     cursor.execute(
                         multiple_ip_sub_county_query, [sub_county, ip_list])
-                elif ward:
-                    cursor.execute(multiple_ip_ward_query, [ward, ip_list])
+                elif county:
+                    cursor.execute(multiple_ip_county_query, [county, ip_list])
                 else:
                     cursor.execute(multiple_ip_default_query, [ip_list])
             else:
                 ip_list = ip_list[0]
-                if county:
-                    cursor.execute(single_ip_county_query, [county, ip_list])
+                if ward:
+                    cursor.execute(single_ip_ward_query, [ward, ip_list])
                 elif sub_county:
                     cursor.execute(single_ip_sub_county_query, [sub_county, ip_list])
-                elif ward is not None and ward:
-                    cursor.execute(single_ip_ward_query, [ward, ip_list])
+                elif county:
+                    cursor.execute(single_ip_county_query, [county, ip_list])
                 else:
                     cursor.execute(single_ip_default_query, [ip_list])
             return cursor
@@ -175,23 +175,23 @@ from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %
             if len(ip_list) > 1:
                 ip_list = tuple(ip_list)
 
-                if county:
-                    cursor.execute(multiple_ip_county_query, [county, ip_list])
+                if ward:
+                    cursor.execute(multiple_ip_ward_query, [ward, ip_list])
                 elif sub_county:
                     cursor.execute(
                         multiple_ip_sub_county_query, [sub_county, ip_list])
-                elif ward:
-                    cursor.execute(multiple_ip_ward_query, [ward, ip_list])
+                elif county:
+                    cursor.execute(multiple_ip_county_query, [county, ip_list])
                 else:
                     cursor.execute(multiple_ip_default_query, [ip_list])
             else:
                 ip_list = ip_list[0]
-                if county:
-                    cursor.execute(single_ip_county_query, [county, ip_list])
+                if ward:
+                    cursor.execute(single_ip_ward_query, [ward, ip_list])
                 elif sub_county:
                     cursor.execute(single_ip_sub_county_query, [sub_county, ip_list])
-                elif ward:
-                    cursor.execute(single_ip_ward_query, [ward, ip_list])
+                elif county:
+                    cursor.execute(single_ip_county_query, [county, ip_list])
                 else:
                     cursor.execute(single_ip_default_query, [ip_list])
             return cursor
@@ -220,23 +220,23 @@ from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %
             if len(ip_list) > 1:
                 ip_list = tuple(ip_list)
 
-                if county:
-                    cursor.execute(multiple_ip_county_query, [county, ip_list])
-                elif ward:
+                if ward:
                     cursor.execute(multiple_ip_ward_query, [ward, ip_list])
                 elif sub_county:
                     cursor.execute(
                         multiple_ip_sub_county_query, [sub_county, ip_list])
+                elif county:
+                    cursor.execute(multiple_ip_county_query, [county, ip_list])
                 else:
                     cursor.execute(multiple_ip_default_query, [ip_list])
             else:
                 ip_list = ip_list[0]
-                if county:
-                    cursor.execute(single_ip_county_query, [county, ip_list])
-                elif ward:
+                if ward:
                     cursor.execute(single_ip_ward_query, [ward, ip_list])
                 elif sub_county:
                     cursor.execute(single_ip_sub_county_query, [sub_county, ip_list])
+                elif county:
+                    cursor.execute(single_ip_county_query, [county, ip_list])
                 else:
                     cursor.execute(single_ip_default_query, [ip_list])
 

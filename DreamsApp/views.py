@@ -2262,12 +2262,9 @@ def download_raw_intervention_export(request):
             ("/tmp/raw_intervention_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
-        if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
-                or Permission.objects.filter(group__user=request.user).filter(
-            codename='DreamsApp.can_view_phi_data').exists():
-            show_PHI = True
-        else:
-            show_PHI = False
+        show_PHI = request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
+                   or Permission.objects.filter(group__user=request.user).filter(
+            codename='DreamsApp.can_view_phi_data').exists()
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
