@@ -20,11 +20,10 @@ import json
 from datetime import date, timedelta, datetime as dt
 from openpyxl import Workbook
 from openpyxl.styles import Font
-
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
 from dateutil.relativedelta import relativedelta
-from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, FollowUpsServiceLayer
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, ReferralServiceLayer, FollowUpsServiceLayer
 
 
 def get_enrollment_form_config_data(request):
@@ -2243,7 +2242,7 @@ def download_raw_enrollment_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.prepare_enrolment_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
+        export_doc.prepare_enrolment_export_doc(response, ip_list_str, sub_county, ward, show_PHI)
 
         return response
 
@@ -2271,7 +2270,7 @@ def download_raw_intervention_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_intervention_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
+        export_doc.get_intervention_excel_doc(response, ip_list_str, sub_county, ward, show_PHI)
 
         return response
     except Exception as e:
@@ -2327,7 +2326,7 @@ def download_services_received_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_individual_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
+        export_doc.get_individual_layering_report(response, ip_list_str, sub_county, ward, show_PHI)
         return response
 
     except Exception as e:
@@ -2779,7 +2778,7 @@ def client_transfers(request, *args, **kwargs):
                 c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('transfer_status', '-date_created')
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            return render(request, 'login.html')
+            c_transfers = ClientTransfer.objects.all()
 
         page = request.GET.get('page', 1)
         paginator = Paginator(c_transfers, 20)
@@ -2794,6 +2793,40 @@ def client_transfers(request, *args, **kwargs):
         return render(request, "client_transfers.html",
                       {'client_transfers': transfers, 'can_accept_or_reject': can_accept_or_reject,
                        'transferred_in': transferred_in, 'page': 'transfers'})
+    else:
+        return redirect('login')
+
+
+def client_referrals(request, *args, **kwargs):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        referred_in = bool(int(kwargs.pop('referred_in', 1)))
+
+        referral_perm = ReferralServiceLayer(request.user)
+        can_accept_or_reject = referral_perm.can_accept_or_reject_referral()
+
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            if referred_in:
+                c_referrals = Referral.objects.filter(receiving_ip=ip).order_by('referral_status', '-referral_date')
+            else:
+                c_referrals = Referral.objects.filter(referring_ip=ip).order_by('referral_status', '-referral_date')
+
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            return render(request, 'login.html')
+
+        page = request.GET.get('page', 1)
+        paginator = Paginator(c_referrals, 20)
+
+        try:
+            referrals = paginator.page(page)
+        except PageNotAnInteger:
+            referrals = paginator.page(1)
+        except EmptyPage:
+            referrals = paginator.page(paginator.num_pages)
+
+        return render(request, "client_referrals.html",
+                      {'client_referrals': referrals, 'can_accept_or_reject': can_accept_or_reject,
+                       'referred_in': referred_in, 'page': 'referrals'})
     else:
         return redirect('login')
 
@@ -2909,6 +2942,23 @@ def get_client_transfers_count(request):
             client_transfers_count = 0
 
         return HttpResponse(client_transfers_count)
+    else:
+        return HttpResponse(0)
+
+
+def get_client_referrals_count(request):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        pending_client_referral_status = ReferralStatus.objects.get(code__exact=ReferralServiceLayer.REFERRAL_PENDING_STATUS)
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            client_referrals_count = Referral.objects.filter(
+                receiving_ip=ip, referral_status=pending_client_referral_status).count()
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            client_referrals_count =0
+        except Exception:
+            client_referrals_count = 0
+
+        return HttpResponse(client_referrals_count)
     else:
         return HttpResponse(0)
 
