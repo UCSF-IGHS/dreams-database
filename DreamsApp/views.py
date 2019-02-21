@@ -24,7 +24,7 @@ from openpyxl.styles import Font
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
 from dateutil.relativedelta import relativedelta
-from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, FollowUpsServiceLayer
 
 
 def get_enrollment_form_config_data(request):
@@ -2262,12 +2262,9 @@ def download_raw_intervention_export(request):
             ("/tmp/raw_intervention_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
-        if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
-                or Permission.objects.filter(group__user=request.user).filter(
-            codename='DreamsApp.can_view_phi_data').exists():
-            show_PHI = True
-        else:
-            show_PHI = False
+        show_PHI = request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
+                   or Permission.objects.filter(group__user=request.user).filter(
+            codename='DreamsApp.can_view_phi_data').exists()
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
@@ -2779,7 +2776,7 @@ def client_transfers(request, *args, **kwargs):
                 c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('transfer_status', '-date_created')
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            c_transfers = ClientTransfer.objects.all()
+            return render(request, 'login.html')
 
         page = request.GET.get('page', 1)
         paginator = Paginator(c_transfers, 20)

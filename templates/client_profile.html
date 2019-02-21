@@ -268,7 +268,7 @@
                         {% endif %}
                     {% endif %}
                     </p>
-                    {% if perms.DreamsApp.can_view_followup %}
+                    {% if perms.DreamsApp.view_clientfollowup %}
                         <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
                            onclick="window.location='/follow_ups?client_id={{ client.id }}'" data-toggle="tooltip"
                            title="Follow Ups">
