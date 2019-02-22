@@ -826,7 +826,7 @@ $(document).ready(function () {
         }
     }
 
-    $('#follow-up-entry-form').submit(function (e) {
+    $('#follow-up-entry-form').submit(function (event) {
         var followUpType = $('select#follow_up_type').val();
         var followUpResultType = $('select#follow_up_result_type').val();
         var followUpDate = $('input#follow_up_date').val();
