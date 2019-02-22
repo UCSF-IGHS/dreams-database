@@ -18,18 +18,6 @@
                             <label class="control-label">{{ form.date.label_tag }}</label>
                             {{ form.date|add_class:"input-sm form-control" }}
                             <i class="glyphicon glyphicon-calendar form-control-feedback" style="margin-top:5px;"></i>
-                            <script>
-                                $(function() {
-                                  $( "#id_date" ).datepicker({
-                                      dateFormat: 'yy-mm-dd',
-                                      minDate: '-24y',
-                                      maxDate: '-10y',
-                                      changeMonth: true,
-                                      changeYear: true,
-                                      defaultDate: ''
-                                  });
-                                });
-                            </script>
                             {{ form.date.errors }}
                         </div>
                         <div class="form-group">

@@ -58,21 +58,6 @@
                           <span class="add-on"><i class="icon-th"></i></span></p>
                           <input type="text" class="form-control validate-follow-up-form-field hidden" id="follow_up_date" name="follow_up_date"/>
                           <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
-                          <script>
-                              $(function () {
-                                  var localToday = new Date();
-                                  $("input#follow_up_date").datepicker({
-                                      minDate: (new Date(2015, 10, 1)),
-                                      maxDate: "+0Y +0M +0D",
-                                      dateFormat: 'yy-mm-dd',
-                                      changeMonth: true,
-                                      changeYear: true,
-                                      defaultDate: localToday
-                                  });
-                                  $("input#follow_up_date").datepicker("setDate", localToday);
-                              });
-
-                          </script>
                       </div>
 
                        <div class="form-group" id="comment_section">
@@ -148,29 +133,12 @@
                         </div>
 
                       <div class="form-group has-feedback date" id="follow_up_date_section">
-                          <label for="follow_up_date" class="control-label">Date</label>
-                          <input type="text" class="form-control validate-follow-up-form-field" id="follow_up_date" placeholder="Select date " style="cursor: pointer;">
-                          <span class="add-on"><i class="icon-th"></i></span></p>
-                          <input type="text" class="form-control validate-follow-up-form-field hidden" id="follow_up_date" name="follow_up_date"/>
+                          <label for="edit_follow_up_date" class="control-label">Date:</label>
+                          <input type="text" class="form-control clear_value" id="edit_follow_up_date" name="edit_follow_up_date" required placeholder="Select date when follow up was done" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                           <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
-                          <script>
-                              $(function () {
-                                  var localToday = new Date();
-                                  $("input#follow_up_date").datepicker({
-                                      minDate: (new Date(2015, 10, 1)),
-                                      maxDate: "+0Y +0M +0D",
-                                      dateFormat: 'yy-mm-dd',
-                                      changeMonth: true,
-                                      changeYear: true,
-                                      defaultDate: localToday
-                                  });
-                                  $("input#follow_up_date").datepicker("setDate", localToday);
-                              });
-
-                          </script>
                       </div>
 
-                       <div class="form-group" id="comment_section">
+                      <div class="form-group" id="comment_section">
                            <label for="follow_up_comments" class="control-label">Comments</label>
                            <textarea class="form-control validate-follow-up-form-field" id="follow_up_comments" name="follow_up_comments"></textarea>
                         </div>

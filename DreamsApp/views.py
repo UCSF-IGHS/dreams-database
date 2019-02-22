@@ -1216,7 +1216,7 @@ def update_follow_up(request):
             if follow_up is not None:
                 follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
                 follow_up_result_type = ClientLTFUResultType.objects.filter(id__exact=request.POST.get('follow_up_result_type')).first()
-                follow_up_date = request.POST.get('follow_up_date')
+                follow_up_date = request.POST.get('edit_follow_up_date')
                 follow_up_comments = request.POST.get('follow_up_comments')
 
                 follow_up.date_of_followup = follow_up_date

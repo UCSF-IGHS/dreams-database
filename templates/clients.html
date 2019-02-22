@@ -42,42 +42,8 @@
                                           <div class="form-group form-inline ">
                                               <label for="basic-url" class="col-sm-2" style="margin-top: 8px;text-align: right;"> Enrollment Date From:</label>
                                               <input type="text" class="form-control input-sm col-sm-4 clear_value" name="doe_start_filter" id="doe_start_filter" value="{{ start_date_filter }}" placeholder="Date" style="cursor: pointer;">
-                                                 <script>
-                                                    $(function() {
-                                                      $( "#doe_start_filter").datepicker({
-                                                          beforeShow: function(input, inst) {
-                                                              $(document).off('focusin.bs.modal');
-                                                          },
-                                                          onClose:function(){
-                                                              $(document).on('focusin.bs.modal');
-                                                          },
-                                                          maxDate: '0y 0m 0d',
-                                                          minDate:  (new Date(2015, 9 , 1)),
-                                                          dateFormat: 'yy-mm-dd',
-                                                          changeMonth: true,
-                                                          changeYear: true
-                                                      });
-                                                    });
-                                                </script>
                                               <label for="basic-url" class="col-sm-1" style="margin-top: 8px;text-align: center;">To</label>
                                               <input type="text" class="form-control input-sm col-sm-4 clear_value" name="doe_end_filter" id="doe_end_filter" value="{{ end_date_filter }}" placeholder="Date" style="cursor: pointer;">
-                                                 <script>
-                                                    $(function() {
-                                                      $( "#doe_end_filter").datepicker({
-                                                          beforeShow: function(input, inst) {
-                                                              $(document).off('focusin.bs.modal');
-                                                          },
-                                                          onClose:function(){
-                                                              $(document).on('focusin.bs.modal');
-                                                          },
-                                                          maxDate: '0y 0m 0d',
-                                                          minDate:  (new Date(2015, 9 , 1)),
-                                                          dateFormat: 'yy-mm-dd',
-                                                          changeMonth: true,
-                                                          changeYear: true
-                                                      });
-                                                    });
-                                                </script>
                                           </div><br><br>
                                           <div class="form-group form-inline">
                                               <label for="county_filter" class="col-sm-2" style="margin-top: 8px;text-align: right;"> County:</label>
