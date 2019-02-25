@@ -3538,6 +3538,27 @@ $(document).ready(function () {
 
     setTimeout(getClientTransfersCount(), 180000);
 
+
+    function getClientReferralsCount() {
+        var el = $('#client-referrals-count-span');
+        $.ajax({
+            url: $(el).data('count-url')
+        }).done(function (data, textStatus, jqXHR) {
+            if (data != 0) {
+                $(el).text(data).show();
+                $('.client-referrals-count-span').text(data).show();
+            } else {
+                $(el).text("").hide();
+            }
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+
+        }).always(function () {
+            setTimeout(getClientReferralsCount, 180000);
+        });
+    }
+
+    setTimeout(getClientReferralsCount(), 180000);
+
     $("#btn_submit_void_client_form").click(function (e) {
         e.preventDefault();
 
