@@ -806,7 +806,7 @@ def testajax(request):
 # Handles post request for intervention types.
 # Receives category_code from request and searches for types in the database
 
-def get_external_organisation(request):
+def get_external_organisations(request):
     try:
         if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
             response_data = {}
@@ -854,8 +854,10 @@ def get_exit_reasons(request):
 def is_valid_get_request(request):
     return request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active
 
+
 def is_valid_post_request(request):
     return request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active
+
 
 def get_intervention_types(request):
     try:
@@ -1080,8 +1082,83 @@ def save_intervention(request):
         return JsonResponse(response_data)
 
 
-# method that returns a list of interventions of given category for a given client
-# use /ivList/ url pattern to access the method
+def initiate_referral(request):
+    try:
+        if is_valid_post_request(request):
+            client = Client.objects.filter(id__exact=int(request.POST.get('referral-client-id'))).first()
+            source_implementing_partner = ImplementingPartner.objects.filter(id__exact=client.implementing_partner.id).first()
+            intervention_type = InterventionType.objects.filter(id__exact=int(request.POST.get('referral-interventions-select'))).first()
+            referral_date = request.POST.get('referral-date')
+            expiry_date = request.POST.get('expiry-date')
+            comment = request.POST.get('comment')
+            to_external_organization = request.POST.get('to-external-organization')
+
+            if request.user.has_perm('DreamsApp.add_referral'):
+                referral = Referral()
+                referral.client = client
+                referral.referring_ip = source_implementing_partner
+                referral.intervention_type = intervention_type
+                referral.referral_status = ReferralStatus.objects.filter(name='Pending').first()
+                referral.referral_date = referral_date
+                referral.referral_expiration_date = expiry_date
+                referral.comments = comment
+
+                if bool(to_external_organization):
+                    if request.POST.get('referral-external-organization-select'):
+                        referral.external_organisation = ExternalOrganisation.objects.filter(id__exact=int(request.POST.get('referral-external-organization-select'))).first()
+
+                    if request.POST.get('other-organization-name'):
+                        referral.external_organisation_other = request.POST.get('other-organization-name')
+                else:
+                    referral.receiving_ip = ImplementingPartner.objects.filter(id__exact=int(request.POST.get('implementing-partners-select'))).first()
+
+                referral.save()
+                response_data = {
+                    'status': 'success',
+                    'message': 'Referral added'
+                }
+                return JsonResponse(response_data)
+            else:
+                raise PermissionDenied
+
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
+def get_all_intervention_types(request):
+    try:
+        if is_valid_get_request(request):
+            intervention_types = InterventionType.objects.all()
+            response_data = {
+                'intervention_types': serializers.serialize('json', intervention_types)
+            }
+            return JsonResponse(response_data)
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
+def get_implementing_partners(request):
+    try:
+       if is_valid_get_request(request):
+            if has_get_arg('referral-client-id', request):
+                client_id = int(request.GET.get('referral-client-id'))
+                client_implementing_partner = Client.objects.get(id=client_id).implementing_partner
+                implementing_partners = ImplementingPartner.objects.all().exclude(id=client_implementing_partner.id)
+                response_data = {
+                    'implementing_partners': serializers.serialize('json', implementing_partners)
+                }
+                return JsonResponse(response_data)
+            else:
+                return ValueError('Client ID is required')
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
+def has_get_arg(arg_name, request):
+    return arg_name in request.GET or request.GET.get(arg_name)
 
 
 def get_intervention_list(request):

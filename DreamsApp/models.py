@@ -182,15 +182,13 @@ class Client(models.Model):
     last_name = models.CharField(verbose_name='Last Name', max_length=100, null=True, blank=True)
     date_of_birth = models.DateField(verbose_name='Date of Birth', null=True, blank=True)
     is_date_of_birth_estimated = models.NullBooleanField(verbose_name='Date of Birth Estimated', default=False, blank=True)
-    verification_document = models.ForeignKey(VerificationDocument, null=True, blank=True, verbose_name='Verification Document')  # New
+    verification_document = models.ForeignKey(VerificationDocument, null=True, blank=True, verbose_name='Verification Document')
     verification_document_other = models.CharField(max_length=50, verbose_name="Verification Document(Other)", blank=True, null=True)
     verification_doc_no = models.CharField(verbose_name='Verification Doc No', max_length=50, null=True, blank=True)
     date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True, blank=True)
     age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=MINIMUM_ENROLMENT_AGE, null=True, blank=True)
     marital_status = models.ForeignKey(MaritalStatus, verbose_name='Marital Status', null=True, blank=True)
-
-    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True, verbose_name='Implementing Partner')  # New
-
+    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True, verbose_name='Implementing Partner')
     phone_number = models.CharField(verbose_name='Phone Number', max_length=13, null=True, blank=True)
     dss_id_number = models.CharField(verbose_name='DSS ID Number', max_length=50, null=True, blank=True)
     county_of_residence = models.ForeignKey(County, verbose_name='County of Residence', null=True, blank=True)

@@ -1,0 +1,69 @@
+{% load staticfiles %}
+
+{% block client_make_referral_form %}
+
+        <div class="modal fade " id="client-make-referral-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html">
+        <form id="client-make-referral-form" class="form-horizontal" method="POST" action="/initiateReferral">
+        <input id="referral-client-id" type="hidden" name="referral-client-id" value="{{ client.id }}">
+        {% csrf_token %}
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header btn-default" style="border-radius: 4px 4px 0px 0px;">
+                    <button type="button" class="close" id="close_make_referral_modal" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel"><span class="glyphicon glyphicon-refresh"></span> CLIENT REFERRAL FORM</h4>
+                </div>
+                <div class="modal-body">
+                        <div style="margin: auto 15px;">
+                             <div class="form-group">
+                                 <label id="referral_intervention_label" for="referral_intervention" class="control-label">Intervention:</label>
+                                 <select class="form-control" id="referral-interventions-select" name="referral-interventions-select"></select>
+                                 <span id="referral_intervention_error" class="label error-space" style="color: red; font-size: 12px"></span>
+                             </div>
+
+                            <div class="form-group has-feedback">
+                                 <label for="referral-date" class="control-label">Referral Date:</label>
+                                 <input type="text" class="form-control clear_value date" id="referral-date" name="referral-date" required placeholder="Referral Date" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                                 <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                                 <span id="referral_date_error" class="label error-space" style="color: red; font-size: 12px"></span>
+                            </div>
+
+                            <div class="form-group">
+                                 <label id="implementing_partner_label" for="implementing-partners-select" class="control-label">Implementing Partner:</label>
+                                 <select class="form-control" id="implementing-partners-select" name="implementing-partners-select" >
+                                 </select>
+                                 <span id="implementing_partner_error" class="label error-space" style="color: red; font-size: 12px"></span>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" class="clear_true" id="to-external-organization" name="to-external-organization"> External Organization:
+                                </label>
+                                <select class="form-control" id="referral-external-organization-select" name="referral-external-organization-select"></select>
+                                <span id="external_organization_error" class="label error-space" style="color: red; font-size: 12px"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="other-organization-name" class="control-label">Other Organization Name:</label>
+                                <input type="text" class="form-control clear_value" id="other-organization-name" name="other-organization-name" placeholder="Other Organization Name" style="cursor: pointer; font-size: 12px"></p>
+                            </div>
+                            <div class="form-group has-feedback">
+                                 <label for="expiry-date" class="control-label">Expiry Date:</label>
+                                 <input type="text" class="form-control clear_value date" id="expiry-date" name="expiry-date" required placeholder="Expiry Date" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                                 <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                                 <span id="referral_expiry_date_error" class="label error-space" style="color: red; font-size: 12px"></span>
+                            </div>
+                            <div id="comment_section" class="form-group ">
+                                 <label id="comment_label" for="comment" class="control-label">Comment:</label>
+                                 <textarea class="form-control" id="comment" name="comment" ></textarea>
+                            </div>
+                        </div>
+                    </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" aria-hidden="true"> Cancel </button>
+                    <button type="submit" id="btn_submit_refer_client" class="btn btn-sm btn-primary" > Refer Client </button>
+                  </div>
+            </div>
+          </div>
+        </form>
+    </div>
+
+{% endblock %}

@@ -418,6 +418,70 @@ $(document).ready(function () {
 
     }
 
+    function fetchAndLoadInterventionTypes() {
+        $.ajax({
+            url: "/getInterventionTypes",
+            type: "GET",
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                var interventionTypes = $.parseJSON(data.intervention_types);
+                setSelectOptions(interventionTypes, '#referral-interventions-select', 'Select Intervention Type');
+            },
+            error: function (xhr, errmsg, err) {
+                console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+    }
+
+    function fetchAndLoadImplementingPartners() {
+        var client_id = $('input[type=hidden]#referral-client-id').val();
+        $.ajax({
+            url: "/getImplementingPartners",
+            type: "GET",
+            dataType: 'json',
+            async: false,
+            data: { 'referral-client-id': client_id  },
+            success: function (data) {
+                var implementingPartners = $.parseJSON(data.implementing_partners);
+                setSelectOptions(implementingPartners, '#implementing-partners-select', 'Select Implementing Partner');
+            },
+            error: function (xhr, errmsg, err) {
+                console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+    }
+
+    function fetchAndLoadExternalOrganizations() {
+        $.ajax({
+            url: "/getExternalOrganisations",
+            type: "GET",
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                var externalOrganizations = $.parseJSON(data.external_orgs)
+                setSelectOptions(externalOrganizations, '#referral-external-organization-select', 'Select External Organization');
+            },
+            error: function (xhr, errmsg, err) {
+                console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+    }
+
+    $('#referral-external-organization-select').attr('disabled', 'disabled');
+    $('#other-organization-name').attr('disabled', 'disabled');
+    $('input[type=checkbox]#to-external-organization').change(function() {
+       if (this.checked) {
+           $('#implementing-partners-select').attr('disabled', 'disabled');
+           $('#referral-external-organization-select').removeAttr('disabled');
+           $('#other-organization-name').removeAttr('disabled');
+       } else {
+           $('#referral-external-organization-select').attr('disabled', 'disabled');
+           $('#implementing-partners-select').removeAttr('disabled');
+           $('#other-organization-name').attr('disabled', 'disabled');
+       }
+    });
+
     function fetchAndLoadExitReasons() {
         $.ajax({
             url: "/getExitReasons",
@@ -463,15 +527,15 @@ $(document).ready(function () {
             dataType: 'json',
             async: false,
             success: function (data) {
-                externalOrganisations = $.parseJSON(data.external_orgs); // Gloabal variable
-                setExternalOrganisationsSelect(externalOrganisations);
+                externalOrganisations = $.parseJSON(data.external_orgs);
+                setSelectOptions(externalOrganisations, '#external-organization-select');
                 $('#intervention-entry-form .processing-indicator').addClass('hidden');
             },
             error: function (xhr, errmsg, err) {
                 alert(errmsg);
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    " <a href='#' class='close'>&times;</a></div>");
+                console.log(xhr.status + ": " + xhr.responseText);
                 $('#intervention-entry-form .processing-indicator').addClass('hidden');
             }
         });
@@ -506,14 +570,14 @@ $(document).ready(function () {
     }
 
 
-    function setExternalOrganisationsSelect(externalOrganisations) {
-        var externalOrganisationSelect = $('#external-organization-select');
-        externalOrganisationSelect.empty();
-        externalOrganisationSelect.append($("<option />").attr("value", '').text('Select External Organisation').addClass('selected disabled hidden').css({display: 'none'}));
+    function setSelectOptions(selectOptions, selectID, defaultText) {
+       var select = $(selectID);
+        select.empty();
+        select.append($("<option />").attr("value", '').text(defaultText).addClass('selected disabled hidden').css({display: 'none'}));
 
-        if (externalOrganisations.length > 0) {
-            $.each(externalOrganisations, function () {
-                externalOrganisationSelect.append($("<option />").attr("value", this.pk).text(this.fields.name));
+        if (selectOptions.length > 0) {
+            $.each(selectOptions, function () {
+                select.append($("<option />").attr("value", this.pk).text(this.fields.name));
             });
         }
     }
@@ -3192,6 +3256,13 @@ $(document).ready(function () {
         }
     });
 
+    $('#client-make-referral-modal').on('show.bs.modal', function (e) {
+        fetchAndLoadInterventionTypes();
+        fetchAndLoadImplementingPartners();
+        fetchAndLoadExternalOrganizations();
+        $('#client-exit-modal #id_reason_for_exit').val('');
+        $("#client-exit-modal #id_date_of_exit").datepicker("setDate", new Date());
+    });
 
     // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
@@ -3439,6 +3510,76 @@ $(document).ready(function () {
         $('#client-transfer-form').submit();
     });
 
+    $('#client-make-referral-form').submit(function (e) {
+        var intervention = $('select#referral-interventions-select option:selected').val();
+        var referralDate = $('input#referral-date').val();
+        var implementingPartner = $('select#implementing-partners-select option:selected').val();
+        var toExternalOrganization = $('input[name="to-external-organization"]').is(':checked');
+        var externalOrganization = $('select#external-organization-select option:selected').val();
+        var otherOrganization = $('input#other-organization-name').val();
+        var expiryDate = $('input#expiry-date').val();
+        var comment = $('textarea#comment').text();
+
+        $("#btn_submit_refer_client").attr("disabled", true);
+
+        $('#referral_intervention_error').addClass('hidden');
+        $('#external_organization_error').addClass('hidden');
+        $('#implementing_partner_error').addClass('hidden');
+        $('#referral_date_error').addClass('hidden');
+        $('#referral_expiry_date_error').addClass('hidden');
+        
+        if (intervention === '') {
+            $('#referral_intervention_error').removeClass('hidden').text('Please select an intervention type')
+                                                                    .trigger('madeVisible');
+        } else if (toExternalOrganization && externalOrganization  === '' && otherOrganization  === '') {
+            $('#external_organization_error').removeClass('hidden').text('Please select external organization or implementing partner')
+                                                                    .trigger('madeVisible');
+        } else if (!toExternalOrganization && implementingPartner === '') {
+            $('#implementing_partner_error').removeClass('hidden').text('Please select an implementing partner')
+                                                                    .trigger('madeVisible');
+        } else if (referralDate === '') {
+            $('#referral_date_error').removeClass('hidden').text('Please insert a referral date')
+                                                                    .trigger('madeVisible');
+        } else if (expiryDate === '') {
+            $('#referral_expiry_date_error').removeClass('hidden').text('Please insert a referral expiry date')
+                                                                    .trigger('madeVisible');
+        } else {
+            $.ajax({
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                dataType: 'json',
+                data: $('#client-make-referral-form').serialize(),
+            }).done(function (data, textStatus, jqXHR) {
+                var status = data.status;
+                var message = data.message
+                var alert_id = $('#action_alert_gen');
+
+                if (status == 'success') {
+                    $(alert_id).addClass('alert-success');
+                    show_notification(alert_id, message);
+                    $('#client-make-referral-modal').modal('hide');
+
+                } else if (status == 'fail') {
+                    $(alert_id).addClass('alert-danger');
+                    if (typeof message === "object") {
+                        $.each(message, function (k, v) {
+                            $("[name='" + k + "']").closest(".form-group").addClass('has-error');
+                            $("span#help_" + k).html(v[0]);
+                        });
+                    } else {
+                        show_notification(alert_id, message);
+                    }
+                }
+            });
+        }
+
+        $("#btn_submit_refer_client").attr("disabled", false);
+        $("#btn_submit_refer_client").removeAttr("disabled");
+
+        e.preventDefault();
+        e.stopPropagation();
+    });
+    
     $('#client-transfer-form').submit(function (e) {
         e.preventDefault();
 
