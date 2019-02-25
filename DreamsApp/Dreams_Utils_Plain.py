@@ -342,7 +342,9 @@ from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %
           i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, 
           DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
           i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-          i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention, i.external_organisation, i.external_organisation_other
+          i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention, i.external_organisation, i.external_organisation_other, 
+          (CASE WHEN i.referred_client = 1 THEN 'Yes' ELSE 'No' END) AS referred_client, 
+          (SELECT name FROM DreamsApp_implementingpartner WHERE id=i.receiving_ip_id LIMIT 1) AS receiving_ip, i.referral_date, i.referral_status
           from stag_client_intervention i
           WHERE i.voided=0 AND i.transferred_client=1 
           """
