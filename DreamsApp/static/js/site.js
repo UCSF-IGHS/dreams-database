@@ -826,6 +826,18 @@ $(document).ready(function () {
         }
     }
 
+    $('#follow-up-modal, #edit-follow-up-modal').on('show.bs.modal', function (e) {
+        var localToday = new Date();
+        createDatePicker("input#follow_up_date", (new Date(2015, 10, 1)), "+0Y +0M +0D");
+        $("input#follow_up_date").datepicker("setDate", localToday);
+    });
+
+    $('#edit-follow-up-modal').on('show.bs.modal', function (e) {
+        var localToday = new Date();
+        createDatePicker("input#edit_follow_up_date"), (new Date(2015, 10, 1), "+0Y +0M +0D");
+        $("input#edit_follow_up_date").datepicker("setDate", localToday);
+    });
+
     $('#follow-up-entry-form').submit(function (event) {
         var followUpType = $('select#follow_up_type').val();
         var followUpResultType = $('select#follow_up_result_type').val();
@@ -1988,8 +2000,34 @@ $(document).ready(function () {
         });
     });
 
+    var createDatePicker = function (elemID, maxDate, minDate, defaultDate) {
+        $(elemID).datepicker({
+            beforeShow: function (input, inst) {
+                $(document).off('focusin.bs.modal');
+            },
+            onClose: function () {
+                $(document).on('focusin.bs.modal');
+            },
+            maxDate: maxDate,
+            minDate: minDate,
+            dateFormat: 'yy-mm-dd',
+            changeMonth: true,
+            changeYear: true,
+            defaultDate: defaultDate
+        });
+    };
+
+    createDatePicker("#doe_start_filter", '0y 0m 0d', new Date(2015, 9, 1));
+    createDatePicker("#filter-log-date", '0');
+    createDatePicker("#to_intervention_date", '0y 0m 0d', (new Date(2015, 9, 1)));
+    createDatePicker("#filter-log-date-from", '0');
+    createDatePicker("#from_intervention_date", '0y 0m 0d', (new Date(2015, 9, 1)));
+    createDatePicker("#doe_end_filter", '0y 0m 0d', (new Date(2015, 9, 1)));
+    createDatePicker("#filter_date", '-24y', '-10y');
+
     $('#grievance-modal').on('show.bs.modal', function (event) {
         var viewMode = $('#grievance-modal').data('view_mode');
+        createDatePicker("#id_date", '-24y', '-10y');
         switch (viewMode) {
             case 'add':
                 $('#grievance-modal .input-sm').val("");    // reset all fields
@@ -3195,15 +3233,18 @@ $(document).ready(function () {
 
     // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
+        var localToday = new Date();
         fetchAndLoadExitReasons();
         fetchFollowUpAttempts();
         $('#client-exit-modal #id_reason_for_exit').val('');
-        $("#client-exit-modal #id_date_of_exit").datepicker("setDate", new Date());
+        createDatePicker("#client-exit-modal #id_date_of_exit"), (new Date(2015, 10, 1), "+0Y +0M +0D");
+        $("#client-exit-modal #id_date_of_exit").datepicker("setDate", localToday);
     });
 
     $('#client-unexit-modal').on('show.bs.modal', function (e) {
+        var localToday = new Date();
         $('#client-unexit-modal #id_reason_for_exit').val('');
-        $("#client-unexit-modal #id_date_of_exit").datepicker("setDate", new Date());
+        createDatePicker("#client-unexit-modal #id_date_of_unexit", null, null, localToday);
 
         var clientStatus = $('.client_status_action_text').html()
         if ($.trim(clientStatus) == 'Exit Client') {
