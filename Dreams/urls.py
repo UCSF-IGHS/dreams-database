@@ -36,11 +36,9 @@ urlpatterns = [
     url(r'^ivgetTypes$', views.get_intervention_types),
     url(r'^getExternalOrganisations$', views.get_external_organisations),
     url(r'^getExitReasons', views.get_exit_reasons),
-
     url(r'^getInterventionTypes$', views.get_all_intervention_types),
     url(r'^getImplementingPartners$', views.get_implementing_partners),
     url(r'^initiateReferral$', views.initiate_referral),
-
     url(r'^getMinMaxDateOfBirth', views.get_min_max_date_of_birth),
     url(r'^getUnsuccessfulFollowUpAttempts$', views.get_unsuccessful_followup_attempts),
     url(r'^ivSave$', views.save_intervention),
