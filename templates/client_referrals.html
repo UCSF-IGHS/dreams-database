@@ -64,11 +64,13 @@
                                        class='glyphicon glyphicon-ok badge btn btn-success'
                                        arial-label='Arial-Hidden'
                                        style="padding-bottom: 8px;" data-toggle="modal"
-                                       data-target="#intervention-modal"
+                                       data-target="#referral-intervention-modal"
                                        data-id="{{ client_referral.id }}"
                                        data-client-name="{{ client_referral.client.get_full_name }}"
                                        data-referral-intervention-type-code="{{ client_referral.intervention_type.code }}"
-                                       data-referral-intervention-type-name="{{ client_referral.intervention_type.name }}">
+                                       data-referral-intervention-type-name="{{ client_referral.intervention_type.name }}"
+                                       data-referral-external-organisation-id="{{ client_referral.external_organisation.id }}"
+                                       data-referral-external-organisation-other="{{ client_referral.external_organisation_other }}">
 
                                         Complete
                                     </a> &nbsp;&nbsp;
@@ -80,7 +82,8 @@
                                        data-client-name="{{ client_referral.client.get_full_name }}"
                                        data-client-dreams-id="{{ client_referral.client.dreams_id }}"
                                        data-client-date-of-birth="{{ client_referral.client.date_of_birth }}"
-                                       data-client-intervention="{{ client_referral.intervention_type.name }}"
+                                       data-client-intervention-id="{{ client_referral.intervention_type.id }}"
+                                       data-client-intervention-name="{{ client_referral.intervention_type.name }}"
                                        data-client-referral-date="{{ client_referral.referral_date }}"
                                        data-client-referral-expiration-date="{{ client_referral.referral_expiration_date }}">
                                         Reject
@@ -124,56 +127,26 @@
 
         <!-- put div for #intervention-modal dialogue-->
         <!-- Beginning modal-->
-        <div class="modal fade" id="intervention-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        <div class="modal fade" id="referral-intervention-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
              xmlns="http://www.w3.org/1999/html">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
-                    <form id="intervention-entry-form" method="post" action="#">
+                    <form id="referral-intervention-entry-form" method="post" action="#">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                                     aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title" id="exampleModalLabel">NEW INTERVENTION</h4>
-                            <h5 id="intervention_client_name"></h5>
+                            <h4 class="modal-title" id="exampleModalLabel">ADD INTERVENTION FOR REFERRAL</h4>
+                            <h5 id="referral_intervention_client_name"></h5>
                         </div>
                         <div class="modal-body">
-
                             {% csrf_token %}
                             <!-- Permanently hidden Fields -->
-
-{#                            <input class="hidden validate-intervention-form-field" name="client" value=""/>#}
                             <input class="hidden validate-intervention-form-field" name="created_by" value="{{ user.id }}"/>
-                            <input class="hidden validate-intervention-form-field" name="intervention_id"
-                                   id="intervention_id" value=""/>
+                            <input class="hidden validate-intervention-form-field" name="referral_intervention_id"
+                                   id="referral_intervention_id" value=""/>
                             <input class="hidden validate-intervention-form-field" name="changed_by" id="changed_by"
                                    value="{{ user.id }}"/>
-
                             <!-- End of Permanently hidden fields -->
-
-                            <div class="form-group">
-                                <label for="intervention-type-select">Intervention Type</label>
-                                <select id="intervention-type-select" name="intervention_type_code"
-                                        class="form-control validate-intervention-form-field">
-                                </select>
-                                <div id="div_out_of_age_bracket_warning" class="custom-has-error hide">
-                                    <label class="control-label">Warning!, the client's age is outside the selected
-                                        intervention type's age bracket </label>
-                                </div>
-                            </div>
-
-                            <div class="form-group hidden" id="other_specify_section">
-                                <label for="other_specify" class="control-label">Specify Intervention</label>
-                                <input type="text" class="form-control validate-intervention-form-field" id="other_specify"
-                                       name="other_specify">
-                            </div>
-
-                            <div class="form-group hidden" id="external_organization_section">
-                                <label id="external_organization_label" for="external-organization-checkbox">Provided by
-                                    External
-                                    Organization</label>
-                                <input type="checkbox" id="external-organization-checkbox"
-                                       name="external_organization_checkbox" class="form-control">
-                                </input>
-                            </div>
 
                             <fieldset id="external_organization_more_section" class="hidden">
                                 <div class="form-group">
@@ -192,7 +165,7 @@
                                 </div>
                             </fieldset>
 
-                            <div class="form-group has-feedback hidden" id="intervention_date_section">
+                            <div class="form-group has-feedback" id="intervention_date_section">
                                 <label for="date-of-completion" class="control-label">Date: </label>
                                 <input type="text" class="form-control validate-intervention-form-field"
                                        id="date-of-completion" placeholder="Select date " style="cursor: pointer;"><span
@@ -236,7 +209,7 @@
                                        id="number-of-ss-sessions-attended" value="1" min="1" name="no_of_sessions_attended">
                             </div>
 
-                            <div class="form-group hidden" id="notes_section">
+                            <div class="form-group" id="notes_section">
                                 <label for="comments-text" class="control-label">Comments/Notes</label>
                                 <textarea class="form-control validate-intervention-form-field" id="comments-text"
                                           name="comment"></textarea>
@@ -246,16 +219,14 @@
                                 <span id="error-space" class="label error-space" style="color: red;"></span>
                             </div>
                             Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
-
                         </div>
                         <div class="modal-footer">
-
-                            <button id="btn_cancel_intervention" type="button" class="btn btn-sm btn-default"
+                            <button id="btn_cancel_referral_intervention" type="button" class="btn btn-sm btn-default"
                                     data-dismiss="modal"> Cancel
                             </button>
 
                             {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
-                                <button id="btn_save_intervention" type="submit" class="btn btn-sm btn-primary"> Save
+                                <button id="btn_save_referral_intervention" type="submit" class="btn btn-sm btn-primary"> Save
                                     Intervention
                                 </button>
                             {% endif %}

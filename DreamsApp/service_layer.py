@@ -143,13 +143,15 @@ class ReferralServiceLayer:
 
         if self.user is not None and self.client_referral is not None:
             receiving_ip = self.client_referral.receiving_ip
+            referring_ip = self.client_referral.referring_ip
 
             if self.client_referral.referral_status.pk == REFERRAL_PENDING_STATUS:
                 if self.user.is_superuser:
                     action_allowed = True
                 else:
                     user_ip = self.user.implementingpartneruser.implementing_partner
-                    if self.user.has_perm('DreamsApp.change_referral') and receiving_ip == user_ip:
+                    if self.user.has_perm('DreamsApp.change_referral') and (receiving_ip == user_ip or (referring_ip == user_ip and (self.client_referral.external_organisation is not None or (
+                            self.client_referral.external_organisation_other is not None and self.client_referral.external_organisation_other != "")))):
                         action_allowed = True
 
         return action_allowed
@@ -159,14 +161,15 @@ class ReferralServiceLayer:
 
         if self.user is not None and self.client_referral is not None:
             receiving_ip = self.client_referral.receiving_ip
+            referring_ip = self.client_referral.referring_ip
 
             if self.client_referral.referral_status.pk == REFERRAL_PENDING_STATUS:
                 if self.user.is_superuser:
                     action_allowed = True
                 else:
                     user_ip = self.user.implementingpartneruser.implementing_partner
-                    if self.user.has_perm('DreamsApp.change_referral') and receiving_ip == user_ip:
+                    if self.user.has_perm('DreamsApp.change_referral') and (receiving_ip == user_ip or (referring_ip == user_ip and (self.client_referral.external_organisation is not None or (
+                            self.client_referral.external_organisation_other is not None and self.client_referral.external_organisation_other != "")))):
                         action_allowed = True
 
         return action_allowed
-

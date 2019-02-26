@@ -308,6 +308,19 @@ $(document).ready(function () {
         intervention = null;
     });
 
+
+    // $('#referral-intervention-modal').on('show.bs.modal', function (event) {
+    //     // check the mode... Can be new or edit
+    //     $('#btn_save_referral_intervention').removeAttr("disabled");
+    //     fetchExternalOrganisations();
+    // });
+
+     $('#referral-intervention-modal').on('hide.bs.modal', function (event) {
+        $('div#referral_external_organization_section').addClass('hidden');
+        $('#error-space').text("");
+        $('#comments-text').val("");
+    });
+
     $('.filter').keyup(function () {
         var targetTable = $(this).data("target_tbody");
         var filterValue = $(this).val();
@@ -3507,8 +3520,6 @@ $(document).ready(function () {
     });
 
 
-
-
     $('a[name=reject-referral-modal]').click(function (e) {
         e.preventDefault();
         var el = $(this);
@@ -3516,7 +3527,7 @@ $(document).ready(function () {
         $("#reject-referral-modal #reject_client_name").text($(el).data('client-name'));
         $("#reject-referral-modal #reject_client_dreams_id").text($(el).data('client-dreams-id'));
         $("#reject-referral-modal #reject_client_date_of_birth").text($(el).data('client-date-of-birth'));
-        $("#reject-referral-modal #reject_client_intervention").text($(el).data('client-intervention'));
+        $("#reject-referral-modal #reject_client_intervention").text($(el).data('client-intervention-name'));
         $("#reject-referral-modal #reject_client_referral_date").text($(el).data('client-referral-date'));
         $("#reject-referral-modal #reject_client_referral_expiration_date").text($(el).data('client-referral-expiration-date'));
         $("#reject-referral-modal").show();
@@ -3525,56 +3536,42 @@ $(document).ready(function () {
     $('a[name=complete-referral-modal]').click(function (e) {
         e.preventDefault();
         var el = $(this);
-        modalMode = 'new';
-        interventionTypes = fetchIntervention($(el).data('referral-intervention-type-code'));
-        $("#intervention-modal #intervention_client_name").text("For: " + $(el).data('client-name'));
+        $("#referral-intervention-modal #referral_intervention_client_name").text("For: " + $(el).data('client-name'));
 
-        $("#intervention-modal #intervention-type-select").append($("<option />").val($(el).data('referral-intervention-type-code')).text($(el).data('referral-intervention-type-name')));
-        $("#intervention-modal #intervention-type-select option:first-child").attr("selected", "selected");
+        // $("#referral-intervention-modal #intervention-type-select").append($("<option />").val($(el).data('referral-intervention-type-code')).text($(el).data('referral-intervention-type-name')));
+        // $("#intervention-modal #intervention-type-select option:first-child").attr("selected", "selected");
 
+        $('#btn_save_referral_intervention').removeAttr("disabled");
         fetchExternalOrganisations();
+
+        if (checkIfValueExists($(el).data('referral-external-organisation-id')) == true) {
+            $('#referral-intervention-modal fieldset#external_organization_more_section').removeClass('hidden');
+            $("#referral-intervention-modal #external-organization-select").val($(el).data('referral-external-organisation-id'));
+
+        } else  if (checkIfValueExists($(el).data('referral-external-organisation-other')) == true) {
+            $('#referral-intervention-modal fieldset#external_organization_more_section').removeClass('hidden');
+
+            $("#referral-intervention-modal #external-organization-select option:contains(Other)").attr('selected', true);
+            $('#referral-intervention-modal #other_external_organization').show();
+            $("#referral-intervention-modal #other-external-organization").val($(el).data('referral-external-organisation-other'));
+
+        } else {
+            $('#referral-intervention-modal fieldset#external_organization_more_section').addClass('hidden');
+            $('#referral-intervention-modal #other_external_organization').hide();
+            $("#referral-intervention-modal #other-external-organization").val('');
+        }
+
         $("#intervention-modal").show();
     });
 
 
-    function fetchIntervention(intervention_type_code) {
-        $.ajax({
-            url: "/ivSpecificList", // the endpoint
-            type: "POST", // http method
-            dataType: 'json',
-            data: {
-                csrfmiddlewaretoken: csrftoken,
-                intervention_type_code: intervention_type_code
-            },
-            success: function (data) {
-                var ivs = $.parseJSON(data.interventions);
-                var ivTypes = $.parseJSON(data.iv_types);
-                var permissions = $.parseJSON(data.permissions);
-                // Clear table
-
-                $.each(ivs, function (index, iv) {
-                    if (data.is_visible_by_ip[iv.pk] == true) {
-
-                        if (data.is_editable_by_ip[iv.pk] == false) {
-                            permissions = null;
-                        }
-
-                    }
-                });
-
-
-            },
-
-            // handle a non-successful response
-            error: function (xhr, errmsg, err) {
-                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-            }
-        });
-
+    function checkIfValueExists(input_value) {
+        if (input_value != null && input_value != 'undefined' && input_value != '' && input_value != 'None') {
+            return true;
+        } else {
+            return false
+        }
     }
-
 
 
     $("#accept-transfer-modal, #reject-transfer-modal, #client-transfer-modal, #client-void-modal, #reject-referral-modal").on('hidden.bs.modal', function () {
