@@ -2924,6 +2924,42 @@ def reject_client_transfer(request):
     return redirect(reverse("client_transfers", kwargs={'transferred_in': 1}))
 
 
+def reject_client_referral(request):
+    try:
+        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            if request.method == 'POST':
+
+                client_referral_id = request.POST.get("id", "")
+                if client_referral_id != "":
+                    client_referral = Referral.objects.get(id__exact=client_referral_id)
+                else:
+                    client_referral = None
+
+                if client_referral is not None:
+                    referral_perm = ReferralServiceLayer(request.user, client_referral=client_referral)
+                    if not referral_perm.can_reject_referral():
+                        raise PermissionDenied
+
+                    client_referral.referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_REJECTED_STATUS)
+                    client_referral.completed_by = request.user
+                    client_referral.end_date = dt.now()
+                    client_referral.rejectreason = request.POST.get("reject_reason", "")
+                    client_referral.save()
+
+                    messages.info(request, "Referral successfully rejected.")
+                else:
+                    messages.warning(request,
+                                     "Referral not rejected. Contact System Administrator if this error Persists.")
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        messages.error(request,
+                       "An error occurred while processing request. "
+                       "Contact System Administrator if this error Persists.")
+
+    return redirect(reverse("client_referrals", kwargs={'referred_in': 1}))
+
+
 def get_client_transfers_count(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)

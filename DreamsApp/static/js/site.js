@@ -347,7 +347,7 @@ $(document).ready(function () {
         // Do an ajax POST to get elements
 
         var csrftoken = getCookie('csrftoken');
-        $('#intervention_category_code').val(intervention_category_code)
+        $('#intervention_category_code').val(intervention_category_code);
 
         $.ajax({
             url: "/ivList", // the endpoint
@@ -748,7 +748,7 @@ $(document).ready(function () {
 
     $('#intervention-type-select').change(function () {
         // get selected option id
-        var currentInterventionTypeCode = $('#intervention-type-select').val(); // code
+        var currentInterventionTypeCode = $(this).val(); // code
         // search global variable
         var interventionTypeEmpty = false;
 
@@ -784,6 +784,7 @@ $(document).ready(function () {
             showSection(false, '#notes_section')
         }
     });
+
 
     function prePopulateInterventionModal(iv, iv_type) {
         //$('#intervention-type-select').attr('disabled','disabled') //This has been commented out. Intervention type can now be changed on edit
@@ -3505,7 +3506,78 @@ $(document).ready(function () {
         $("#reject-transfer-modal").show();
     });
 
-    $("#accept-transfer-modal, #reject-transfer-modal, #client-transfer-modal, #client-void-modal").on('hidden.bs.modal', function () {
+
+
+
+    $('a[name=reject-referral-modal]').click(function (e) {
+        e.preventDefault();
+        var el = $(this);
+        $("#reject-referral-modal #reject_client_referral_id").val($(el).data('id'));
+        $("#reject-referral-modal #reject_client_name").text($(el).data('client-name'));
+        $("#reject-referral-modal #reject_client_dreams_id").text($(el).data('client-dreams-id'));
+        $("#reject-referral-modal #reject_client_date_of_birth").text($(el).data('client-date-of-birth'));
+        $("#reject-referral-modal #reject_client_intervention").text($(el).data('client-intervention'));
+        $("#reject-referral-modal #reject_client_referral_date").text($(el).data('client-referral-date'));
+        $("#reject-referral-modal #reject_client_referral_expiration_date").text($(el).data('client-referral-expiration-date'));
+        $("#reject-referral-modal").show();
+    });
+
+    $('a[name=complete-referral-modal]').click(function (e) {
+        e.preventDefault();
+        var el = $(this);
+        modalMode = 'new';
+        interventionTypes = fetchIntervention($(el).data('referral-intervention-type-code'));
+        $("#intervention-modal #intervention_client_name").text("For: " + $(el).data('client-name'));
+
+        $("#intervention-modal #intervention-type-select").append($("<option />").val($(el).data('referral-intervention-type-code')).text($(el).data('referral-intervention-type-name')));
+        $("#intervention-modal #intervention-type-select option:first-child").attr("selected", "selected");
+
+        fetchExternalOrganisations();
+        $("#intervention-modal").show();
+    });
+
+
+    function fetchIntervention(intervention_type_code) {
+        $.ajax({
+            url: "/ivSpecificList", // the endpoint
+            type: "POST", // http method
+            dataType: 'json',
+            data: {
+                csrfmiddlewaretoken: csrftoken,
+                intervention_type_code: intervention_type_code
+            },
+            success: function (data) {
+                var ivs = $.parseJSON(data.interventions);
+                var ivTypes = $.parseJSON(data.iv_types);
+                var permissions = $.parseJSON(data.permissions);
+                // Clear table
+
+                $.each(ivs, function (index, iv) {
+                    if (data.is_visible_by_ip[iv.pk] == true) {
+
+                        if (data.is_editable_by_ip[iv.pk] == false) {
+                            permissions = null;
+                        }
+
+                    }
+                });
+
+
+            },
+
+            // handle a non-successful response
+            error: function (xhr, errmsg, err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+
+    }
+
+
+
+    $("#accept-transfer-modal, #reject-transfer-modal, #client-transfer-modal, #client-void-modal, #reject-referral-modal").on('hidden.bs.modal', function () {
         $(this).each(function () {
             var form = $(this).find('form');
             form.trigger('reset');

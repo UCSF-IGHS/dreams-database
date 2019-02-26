@@ -571,6 +571,13 @@ fieldset#ltfu div.form-group:not(:last-child) {
     font-weight: bold;
 }
 
+.referral-dialogue-link {
+    pointer-events: none;
+    cursor: default;
+    color: black;
+    font-weight: bold;
+}
+
 input#filter_1001 {
     width: 98%;
     margin-left: 1em;
