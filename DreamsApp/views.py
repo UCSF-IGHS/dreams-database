@@ -2807,7 +2807,8 @@ def client_referrals(request, *args, **kwargs):
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if referred_in:
-                c_referrals = Referral.objects.filter(receiving_ip=ip).order_by('referral_status', '-referral_date')
+                # c_referrals = Referral.objects.filter(receiving_ip=ip).order_by('referral_status', '-referral_date')
+                c_referrals = Referral.objects.filter(Q(receiving_ip=ip) | Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False))
             else:
                 c_referrals = Referral.objects.filter(referring_ip=ip).order_by('referral_status', '-referral_date')
 
