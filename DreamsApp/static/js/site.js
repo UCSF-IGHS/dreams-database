@@ -826,15 +826,15 @@ $(document).ready(function () {
         }
     }
 
-    $('#follow-up-modal, #edit-follow-up-modal').on('show.bs.modal', function (e) {
+    $('#follow-up-modal').on('show.bs.modal', function (e) {
         var localToday = new Date();
-        createDatePicker("input#follow_up_date", (new Date(2015, 10, 1)), "+0Y +0M +0D");
+        createDatePicker("input#follow_up_date", '+0Y +0M +0D', new Date(2015, 9, 1));
         $("input#follow_up_date").datepicker("setDate", localToday);
     });
 
     $('#edit-follow-up-modal').on('show.bs.modal', function (e) {
         var localToday = new Date();
-        createDatePicker("input#edit_follow_up_date"), (new Date(2015, 10, 1), "+0Y +0M +0D");
+        createDatePicker("input#edit_follow_up_date", '+0Y +0M +0D', new Date(2015, 9, 1));
         $("input#edit_follow_up_date").datepicker("setDate", localToday);
     });
 
@@ -3237,7 +3237,8 @@ $(document).ready(function () {
         fetchAndLoadExitReasons();
         fetchFollowUpAttempts();
         $('#client-exit-modal #id_reason_for_exit').val('');
-        createDatePicker("#client-exit-modal #id_date_of_exit"), (new Date(2015, 10, 1), "+0Y +0M +0D");
+        createDatePicker("#client-exit-modal #id_date_of_exit", "+0Y +0M +0D", new Date(2015, 10, 1));
+
         $("#client-exit-modal #id_date_of_exit").datepicker("setDate", localToday);
     });
 
