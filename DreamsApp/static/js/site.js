@@ -468,17 +468,15 @@ $(document).ready(function () {
         });
     }
 
-    $('#referral-external-organization-select').attr('disabled', 'disabled');
-    $('#other-organization-name').attr('disabled', 'disabled');
+    $('div.external-organization-div').hide();
     $('input[type=checkbox]#to-external-organization').change(function() {
        if (this.checked) {
-           $('#implementing-partners-select').attr('disabled', 'disabled');
-           $('#referral-external-organization-select').removeAttr('disabled');
-           $('#other-organization-name').removeAttr('disabled');
+           $('label#implementing-partner-label').hide();
+           $('#implementing-partners-select').hide();
+           $('div.external-organization-div').show();
        } else {
-           $('#referral-external-organization-select').attr('disabled', 'disabled');
-           $('#implementing-partners-select').removeAttr('disabled');
-           $('#other-organization-name').attr('disabled', 'disabled');
+           $('div.external-organization-div').hide();
+           $('#implementing-partners-select').show();
        }
     });
 
