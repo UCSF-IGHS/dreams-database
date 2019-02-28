@@ -969,6 +969,7 @@ def save_intervention(request):
                     other_external_organization_code = request.POST.get('other_external_organization_code')
                     intervention_by_referral = request.POST.get('intervention_by_referral')
                     referral_id = request.POST.get('referral_id')
+                    referral = None
 
                     if intervention_by_referral == "1":
                         if external_organization_code:
@@ -982,7 +983,16 @@ def save_intervention(request):
                         if not referral_id:
                             response_data = {
                                 'status': 'fail',
-                                'message': "Error: The intervention must have associated referral. "
+                                'message': "Error: The intervention must have associated referral."
+                            }
+                            return JsonResponse(response_data)
+
+                        referral = Referral.objects.get(pk=referral_id)
+                        referral_service_layer = ReferralServiceLayer(request.user, referral)
+                        if not referral_service_layer.can_complete_referral():
+                            response_data = {
+                                'status': 'fail',
+                                'message': "Error: You do not have permission to complete this referral."
                             }
                             return JsonResponse(response_data)
 
@@ -1022,7 +1032,6 @@ def save_intervention(request):
                         intervention.comment = request.POST.get('comment', '')
 
                         if intervention_by_referral == "1":
-                            referral = Referral.objects.get(pk=referral_id)
                             referral.referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_COMPLETED_STATUS)
                             intervention.referral = referral
                             referral.save()
