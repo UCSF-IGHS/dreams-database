@@ -34,6 +34,7 @@ urlpatterns = [
     url(r'^follow_ups$', views.follow_ups, name='follow_ups'),
     url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^ivgetTypes$', views.get_intervention_types),
+    url(r'^ivgetType$', views.get_intervention_type),
     url(r'^getExternalOrganisations$', views.get_external_organisation),
     url(r'^getExitReasons', views.get_exit_reasons),
     url(r'^getMinMaxDateOfBirth', views.get_min_max_date_of_birth),

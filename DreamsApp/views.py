@@ -889,6 +889,20 @@ def get_intervention_types(request):
         return HttpResponseServerError(tb)
 
 
+def get_intervention_type(request):
+    try:
+        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+            response_data = {}
+            type_code = request.POST.get('type_code')
+            i_type = serializers.serialize('json', InterventionType.objects.filter(code__exact=type_code).order_by('code'))
+            response_data["itype"] = i_type
+            return JsonResponse(response_data)
+        else:
+            raise PermissionDenied
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
 # use /ivSave/ to post to the method
 # Gets intervention_type_id,  from request
 
@@ -924,127 +938,173 @@ def save_intervention(request):
             # check
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
-                intervention_type_code = int(request.POST.get('intervention_type_code'))
-                intervention_type = InterventionType.objects.get(code__exact=intervention_type_code)
-                """Check that this is not a one time intervention that has already been given to the client"""
-                try:
-                    """Get client intervention filtered by intervention types"""
-                    client_interventions = Intervention.objects.filter(intervention_type=intervention_type,
-                                                                       client=client).exclude(voided=True)
-                    client_interventions_count = client_interventions.count()
-                    if intervention_type.is_given_once and client_interventions.count() > 0:
-                        """An intervention has been found. This is an error
-                            Return error message to user
-                        """
-                        response_data = {
-                            'status': 'fail',
-                            'message': "Error: This is a one time service that has already been offered. Please conside"
-                                       "r editing if necessary"
-                        }
-                        return JsonResponse(response_data)
-                except Exception as e:
-                    """An error has occurred. Throw exception. This will be handled elsewhere"""
-                    raise Exception(str(e))
+                with transaction.atomic():
+                    intervention_type_code = int(request.POST.get('intervention_type_code'))
+                    intervention_type = InterventionType.objects.get(code__exact=intervention_type_code)
+                    """Check that this is not a one time intervention that has already been given to the client"""
+                    try:
+                        """Get client intervention filtered by intervention types"""
+                        client_interventions = Intervention.objects.filter(intervention_type=intervention_type,
+                                                                           client=client).exclude(voided=True)
+                        client_interventions_count = client_interventions.count()
+                        if intervention_type.is_given_once and client_interventions.count() > 0:
+                            """An intervention has been found. This is an error
+                                Return error message to user
+                            """
+                            response_data = {
+                                'status': 'fail',
+                                'message': "Error: This is a one time service that has already been offered. Please conside"
+                                           "r editing if necessary"
+                            }
+                            return JsonResponse(response_data)
+                    except Exception as e:
+                        """An error has occurred. Throw exception. This will be handled elsewhere"""
+                        raise Exception(str(e))
 
-                intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
+                    intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
 
-                # check if external organisation is selected
-                external_organization_checkbox = request.POST.get('external_organization_checkbox')
-                external_organization_code = request.POST.get('external_organization_code')
-                other_external_organization_code = request.POST.get('other_external_organization_code')
+                    # check if external organisation is selected
+                    external_organization_checkbox = request.POST.get('external_organization_checkbox')
+                    external_organization_code = request.POST.get('external_organization_code')
+                    other_external_organization_code = request.POST.get('other_external_organization_code')
+                    intervention_by_referral = request.POST.get('intervention_by_referral')
+                    referral_id = request.POST.get('referral_id')
 
-                if external_organization_checkbox:
-                    if not external_organization_code:
-                        response_data = {
-                            'status': 'fail',
-                            'message': "Error: External organisation must be selected if checkbox is checked."
-                        }
-                        return JsonResponse(response_data)
-                else:
-                    if client.date_of_enrollment is not None and intervention_date < client.date_of_enrollment:
-                        response_data = {
-                            'status': 'fail',
-                            'message': "Error: The intervention date must be after the client's enrollment date. "
-                        }
-                        return JsonResponse(response_data)
+                    if intervention_by_referral == "1":
+                        if external_organization_code:
+                            if client.date_of_enrollment is not None and intervention_date < client.date_of_enrollment:
+                                response_data = {
+                                    'status': 'fail',
+                                    'message': "Error: The intervention date must be after the client's enrollment date. "
+                                }
+                                return JsonResponse(response_data)
 
-                if intervention_date > dt.now().date():
-                    response_data = {
-                        'status': 'fail',
-                        'message': "Error: The intervention date must be before or on the current date. "
-                    }
-                    return JsonResponse(response_data)
+                        if not referral_id:
+                            response_data = {
+                                'status': 'fail',
+                                'message': "Error: The intervention must have associated referral. "
+                            }
+                            return JsonResponse(response_data)
 
-                if intervention_type_code is not None and type(intervention_type_code) is int:
-                    intervention = Intervention()
-                    intervention.client = client
-                    intervention.intervention_type = intervention_type
-                    intervention.name_specified = request.POST.get('other_specify',
-                                                                   '') if intervention_type.is_specified else ''
-                    intervention.intervention_date = request.POST.get('intervention_date')
-                    created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
-                    intervention.created_by = created_by
-                    intervention.date_created = dt.now()
-                    intervention.comment = request.POST.get('comment', '')
-
-                    if external_organization_checkbox:
-                        intervention.external_organisation = ExternalOrganisation.objects.get(pk=external_organization_code)
-                        if other_external_organization_code:
-                            intervention.external_organisation_other = other_external_organization_code
+                    else:
+                        if external_organization_checkbox:
+                            if not external_organization_code:
+                                response_data = {
+                                    'status': 'fail',
+                                    'message': "Error: External organisation must be selected if checkbox is checked."
+                                }
+                                return JsonResponse(response_data)
                         else:
-                            intervention.external_organisation_other = None
+                            if client.date_of_enrollment is not None and intervention_date < client.date_of_enrollment:
+                                response_data = {
+                                    'status': 'fail',
+                                    'message': "Error: The intervention date must be after the client's enrollment date. "
+                                }
+                                return JsonResponse(response_data)
 
-                    if intervention_type.has_hts_result:
-                        intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
+                    if intervention_date > dt.now().date():
+                        response_data = {
+                            'status': 'fail',
+                            'message': "Error: The intervention date must be before or on the current date. "
+                        }
+                        return JsonResponse(response_data)
 
-                    if intervention_type.has_pregnancy_result:
-                        intervention.pregnancy_test_result = PregnancyTestResult.objects.get(
-                            code__exact=int(request.POST.get('pregnancy_test_result')))
+                    if intervention_type_code is not None and type(intervention_type_code) is int:
+                        intervention = Intervention()
+                        intervention.client = client
+                        intervention.intervention_type = intervention_type
+                        intervention.name_specified = request.POST.get('other_specify',
+                                                                       '') if intervention_type.is_specified else ''
+                        intervention.intervention_date = request.POST.get('intervention_date')
+                        created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
+                        intervention.created_by = created_by
+                        intervention.date_created = dt.now()
+                        intervention.comment = request.POST.get('comment', '')
 
-                    if intervention_type.has_ccc_number:
-                        intervention.client_ccc_number = request.POST.get('client_ccc_number')
+                        if intervention_by_referral == "1":
+                            referral = Referral.objects.get(pk=referral_id)
+                            referral.referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_COMPLETED_STATUS)
+                            intervention.referral = referral
+                            referral.save()
 
-                    if intervention_type.has_no_of_sessions:
-                        intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
+                            if external_organization_code:
+                                intervention.external_organisation = ExternalOrganisation.objects.get(pk=external_organization_code)
+                                if other_external_organization_code:
+                                    intervention.external_organisation_other = other_external_organization_code
+                                else:
+                                    intervention.external_organisation_other = None
 
-                    # Update implementing Partner
-                    intervention.implementing_partner = ImplementingPartner.objects. \
-                        get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
-                    intervention.save(user_id=request.user.id, action="INSERT")  # Logging
-                    # using defer() miraculously solved serialization problem of datetime properties.
-                    intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created'). \
-                        get(id__exact=intervention.id)
+                        else:
+                            if external_organization_checkbox:
+                                intervention.external_organisation = ExternalOrganisation.objects.get(
+                                    pk=external_organization_code)
+                                if other_external_organization_code:
+                                    intervention.external_organisation_other = other_external_organization_code
+                                else:
+                                    intervention.external_organisation_other = None
 
-                    is_editable_by_ip = {}
-                    is_editable_by_ip[intervention.pk] = intervention.is_editable_by_ip(
-                        request.user.implementingpartneruser.implementing_partner)
+                        if intervention_type.has_hts_result:
+                            intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
 
-                    is_visible_by_ip = {}
-                    is_visible_by_ip[intervention.pk] = intervention.is_visible_by_ip(
-                        request.user.implementingpartneruser.implementing_partner)
+                        if intervention_type.has_pregnancy_result:
+                            intervention.pregnancy_test_result = PregnancyTestResult.objects.get(
+                                code__exact=int(request.POST.get('pregnancy_test_result')))
 
-                    response_data = {
-                        'status': 'success',
-                        'message': 'Intervention successfully saved',
-                        'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
-                        'i_type': serializers.serialize('json', [intervention_type]),
-                        'hts_results': serializers.serialize('json', HTSResult.objects.all()),
-                        'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
-                        'permissions': json.dumps({
-                            'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
-                            'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
-                        }),
-                        'is_editable_by_ip': is_editable_by_ip,
-                        'is_visible_by_ip': is_visible_by_ip
-                    }
-                    return JsonResponse(response_data)
-                else:  # Invalid Intervention Type
-                    response_data = {
-                        'status': 'fail',
-                        'message': "Error: Invalid Intervention Type. "
-                                   "Please select a valid Intervention Type to Proceed"
-                    }
+                        if intervention_type.has_ccc_number:
+                            intervention.client_ccc_number = request.POST.get('client_ccc_number')
+
+                        if intervention_type.has_no_of_sessions:
+                            intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
+
+                        # Update implementing Partner
+                        intervention.implementing_partner = ImplementingPartner.objects. \
+                            get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
+                        intervention.save(user_id=request.user.id, action="INSERT")  # Logging
+
+                        if intervention_by_referral == "1":
+                            response_data = {
+                                'status': 'success',
+                                'message': 'Referral successfully completed'
+                            }
+                            return JsonResponse(response_data)
+
+                        else:
+                            # using defer() miraculously solved serialization problem of datetime properties.
+                            intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created'). \
+                                get(id__exact=intervention.id)
+
+                            is_editable_by_ip = {}
+                            is_editable_by_ip[intervention.pk] = intervention.is_editable_by_ip(
+                                request.user.implementingpartneruser.implementing_partner)
+
+                            is_visible_by_ip = {}
+                            is_visible_by_ip[intervention.pk] = intervention.is_visible_by_ip(
+                                request.user.implementingpartneruser.implementing_partner)
+
+                            response_data = {
+                                'status': 'success',
+                                'message': 'Intervention successfully saved',
+                                'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
+                                'i_type': serializers.serialize('json', [intervention_type]),
+                                'hts_results': serializers.serialize('json', HTSResult.objects.all()),
+                                'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
+                                'permissions': json.dumps({
+                                    'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
+                                    'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
+                                }),
+                                'is_editable_by_ip': is_editable_by_ip,
+                                'is_visible_by_ip': is_visible_by_ip
+                            }
+                            return JsonResponse(response_data)
+
+                    else:  # Invalid Intervention Type
+                        response_data = {
+                            'status': 'fail',
+                            'message': "Error: Invalid Intervention Type. "
+                                       "Please select a valid Intervention Type to Proceed"
+                        }
                 return JsonResponse(response_data)
+
             else:  # User has no valid IP.
                 response_data = {
                     'status': 'fail',

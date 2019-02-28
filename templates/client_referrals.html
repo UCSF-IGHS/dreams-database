@@ -27,6 +27,8 @@
             {% endfor %}
         {% endif %}
 
+        <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert"></div>
+
         <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table"
                style="margin: 0px;border-radius: 5px;border: #efc636 solid 1px;">
             <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
@@ -65,12 +67,19 @@
                                        arial-label='Arial-Hidden'
                                        style="padding-bottom: 8px;" data-toggle="modal"
                                        data-target="#referral-intervention-modal"
-                                       data-id="{{ client_referral.id }}"
+                                       data-referral-id="{{ client_referral.id }}"
                                        data-client-name="{{ client_referral.client.get_full_name }}"
+                                       data-client-id="{{ client_referral.client.id }}"
+                                       data-referral-intervention-type-id="{{ client_referral.intervention_type.id }}"
                                        data-referral-intervention-type-code="{{ client_referral.intervention_type.code }}"
                                        data-referral-intervention-type-name="{{ client_referral.intervention_type.name }}"
                                        data-referral-external-organisation-id="{{ client_referral.external_organisation.id }}"
-                                       data-referral-external-organisation-other="{{ client_referral.external_organisation_other }}">
+                                       data-referral-external-organisation-other="{{ client_referral.external_organisation_other }}"
+                                       data-referral-intervention-type-is_specified="{{ client_referral.intervention_type.is_specified }}"
+                                       data-referral-intervention-type-has_hts_result="{{ client_referral.intervention_type.has_hts_result }}"
+                                       data-referral-intervention-type-has_ccc_number="{{ client_referral.intervention_type.has_ccc_number }}"
+                                       data-referral-intervention-type-has_pregnancy_result="{{ client_referral.intervention_type.has_pregnancy_result }}"
+                                       data-referral-intervention-type-has_no_of_sessions="{{ client_referral.intervention_type.has_no_of_sessions }}">
 
                                         Complete
                                     </a> &nbsp;&nbsp;
@@ -136,16 +145,24 @@
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                                     aria-hidden="true">&times;</span></button>
                             <h4 class="modal-title" id="exampleModalLabel">ADD INTERVENTION FOR REFERRAL</h4>
-                            <h5 id="referral_intervention_client_name"></h5>
+                            <h5 id="intervention_client_name"></h5>
                         </div>
                         <div class="modal-body">
                             {% csrf_token %}
                             <!-- Permanently hidden Fields -->
+                            <input class="hidden validate-intervention-form-field" name="client" id="client" value=""/>
+                            <input class="hidden validate-intervention-form-field" name="intervention_id"
+                                   id="intervention_id" value=""/>
+                            <input class="hidden validate-intervention-form-field" name="intervention_type_code"
+                                   id="intervention_type_code" value=""/>
+                            <input class="hidden validate-intervention-form-field" name="referral_id"
+                                   id="referral_id" value=""/>
                             <input class="hidden validate-intervention-form-field" name="created_by" value="{{ user.id }}"/>
-                            <input class="hidden validate-intervention-form-field" name="referral_intervention_id"
-                                   id="referral_intervention_id" value=""/>
                             <input class="hidden validate-intervention-form-field" name="changed_by" id="changed_by"
                                    value="{{ user.id }}"/>
+                            <input class="hidden validate-intervention-form-field" name="intervention_by_referral" id="intervention_by_referral"
+                                   value="1"/>
+
                             <!-- End of Permanently hidden fields -->
 
                             <fieldset id="external_organization_more_section" class="hidden">
@@ -300,8 +317,6 @@
                 </div>
             </div>
         </div>
-
-
     </div>
 
 {% endblock %}
