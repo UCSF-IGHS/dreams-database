@@ -842,12 +842,11 @@ $(document).ready(function () {
         var followUpType = $('select#follow_up_type').val();
         var followUpResultType = $('select#follow_up_result_type').val();
         var followUpDate = $('input#follow_up_date').val();
-        var followUpComments = $('textarea#follow_up_comments').val();
 
         $('button#btn_save_follow_up').attr('disabled', 'disabled')
         $('#follow-up-entry-form .processing-indicator').removeClass('hidden');
 
-        if (validateFollowUpForm(followUpType, followUpResultType, followUpDate, followUpComments)) {
+        if (validateFollowUpForm(followUpType, followUpResultType, followUpDate)) {
             var csrftoken = getCookie('csrftoken');
             $.ajax({
                 url: '/addFollowUp',
@@ -1168,10 +1167,9 @@ $(document).ready(function () {
         });
     });
 
-    function validateFollowUpForm(followUpType, followUpResultType, followUpDate, followUpComments) {
+    function validateFollowUpForm(followUpType, followUpResultType, followUpDate) {
         return followUpType != null && followUpResultType != null
-                && followUpDate != null && followUpComments != null
-                && followUpComments.trim() != ''
+                && followUpDate != null
     }
 
     function validateClientForm(clientForm) {
