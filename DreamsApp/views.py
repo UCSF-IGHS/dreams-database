@@ -2808,7 +2808,7 @@ def client_referrals(request, *args, **kwargs):
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if referred_in:
-                c_referrals = Referral.objects.filter(receiving_ip=ip).order_by('referral_status', '-referral_date')
+                c_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
             else:
                 c_referrals = Referral.objects.filter(referring_ip=ip).order_by('referral_status', '-referral_date')
 
@@ -2952,8 +2952,9 @@ def get_client_referrals_count(request):
         pending_client_referral_status = ReferralStatus.objects.get(code__exact=ReferralServiceLayer.REFERRAL_PENDING_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
-            client_referrals_count = Referral.objects.filter(
-                receiving_ip=ip, referral_status=pending_client_referral_status).count()
+            client_referrals_count = Referral.objects.filter(referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
+                        Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False))))).count()
+
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             client_referrals_count =0
         except Exception:
