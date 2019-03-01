@@ -116,20 +116,17 @@
                         <div class="form-group">
                           <label for="follow_up_type">Follow Up Type</label>
                           <select id="follow_up_type" name="follow_up_type" class="form-control validate-follow-up-form-field" >
-                              <option>Select Follow Up Type</option>
                               {% if follow_up_types %}
                                 {% for follow_up_type in follow_up_types %}
                                     <option value="{{ follow_up_type.id }}">{{ follow_up_type.name }}</option>
                                 {% endfor %}
                               {% endif %}
-
                           </select>
                         </div>
 
                         <div class="form-group" id="result_specify_section">
                             <label for="follow_up_result_type" class="control-label">Result</label>
                             <select id="follow_up_result_type" name="follow_up_result_type" class="form-control validate-follow-up-form-field">
-                                <option>Select Follow Up Result</option>
                                 {% if follow_up_result_types %}
                                     {% for follow_up_result_type in follow_up_result_types %}
                                         <option value="{{ follow_up_result_type.id }}">{{ follow_up_result_type.name }}</option>

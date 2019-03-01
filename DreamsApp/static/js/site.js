@@ -1059,18 +1059,9 @@ $(document).ready(function () {
         var follow_up_comments = $(this).attr('data-follow-up-comments');
 
         $('form#edit-follow-up-entry-form input[type=hidden]#follow_up_id').val(follow_up_id);
-        $('form#edit-follow-up-entry-form select#follow_up_type option').each(function () {
-            if ($(this).val() == follow_up_name) {
-                $(this).prop("selected", true);
-            }
-        });
-
-        $('form#edit-follow-up-entry-form select#follow_up_result_type option').each(function () {
-            if ($(this).val() == follow_up_result) {
-                $(this).prop("selected", true);
-            }
-        });
-
+        $('form#edit-follow-up-entry-form > select#follow_up_type option').val(follow_up_name);
+        $('form#edit-follow-up-entry-form > select#follow_up_result_type option').val(follow_up_result);
+        $('form#edit-follow-up-entry-form input#edit_follow_up_date').val(follow_up_date);
         $('form#edit-follow-up-entry-form textarea#follow_up_comments').text(follow_up_comments);
         $('#edit-follow-up-modal').show();
     });
