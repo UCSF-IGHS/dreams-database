@@ -1028,20 +1028,28 @@ def save_intervention(request):
                         intervention.intervention_date = request.POST.get('intervention_date')
                         created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
                         intervention.created_by = created_by
+                        intervention.changed_by = created_by
                         intervention.date_created = dt.now()
+                        intervention.date_changed = dt.now()
                         intervention.comment = request.POST.get('comment', '')
 
                         if intervention_by_referral == "1":
                             referral.referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_COMPLETED_STATUS)
                             intervention.referral = referral
-                            referral.save()
 
                             if external_organization_code:
                                 intervention.external_organisation = ExternalOrganisation.objects.get(pk=external_organization_code)
+                                intervention.implementing_partner = ImplementingPartner.objects. \
+                                    get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
+
                                 if other_external_organization_code:
                                     intervention.external_organisation_other = other_external_organization_code
                                 else:
                                     intervention.external_organisation_other = None
+                            else:
+                                intervention.implementing_partner = referral.referring_ip
+
+                            referral.save()
 
                         else:
                             if external_organization_checkbox:
@@ -1051,6 +1059,9 @@ def save_intervention(request):
                                     intervention.external_organisation_other = other_external_organization_code
                                 else:
                                     intervention.external_organisation_other = None
+
+                            intervention.implementing_partner = ImplementingPartner.objects. \
+                                get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
 
                         if intervention_type.has_hts_result:
                             intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
@@ -1065,9 +1076,11 @@ def save_intervention(request):
                         if intervention_type.has_no_of_sessions:
                             intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
-                        # Update implementing Partner
-                        intervention.implementing_partner = ImplementingPartner.objects. \
-                            get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
+
+
+
+
+
                         intervention.save(user_id=request.user.id, action="INSERT")  # Logging
 
                         if intervention_by_referral == "1":
