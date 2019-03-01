@@ -3508,6 +3508,10 @@ $(document).ready(function () {
         $('#client-transfer-form').submit();
     });
 
+    $('#client-make-referral-modal').on('shown.bs.modal', function (e) {
+        $('input#referral-date').val('');
+    });
+
     $('#client-make-referral-form').submit(function (e) {
         var intervention = $('select#referral-interventions-select option:selected').val();
         var referralDate = $('input#referral-date').val();
