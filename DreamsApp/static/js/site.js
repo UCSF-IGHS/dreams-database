@@ -829,7 +829,6 @@ $(document).ready(function () {
     $('#follow-up-modal').on('show.bs.modal', function (e) {
         var localToday = new Date();
         createDatePicker("input#follow_up_date", '+0Y +0M +0D', new Date(2015, 9, 1));
-        $("input#follow_up_date").datepicker("setDate", localToday);
     });
 
     $('#edit-follow-up-modal').on('show.bs.modal', function (e) {
@@ -1072,7 +1071,6 @@ $(document).ready(function () {
             }
         });
 
-        $('form#edit-follow-up-entry-form textarea#follow_up_date').text(follow_up_date);
         $('form#edit-follow-up-entry-form textarea#follow_up_comments').text(follow_up_comments);
         $('#edit-follow-up-modal').show();
     });
