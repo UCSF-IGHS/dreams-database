@@ -32,24 +32,27 @@
                         <div class="form-group">
                           <label for="follow_up_type">Follow Up Type</label>
                           <select id="follow_up_type" name="follow_up_type" class="form-control validate-follow-up-form-field" >
+                              <option value="" class="selected disabled hidden" style="display: none;">Select Follow Up Type</option>
                               {% if follow_up_types %}
                                 {% for follow_up_type in follow_up_types %}
                                     <option value="{{ follow_up_type.id }}">{{ follow_up_type.name }}</option>
                                 {% endfor %}
                               {% endif %}
-
                           </select>
+                          <label id="follow_up_type_warning" class="control-label hidden"></label>
                         </div>
 
                         <div class="form-group" id="result_specify_section">
                             <label for="follow_up_result_type" class="control-label">Result</label>
                             <select id="follow_up_result_type" name="follow_up_result_type" class="form-control validate-follow-up-form-field" >
+                                <option value="" class="selected disabled hidden" style="display: none;">Select Follow Up Result</option>
                                 {% if follow_up_result_types %}
                                     {% for follow_up_result_type in follow_up_result_types %}
                                         <option value="{{ follow_up_result_type.id }}">{{ follow_up_result_type.name }}</option>
                                     {% endfor %}
                                 {% endif %}
                             </select>
+                            <label id="follow_up_result_warning" class="control-label"></label>
                         </div>
 
                       <div class="form-group has-feedback date" id="follow_up_date_section">
@@ -58,6 +61,7 @@
                           <span class="add-on"><i class="icon-th"></i></span></p>
                           <input type="text" class="form-control validate-follow-up-form-field hidden" id="follow_up_date" name="follow_up_date"/>
                           <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                          <label id="follow_up_date_warning" class="control-label"></label>
                       </div>
 
                        <div class="form-group" id="comment_section">
@@ -112,6 +116,7 @@
                         <div class="form-group">
                           <label for="follow_up_type">Follow Up Type</label>
                           <select id="follow_up_type" name="follow_up_type" class="form-control validate-follow-up-form-field" >
+                              <option>Select Follow Up Type</option>
                               {% if follow_up_types %}
                                 {% for follow_up_type in follow_up_types %}
                                     <option value="{{ follow_up_type.id }}">{{ follow_up_type.name }}</option>
@@ -124,6 +129,7 @@
                         <div class="form-group" id="result_specify_section">
                             <label for="follow_up_result_type" class="control-label">Result</label>
                             <select id="follow_up_result_type" name="follow_up_result_type" class="form-control validate-follow-up-form-field">
+                                <option>Select Follow Up Result</option>
                                 {% if follow_up_result_types %}
                                     {% for follow_up_result_type in follow_up_result_types %}
                                         <option value="{{ follow_up_result_type.id }}">{{ follow_up_result_type.name }}</option>

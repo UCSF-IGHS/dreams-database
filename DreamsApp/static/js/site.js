@@ -839,14 +839,47 @@ $(document).ready(function () {
     });
 
     $('#follow-up-entry-form').submit(function (event) {
-        var followUpType = $('select#follow_up_type').val();
+        $("#div_follow_up_type_warning label").hide();
+        $("#div_follow_up_result_warning").hide();
+        $("#div_follow_up_date_warning").hide();
+
+        var submitFollowUp = true;
+        var followUpType = $('select#follow_up_type option:selected').val();
         var followUpResultType = $('select#follow_up_result_type').val();
         var followUpDate = $('input#follow_up_date').val();
 
         $('button#btn_save_follow_up').attr('disabled', 'disabled')
         $('#follow-up-entry-form .processing-indicator').removeClass('hidden');
 
-        if (validateFollowUpForm(followUpType, followUpResultType, followUpDate)) {
+        if (!followUpType) {
+            $("#follow_up_type_warning").removeClass('hidden');
+            $("#follow_up_type_warning").text('Please select follow up type');
+            submitFollowUp = false;
+        } else {
+            $("#follow_up_type_warning").addClass('hidden');
+            $("#follow_up_type_warning").text('');
+        }
+
+
+        if (!followUpResultType) {
+            $("#follow_up_result_warning").removeClass('hidden');
+            $("#follow_up_result_warning").text('Please select follow up result');
+            submitFollowUp = false;
+        } else {
+            $("#follow_up_result_warning").addClass('hidden');
+            $("#follow_up_result_warning").text('');
+        }
+
+        if (!followUpDate) {
+            $("#follow_up_date_warning").removeClass('hidden');
+            $("#follow_up_date_warning").text('Please select follow up date');
+            submitFollowUp = false;
+        } else {
+            $("#follow_up_date_warning").addClass('hidden');
+            $("#follow_up_date_warning").text('');
+        }
+
+        if (submitFollowUp) {
             var csrftoken = getCookie('csrftoken');
             $.ajax({
                 url: '/addFollowUp',
@@ -873,11 +906,10 @@ $(document).ready(function () {
                         .trigger('madeVisible');
                 }
             });
-        } else {
-            alert('There was an error with the submitted follow up fields. Please try again.')
-            $('button#btn_save_follow_up').removeAttr("disabled");
-            $('#follow-up-entry-form .processing-indicator').addClass('hidden');
         }
+
+        $('button#btn_save_follow_up').removeAttr("disabled");
+        $('#follow-up-entry-form .processing-indicator').addClass('hidden');
 
         event.preventDefault();
         event.stopPropagation();
@@ -1166,11 +1198,6 @@ $(document).ready(function () {
             }
         });
     });
-
-    function validateFollowUpForm(followUpType, followUpResultType, followUpDate) {
-        return followUpType != null && followUpResultType != null
-                && followUpDate != null
-    }
 
     function validateClientForm(clientForm) {
         var errors = 0;
@@ -1650,10 +1677,6 @@ $(document).ready(function () {
             $(event.target).off('click'); // Works like a charm
         });
     });
-
-    function deleteFollowUp(follow_up_id) {
-
-    }
 
     function toggleUserStatus(ip_user_id, activate, target) {
         // deactivate using ajax
