@@ -1180,20 +1180,27 @@ def add_follow_up(request):
             follow_up_date = request.POST.get('follow_up_date')
             follow_up_comments = request.POST.get('follow_up_comments')
 
-            follow_up = ClientFollowUp()
-            follow_up.client = client
-            follow_up.date_of_followup = follow_up_date
-            follow_up.type_of_followup = follow_up_type
-            follow_up.result_of_followup = follow_up_result_type
-            follow_up.comment = follow_up_comments
-            follow_up.save()
+            if follow_up_type is not None \
+                    and follow_up_result_type is not None\
+                    and follow_up_date is not None:
 
-            response_data = {
-                'status': 'success',
-                'message': 'Follow up details added'
-            }
-            return JsonResponse(response_data, status=200)
+                follow_up = ClientFollowUp()
+                follow_up.client = client
+                follow_up.date_of_followup = follow_up_date
+                follow_up.type_of_followup = follow_up_type
+                follow_up.result_of_followup = follow_up_result_type
+                follow_up.comment = follow_up_comments
+                follow_up.save()
 
+                response_data = {
+                    'status': 'success',
+                    'message': 'Follow up details added'
+                }
+            else:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Error with submitted follow up details'
+                }
     except Exception as e:
         if type(e) is ValidationError:
             errormsg = '; '.join(ValidationError(e).messages)
@@ -1204,7 +1211,8 @@ def add_follow_up(request):
             'status': 'fail',
             'message': "An error has occurred: " + errormsg
         }
-        return JsonResponse(response_data)
+
+    return JsonResponse(response_data)
 
 
 def update_follow_up(request):
@@ -1219,23 +1227,30 @@ def update_follow_up(request):
                 follow_up_date = request.POST.get('edit_follow_up_date')
                 follow_up_comments = request.POST.get('follow_up_comments')
 
-                follow_up.date_of_followup = follow_up_date
-                follow_up.type_of_followup = follow_up_type
-                follow_up.result_of_followup = follow_up_result_type
-                follow_up.comment = follow_up_comments
-                follow_up.save()
+                if follow_up_type is not None \
+                        and follow_up_result_type is not None \
+                        and follow_up_date is not None:
 
-                response_data = {
-                    'status': 'success',
-                    'message': 'Follow up details updated'
-                }
-                return JsonResponse(response_data)
+                    follow_up.date_of_followup = follow_up_date
+                    follow_up.type_of_followup = follow_up_type
+                    follow_up.result_of_followup = follow_up_result_type
+                    follow_up.comment = follow_up_comments
+                    follow_up.save()
+
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Follow up details updated'
+                    }
+                else:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Error with submitted follow up details'
+                    }
             else:
                 response_data = {
                     'status': 'fail',
                     'message': "Error follow up not found"
                 }
-                return JsonResponse(response_data)
     except Exception as e:
         if type(e) is ValidationError:
             errormsg = '; '.join(ValidationError(e).messages)
@@ -1246,7 +1261,8 @@ def update_follow_up(request):
             'status': 'fail',
             'message': "An error has occurred: " + errormsg
         }
-        return JsonResponse(response_data)
+
+    return JsonResponse(response_data)
 
 
 def update_intervention(request):

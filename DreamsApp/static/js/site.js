@@ -859,7 +859,6 @@ $(document).ready(function () {
             $("#follow_up_type_warning").text('');
         }
 
-
         if (!followUpResultType) {
             $("#follow_up_result_warning").removeClass('hidden');
             $("#follow_up_result_warning").text('Please select follow up result');
