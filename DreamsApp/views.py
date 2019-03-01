@@ -393,7 +393,8 @@ def client_profile(request):
                                                                                                            client_found}),
                                                                'is_editable_by_ip': is_editable_by_ip,
                                                                'can_add_intervention': can_add_intervention,
-                                                               'client_status': client_status
+                                                               'client_status': client_status,
+                                                               '60_days_from_now': dt.now() + + timedelta(days=60)
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
@@ -407,7 +408,8 @@ def client_profile(request):
                                'transfer_form': ClientTransferForm(ip_code=ip_code, initial={'client': client_found}),
                                'is_editable_by_ip': is_editable_by_ip,
                                'can_add_intervention': can_add_intervention,
-                               'client_status': client_status
+                               'client_status': client_status,
+                               '60_days_from_now': dt.now() + + timedelta(days=60)
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
