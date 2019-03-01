@@ -832,9 +832,7 @@ $(document).ready(function () {
     });
 
     $('#edit-follow-up-modal').on('show.bs.modal', function (e) {
-        var localToday = new Date();
         createDatePicker("input#edit_follow_up_date", '+0Y +0M +0D', new Date(2015, 9, 1));
-        $("input#edit_follow_up_date").datepicker("setDate", localToday);
     });
 
     $('#follow-up-entry-form').submit(function (event) {

@@ -135,7 +135,7 @@
 
                       <div class="form-group has-feedback date" id="follow_up_date_section">
                           <label for="edit_follow_up_date" class="control-label">Date:</label>
-                          <input type="text" class="form-control clear_value" id="edit_follow_up_date" name="edit_follow_up_date" required placeholder="Select date when follow up was done" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                          <input type="text" class="form-control clear_value" id="edit_follow_up_date" name="edit_follow_up_date" required placeholder="Select follow up date" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                           <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                       </div>
 
@@ -326,7 +326,7 @@
                             {% for follow_up in follow_ups %}
                                 <tr id="follow_up_{{ follow_up.id }}">
                                     <td>{{ follow_up.type_of_followup.name }}</td>
-                                    <td>{{ follow_up.date_of_followup }}</td>
+                                    <td>{{ follow_up.date_of_followup | date:"M d, Y" }}</td>
                                     <td>{{ follow_up.result_of_followup }}</td>
                                     <td>{{ follow_up.comment | slice:":30" }}</td>
                                     <td>
@@ -340,7 +340,7 @@
                                                         data-follow_up_id="{{ follow_up.id }}"
                                                         data-follow-up-name="{{ follow_up.type_of_followup }}"
                                                         data-follow-up-result="{{ follow_up.result_of_followup }}"
-                                                        data-follow-up-date="{{ follow_up.date_of_followup }}"
+                                                        data-follow-up-date="{{ follow_up.date_of_followup  | date:"d/m/Y" }}"
                                                         data-follow-up-comments="{{ follow_up.comment }}">
                                                         Edit
                                                     </button> &nbsp;&nbsp;
