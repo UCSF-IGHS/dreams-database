@@ -827,8 +827,11 @@ $(document).ready(function () {
     }
 
     $('#follow-up-modal').on('show.bs.modal', function (e) {
-        var localToday = new Date();
         createDatePicker("input#follow_up_date", '+0Y +0M +0D', new Date(2015, 9, 1));
+        $('select#follow_up_type').val($("select#follow_up_type option:first").val());
+        $('select#follow_up_result_type').val($("select#follow_up_result_type option:first").val());
+        $('input#follow_up_date').val('');
+        $('textarea#follow_up_comments').val('');
     });
 
     $('#edit-follow-up-modal').on('show.bs.modal', function (e) {
