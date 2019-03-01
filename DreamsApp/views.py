@@ -1076,11 +1076,6 @@ def save_intervention(request):
                         if intervention_type.has_no_of_sessions:
                             intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
-
-
-
-
-
                         intervention.save(user_id=request.user.id, action="INSERT")  # Logging
 
                         if intervention_by_referral == "1":

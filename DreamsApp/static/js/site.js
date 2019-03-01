@@ -3528,7 +3528,6 @@ $(document).ready(function () {
         $("#reject-transfer-modal").show();
     });
 
-
     $('a[name=reject-referral-modal]').click(function (e) {
         e.preventDefault();
         var el = $(this);
@@ -3547,14 +3546,14 @@ $(document).ready(function () {
         var el = $(this);
         fetchIntervention($(el).data('referral-intervention-type-code'));
 
-        $("#referral-intervention-modal #intervention_client_name").text("For: " + $(el).data('client-name'));
+        $("#referral-intervention-modal #intervention_client_name").text("For: " + $(el).data('client-name') + " (" + $(el).data('client-dreams-id') + ")" );
         $("#referral-intervention-modal #client").val($(el).data('client-id'));
         $("#referral-intervention-modal #intervention_id").val($(el).data('referral-intervention-type-id'));
         $("#referral-intervention-modal #intervention_type_code").val($(el).data('referral-intervention-type-code'));
         $("#referral-intervention-modal #referral_id").val($(el).data('referral-id'));
 
         fetchExternalOrganisations('referral-intervention-modal');
-        $('#btn_save_referral_intervention').removeAttr("disabled");
+        $('#referral-intervention-modal #btn_save_referral_intervention').removeAttr("disabled");
 
         if (checkIfValueExists($(el).data('referral-external-organisation-id')) == true) {
             $('#referral-intervention-modal fieldset#external_organization_more_section').removeClass('hidden');
@@ -3596,7 +3595,6 @@ $(document).ready(function () {
         }
     }
 
-
     $('#referral-intervention-entry-form').submit(function (event) {
         event.preventDefault();
         $('#btn_save_referral_intervention').attr("disabled", "disabled");
@@ -3605,7 +3603,7 @@ $(document).ready(function () {
 
         // validate form
         if (!validateInterventionEntryForm(intervention_code)) {
-            $('#btn_save_referral-intervention').removeAttr("disabled");
+            $('#referral-intervention-entry-form #btn_save_referral_intervention').removeAttr("disabled");
             $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
             return false;
         }
@@ -3630,7 +3628,7 @@ $(document).ready(function () {
                         this.reset;
                     });
 
-                    $('#btn_save_referral-intervention').removeAttr("disabled");
+                    $('#referral-intervention-entry-form #btn_save_referral_intervention').removeAttr("disabled");
                     $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
                     $('#referral-intervention-entry-form #error-space').html("* " + message);
                 }
@@ -3641,7 +3639,7 @@ $(document).ready(function () {
                     $("#referral-intervention-modal").each(function () {
                         this.reset;
                     });
-                    $('#btn_save_referral-intervention').removeAttr("disabled");
+                    $('#referral-intervention-entry-form #btn_save_referral_intervention').removeAttr("disabled");
                     $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
                     $('#referral-intervention-modal').modal('hide');
 
@@ -3652,7 +3650,7 @@ $(document).ready(function () {
             // handle a non-successful response
             error: function (xhr, errmsg, err) {
                 $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again: ' + errmsg);
-                $('#btn_save_referral-intervention').removeAttr("disabled");
+                $('#referral-intervention-entry-form #btn_save_referral_intervention').removeAttr("disabled");
                 console.log(xhr.status + " " + err + ": " + xhr.responseText); // provide a bit more info about the error to the console
                 $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
                 $('#referral-intervention-entry-form #error-space').html("* " + message);
