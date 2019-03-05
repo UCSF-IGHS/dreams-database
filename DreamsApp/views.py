@@ -938,88 +938,87 @@ def save_intervention(request):
             # check
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
-                with transaction.atomic():
-                    intervention_type_code = int(request.POST.get('intervention_type_code'))
-                    intervention_type = InterventionType.objects.get(code__exact=intervention_type_code)
-                    """Check that this is not a one time intervention that has already been given to the client"""
-                    try:
-                        """Get client intervention filtered by intervention types"""
-                        client_interventions = Intervention.objects.filter(intervention_type=intervention_type,
-                                                                           client=client).exclude(voided=True)
-                        client_interventions_count = client_interventions.count()
-                        if intervention_type.is_given_once and client_interventions.count() > 0:
-                            """An intervention has been found. This is an error
-                                Return error message to user
-                            """
-                            response_data = {
-                                'status': 'fail',
-                                'message': "Error: This is a one time service that has already been offered. Please conside"
-                                           "r editing if necessary"
-                            }
-                            return JsonResponse(response_data)
-                    except Exception as e:
-                        """An error has occurred. Throw exception. This will be handled elsewhere"""
-                        raise Exception(str(e))
-
-                    intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
-
-                    # check if external organisation is selected
-                    external_organization_checkbox = request.POST.get('external_organization_checkbox')
-                    external_organization_code = request.POST.get('external_organization_code')
-                    other_external_organization_code = request.POST.get('other_external_organization_code')
-                    intervention_by_referral = request.POST.get('intervention_by_referral')
-                    referral_id = request.POST.get('referral_id')
-                    referral = None
-
-                    if intervention_by_referral == "1":
-                        if external_organization_code:
-                            if client.date_of_enrollment is not None and intervention_date < client.date_of_enrollment:
-                                response_data = {
-                                    'status': 'fail',
-                                    'message': "Error: The intervention date must be after the client's enrollment date. "
-                                }
-                                return JsonResponse(response_data)
-
-                        if not referral_id:
-                            response_data = {
-                                'status': 'fail',
-                                'message': "Error: The intervention must have associated referral."
-                            }
-                            return JsonResponse(response_data)
-
-                        referral = Referral.objects.get(pk=referral_id)
-                        referral_service_layer = ReferralServiceLayer(request.user, referral)
-                        if not referral_service_layer.can_complete_referral():
-                            response_data = {
-                                'status': 'fail',
-                                'message': "Error: You do not have permission to complete this referral."
-                            }
-                            return JsonResponse(response_data)
-
-                    else:
-                        if external_organization_checkbox:
-                            if not external_organization_code:
-                                response_data = {
-                                    'status': 'fail',
-                                    'message': "Error: External organisation must be selected if checkbox is checked."
-                                }
-                                return JsonResponse(response_data)
-                        else:
-                            if client.date_of_enrollment is not None and intervention_date < client.date_of_enrollment:
-                                response_data = {
-                                    'status': 'fail',
-                                    'message': "Error: The intervention date must be after the client's enrollment date. "
-                                }
-                                return JsonResponse(response_data)
-
-                    if intervention_date > dt.now().date():
+                intervention_type_code = int(request.POST.get('intervention_type_code'))
+                intervention_type = InterventionType.objects.get(code__exact=intervention_type_code)
+                """Check that this is not a one time intervention that has already been given to the client"""
+                try:
+                    """Get client intervention filtered by intervention types"""
+                    client_interventions = Intervention.objects.filter(intervention_type=intervention_type,
+                                                                       client=client).exclude(voided=True)
+                    client_interventions_count = client_interventions.count()
+                    if intervention_type.is_given_once and client_interventions.count() > 0:
+                        """An intervention has been found. This is an error
+                            Return error message to user
+                        """
                         response_data = {
                             'status': 'fail',
-                            'message': "Error: The intervention date must be before or on the current date. "
+                            'message': "Error: This is a one time service that has already been offered. Please conside"
+                                       "r editing if necessary"
+                        }
+                        return JsonResponse(response_data)
+                except Exception as e:
+                    raise Exception(str(e))
+
+                intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
+
+                # check if external organisation is selected
+                external_organization_checkbox = request.POST.get('external_organization_checkbox')
+                external_organization_code = request.POST.get('external_organization_code')
+                other_external_organization_code = request.POST.get('other_external_organization_code')
+                intervention_by_referral = request.POST.get('intervention_by_referral')
+                referral_id = request.POST.get('referral_id')
+                referral = None
+
+                if intervention_by_referral == "1":
+                    if external_organization_code:
+                        if client.date_of_enrollment is not None and intervention_date < client.date_of_enrollment:
+                            response_data = {
+                                'status': 'fail',
+                                'message': "Error: The intervention date must be after the client's enrollment date. "
+                            }
+                            return JsonResponse(response_data)
+
+                    if not referral_id:
+                        response_data = {
+                            'status': 'fail',
+                            'message': "Error: The intervention must have associated referral."
                         }
                         return JsonResponse(response_data)
 
-                    if intervention_type_code is not None and type(intervention_type_code) is int:
+                    referral = Referral.objects.get(pk=referral_id)
+                    referral_service_layer = ReferralServiceLayer(request.user, referral)
+                    if not referral_service_layer.can_complete_referral():
+                        response_data = {
+                            'status': 'fail',
+                            'message': "Error: You do not have permission to complete this referral."
+                        }
+                        return JsonResponse(response_data)
+
+                else:
+                    if external_organization_checkbox:
+                        if not external_organization_code:
+                            response_data = {
+                                'status': 'fail',
+                                'message': "Error: External organisation must be selected if checkbox is checked."
+                            }
+                            return JsonResponse(response_data)
+                    else:
+                        if client.date_of_enrollment is not None and intervention_date < client.date_of_enrollment:
+                            response_data = {
+                                'status': 'fail',
+                                'message': "Error: The intervention date must be after the client's enrollment date. "
+                            }
+                            return JsonResponse(response_data)
+
+                if intervention_date > dt.now().date():
+                    response_data = {
+                        'status': 'fail',
+                        'message': "Error: The intervention date must be before or on the current date. "
+                    }
+                    return JsonResponse(response_data)
+
+                if intervention_type_code is not None and type(intervention_type_code) is int:
+                    with transaction.atomic():
                         intervention = Intervention()
                         intervention.client = client
                         intervention.intervention_type = intervention_type
@@ -1114,12 +1113,12 @@ def save_intervention(request):
                             }
                             return JsonResponse(response_data)
 
-                    else:  # Invalid Intervention Type
-                        response_data = {
-                            'status': 'fail',
-                            'message': "Error: Invalid Intervention Type. "
-                                       "Please select a valid Intervention Type to Proceed"
-                        }
+                else:  # Invalid Intervention Type
+                    response_data = {
+                        'status': 'fail',
+                        'message': "Error: Invalid Intervention Type. "
+                                   "Please select a valid Intervention Type to Proceed"
+                    }
                 return JsonResponse(response_data)
 
             else:  # User has no valid IP.
@@ -1154,10 +1153,6 @@ def save_intervention(request):
             'message': errormsg
         }
         return JsonResponse(response_data)
-
-
-# method that returns a list of interventions of given category for a given client
-# use /ivList/ url pattern to access the method
 
 
 def get_intervention_list(request):
@@ -2344,7 +2339,7 @@ def download_raw_intervention_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_intervention_excel_doc(response, ip_list_str, sub_county, ward, show_PHI)
+        export_doc.get_intervention_export_doc(response, ip_list_str, sub_county, ward, show_PHI)
 
         return response
     except Exception as e:
@@ -2852,7 +2847,7 @@ def client_transfers(request, *args, **kwargs):
                 c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('transfer_status', '-date_created')
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            c_transfers = ClientTransfer.objects.all()
+            return render(request, 'login.html')
 
         page = request.GET.get('page', 1)
         paginator = Paginator(c_transfers, 20)
@@ -3007,10 +3002,9 @@ def reject_client_referral(request):
             if request.method == 'POST':
 
                 client_referral_id = request.POST.get("id", "")
+                client_referral = None
                 if client_referral_id != "":
                     client_referral = Referral.objects.get(id__exact=client_referral_id)
-                else:
-                    client_referral = None
 
                 if client_referral is not None:
                     referral_perm = ReferralServiceLayer(request.user, client_referral=client_referral)
@@ -3038,6 +3032,8 @@ def reject_client_referral(request):
 
 
 def get_client_transfers_count(request):
+    client_transfers_count = 0
+
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
@@ -3046,17 +3042,16 @@ def get_client_transfers_count(request):
                 destination_implementing_partner=ip,
                 transfer_status=initiated_client_transfer_status).count()
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            client_transfers_count = ClientTransfer.objects.filter(
-                transfer_status=initiated_client_transfer_status).count()
+            client_transfers_count = 0
         except Exception:
             client_transfers_count = 0
 
-        return HttpResponse(client_transfers_count)
-    else:
-        return HttpResponse(0)
+    return HttpResponse(client_transfers_count)
 
 
 def get_client_referrals_count(request):
+    client_referrals_count = 0
+
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         pending_client_referral_status = ReferralStatus.objects.get(code__exact=ReferralServiceLayer.REFERRAL_PENDING_STATUS)
         try:
@@ -3069,9 +3064,7 @@ def get_client_referrals_count(request):
         except Exception:
             client_referrals_count = 0
 
-        return HttpResponse(client_referrals_count)
-    else:
-        return HttpResponse(0)
+    return HttpResponse(client_referrals_count)
 
 
 def intervention_export_transferred_in_page(request):

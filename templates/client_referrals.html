@@ -42,8 +42,7 @@
 
             {% if can_accept_or_reject and referred_in %}
                 <th>Action</th>
-            {% endif %}
-            {% if not referred_in %}
+            {% else %}
                 <th>Status</th>
             {% endif %}
             </thead>
@@ -102,8 +101,7 @@
                                     <span>{{ client_referral.referral_status.name }}</span>
                                 {% endif %}
                             </td>
-                        {% endif %}
-                        {% if not referred_in %}
+                        {% else %}
                             <td>{{ client_referral.referral_status.name }}</td>
                         {% endif %}
                     </tr>
@@ -135,13 +133,12 @@
             </span>
         </div>
 
-        <!-- put div for #intervention-modal dialogue-->
         <!-- Beginning modal-->
         <div class="modal fade" id="referral-intervention-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
              xmlns="http://www.w3.org/1999/html">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
-                    <form id="referral-intervention-entry-form" method="post" action="#">
+                    <form id="referral-intervention-entry-form" method="post">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                                     aria-hidden="true">&times;</span></button>
@@ -243,7 +240,7 @@
                                     data-dismiss="modal"> Cancel
                             </button>
 
-                            {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
+                            {% if perms.DreamsApp.add_intervention and perms.DreamsApp.change_intervention and perms.DreamsApp.add_referral and perms.DreamsApp.change_referral %}
                                 <button id="btn_save_referral_intervention" type="submit" class="btn btn-sm btn-primary"> Save
                                     Intervention
                                 </button>

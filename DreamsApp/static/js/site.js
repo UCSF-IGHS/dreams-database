@@ -308,14 +308,7 @@ $(document).ready(function () {
         intervention = null;
     });
 
-
-    // $('#referral-intervention-modal').on('show.bs.modal', function (event) {
-    //     // check the mode... Can be new or edit
-    //     $('#btn_save_referral_intervention').removeAttr("disabled");
-    //     fetchExternalOrganisations();
-    // });
-
-     $('#referral-intervention-modal').on('hide.bs.modal', function (event) {
+    $('#referral-intervention-modal').on('hide.bs.modal', function (event) {
         $('div#referral_external_organization_section').addClass('hidden');
         $('#error-space').text("");
         $('#comments-text').val("");
@@ -621,19 +614,14 @@ $(document).ready(function () {
     }
 
     function validateInterventionType(intervention_code) {
-        var current_intervention_code;
-        if (intervention_code) {
-            current_intervention_code = intervention_code;
-        } else {
-            current_intervention_code = $('#intervention-type-select').val();
-        }
+        intervention_code = intervention_code ? intervention_code : $('#intervention-type-select').val();
 
-        if (current_intervention_code == null || current_intervention_code == 0)
+        if (intervention_code == null || intervention_code == 0)
                 return ["Intervention Type is Invalid or NOT Selected"];
 
         if (!intervention_code) {
             $.each(interventionTypes, function (index, objectVal) {
-                if (objectVal.fields.code == current_intervention_code) {
+                if (objectVal.fields.code == intervention_code) {
                     currentInterventionType_Global = objectVal;
                     return false;
                 }
@@ -3555,7 +3543,7 @@ $(document).ready(function () {
         fetchExternalOrganisations('referral-intervention-modal');
         $('#referral-intervention-modal #btn_save_referral_intervention').removeAttr("disabled");
 
-        if (checkIfValueExists($(el).data('referral-external-organisation-id')) == true) {
+        if (checkIfValueExists($(el).data('referral-external-organisation-id'))) {
             $('#referral-intervention-modal fieldset#external_organization_more_section').removeClass('hidden');
             $("#referral-intervention-modal #external-organization-select").val($(el).data('referral-external-organisation-id'));
 
@@ -3588,11 +3576,7 @@ $(document).ready(function () {
 
 
     function checkIfValueExists(input_value) {
-        if (input_value != null && input_value != 'undefined' && input_value != '' && input_value != 'None') {
-            return true;
-        } else {
-            return false;
-        }
+        return (input_value != null && input_value != 'undefined' && input_value != '' && input_value != 'None');
     }
 
     $('#referral-intervention-entry-form').submit(function (event) {
@@ -3685,7 +3669,6 @@ $(document).ready(function () {
         });
     }
 
-
     $("#accept-transfer-modal, #reject-transfer-modal, #client-transfer-modal, #client-void-modal, #reject-referral-modal").on('hidden.bs.modal', function () {
         $(this).each(function () {
             var form = $(this).find('form');
@@ -3712,7 +3695,7 @@ $(document).ready(function () {
                 $(el).text("").hide();
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
-
+            console.log(textStatus + ": " + errorThrown);
         }).always(function () {
             setTimeout(getClientTransfersCount, 180000);
         });
@@ -3733,13 +3716,11 @@ $(document).ready(function () {
                 $(el).text("").hide();
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
-
+            console.log(textStatus + ": " + errorThrown);
         }).always(function () {
             setTimeout(getClientReferralsCount, 180000);
         });
     }
-
-    setTimeout(getClientReferralsCount(), 180000);
 
     $("#btn_submit_void_client_form").click(function (e) {
         e.preventDefault();
@@ -3777,7 +3758,7 @@ $(document).ready(function () {
             }
 
         }).fail(function (jqXHR, textStatus, errorThrown) {
-
+            console.log(textStatus + ": " + errorThrown);
         }).always(function () {
             $("#btn_submit_void_client_form").attr("disabled", false);
             $("#btn_submit_void_client_form").removeAttr("disabled");
