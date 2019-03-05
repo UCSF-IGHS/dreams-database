@@ -468,7 +468,7 @@ class Referral(models.Model):
 
     @property
     def can_be_accepted_or_rejected(self):
-        return self.referral_status.code == 1
+        return self.referral_status.code == REFERRAL_PENDING_STATUS
 
 
 class Intervention(models.Model):
