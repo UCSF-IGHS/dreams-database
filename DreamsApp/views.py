@@ -3060,7 +3060,7 @@ def get_client_referrals_count(request):
                         Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False))))).count()
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            client_referrals_count =0
+            client_referrals_count = 0
         except Exception:
             client_referrals_count = 0
 
