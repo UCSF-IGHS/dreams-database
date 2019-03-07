@@ -2928,6 +2928,8 @@ def reject_client_transfer(request):
 
 
 def get_client_transfers_count(request):
+    client_transfers_count = 0
+
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
@@ -2936,17 +2938,16 @@ def get_client_transfers_count(request):
                 destination_implementing_partner=ip,
                 transfer_status=initiated_client_transfer_status).count()
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            client_transfers_count = ClientTransfer.objects.filter(
-                transfer_status=initiated_client_transfer_status).count()
+            client_transfers_count = 0
         except Exception:
             client_transfers_count = 0
 
-        return HttpResponse(client_transfers_count)
-    else:
-        return HttpResponse(0)
+    return HttpResponse(client_transfers_count)
 
 
 def get_client_referrals_count(request):
+    client_referrals_count = 0
+
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         pending_client_referral_status = ReferralStatus.objects.get(code__exact=ReferralServiceLayer.REFERRAL_PENDING_STATUS)
         try:
@@ -2955,13 +2956,11 @@ def get_client_referrals_count(request):
                         Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False))))).count()
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            client_referrals_count =0
+            client_referrals_count = 0
         except Exception:
             client_referrals_count = 0
 
-        return HttpResponse(client_referrals_count)
-    else:
-        return HttpResponse(0)
+    return HttpResponse(client_referrals_count)
 
 
 def intervention_export_transferred_in_page(request):
