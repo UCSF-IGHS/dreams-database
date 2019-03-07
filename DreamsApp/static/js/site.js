@@ -3722,6 +3722,8 @@ $(document).ready(function () {
         });
     }
 
+    setTimeout(getClientReferralsCount(), 180000);
+
     $("#btn_submit_void_client_form").click(function (e) {
         e.preventDefault();
 
