@@ -2949,7 +2949,7 @@ def get_client_referrals_count(request):
     client_referrals_count = 0
 
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        pending_client_referral_status = ReferralStatus.objects.get(code__exact=ReferralServiceLayer.REFERRAL_PENDING_STATUS)
+        pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             client_referrals_count = Referral.objects.filter(referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
