@@ -1094,7 +1094,7 @@ $(document).ready(function () {
                 var alert_id = '#action_alert_follow_ups';
                 if (data.status == "success") {
                     $(alert_id).removeClass('hidden').addClass('alert-success')
-                                .text('Follow Up has been deleted successfully!')
+                                .text('Follow Up has been updated successfully!')
                                 .trigger('madeVisible');
                     window.location.reload();
                 }
