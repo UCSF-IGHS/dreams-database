@@ -264,7 +264,7 @@ def clients(request):
                 client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
                 minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
                 max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
-                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
+                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
 
                 response_data = {
                     'page': 'clients',
@@ -2402,7 +2402,7 @@ def viewBaselineData(request):
                     minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                         client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
                     max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
-                    min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]))
+                    min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
 
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
@@ -3161,7 +3161,7 @@ def get_min_max_date_of_birth(request):
             minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                 client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
             max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
-            min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]))
+            min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
 
             response_data = {
                 "min_dob": min_dob,

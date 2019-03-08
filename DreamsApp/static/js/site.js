@@ -28,13 +28,9 @@ $(document).ready(function () {
                 'date_of_enrollment': $(this).val(),
             },
             success: function (data) {
-                $("#form_demographics #id_date_of_birth").datepicker({
-                    minDate: (new Date(data.min_dob)),
-                    maxDate: (new Date(data.max_dob)),
-                    dateFormat: 'yy-mm-dd',
-                    changeMonth: true,
-                    changeYear: true
-                });
+                $("#form_demographics #id_date_of_birth").val('');
+                $("#form_demographics #id_date_of_birth").datepicker("option", "maxDate", new Date(data.max_dob));
+                $("#form_demographics #id_date_of_birth").datepicker("option", "minDate", new Date(data.min_dob));
             },
 
             // handle a non-successful response
@@ -60,13 +56,9 @@ $(document).ready(function () {
                 'date_of_enrollment': $(this).val(),
             },
             success: function (data) {
-                $("#enrollment-form #id_date_of_birth").datepicker({
-                    minDate: (new Date(data.min_dob)),
-                    maxDate: (new Date(data.max_dob)),
-                    dateFormat: 'yy-mm-dd',
-                    changeMonth: true,
-                    changeYear: true
-                });
+                $("#enrollment-form #id_date_of_birth").val('');
+                $("#enrollment-form #id_date_of_birth").datepicker("option", "maxDate", new Date(data.max_dob));
+                $("#enrollment-form #id_date_of_birth").datepicker("option", "minDate", new Date(data.min_dob));
             },
 
             // handle a non-successful response
