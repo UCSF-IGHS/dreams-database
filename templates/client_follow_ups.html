@@ -19,7 +19,6 @@
                         <h5>For: {{ client.get_full_name }}</h5>
                   </div>
                   <div class="modal-body">
-
                         {% csrf_token %}
                         <!-- Permanently hidden Fields -->
 
@@ -39,7 +38,7 @@
                                 {% endfor %}
                               {% endif %}
                           </select>
-                          <label id="follow_up_type_warning" class="control-label hidden"></label>
+                          <label id="follow_up_type_warning" class="control-label error text-danger hidden"></label>
                         </div>
 
                         <div class="form-group" id="result_specify_section">
@@ -52,14 +51,14 @@
                                     {% endfor %}
                                 {% endif %}
                             </select>
-                            <label id="follow_up_result_warning" class="control-label"></label>
+                            <label id="follow_up_result_warning" class="control-label error text-danger hidden"></label>
                         </div>
 
                       <div class="form-group has-feedback date" id="follow_up_date_section">
                           <label for="follow_up_date" class="control-label">Date</label>
                           <input type="text" class="form-control validate-follow-up-form-field" id="follow_up_date" name="follow_up_date" placeholder="Select date " style="cursor: pointer;">
                           <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
-                          <label id="follow_up_date_warning" class="control-label"></label>
+                          <label id="follow_up_date_warning" class="control-label error text-danger"></label>
                       </div>
 
                        <div class="form-group" id="comment_section">
@@ -73,7 +72,6 @@
                          Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
                   </div>
                   <div class="modal-footer">
-
                       <button id="btn_cancel_follow_up" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
                       <button id="btn_save_follow_up" type="submit" class="btn btn-sm btn-primary" > Save Follow Up </button>
 
@@ -101,7 +99,6 @@
                         <h5>For: {{ client.get_full_name }}</h5>
                   </div>
                   <div class="modal-body">
-
                         {% csrf_token %}
                         <!-- Permanently hidden Fields -->
 
@@ -120,6 +117,7 @@
                                 {% endfor %}
                               {% endif %}
                           </select>
+                            <label id="follow_up_type_warning" class="control-label error text-danger hidden"></label>
                         </div>
 
                         <div class="form-group" id="result_specify_section">
@@ -131,12 +129,14 @@
                                     {% endfor %}
                                 {% endif %}
                             </select>
+                        <label id="follow_up_result_type_warning" class="control-label error text-danger hidden"></label>
                         </div>
 
                       <div class="form-group has-feedback date" id="follow_up_date_section">
                           <label for="edit_follow_up_date" class="control-label">Date:</label>
                           <input type="text" class="form-control clear_value" id="edit_follow_up_date" name="edit_follow_up_date" required placeholder="Select follow up date" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                           <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                        <label id="edit_follow_up_date_warning" class="control-label error text-danger hidden"></label>
                       </div>
 
                       <div class="form-group" id="comment_section">
@@ -150,7 +150,6 @@
                          Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
                   </div>
                   <div class="modal-footer">
-
                       <button id="btn_cancel_follow_up" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
                       <button id="btn_edit_follow_up" type="submit" class="btn btn-sm btn-primary" > Edit Follow Up </button>
 

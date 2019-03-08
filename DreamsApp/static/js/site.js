@@ -839,73 +839,71 @@ $(document).ready(function () {
     });
 
     $('#follow-up-entry-form').submit(function (event) {
-        $("#div_follow_up_type_warning label").hide();
-        $("#div_follow_up_result_warning").hide();
-        $("#div_follow_up_date_warning").hide();
+        $("#follow-up-entry-form #follow_up_type_warning label").addClass('hidden');
+        $("#follow-up-entry-form #follow_up_result_warning").addClass('hidden');
+        $("#follow-up-entry-form #follow_up_date_warning").addClass('hidden');
 
-        var submitFollowUp = true;
-        var followUpType = $('select#follow_up_type option:selected').val();
-        var followUpResultType = $('select#follow_up_result_type').val();
-        var followUpDate = $('input#follow_up_date').val();
+        var followUpType = $('#follow-up-entry-form #follow_up_type option:selected').val();
+        var followUpResultType = $('#follow-up-entry-form #follow_up_result_type').val();
+        var followUpDate = $('#follow-up-entry-form #follow_up_date').val();
+
+        if (!followUpType) {
+            $("#follow-up-entry-form #follow_up_type_warning").removeClass('hidden');
+            $("#follow-up-entry-form #follow_up_type_warning").text('Please select follow up type');
+            return false;
+        } else {
+            $("#follow-up-entry-form #follow_up_type_warning").addClass('hidden');
+            $("#follow-up-entry-form #follow_up_type_warning").text('');
+        }
+
+        if (!followUpResultType) {
+            $("#follow-up-entry-form #follow_up_result_warning").removeClass('hidden');
+            $("#follow-up-entry-form #follow_up_result_warning").text('Please select follow up result');
+            return false;
+        } else {
+            $("#follow-up-entry-form #follow_up_result_warning").addClass('hidden');
+            $("#follow-up-entry-form #follow_up_result_warning").text('');
+        }
+
+        if (!followUpDate) {
+            $("#follow-up-entry-form #follow_up_date_warning").removeClass('hidden');
+            $("#follow-up-entry-form #follow_up_date_warning").text('Please select follow up date');
+            return false;
+        } else {
+            $("#follow-up-entry-form #follow_up_date_warning").addClass('hidden');
+            $("#follow-up-entry-form #follow_up_date_warning").text('');
+        }
 
         $('button#btn_save_follow_up').attr('disabled', 'disabled')
         $('#follow-up-entry-form .processing-indicator').removeClass('hidden');
 
-        if (!followUpType) {
-            $("#follow_up_type_warning").removeClass('hidden');
-            $("#follow_up_type_warning").text('Please select follow up type');
-            submitFollowUp = false;
-        } else {
-            $("#follow_up_type_warning").addClass('hidden');
-            $("#follow_up_type_warning").text('');
-        }
-
-        if (!followUpResultType) {
-            $("#follow_up_result_warning").removeClass('hidden');
-            $("#follow_up_result_warning").text('Please select follow up result');
-            submitFollowUp = false;
-        } else {
-            $("#follow_up_result_warning").addClass('hidden');
-            $("#follow_up_result_warning").text('');
-        }
-
-        if (!followUpDate) {
-            $("#follow_up_date_warning").removeClass('hidden');
-            $("#follow_up_date_warning").text('Please select follow up date');
-            submitFollowUp = false;
-        } else {
-            $("#follow_up_date_warning").addClass('hidden');
-            $("#follow_up_date_warning").text('');
-        }
-
-        if (submitFollowUp) {
-            var csrftoken = getCookie('csrftoken');
-            $.ajax({
-                url: '/addFollowUp',
-                type: "POST",
-                dataType: 'json',
-                data: $('#follow-up-entry-form').serialize(),
-                success: function (data) {
-                    var status = data.status;
-                    var message = data.message;
-                    if (status == 'success') {
-                        $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-success')
-                            .text(message)
-                            .trigger('madeVisible');
-                        window.location.reload()
-                    } else {
-                        $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-danger')
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url: '/addFollowUp',
+            type: "POST",
+            dataType: 'json',
+            data: $('#follow-up-entry-form').serialize(),
+            success: function (data) {
+                var status = data.status;
+                var message = data.message;
+                if (status == 'success') {
+                    $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-success')
                         .text(message)
                         .trigger('madeVisible');
-                        $("#follow-up-modal").modal('hide');
-                    }
-                }, error: function (xhr, errmsg, err) { 
+                    window.location.reload()
+                } else {
                     $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-danger')
-                        .text('An error occurred while processing client details. Contact system administratior if this persists')
-                        .trigger('madeVisible');
+                    .text(message)
+                    .trigger('madeVisible');
+                    $('#follow-up-entry-form #error-space').html("* " + message);
                 }
-            });
-        }
+            }, error: function (xhr, errmsg, err) {
+                $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-danger')
+                    .text('An error occurred while processing client details. Contact system administratior if this persists')
+                    .trigger('madeVisible');
+                $('#follow-up-entry-form #error-space').html("* An error occurred while processing client details. Contact system administratior if this persists");
+            }
+        });
 
         $('button#btn_save_follow_up').removeAttr("disabled");
         $('#follow-up-entry-form .processing-indicator').addClass('hidden');
@@ -1082,8 +1080,45 @@ $(document).ready(function () {
     });
 
     $('#btn_edit_follow_up').click(function (event) {
-        var btn = $(event.target);
+        $("#edit-follow-up-entry-form #follow_up_type_warning label").addClass('hidden');
+        $("#edit-follow-up-entry-form #follow_up_result_type_warning").addClass('hidden');
+        $("#edit-follow-up-entry-form #edit_follow_up_date_warning").addClass('hidden');
 
+        var followUpType = $('#edit-follow-up-entry-form #follow_up_type option:selected').val();
+        var followUpResultType = $('#edit-follow-up-entry-form #follow_up_result_type').val();
+        var followUpDate = $('#edit-follow-up-entry-form #edit_follow_up_date').val();
+
+        if (!followUpType) {
+            $("#edit-follow-up-entry-form #follow_up_type_warning").removeClass('hidden');
+            $("#edit-follow-up-entry-form #follow_up_type_warning").text('Please select follow up type');
+            return false;
+        } else {
+            $("#edit-follow-up-entry-form #follow_up_type_warning").addClass('hidden');
+            $("#edit-follow-up-entry-form #follow_up_type_warning").text('');
+        }
+
+        if (!followUpResultType) {
+            $("#edit-follow-up-entry-form #follow_up_result_type_warning").removeClass('hidden');
+            $("#edit-follow-up-entry-form #follow_up_result_type_warning").text('Please select follow up result');
+            return false;
+        } else {
+            $("#edit-follow-up-entry-form #follow_up_result_type_warning").addClass('hidden');
+            $("#edit-follow-up-entry-form #follow_up_result_type_warning").text('');
+        }
+
+        if (!followUpDate) {
+            $("#edit-follow-up-entry-form #edit_follow_up_date_warning").removeClass('hidden');
+            $("#edit-follow-up-entry-form #edit_follow_up_date_warning").text('Please select follow up date');
+            return false;
+        } else {
+            $("#edit-follow-up-entry-form #edit_follow_up_date_warning").addClass('hidden');
+            $("#edit-follow-up-entry-form #edit_follow_up_date_warning").text('');
+        }
+
+        $('button#btn_edit_follow_up').attr('disabled', 'disabled');
+        $('#edit-follow-up-entry-form .processing-indicator').removeClass('hidden');
+
+        var btn = $(event.target);
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url: '/editFollowUp',
@@ -1096,6 +1131,7 @@ $(document).ready(function () {
                     $(alert_id).removeClass('hidden').addClass('alert-success')
                                 .text('Follow Up has been updated successfully!')
                                 .trigger('madeVisible');
+                    $('#confirm-follow-up-delete-modal').modal('hide');
                     window.location.reload();
                 }
                 else {
@@ -1103,16 +1139,20 @@ $(document).ready(function () {
                         .addClass('alert-danger')
                         .text(data.message)
                         .trigger('madeVisible');
+                    $('#edit-follow-up-entry-form #error-space').html("* " + data.message);
                 }
-                $('#confirm-follow-up-delete-modal').modal('hide');
+
             }, error: function (xhr, errmsg, err) {
                 $('#action_alert_follow_ups').removeClass('hidden')
                                                 .addClass('alert-danger')
                                                 .text(errmsg)
                                                 .trigger('madeVisible');
-                $('#confirm-follow-up-delete-modal').modal('hide');
+                $('#edit-follow-up-entry-form #error-space').html("* An error has occured.");
             }
         });
+
+        $('button#btn_edit_follow_up').removeAttr("disabled");
+        $('#edit-follow-up-entry-form .processing-indicator').addClass('hidden');
 
         event.stopPropagation();
         event.preventDefault();
