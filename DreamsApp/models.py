@@ -1559,7 +1559,7 @@ class ClientFollowUp(models.Model):
     comment = models.CharField(null=True, blank=True, max_length=255, verbose_name='Comment')
 
     def __str__(self):
-        return '{}'.format(self.client.dreams_id)
+        return '{} Follow Up Type: {} Status: {}'.format(self.client.dreams_id, self.type_of_followup.name, self.result_of_followup.name)
 
     class Meta(object):
         verbose_name = 'Client Follow Up'
