@@ -1,6 +1,6 @@
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
-from datetime import datetime
+from datetime import datetime, timedelta
 from DreamsApp.models import *
 
 
@@ -118,5 +118,5 @@ class ClientEnrolmentServiceLayer:
         enrolment_cutoff_age = self.get_minimum_maximum_enrolment_age(self.ENROLMENT_CUTOFF_DATE)
 
         max_dob = date_of_enrolment - relativedelta(years=int(enrolment_cutoff_age[0]))
-        min_dob = date_of_enrolment - relativedelta(years=int(enrolment_cutoff_age[1]))
+        min_dob = date_of_enrolment - relativedelta(years=int(enrolment_cutoff_age[1]) + 1) + timedelta(days=1)
         return date_of_birth >= min_dob and date_of_birth <= max_dob
