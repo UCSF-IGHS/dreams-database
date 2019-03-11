@@ -518,7 +518,8 @@ class Intervention(models.Model):
             elif self.client.transferred_in(user_ip):
                 if self.implementing_partner == user_ip:
                     editable = True
-
+            elif self.client.exited:
+                editable = False
             else:
                 editable = True
             return editable
