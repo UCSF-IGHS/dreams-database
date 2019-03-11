@@ -329,7 +329,8 @@ class Client(models.Model):
 
             elif self.transferred_in(user_ip):
                 can_add_intervention = True
-
+            elif self.exited:
+                can_add_intervention = False
             else:
                 can_add_intervention = True
             return can_add_intervention
