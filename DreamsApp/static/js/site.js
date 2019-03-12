@@ -3360,7 +3360,6 @@ $(document).ready(function () {
         unhighlight: function (element) { 
             $('#form_client_unexit').find('.error').removeClass('text-danger')
          }
-
     });
 
     $('select[name=reason_for_exit]').change(function () {
@@ -3374,13 +3373,13 @@ $(document).ready(function () {
             $('div#reason_for_exit_other_section').addClass('hidden');
             $('div#reason_for_exit_other_section textarea#reason_for_exit_other').val('');
             if (followupAttempts < MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS) {
-                console.log('error');
                 $('label#reason_for_exit_error').text('Warning: client has less than 4 follow up attempts');
                 $('label#reason_for_exit_error').show();
             }
         } else {
             $('fieldset#ltfu').addClass('hidden');
             $('div#reason_for_exit_other_section').addClass('hidden');
+            $('div#reason_for_exit_other_section textarea#reason_for_exit_other').val('');
             $('label#reason_for_exit_error').hide();
         }
     });
@@ -3442,28 +3441,36 @@ $(document).ready(function () {
     });
 
     $('#form_client_exit').on('submit', function (event) {
-        event.preventDefault()
+        event.preventDefault();
         if (!$(event.target).valid())
             return false;
-        var reasonForExit = $('select[name=reason_for_exit]').find(':selected').val();
-        var dateOfExit = $('#form_client_exit #id_date_of_exit').val();
 
+        var reasonForExit = $('select[name=reason_for_exit]').find(':selected').val();
+        var reasonForExitText = $('select[name=reason_for_exit]').find(':selected').text();
+        var dateOfExit = $('#form_client_exit #id_date_of_exit').val();
         var exitComment = $('textarea#reason_for_exit_other').val();
 
-        if ($.trim(reasonForExit) == OTHER_CODE && $.trim(exitComment) == "") {
+        if (reasonForExit == '') {
+            $('#reason_for_exit_error').html('* Required field');
+            $('#reason_for_exit_error').show();
+            return;
+        }
+
+        if ($.trim(reasonForExitText) == OTHER_CODE && $.trim(exitComment) == "") {
             $('#action_alert_gen').removeClass('hidden')
                                   .addClass('alert-danger')
                                   .text('Please ensure that reason for exit is entered.')
                                   .trigger('madeVisible');
+            $('#reason_for_other_exit_error').html('* Required field');
+            $('#reason_for_other_exit_error').show();
             return;
         }
 
-        if (dateOfExit == '') {
-            $('#id_reason_for_exit_error').html('* Required field')
+         if (dateOfExit == '') {
+            $('#date_of_exit_error').html('* Required field');
+            $('#date_of_exit_error').show();
+            return;
         }
-        
-        if (reasonForExit == '' || dateOfExit == '')
-            return
 
         var client_id = $('#current_client_id').val();
         if (typeof client_id == undefined || isNaN(client_id) || client_id == '') {
@@ -3631,6 +3638,27 @@ $(document).ready(function () {
     }
 
     setTimeout(getClientTransfersCount(), 180000);
+
+
+    function getClientReferralsCount() {
+        var el = $('#client-referrals-count-span');
+        $.ajax({
+            url: $(el).data('count-url')
+        }).done(function (data, textStatus, jqXHR) {
+            if (data != 0) {
+                $(el).text(data).show();
+                $('.client-referrals-count-span').text(data).show();
+            } else {
+                $(el).text("").hide();
+            }
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+
+        }).always(function () {
+            setTimeout(getClientReferralsCount, 180000);
+        });
+    }
+
+    setTimeout(getClientReferralsCount(), 180000);
 
     $("#btn_submit_void_client_form").click(function (e) {
         e.preventDefault();

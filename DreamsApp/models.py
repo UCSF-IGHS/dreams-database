@@ -467,6 +467,10 @@ class Referral(models.Model):
         verbose_name = 'Referral'
         verbose_name_plural = 'Referrals'
 
+    @property
+    def can_be_accepted_or_rejected(self):
+        return self.referral_status.code == REFERRAL_PENDING_STATUS
+
 
 class Intervention(models.Model):
     intervention_date = models.DateField()
