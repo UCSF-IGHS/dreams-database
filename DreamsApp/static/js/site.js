@@ -3289,14 +3289,14 @@ $(document).ready(function () {
         fetchAndLoadExitReasons();
         fetchFollowUpAttempts();
         $('#client-exit-modal #id_reason_for_exit').val('');
+        $('#client-exit-modal #reason_for_exit_other').val('');
         createDatePicker("#client-exit-modal #id_date_of_exit", "+0Y +0M +0D", new Date(2015, 10, 1));
-
         $("#client-exit-modal #id_date_of_exit").datepicker("setDate", localToday);
     });
 
     $('#client-unexit-modal').on('show.bs.modal', function (e) {
         var localToday = new Date();
-        $('#client-unexit-modal #id_reason_for_exit').val('');
+        $('#client-unexit-modal #id_reason_for_unexit').val('');
         createDatePicker("#client-unexit-modal #id_date_of_unexit", null, null, localToday);
     });
 
@@ -3375,7 +3375,7 @@ $(document).ready(function () {
     });
 
     $('#form_client_unexit').on('submit',function (event) {
-        event.preventDefault()
+        event.preventDefault();
         if(!$(event.target).valid()) return false;
 
         var reasonForUndoneExit = $('#form_client_unexit #id_reason_for_unexit').val();
@@ -3414,7 +3414,7 @@ $(document).ready(function () {
                    .trigger('madeVisible')
                     $('.client_exit_voided_status').html(client_status);
                     $('.client_status_action_text').html('Exit Client');
-                    $('p#p_unexit_client').attr('data-target', '#client-exit-modal');
+                    $('p#p_exit_client').attr('data-target', '#client-exit-modal');
                 } else {
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                    .text(data.message)
