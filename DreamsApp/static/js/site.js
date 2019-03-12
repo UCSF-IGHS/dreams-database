@@ -3298,16 +3298,6 @@ $(document).ready(function () {
         var localToday = new Date();
         $('#client-unexit-modal #id_reason_for_exit').val('');
         createDatePicker("#client-unexit-modal #id_date_of_unexit", null, null, localToday);
-
-        var clientStatus = $('.client_status_action_text').html()
-        if ($.trim(clientStatus) == 'Exit Client') {
-            $('#lbl_client_exit_activation_label').html('Reason to Exit Client');
-            $('#btn_submit_exit_client_form').val('Exit Client');
-        }
-        else {
-            $('#lbl_client_exit_activation_label').html('Reason to Activate Client');
-            $('#btn_submit_exit_client_form').html('Activate Client');
-        }
     });
 
     $("#form_client_exit").validate({
@@ -3424,8 +3414,8 @@ $(document).ready(function () {
                    .trigger('madeVisible')
                     $('.client_exit_voided_status').html(client_status);
                     $('.client_status_action_text').html('Exit Client');
-                }
-                else {
+                    $('p#p_unexit_client').attr('data-target', '#client-exit-modal');
+                } else {
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                    .text(data.message)
                    .trigger('madeVisible')
@@ -3479,8 +3469,8 @@ $(document).ready(function () {
 
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url: "/client/exit", // the endpoint
-            type: "POST", // http method
+            url: "/client/exit",
+            type: "POST",
             dataType: 'json',
             data: {
                 csrfmiddlewaretoken: csrftoken,
@@ -3492,14 +3482,13 @@ $(document).ready(function () {
             success: function (data) {
                 if (data.status == 'success') {
                     var client_status = data.client_status;
-                    //$('#demo_replacement').replaceWith(data);
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                         .text(data.message + ' Successfully')
                         .trigger('madeVisible')
                     $('.client_exit_voided_status').html(client_status);
                     $('.client_status_action_text').html('Undo Exit Client');
-                }
-                else {
+                    $('p#p_exit_client').attr('data-target', '#client-unexit-modal');
+                } else {
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                         .text(data.message)
                         .trigger('madeVisible')
