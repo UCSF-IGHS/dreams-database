@@ -314,6 +314,8 @@ class Client(models.Model):
 
             elif self.transferred_in(user_ip):
                 editable = True
+            # elif self.exited:
+            #     editable = False
 
             else:
                 editable = True
@@ -522,8 +524,8 @@ class Intervention(models.Model):
             elif self.client.transferred_in(user_ip):
                 if self.implementing_partner == user_ip:
                     editable = True
-            elif self.client.exited:
-                editable = False
+            # elif self.client.exited:
+            #     editable = False
             else:
                 editable = True
             return editable

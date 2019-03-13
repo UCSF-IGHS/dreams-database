@@ -106,10 +106,14 @@
     <div class="form-group">
         {{ sexuality_form.client.as_hidden }}
     </div>
-   {% if is_editable_by_ip == True %}
+   {% if is_editable_by_ip %}
         <div class="form-group form-inline">
              <label class="control-label enrolment-label"></label>
-             <button type="submit" class="btn btn-sm btn-primary">Save</button>
+            {% if sexuality_form.instance.client.exited %}
+             <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle" style="display: none">Save</button>
+            {% else %}
+                <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle">Save</button>
+            {% endif %}
         </div>
     {% endif %}
  </fieldset>
