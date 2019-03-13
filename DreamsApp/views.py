@@ -15,6 +15,7 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.db import connection as db_conn_2, transaction
+from django.utils.timezone import make_aware
 import urllib.parse
 import json
 from datetime import date, timedelta, datetime as dt
@@ -781,7 +782,7 @@ def other_client_exit(client_id, reason_for_exit, exit_comment, exit_user, date_
     client.exit_reason = reason_for_exit
     client.reason_exited = exit_comment
     client.exited_by = exit_user
-    client.date_exited = date_of_exit
+    client.date_exited = make_aware(dt.strptime(date_of_exit, "%Y-%m-%d").date())
     client.save()
     return client
 
@@ -791,7 +792,7 @@ def client_exit(client_id, reason_for_exit, exit_user, date_of_exit):
     client.exited = True
     client.exit_reason = reason_for_exit
     client.exited_by = exit_user
-    client.date_exited = dt.strptime(date_of_exit, "%Y-%m-%d").now()
+    client.date_exited = make_aware(dt.strptime(date_of_exit, "%Y-%m-%d").date())
     client.save()
     return client
 
