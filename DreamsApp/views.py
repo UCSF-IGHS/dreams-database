@@ -1,6 +1,7 @@
 import os
 import traceback
 
+import unicodecsv
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
@@ -18,7 +19,6 @@ from django.db import connection as db_conn_2, transaction
 import urllib.parse
 import json
 from datetime import date, timedelta, datetime as dt
-from openpyxl import Workbook
 from openpyxl.styles import Font
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
@@ -3163,58 +3163,53 @@ def download_audit_logs(request):
                                         Q(user__last_name__icontains=filter_text.split(" ")[0])
                                         ).order_by('-timestamp')
 
-            logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs)
+            logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs).values()
 
+            columns = ['timestamp', 'user_name', 'table', 'column', 'old_value', 'new_value', 'action', 'search_text']
             header = ['Timestamp', 'User', 'Table', 'Field', 'Old Value', 'New Value', 'Action', 'Text']
 
-            wb = Workbook()
-            ws = wb.active
-            ws.append(header)
-            row_idx = 2
+            export_file_name = urllib.parse.quote("/tmp/audit_log_export-{}.csv".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="{}"'.format(export_file_name)
+
+            writer = unicodecsv.DictWriter(response, fieldnames=columns, extrasaction='raise')
+            header = dict(zip(columns, header))
+            writer.writerow(header)
 
             for log in logs:
-                ws.cell(row=row_idx, column=1).value = log.timestamp
-                ws.cell(row=row_idx, column=2).value = log.get_user_name()
-                ws.cell(row=row_idx, column=3).value = log.table
+                audittrail = AuditTrail.objects.filter(audit=Audit.objects.get(id=log['id'])).values()
+                column = ""
+                old_value = ""
+                new_value = ""
 
-                adt_idx = row_idx
-                for audittrail in log.audittrail_set.all():
-                    ws.cell(row=adt_idx, column=4).value = audittrail.column
-                    ws.cell(row=adt_idx, column=5).value = audittrail.old_value
-                    ws.cell(row=adt_idx, column=6).value = audittrail.new_value
-                    adt_idx += 1
+                for trail in audittrail:
+                    column += str(trail['column']) + '\n'
+                    old_value += str(trail['old_value']) + '\n'
+                    new_value += str(trail['new_value']) + '\n'
 
-                if adt_idx == row_idx:
-                    adt_idx += 1
+                writer.writerow({'timestamp': log['timestamp'], 'user_name': get_user_name(log['user_id']), 'table': log['table'], 'column': column, 'old_value': old_value, 'new_value': new_value, 'action': log['action'], 'search_text': log['search_text']})
 
-                ws.cell(row=row_idx, column=7).value = log.action
-                ws.cell(row=row_idx, column=8).value = log.search_text
-                row_idx = adt_idx
-
-            dims = {}
-            for row in ws.rows:
-                for cell in row:
-                    if cell.value:
-                        dims[cell.column] = max(dims.get(cell.column, 0), len(str(cell.value)))
-
-            for col, value in dims.items():
-                ws.column_dimensions[col].width = value
-
-            ft = Font(bold=True)
-            for cell in ws["1:1"]:
-                cell.font = ft
-
-            response = HttpResponse(content_type='application/ms-excel')
-            response['Content-Disposition'] = 'attachment; filename=Audit_Logs.xlsx'
-
-            wb.save(response)
             return response
 
+        except (AttributeError, UnicodeEncodeError):
+            return HttpResponseServerError("Unicode error")
         except Exception as e:
             tb = traceback.format_exc(e)
             return HttpResponseServerError(tb)
     else:
         raise SuspiciousOperation
+
+
+def get_user_name(user_id):
+    if not user_id:
+        return ''
+    else:
+        user = User.objects.get(id=user_id)
+        if not user:
+            return ''
+
+        full_name = user.get_full_name()
+        return full_name if full_name else full_name
 
 
 def get_min_max_date_of_birth(request):
