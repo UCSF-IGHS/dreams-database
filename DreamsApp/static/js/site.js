@@ -3289,15 +3289,17 @@ $(document).ready(function () {
         fetchAndLoadExitReasons();
         fetchFollowUpAttempts();
         $('#client-exit-modal #id_reason_for_exit').val('');
+        $('#form_client_exit #error-space').text("");
         createDatePicker("#client-exit-modal #id_date_of_exit", "+0Y +0M +0D", new Date(2015, 10, 1));
     });
 
     $('#client-unexit-modal').on('show.bs.modal', function (e) {
         var localToday = new Date();
         $('#client-unexit-modal #id_reason_for_exit').val('');
+        $('#form_client_unexit #error-space').text("");
         createDatePicker("#client-unexit-modal #id_date_of_unexit", "+0Y +0M +0D", new Date(2015, 10, 1));
 
-        var clientStatus = $('.client_status_action_text').html()
+        var clientStatus = $('.client_status_action_text').html();
         if ($.trim(clientStatus) == 'Exit Client') {
             $('#lbl_client_exit_activation_label').html('Reason to Exit Client');
             $('#btn_submit_exit_client_form').val('Exit Client');
@@ -3306,6 +3308,7 @@ $(document).ready(function () {
             $('#lbl_client_exit_activation_label').html('Reason to Activate Client');
             $('#btn_submit_exit_client_form').html('Activate Client');
         }
+        $('#error-space').text("");
     });
 
     $("#form_client_exit").validate({
@@ -3383,17 +3386,18 @@ $(document).ready(function () {
     });
 
     $('#form_client_unexit').on('submit',function (event) {
-        event.preventDefault()
+        event.preventDefault();
         if(!$(event.target).valid()) return false;
+        $('#form_client_unexit #error-space').text("");
 
         var reasonForUndoneExit = $('#form_client_unexit #id_reason_for_unexit').val();
         var dateOfUndoneExit = $('#form_client_unexit #id_date_of_unexit').val();
 
         if(reasonForUndoneExit == ''){
-            $('#id_reason_for_unexit_error').html('* Required field')
+            $('#id_reason_for_unexit_error').html('* Required field').css({ 'color': 'red' });
         }
         if(dateOfUndoneExit == ''){
-            $('#id_date_of_unexit_error').html('* Required field')
+            $('#id_date_of_unexit_error').html('* Required field').css({ 'color': 'red' });
         }
         if(reasonForUndoneExit == '' || dateOfUndoneExit == '')
             return;
@@ -3419,21 +3423,23 @@ $(document).ready(function () {
                     var client_status = data.client_status;
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                    .text(data.message + ' Successfully')
-                   .trigger('madeVisible')
+                   .trigger('madeVisible');
                     $('.client_exit_voided_status').html(client_status);
                     $('.client_status_action_text').html('Exit Client');
+                    $('#client-unexit-modal').modal('hide');
                 }
                 else {
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                    .text(data.message)
-                   .trigger('madeVisible')
+                   .trigger('madeVisible');
+                    $('#form_client_unexit #error-space').html(data.message);
                 }
-                $('#client-unexit-modal').modal('hide');
             },
             error: function (xhr, errmsg, err) {
                 $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-               .text('Could not save changes')
-               .trigger('madeVisible')
+               .text(xhr.responseText)
+               .trigger('madeVisible');
+                $('#form_client_unexit #error-space').html(xhr.responseText);
             }
         });
     });
@@ -3442,6 +3448,7 @@ $(document).ready(function () {
         event.preventDefault();
         if (!$(event.target).valid())
             return false;
+        $('#form_client_exit #error-space').text("");
 
         var reasonForExit = $('select[name=reason_for_exit]').find(':selected').val();
         var reasonForExitText = $('select[name=reason_for_exit]').find(':selected').text();
@@ -3449,7 +3456,7 @@ $(document).ready(function () {
         var exitComment = $('textarea#reason_for_exit_other').val();
 
         if (reasonForExit == '') {
-            $('#reason_for_exit_error').html('* Required field');
+            $('#reason_for_exit_error').html('* Required field').css({ 'color': 'red' });
             $('#reason_for_exit_error').show();
             return;
         }
@@ -3459,13 +3466,13 @@ $(document).ready(function () {
                                   .addClass('alert-danger')
                                   .text('Please ensure that reason for exit is entered.')
                                   .trigger('madeVisible');
-            $('#reason_for_other_exit_error').html('* Required field');
+            $('#reason_for_other_exit_error').html('* Required field').css({ 'color': 'red' });
             $('#reason_for_other_exit_error').show();
             return;
         }
 
          if (dateOfExit == '') {
-            $('#date_of_exit_error').html('* Required field');
+            $('#date_of_exit_error').html('* Required field').css({ 'color': 'red' });
             $('#date_of_exit_error').show();
             return;
         }
@@ -3493,21 +3500,23 @@ $(document).ready(function () {
                     //$('#demo_replacement').replaceWith(data);
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                         .text(data.message + ' Successfully')
-                        .trigger('madeVisible')
+                        .trigger('madeVisible');
                     $('.client_exit_voided_status').html(client_status);
                     $('.client_status_action_text').html('Undo Exit Client');
+                    $('#client-exit-modal').modal('hide');
                 }
                 else {
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                         .text(data.message)
-                        .trigger('madeVisible')
+                        .trigger('madeVisible');
+                    $('#form_client_exit #error-space').html(data.message);
                 }
-                $('#client-exit-modal').modal('hide');
             },
             error: function (xhr, errmsg, err) {
                 $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                     .text('Could not save changes')
-                    .trigger('madeVisible')
+                    .trigger('madeVisible');
+                $('#form_client_exit #error-space').html(xhr.responseText);
             }
         });
     });
