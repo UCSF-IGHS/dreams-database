@@ -729,7 +729,7 @@ def unexit_client(request):
             client.exited = not client.exited
             client.reason_exited = reason_for_exit
             client.exited_by = request.user
-            client.date_exited = make_aware(datetime.strptime(date_of_exit, "%Y-%m-%d"), timezone=timezone.utc, is_dst=None)
+            client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
             client.save()
             response_data = {
                 'status': 'success',
@@ -812,7 +812,7 @@ def other_client_exit(client, reason_for_exit, exit_comment, exit_user, date_of_
     client.exit_reason = reason_for_exit
     client.reason_exited = exit_comment
     client.exited_by = exit_user
-    client.date_exited = make_aware(dt.strptime(date_of_exit, "%Y-%m-%d"), timezone=timezone.utc, is_dst=None)
+    client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
     client.save()
     return client
 
@@ -821,7 +821,7 @@ def client_exit(client, reason_for_exit, exit_user, date_of_exit):
     client.exited = True
     client.exit_reason = reason_for_exit
     client.exited_by = exit_user
-    client.date_exited = make_aware(dt.strptime(date_of_exit, "%Y-%m-%d"), timezone=timezone.utc, is_dst=None)
+    client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
     client.save()
     return client
 
