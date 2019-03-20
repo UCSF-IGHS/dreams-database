@@ -24,7 +24,7 @@ from openpyxl.styles import Font
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
 from dateutil.relativedelta import relativedelta
-from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, FollowUpsServiceLayer
 
 
 def get_enrollment_form_config_data(request):
@@ -1087,6 +1087,7 @@ def save_intervention(request):
 def initiate_referral(request):
     try:
         if is_valid_post_request(request):
+            OTHER_EXTERNAL_ORGANISATION_ID = ExternalOrganisation.objects.get(name='Other').pk
             client = Client.objects.filter(id__exact=int(request.POST.get('referral-client-id'))).first()
             source_implementing_partner = ImplementingPartner.objects.filter(id__exact=client.implementing_partner.id).first()
             intervention_type = InterventionType.objects.filter(id__exact=int(request.POST.get('referral-interventions-select'))).first()
@@ -1095,12 +1096,63 @@ def initiate_referral(request):
             comment = request.POST.get('comment')
             to_external_organization = request.POST.get('to-external-organization')
 
+            if not client:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Client not found.'
+                }
+                return JsonResponse(response_data)
+
+            if dt.strptime(str(referral_date), '%Y-%m-%d').date() > dt.now().date():
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected referral date cannot be later than today.'
+                }
+                return JsonResponse(response_data)
+
+            if dt.strptime(str(referral_date), '%Y-%m-%d').date() < client.date_of_enrollment:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected referral date cannot be earlier than client enrolment date.'
+                }
+                return JsonResponse(response_data)
+
+            if dt.strptime(str(referral_date), '%Y-%m-%d').date() > dt.strptime(str(expiry_date), '%Y-%m-%d').date():
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected referral date cannot be later than referral expiry date.'
+                }
+                return JsonResponse(response_data)
+
+            if bool(to_external_organization):
+                if not request.POST.get('referral-external-organization-select') and not request.POST.get('other-organization-name'):
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Select or input value for external organisation.'
+                    }
+                    return JsonResponse(response_data)
+
+                if int(request.POST.get('referral-external-organization-select')) == OTHER_EXTERNAL_ORGANISATION_ID and not request.POST.get('other-organization-name'):
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Input value for other external organisation.'
+                    }
+                    return JsonResponse(response_data)
+
+            else:
+                if not request.POST.get('implementing-partners-select'):
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Select or input value for external organisation.'
+                    }
+                    return JsonResponse(response_data)
+
             if request.user.has_perm('DreamsApp.add_referral'):
                 referral = Referral()
                 referral.client = client
                 referral.referring_ip = source_implementing_partner
                 referral.intervention_type = intervention_type
-                referral.referral_status = ReferralStatus.objects.filter(name='Pending').first()
+                referral.referral_status = ReferralStatus.objects.get(name='Pending')
                 referral.referral_date = referral_date
                 referral.referral_expiration_date = expiry_date
                 referral.comments = comment
@@ -1108,13 +1160,12 @@ def initiate_referral(request):
                 if bool(to_external_organization):
                     if request.POST.get('referral-external-organization-select'):
                         referral.external_organisation = ExternalOrganisation.objects.filter(id__exact=int(request.POST.get('referral-external-organization-select'))).first()
-
-                    if request.POST.get('other-organization-name'):
+                    elif request.POST.get('other-organization-name'):
                         referral.external_organisation_other = request.POST.get('other-organization-name')
                 else:
                     referral.receiving_ip = ImplementingPartner.objects.filter(id__exact=int(request.POST.get('implementing-partners-select'))).first()
 
-                referral.save()
+                #referral.save()
                 response_data = {
                     'status': 'success',
                     'message': 'Referral added'
@@ -1124,8 +1175,7 @@ def initiate_referral(request):
                 raise PermissionDenied
 
     except Exception as e:
-        tb = traceback.format_exc(e)
-        return HttpResponseServerError(tb)
+        return HttpResponseServerError(e)
 
 
 def get_all_intervention_types(request):
