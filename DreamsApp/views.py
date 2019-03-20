@@ -15,16 +15,17 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.db import connection as db_conn_2, transaction
+from django.utils.timezone import make_aware
+from django.utils import timezone
 import urllib.parse
 import json
 from datetime import date, timedelta, datetime as dt
 from openpyxl import Workbook
 from openpyxl.styles import Font
-
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
 from dateutil.relativedelta import relativedelta
-from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, FollowUpsServiceLayer
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, ReferralServiceLayer, FollowUpsServiceLayer
 
 
 def get_enrollment_form_config_data(request):
@@ -264,7 +265,7 @@ def clients(request):
                 client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
                 minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
                 max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
-                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
+                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
 
                 response_data = {
                     'page': 'clients',
@@ -712,10 +713,25 @@ def unexit_client(request):
             reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
             date_of_exit = request.POST.get('date_of_unexit', datetime.now())
             client = Client.objects.filter(id=client_id).first()
+
+            if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() > dt.now().date():
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected unexit date cannot be later than today.'
+                }
+                return JsonResponse(response_data)
+
+            if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() < client.date_of_enrollment:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected unexit date cannot be earlier than client enrolment date.'
+                }
+                return JsonResponse(response_data)
+
             client.exited = not client.exited
             client.reason_exited = reason_for_exit
             client.exited_by = request.user
-            client.date_exited = date_of_exit
+            client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
             client.save()
             response_data = {
                 'status': 'success',
@@ -745,18 +761,33 @@ def exit_client(request):
             'DreamsApp.can_exit_client'):
         try:
             client_id = int(str(request.POST.get('client_id')))
+            client = Client.objects.filter(id=client_id).first()
             reason_for_exit = ExitReason.objects.get(id__exact=int(request.POST.get('reason_for_exit', '')))
             date_of_exit = request.POST.get('date_of_exit', datetime.now())
             exit_comment = request.POST.get('exit_comment')
 
+            if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() > dt.now().date():
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected exit date cannot be later than today.'
+                }
+                return JsonResponse(response_data)
+
+            if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() < client.date_of_enrollment:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected exit date cannot be earlier than client enrolment date.'
+                }
+                return JsonResponse(response_data)
+
             if reason_for_exit is not None:
                 if reason_for_exit.code == OTHER_CODE:
                     if is_not_null_or_empty(exit_comment):
-                        exited_client = other_client_exit(client_id, reason_for_exit, exit_comment, request.user, date_of_exit)
+                        exited_client = other_client_exit(client, reason_for_exit, exit_comment, request.user, date_of_exit)
                     else:
                         raise Exception('Reason for exit missing')
                 else:
-                    exited_client = client_exit(client_id, reason_for_exit, request.user, date_of_exit)
+                    exited_client = client_exit(client, reason_for_exit, request.user, date_of_exit)
 
             response_data = {
                 'status': 'success',
@@ -779,23 +810,21 @@ def exit_client(request):
         return JsonResponse(response_data, status=500)
 
 
-def other_client_exit(client_id, reason_for_exit, exit_comment, exit_user, date_of_exit):
-    client = Client.objects.filter(id=client_id).first()
+def other_client_exit(client, reason_for_exit, exit_comment, exit_user, date_of_exit):
     client.exited = True
     client.exit_reason = reason_for_exit
     client.reason_exited = exit_comment
     client.exited_by = exit_user
-    client.date_exited = date_of_exit
+    client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
     client.save()
     return client
 
 
-def client_exit(client_id, reason_for_exit, exit_user, date_of_exit):
-    client = Client.objects.filter(id=client_id).first()
+def client_exit(client, reason_for_exit, exit_user, date_of_exit):
     client.exited = True
     client.exit_reason = reason_for_exit
     client.exited_by = exit_user
-    client.date_exited = date_of_exit
+    client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
     client.save()
     return client
 
@@ -808,7 +837,7 @@ def testajax(request):
 # Handles post request for intervention types.
 # Receives category_code from request and searches for types in the database
 
-def get_external_organisations(request):
+def get_external_organisation(request):
     try:
         if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
             response_data = {}
@@ -1309,20 +1338,27 @@ def add_follow_up(request):
             follow_up_date = request.POST.get('follow_up_date')
             follow_up_comments = request.POST.get('follow_up_comments')
 
-            follow_up = ClientFollowUp()
-            follow_up.client = client
-            follow_up.date_of_followup = follow_up_date
-            follow_up.type_of_followup = follow_up_type
-            follow_up.result_of_followup = follow_up_result_type
-            follow_up.comment = follow_up_comments
-            follow_up.save()
+            if follow_up_type is not None \
+                    and follow_up_result_type is not None\
+                    and follow_up_date is not None:
 
-            response_data = {
-                'status': 'success',
-                'message': 'Follow up details added'
-            }
-            return JsonResponse(response_data, status=200)
+                follow_up = ClientFollowUp()
+                follow_up.client = client
+                follow_up.date_of_followup = follow_up_date
+                follow_up.type_of_followup = follow_up_type
+                follow_up.result_of_followup = follow_up_result_type
+                follow_up.comment = follow_up_comments
+                follow_up.save()
 
+                response_data = {
+                    'status': 'success',
+                    'message': 'Follow up details added'
+                }
+            else:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Error with submitted follow up details'
+                }
     except Exception as e:
         if type(e) is ValidationError:
             errormsg = '; '.join(ValidationError(e).messages)
@@ -1333,7 +1369,8 @@ def add_follow_up(request):
             'status': 'fail',
             'message': "An error has occurred: " + errormsg
         }
-        return JsonResponse(response_data)
+
+    return JsonResponse(response_data)
 
 
 def update_follow_up(request):
@@ -1345,26 +1382,33 @@ def update_follow_up(request):
             if follow_up is not None:
                 follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
                 follow_up_result_type = ClientLTFUResultType.objects.filter(id__exact=request.POST.get('follow_up_result_type')).first()
-                follow_up_date = request.POST.get('follow_up_date')
+                follow_up_date = request.POST.get('edit_follow_up_date')
                 follow_up_comments = request.POST.get('follow_up_comments')
 
-                follow_up.date_of_followup = follow_up_date
-                follow_up.type_of_followup = follow_up_type
-                follow_up.result_of_followup = follow_up_result_type
-                follow_up.comment = follow_up_comments
-                follow_up.save()
+                if follow_up_type is not None \
+                        and follow_up_result_type is not None \
+                        and follow_up_date is not None:
 
-                response_data = {
-                    'status': 'success',
-                    'message': 'Follow up details updated'
-                }
-                return JsonResponse(response_data)
+                    follow_up.date_of_followup = follow_up_date
+                    follow_up.type_of_followup = follow_up_type
+                    follow_up.result_of_followup = follow_up_result_type
+                    follow_up.comment = follow_up_comments
+                    follow_up.save()
+
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Follow up details updated'
+                    }
+                else:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Error with submitted follow up details'
+                    }
             else:
                 response_data = {
                     'status': 'fail',
                     'message': "Error follow up not found"
                 }
-                return JsonResponse(response_data)
     except Exception as e:
         if type(e) is ValidationError:
             errormsg = '; '.join(ValidationError(e).messages)
@@ -1375,7 +1419,8 @@ def update_follow_up(request):
             'status': 'fail',
             'message': "An error has occurred: " + errormsg
         }
-        return JsonResponse(response_data)
+
+    return JsonResponse(response_data)
 
 
 def update_intervention(request):
@@ -2391,12 +2436,9 @@ def download_raw_intervention_export(request):
             ("/tmp/raw_intervention_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
-        if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
-                or Permission.objects.filter(group__user=request.user).filter(
-            codename='DreamsApp.can_view_phi_data').exists():
-            show_PHI = True
-        else:
-            show_PHI = False
+        show_PHI = request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
+                   or Permission.objects.filter(group__user=request.user).filter(
+            codename='DreamsApp.can_view_phi_data').exists()
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
@@ -2534,7 +2576,7 @@ def viewBaselineData(request):
                     minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                         client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
                     max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
-                    min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]))
+                    min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
 
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
@@ -2927,6 +2969,40 @@ def client_transfers(request, *args, **kwargs):
         return redirect('login')
 
 
+def client_referrals(request, *args, **kwargs):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        referred_in = bool(int(kwargs.pop('referred_in', 1)))
+
+        referral_perm = ReferralServiceLayer(request.user)
+        can_accept_or_reject = referral_perm.can_accept_or_reject_referral()
+
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            if referred_in:
+                c_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
+            else:
+                c_referrals = Referral.objects.filter(referring_ip=ip).order_by('referral_status', '-referral_date')
+
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            return render(request, 'login.html')
+
+        page = request.GET.get('page', 1)
+        paginator = Paginator(c_referrals, 20)
+
+        try:
+            referrals = paginator.page(page)
+        except PageNotAnInteger:
+            referrals = paginator.page(1)
+        except EmptyPage:
+            referrals = paginator.page(paginator.num_pages)
+
+        return render(request, "client_referrals.html",
+                      {'client_referrals': referrals, 'can_accept_or_reject': can_accept_or_reject,
+                       'referred_in': referred_in, 'page': 'referrals'})
+    else:
+        return redirect('login')
+
+
 def accept_client_transfer(request):
     try:
         if request.user is not None and request.user.is_authenticated() and request.user.is_active:
@@ -3024,6 +3100,8 @@ def reject_client_transfer(request):
 
 
 def get_client_transfers_count(request):
+    client_transfers_count = 0
+
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
@@ -3032,14 +3110,29 @@ def get_client_transfers_count(request):
                 destination_implementing_partner=ip,
                 transfer_status=initiated_client_transfer_status).count()
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            client_transfers_count = ClientTransfer.objects.filter(
-                transfer_status=initiated_client_transfer_status).count()
+            client_transfers_count = 0
         except Exception:
             client_transfers_count = 0
 
-        return HttpResponse(client_transfers_count)
-    else:
-        return HttpResponse(0)
+    return HttpResponse(client_transfers_count)
+
+
+def get_client_referrals_count(request):
+    client_referrals_count = 0
+
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            client_referrals_count = Referral.objects.filter(referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
+                        Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False))))).count()
+
+        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+            client_referrals_count = 0
+        except Exception:
+            client_referrals_count = 0
+
+    return HttpResponse(client_referrals_count)
 
 
 def intervention_export_transferred_in_page(request):
@@ -3293,7 +3386,7 @@ def get_min_max_date_of_birth(request):
             minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                 client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
             max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
-            min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]))
+            min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
 
             response_data = {
                 "min_dob": min_dob,

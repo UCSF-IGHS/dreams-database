@@ -10,45 +10,23 @@
                 {{ demo_form.implementing_partner|attr:"disabled title:You cannot change Client Implementing Partner"|add_class:"input-sm form-control enrolment-input"}}
                 {{ demo_form.implementing_partner.errors }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.first_name.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.first_name.label_tag }}</label>
                 {{ demo_form.first_name |add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.middle_name.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.middle_name.label_tag }}</label>
                 {{ demo_form.middle_name |add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.last_name.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.last_name.label_tag }}</label>
                 {{ demo_form.last_name |add_class:"input-sm form-control enrolment-input" }}
-            </div>
-            <div class="form-group  form-inline">
-                {{ demo_form.date_of_birth.errors }}
-                <label class="control-label enrolment-label">{{ demo_form.date_of_birth.label_tag }}</label>
-                <div class="form-group has-feedback">
-                    {{ demo_form.date_of_birth|add_class:"input-sm form-control enrolment-input pointer-area" }}
-                    <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
-                    <script>
-                          $(function() {
-                            $( "#id_date_of_birth" ).datepicker({
-                                beforeShow: function(input, inst) {
-                                    $(document).off('focusin.bs.modal');
-                                },
-                                onClose:function(){
-                                    $(document).on('focusin.bs.modal');
-                                },
-                                minDate: (new Date('{{ min_dob }}')),
-                                maxDate: (new Date('{{ max_dob }}')),
-                                dateFormat: 'yy-mm-dd',
-                                changeMonth: true,
-                                changeYear: true
-                            });
-                          });
-                    </script>
-                </div>
             </div>
 
             <div class="form-group form-inline">
@@ -76,16 +54,45 @@
                     </script>
                 </div>
             </div>
+
+            <div class="form-group  form-inline">
+                {{ demo_form.date_of_birth.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.date_of_birth.label_tag }}</label>
+                <div class="form-group has-feedback">
+                    {{ demo_form.date_of_birth|add_class:"input-sm form-control enrolment-input pointer-area" }}
+                    <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                    <script>
+                          $(function() {
+                            $( "#id_date_of_birth" ).datepicker({
+                                beforeShow: function(input, inst) {
+                                    $(document).off('focusin.bs.modal');
+                                },
+                                onClose:function(){
+                                    $(document).on('focusin.bs.modal');
+                                },
+                                minDate: (new Date('{{ min_dob }}')),
+                                maxDate: (new Date('{{ max_dob }}')),
+                                dateFormat: 'yy-mm-dd',
+                                changeMonth: true,
+                                changeYear: true
+                            });
+                          });
+                    </script>
+                </div>
+            </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.verification_document.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.verification_document.label_tag }}</label>
                 {{ demo_form.verification_document|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:verification-doc-other" }}
             </div>
+
             <div class="form-group form-inline verification-doc-other {% if not demo_form.verification_document_other.value %} hidden {% endif %}">
                 {{ demo_form.verification_document_other.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.verification_document_other.label_tag }}</label>
                 {{ demo_form.verification_document_other|add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.verification_doc_no.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.verification_doc_no.label_tag }}</label>
@@ -96,31 +103,35 @@
                 <label class="control-label enrolment-label">{{ demo_form.marital_status.label_tag }}</label>
                 {{ demo_form.marital_status|add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.phone_number.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.phone_number.label_tag }}</label>
                 {{ demo_form.phone_number|attr:"max_length:10"|add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.dss_id_number.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.dss_id_number.label_tag }}</label>
                 {{ demo_form.dss_id_number|add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.county_of_residence.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.county_of_residence.label_tag }}</label>
                 {{ demo_form.county_of_residence|add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.sub_county.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.sub_county.label_tag }}</label>
                 {{ demo_form.sub_county|add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.ward.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.ward.label_tag }}</label>
                 {{ demo_form.ward|add_class:"input-sm form-control enrolment-input" }}
-
             </div>
 
             <div class="form-group form-inline">
@@ -128,6 +139,7 @@
                 <label class="control-label enrolment-label">{{ demo_form.informal_settlement.label_tag }}</label>
                 {{ demo_form.informal_settlement|add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.village.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.village.label_tag }}</label>
@@ -139,26 +151,31 @@
                 <label class="control-label enrolment-label">{{ demo_form.landmark.label_tag }}</label>
                 {{ demo_form.landmark|add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.dreams_id.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.dreams_id.label_tag }}</label>
                 {{ demo_form.dreams_id|attr:"disabled"|add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.guardian_name.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.guardian_name.label_tag }}</label>
                 {{ demo_form.guardian_name|add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.relationship_with_guardian.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.relationship_with_guardian.label_tag }}</label>
                 {{ demo_form.relationship_with_guardian|add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.guardian_phone_number.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.guardian_phone_number.label_tag }}</label>
                 {{ demo_form.guardian_phone_number|add_class:"input-sm form-control enrolment-input" }}
             </div>
+
             <div class="form-group form-inline">
                 {{ demo_form.guardian_national_id.errors }}
                 <label class="control-label enrolment-label">{{ demo_form.guardian_national_id.label_tag }}</label>

@@ -28,13 +28,9 @@ $(document).ready(function () {
                 'date_of_enrollment': $(this).val(),
             },
             success: function (data) {
-                $("#form_demographics #id_date_of_birth").datepicker({
-                    minDate: (new Date(data.min_dob)),
-                    maxDate: (new Date(data.max_dob)),
-                    dateFormat: 'yy-mm-dd',
-                    changeMonth: true,
-                    changeYear: true
-                });
+                $("#form_demographics #id_date_of_birth").val('');
+                $("#form_demographics #id_date_of_birth").datepicker("option", "maxDate", new Date(data.max_dob));
+                $("#form_demographics #id_date_of_birth").datepicker("option", "minDate", new Date(data.min_dob));
             },
 
             // handle a non-successful response
@@ -60,13 +56,9 @@ $(document).ready(function () {
                 'date_of_enrollment': $(this).val(),
             },
             success: function (data) {
-                $("#enrollment-form #id_date_of_birth").datepicker({
-                    minDate: (new Date(data.min_dob)),
-                    maxDate: (new Date(data.max_dob)),
-                    dateFormat: 'yy-mm-dd',
-                    changeMonth: true,
-                    changeYear: true
-                });
+                $("#enrollment-form #id_date_of_birth").val('');
+                $("#enrollment-form #id_date_of_birth").datepicker("option", "maxDate", new Date(data.max_dob));
+                $("#enrollment-form #id_date_of_birth").datepicker("option", "minDate", new Date(data.min_dob));
             },
 
             // handle a non-successful response
@@ -888,47 +880,87 @@ $(document).ready(function () {
         }
     }
 
-    $('#follow-up-entry-form').submit(function (e) {
-        var followUpType = $('select#follow_up_type').val();
-        var followUpResultType = $('select#follow_up_result_type').val();
-        var followUpDate = $('input#follow_up_date').val();
-        var followUpComments = $('textarea#follow_up_comments').val();
+    $('#follow-up-modal').on('show.bs.modal', function (e) {
+        createDatePicker("input#follow_up_date", '+0Y +0M +0D', new Date(2015, 9, 1));
+        $('select#follow_up_type').val($("select#follow_up_type option:first").val());
+        $('select#follow_up_result_type').val($("select#follow_up_result_type option:first").val());
+        $('input#follow_up_date').val('');
+        $('textarea#follow_up_comments').val('');
+    });
+
+    $('#edit-follow-up-modal').on('show.bs.modal', function (e) {
+        createDatePicker("input#edit_follow_up_date", '+0Y +0M +0D', new Date(2015, 9, 1));
+    });
+
+    $('#follow-up-entry-form').submit(function (event) {
+        $("#follow-up-entry-form #follow_up_type_warning label").addClass('hidden');
+        $("#follow-up-entry-form #follow_up_result_warning").addClass('hidden');
+        $("#follow-up-entry-form #follow_up_date_warning").addClass('hidden');
+
+        var followUpType = $('#follow-up-entry-form #follow_up_type option:selected').val();
+        var followUpResultType = $('#follow-up-entry-form #follow_up_result_type').val();
+        var followUpDate = $('#follow-up-entry-form #follow_up_date').val();
+
+        if (!followUpType) {
+            $("#follow-up-entry-form #follow_up_type_warning").removeClass('hidden');
+            $("#follow-up-entry-form #follow_up_type_warning").text('Please select follow up type');
+            return false;
+        } else {
+            $("#follow-up-entry-form #follow_up_type_warning").addClass('hidden');
+            $("#follow-up-entry-form #follow_up_type_warning").text('');
+        }
+
+        if (!followUpResultType) {
+            $("#follow-up-entry-form #follow_up_result_warning").removeClass('hidden');
+            $("#follow-up-entry-form #follow_up_result_warning").text('Please select follow up result');
+            return false;
+        } else {
+            $("#follow-up-entry-form #follow_up_result_warning").addClass('hidden');
+            $("#follow-up-entry-form #follow_up_result_warning").text('');
+        }
+
+        if (!followUpDate) {
+            $("#follow-up-entry-form #follow_up_date_warning").removeClass('hidden');
+            $("#follow-up-entry-form #follow_up_date_warning").text('Please select follow up date');
+            return false;
+        } else {
+            $("#follow-up-entry-form #follow_up_date_warning").addClass('hidden');
+            $("#follow-up-entry-form #follow_up_date_warning").text('');
+        }
 
         $('button#btn_save_follow_up').attr('disabled', 'disabled')
         $('#follow-up-entry-form .processing-indicator').removeClass('hidden');
 
-        if (validateFollowUpForm(followUpType, followUpResultType, followUpDate, followUpComments)) {
-            var csrftoken = getCookie('csrftoken');
-            $.ajax({
-                url: '/addFollowUp',
-                type: "POST",
-                dataType: 'json',
-                data: $('#follow-up-entry-form').serialize(),
-                success: function (data) {
-                    var status = data.status;
-                    var message = data.message;
-                    if (status == 'success') {
-                        $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-success')
-                            .text(message)
-                            .trigger('madeVisible');
-                        window.location.reload()
-                    } else {
-                        $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-danger')
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            url: '/addFollowUp',
+            type: "POST",
+            dataType: 'json',
+            data: $('#follow-up-entry-form').serialize(),
+            success: function (data) {
+                var status = data.status;
+                var message = data.message;
+                if (status == 'success') {
+                    $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-success')
                         .text(message)
                         .trigger('madeVisible');
-                        $("#follow-up-modal").modal('hide');
-                    }
-                }, error: function (xhr, errmsg, err) { 
+                    window.location.reload()
+                } else {
                     $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-danger')
-                        .text('An error occurred while processing client details. Contact system administratior if this persists')
-                        .trigger('madeVisible');
+                    .text(message)
+                    .trigger('madeVisible');
+                    $('#follow-up-entry-form #error-space').html("* " + message);
                 }
-            });
-        } else {
-            alert('There was an error with the submitted follow up fields. Please try again.')
-            $('button#btn_save_follow_up').removeAttr("disabled");
-            $('#follow-up-entry-form .processing-indicator').addClass('hidden');
-        }
+            }, error: function (xhr, errmsg, err) {
+                $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-danger')
+                    .text('An error occurred while processing client details. Contact system administratior if this persists')
+                    .trigger('madeVisible');
+                $('#follow-up-entry-form #error-space').html("* An error occurred while processing client details. Contact system administratior if this persists");
+            }
+        });
+
+        $('button#btn_save_follow_up').removeAttr("disabled");
+        $('#follow-up-entry-form .processing-indicator').addClass('hidden');
 
         event.preventDefault();
         event.stopPropagation();
@@ -1080,18 +1112,18 @@ $(document).ready(function () {
 
         $('form#edit-follow-up-entry-form input[type=hidden]#follow_up_id').val(follow_up_id);
         $('form#edit-follow-up-entry-form select#follow_up_type option').each(function () {
-            if ($(this).val() == follow_up_name) {
+            if ($(this).text() == follow_up_name) {
                 $(this).prop("selected", true);
             }
         });
 
         $('form#edit-follow-up-entry-form select#follow_up_result_type option').each(function () {
-            if ($(this).val() == follow_up_result) {
+            if ($(this).text() == follow_up_result) {
                 $(this).prop("selected", true);
             }
         });
 
-        $('form#edit-follow-up-entry-form textarea#follow_up_date').text(follow_up_date);
+        $('form#edit-follow-up-entry-form input#edit_follow_up_date').val(follow_up_date);
         $('form#edit-follow-up-entry-form textarea#follow_up_comments').text(follow_up_comments);
         $('#edit-follow-up-modal').show();
     });
@@ -1102,8 +1134,45 @@ $(document).ready(function () {
     });
 
     $('#btn_edit_follow_up').click(function (event) {
-        var btn = $(event.target);
+        $("#edit-follow-up-entry-form #follow_up_type_warning label").addClass('hidden');
+        $("#edit-follow-up-entry-form #follow_up_result_type_warning").addClass('hidden');
+        $("#edit-follow-up-entry-form #edit_follow_up_date_warning").addClass('hidden');
 
+        var followUpType = $('#edit-follow-up-entry-form #follow_up_type option:selected').val();
+        var followUpResultType = $('#edit-follow-up-entry-form #follow_up_result_type').val();
+        var followUpDate = $('#edit-follow-up-entry-form #edit_follow_up_date').val();
+
+        if (!followUpType) {
+            $("#edit-follow-up-entry-form #follow_up_type_warning").removeClass('hidden');
+            $("#edit-follow-up-entry-form #follow_up_type_warning").text('Please select follow up type');
+            return false;
+        } else {
+            $("#edit-follow-up-entry-form #follow_up_type_warning").addClass('hidden');
+            $("#edit-follow-up-entry-form #follow_up_type_warning").text('');
+        }
+
+        if (!followUpResultType) {
+            $("#edit-follow-up-entry-form #follow_up_result_type_warning").removeClass('hidden');
+            $("#edit-follow-up-entry-form #follow_up_result_type_warning").text('Please select follow up result');
+            return false;
+        } else {
+            $("#edit-follow-up-entry-form #follow_up_result_type_warning").addClass('hidden');
+            $("#edit-follow-up-entry-form #follow_up_result_type_warning").text('');
+        }
+
+        if (!followUpDate) {
+            $("#edit-follow-up-entry-form #edit_follow_up_date_warning").removeClass('hidden');
+            $("#edit-follow-up-entry-form #edit_follow_up_date_warning").text('Please select follow up date');
+            return false;
+        } else {
+            $("#edit-follow-up-entry-form #edit_follow_up_date_warning").addClass('hidden');
+            $("#edit-follow-up-entry-form #edit_follow_up_date_warning").text('');
+        }
+
+        $('button#btn_edit_follow_up').attr('disabled', 'disabled');
+        $('#edit-follow-up-entry-form .processing-indicator').removeClass('hidden');
+
+        var btn = $(event.target);
         var csrftoken = getCookie('csrftoken');
         $.ajax({
             url: '/editFollowUp',
@@ -1114,8 +1183,9 @@ $(document).ready(function () {
                 var alert_id = '#action_alert_follow_ups';
                 if (data.status == "success") {
                     $(alert_id).removeClass('hidden').addClass('alert-success')
-                                .text('Follow Up has been deleted successfully!')
+                                .text('Follow Up has been updated successfully!')
                                 .trigger('madeVisible');
+                    $('#confirm-follow-up-delete-modal').modal('hide');
                     window.location.reload();
                 }
                 else {
@@ -1123,16 +1193,20 @@ $(document).ready(function () {
                         .addClass('alert-danger')
                         .text(data.message)
                         .trigger('madeVisible');
+                    $('#edit-follow-up-entry-form #error-space').html("* " + data.message);
                 }
-                $('#confirm-follow-up-delete-modal').modal('hide');
+
             }, error: function (xhr, errmsg, err) {
                 $('#action_alert_follow_ups').removeClass('hidden')
                                                 .addClass('alert-danger')
                                                 .text(errmsg)
                                                 .trigger('madeVisible');
-                $('#confirm-follow-up-delete-modal').modal('hide');
+                $('#edit-follow-up-entry-form #error-space').html("* An error has occured.");
             }
         });
+
+        $('button#btn_edit_follow_up').removeAttr("disabled");
+        $('#edit-follow-up-entry-form .processing-indicator').addClass('hidden');
 
         event.stopPropagation();
         event.preventDefault();
@@ -1217,12 +1291,6 @@ $(document).ready(function () {
             }
         });
     });
-
-    function validateFollowUpForm(followUpType, followUpResultType, followUpDate, followUpComments) {
-        return followUpType != null && followUpResultType != null
-                && followUpDate != null && followUpComments != null
-                && followUpComments.trim() != ''
-    }
 
     function validateClientForm(clientForm) {
         var errors = 0;
@@ -1703,10 +1771,6 @@ $(document).ready(function () {
         });
     });
 
-    function deleteFollowUp(follow_up_id) {
-
-    }
-
     function toggleUserStatus(ip_user_id, activate, target) {
         // deactivate using ajax
         // No form, just a normal get
@@ -2050,8 +2114,34 @@ $(document).ready(function () {
         });
     });
 
+    var createDatePicker = function (elemID, maxDate, minDate, defaultDate) {
+        $(elemID).datepicker({
+            beforeShow: function (input, inst) {
+                $(document).off('focusin.bs.modal');
+            },
+            onClose: function () {
+                $(document).on('focusin.bs.modal');
+            },
+            maxDate: maxDate,
+            minDate: minDate,
+            dateFormat: 'yy-mm-dd',
+            changeMonth: true,
+            changeYear: true,
+            defaultDate: defaultDate
+        });
+    };
+
+    createDatePicker("#doe_start_filter", '0y 0m 0d', new Date(2015, 9, 1));
+    createDatePicker("#filter-log-date", '0');
+    createDatePicker("#to_intervention_date", '0y 0m 0d', (new Date(2015, 9, 1)));
+    createDatePicker("#filter-log-date-from", '0');
+    createDatePicker("#from_intervention_date", '0y 0m 0d', (new Date(2015, 9, 1)));
+    createDatePicker("#doe_end_filter", '0y 0m 0d', (new Date(2015, 9, 1)));
+    createDatePicker("#filter_date", '-24y', '-10y');
+
     $('#grievance-modal').on('show.bs.modal', function (event) {
         var viewMode = $('#grievance-modal').data('view_mode');
+        createDatePicker("#id_date", '-24y', '-10y');
         switch (viewMode) {
             case 'add':
                 $('#grievance-modal .input-sm').val("");    // reset all fields
@@ -3264,17 +3354,21 @@ $(document).ready(function () {
 
     // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
+        var localToday = new Date();
         fetchAndLoadExitReasons();
         fetchFollowUpAttempts();
         $('#client-exit-modal #id_reason_for_exit').val('');
-        $("#client-exit-modal #id_date_of_exit").datepicker("setDate", new Date());
+        $('#form_client_exit #error-space').text("");
+        createDatePicker("#client-exit-modal #id_date_of_exit", "+0Y +0M +0D", new Date(2015, 10, 1));
     });
 
     $('#client-unexit-modal').on('show.bs.modal', function (e) {
+        var localToday = new Date();
         $('#client-unexit-modal #id_reason_for_exit').val('');
-        $("#client-unexit-modal #id_date_of_exit").datepicker("setDate", new Date());
+        $('#form_client_unexit #error-space').text("");
+        createDatePicker("#client-unexit-modal #id_date_of_unexit", "+0Y +0M +0D", new Date(2015, 10, 1));
 
-        var clientStatus = $('.client_status_action_text').html()
+        var clientStatus = $('.client_status_action_text').html();
         if ($.trim(clientStatus) == 'Exit Client') {
             $('#lbl_client_exit_activation_label').html('Reason to Exit Client');
             $('#btn_submit_exit_client_form').val('Exit Client');
@@ -3283,6 +3377,7 @@ $(document).ready(function () {
             $('#lbl_client_exit_activation_label').html('Reason to Activate Client');
             $('#btn_submit_exit_client_form').html('Activate Client');
         }
+        $('#error-space').text("");
     });
 
     $("#form_client_exit").validate({
@@ -3335,7 +3430,6 @@ $(document).ready(function () {
         unhighlight: function (element) { 
             $('#form_client_unexit').find('.error').removeClass('text-danger')
          }
-
     });
 
     $('select[name=reason_for_exit]').change(function () {
@@ -3349,32 +3443,33 @@ $(document).ready(function () {
             $('div#reason_for_exit_other_section').addClass('hidden');
             $('div#reason_for_exit_other_section textarea#reason_for_exit_other').val('');
             if (followupAttempts < MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS) {
-                console.log('error');
                 $('label#reason_for_exit_error').text('Warning: client has less than 4 follow up attempts');
                 $('label#reason_for_exit_error').show();
             }
         } else {
             $('fieldset#ltfu').addClass('hidden');
             $('div#reason_for_exit_other_section').addClass('hidden');
+            $('div#reason_for_exit_other_section textarea#reason_for_exit_other').val('');
             $('label#reason_for_exit_error').hide();
         }
     });
 
     $('#form_client_unexit').on('submit',function (event) {
-        event.preventDefault()
+        event.preventDefault();
         if(!$(event.target).valid()) return false;
+        $('#form_client_unexit #error-space').text("");
 
         var reasonForUndoneExit = $('#form_client_unexit #id_reason_for_unexit').val();
         var dateOfUndoneExit = $('#form_client_unexit #id_date_of_unexit').val();
 
         if(reasonForUndoneExit == ''){
-            $('#id_reason_for_unexit_error').html('* Required field')
+            $('#id_reason_for_unexit_error').html('* Required field').css({ 'color': 'red' });
         }
         if(dateOfUndoneExit == ''){
-            $('#id_date_of_unexit_error').html('* Required field')
+            $('#id_date_of_unexit_error').html('* Required field').css({ 'color': 'red' });
         }
         if(reasonForUndoneExit == '' || dateOfUndoneExit == '')
-            return
+            return;
 
         var client_id = $('#current_client_id').val();
         if (typeof client_id == undefined || isNaN(client_id) || client_id == ''){
@@ -3390,55 +3485,66 @@ $(document).ready(function () {
                 csrfmiddlewaretoken : csrftoken,
                 client_id : client_id,
                 reason_for_exit: reasonForUndoneExit,
-                date_of_exit: dateOfUndoneExit
+                date_of_unexit: dateOfUndoneExit
             },
             success: function (data) {
                 if(data.status == 'success'){
                     var client_status = data.client_status;
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                    .text(data.message + ' Successfully')
-                   .trigger('madeVisible')
+                   .trigger('madeVisible');
                     $('.client_exit_voided_status').html(client_status);
                     $('.client_status_action_text').html('Exit Client');
+                    $('#client-unexit-modal').modal('hide');
                 }
                 else {
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                    .text(data.message)
-                   .trigger('madeVisible')
+                   .trigger('madeVisible');
+                    $('#form_client_unexit #error-space').html(data.message);
                 }
-                $('#client-unexit-modal').modal('hide');
             },
             error: function (xhr, errmsg, err) {
                 $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-               .text('Could not save changes')
-               .trigger('madeVisible')
+               .text(xhr.responseText)
+               .trigger('madeVisible');
+                $('#form_client_unexit #error-space').html(xhr.responseText);
             }
         });
     });
 
     $('#form_client_exit').on('submit', function (event) {
-        event.preventDefault()
+        event.preventDefault();
         if (!$(event.target).valid())
             return false;
-        var reasonForExit = $('select[name=reason_for_exit]').find(':selected').val();
-        var dateOfExit = $('#form_client_exit #id_date_of_exit').val();
+        $('#form_client_exit #error-space').text("");
 
+        var reasonForExit = $('select[name=reason_for_exit]').find(':selected').val();
+        var reasonForExitText = $('select[name=reason_for_exit]').find(':selected').text();
+        var dateOfExit = $('#form_client_exit #id_date_of_exit').val();
         var exitComment = $('textarea#reason_for_exit_other').val();
 
-        if ($.trim(reasonForExit) == OTHER_CODE && $.trim(exitComment) == "") {
+        if (reasonForExit == '') {
+            $('#reason_for_exit_error').html('* Required field').css({ 'color': 'red' });
+            $('#reason_for_exit_error').show();
+            return;
+        }
+
+        if ($.trim(reasonForExitText) == OTHER_CODE && $.trim(exitComment) == "") {
             $('#action_alert_gen').removeClass('hidden')
                                   .addClass('alert-danger')
                                   .text('Please ensure that reason for exit is entered.')
                                   .trigger('madeVisible');
+            $('#reason_for_other_exit_error').html('* Required field').css({ 'color': 'red' });
+            $('#reason_for_other_exit_error').show();
             return;
         }
 
-        if (dateOfExit == '') {
-            $('#id_reason_for_exit_error').html('* Required field')
+         if (dateOfExit == '') {
+            $('#date_of_exit_error').html('* Required field').css({ 'color': 'red' });
+            $('#date_of_exit_error').show();
+            return;
         }
-        
-        if (reasonForExit == '' || dateOfExit == '')
-            return
 
         var client_id = $('#current_client_id').val();
         if (typeof client_id == undefined || isNaN(client_id) || client_id == '') {
@@ -3463,21 +3569,23 @@ $(document).ready(function () {
                     //$('#demo_replacement').replaceWith(data);
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                         .text(data.message + ' Successfully')
-                        .trigger('madeVisible')
+                        .trigger('madeVisible');
                     $('.client_exit_voided_status').html(client_status);
                     $('.client_status_action_text').html('Undo Exit Client');
+                    $('#client-exit-modal').modal('hide');
                 }
                 else {
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                         .text(data.message)
-                        .trigger('madeVisible')
+                        .trigger('madeVisible');
+                    $('#form_client_exit #error-space').html(data.message);
                 }
-                $('#client-exit-modal').modal('hide');
             },
             error: function (xhr, errmsg, err) {
                 $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                     .text('Could not save changes')
-                    .trigger('madeVisible')
+                    .trigger('madeVisible');
+                $('#form_client_exit #error-space').html(xhr.responseText);
             }
         });
     });
@@ -3697,6 +3805,27 @@ $(document).ready(function () {
     }
 
     setTimeout(getClientTransfersCount(), 180000);
+
+
+    function getClientReferralsCount() {
+        var el = $('#client-referrals-count-span');
+        $.ajax({
+            url: $(el).data('count-url')
+        }).done(function (data, textStatus, jqXHR) {
+            if (data != 0) {
+                $(el).text(data).show();
+                $('.client-referrals-count-span').text(data).show();
+            } else {
+                $(el).text("").hide();
+            }
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+
+        }).always(function () {
+            setTimeout(getClientReferralsCount, 180000);
+        });
+    }
+
+    setTimeout(getClientReferralsCount(), 180000);
 
     $("#btn_submit_void_client_form").click(function (e) {
         e.preventDefault();
