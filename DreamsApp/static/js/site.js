@@ -3290,14 +3290,12 @@ $(document).ready(function () {
         fetchFollowUpAttempts();
         $('#client-exit-modal #id_reason_for_exit').val('');
         createDatePicker("#client-exit-modal #id_date_of_exit", "+0Y +0M +0D", new Date(2015, 10, 1));
-
-        $("#client-exit-modal #id_date_of_exit").datepicker("setDate", localToday);
     });
 
     $('#client-unexit-modal').on('show.bs.modal', function (e) {
         var localToday = new Date();
         $('#client-unexit-modal #id_reason_for_exit').val('');
-        createDatePicker("#client-unexit-modal #id_date_of_unexit", null, null, localToday);
+        createDatePicker("#client-unexit-modal #id_date_of_unexit", "+0Y +0M +0D", new Date(2015, 10, 1));
 
         var clientStatus = $('.client_status_action_text').html()
         if ($.trim(clientStatus) == 'Exit Client') {
