@@ -3398,7 +3398,7 @@ $(document).ready(function () {
             $('#id_date_of_unexit_error').html('* Required field')
         }
         if(reasonForUndoneExit == '' || dateOfUndoneExit == '')
-            return
+            return;
 
         var client_id = $('#current_client_id').val();
         if (typeof client_id == undefined || isNaN(client_id) || client_id == ''){
@@ -3414,7 +3414,7 @@ $(document).ready(function () {
                 csrfmiddlewaretoken : csrftoken,
                 client_id : client_id,
                 reason_for_exit: reasonForUndoneExit,
-                date_of_exit: dateOfUndoneExit
+                date_of_unexit: dateOfUndoneExit
             },
             success: function (data) {
                 if(data.status == 'success'){
