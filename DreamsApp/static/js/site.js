@@ -3289,12 +3289,15 @@ $(document).ready(function () {
         fetchAndLoadExitReasons();
         fetchFollowUpAttempts();
         $('#client-exit-modal #id_reason_for_exit').val('');
+        $('#client-exit-modal #reason_for_exit_other').val('');
         $('#form_client_exit #error-space').text("");
         createDatePicker("#client-exit-modal #id_date_of_exit", "+0Y +0M +0D", new Date(2015, 10, 1));
+        $("#client-exit-modal #id_date_of_exit").datepicker("setDate", localToday);
     });
 
     $('#client-unexit-modal').on('show.bs.modal', function (e) {
         var localToday = new Date();
+        $('#client-unexit-modal #id_reason_for_unexit').val('');
         $('#client-unexit-modal #id_reason_for_exit').val('');
         $('#form_client_unexit #error-space').text("");
         createDatePicker("#client-unexit-modal #id_date_of_unexit", "+0Y +0M +0D", new Date(2015, 10, 1));
@@ -3426,6 +3429,7 @@ $(document).ready(function () {
                    .trigger('madeVisible');
                     $('.client_exit_voided_status').html(client_status);
                     $('.client_status_action_text').html('Exit Client');
+                    $('p#p_exit_client').attr('data-target', '#client-exit-modal');
                     $('#client-unexit-modal').modal('hide');
                 }
                 else {
@@ -3484,8 +3488,8 @@ $(document).ready(function () {
 
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url: "/client/exit", // the endpoint
-            type: "POST", // http method
+            url: "/client/exit",
+            type: "POST",
             dataType: 'json',
             data: {
                 csrfmiddlewaretoken: csrftoken,
@@ -3497,12 +3501,12 @@ $(document).ready(function () {
             success: function (data) {
                 if (data.status == 'success') {
                     var client_status = data.client_status;
-                    //$('#demo_replacement').replaceWith(data);
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                         .text(data.message + ' Successfully')
                         .trigger('madeVisible');
                     $('.client_exit_voided_status').html(client_status);
                     $('.client_status_action_text').html('Undo Exit Client');
+                    $('p#p_exit_client').attr('data-target', '#client-unexit-modal');
                     $('#client-exit-modal').modal('hide');
                 }
                 else {
