@@ -15,6 +15,8 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.db import connection as db_conn_2, transaction
+from django.utils.timezone import make_aware
+from django.utils import timezone
 import urllib.parse
 import json
 from datetime import date, timedelta, datetime as dt
@@ -714,10 +716,25 @@ def unexit_client(request):
             reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
             date_of_exit = request.POST.get('date_of_unexit', datetime.now())
             client = Client.objects.filter(id=client_id).first()
+
+            if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() > dt.now().date():
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected unexit date cannot be later than today.'
+                }
+                return JsonResponse(response_data)
+
+            if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() < client.date_of_enrollment:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected unexit date cannot be earlier than client enrolment date.'
+                }
+                return JsonResponse(response_data)
+
             client.exited = not client.exited
             client.reason_exited = reason_for_exit
             client.exited_by = request.user
-            client.date_exited = date_of_exit
+            client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
             client.save()
             response_data = {
                 'status': 'success',
@@ -768,6 +785,20 @@ def exit_client(request):
                 }
                 return JsonResponse(response_data, status=500)
 
+            if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() > dt.now().date():
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected exit date cannot be later than today.'
+                }
+                return JsonResponse(response_data)
+
+            if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() < client.date_of_enrollment:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected exit date cannot be earlier than client enrolment date.'
+                }
+                return JsonResponse(response_data)
+
             if reason_for_exit is not None:
                 if reason_for_exit.code == OTHER_CODE:
                     if is_not_null_or_empty(exit_comment):
@@ -803,7 +834,7 @@ def other_client_exit(client, reason_for_exit, exit_comment, exit_user, date_of_
     client.exit_reason = reason_for_exit
     client.reason_exited = exit_comment
     client.exited_by = exit_user
-    client.date_exited = date_of_exit
+    client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
     client.save()
     return client
 
@@ -812,7 +843,7 @@ def client_exit(client, reason_for_exit, exit_user, date_of_exit):
     client.exited = True
     client.exit_reason = reason_for_exit
     client.exited_by = exit_user
-    client.date_exited = date_of_exit
+    client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
     client.save()
     return client
 
