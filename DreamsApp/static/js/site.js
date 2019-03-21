@@ -3617,20 +3617,23 @@ $(document).ready(function () {
     });
 
     $('#client-make-referral-modal').on('shown.bs.modal', function (e) {
-        $('input#referral-date').val('');
+        createDatePicker("#client-make-referral-form #referral-date", '+0Y +0M +0D', new Date(2015, 9, 1));
+
+
+        $('#client-make-referral-form #referral-date').val('');
         $('#client-make-referral-form #error-space').text("");
     });
 
     $('#client-make-referral-form').submit(function (e) {
         e.preventDefault();
         var intervention = $('select#referral-interventions-select option:selected').val();
-        var referralDate = $('input#referral-date').val();
-        var implementingPartner = $('select#implementing-partners-select option:selected').val();
+        var referralDate = $('#client-make-referral-form #referral-date').val();
+        var implementingPartner = $('#client-make-referral-form #implementing-partners-select option:selected').val();
         var toExternalOrganization = $('input[name="to-external-organization"]').is(':checked');
-        var externalOrganization = $('select#external-organization-select option:selected').val();
-        var otherOrganization = $('input#other-organization-name').val();
-        var expiryDate = $('input#expiry-date').val();
-        var comment = $('textarea#comment').text();
+        var externalOrganization = $('#client-make-referral-form #external-organization-select option:selected').val();
+        var otherOrganization = $('#client-make-referral-form #other-organization-name').val();
+        var expiryDate = $('#client-make-referral-form #expiry-date').val();
+        var comment = $('#client-make-referral-form #comment').text();
 
         $("#btn_submit_refer_client").attr("disabled", true);
         $('#referral_intervention_error').addClass('hidden');

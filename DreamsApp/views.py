@@ -1342,6 +1342,27 @@ def add_follow_up(request):
                     and follow_up_result_type is not None\
                     and follow_up_date is not None:
 
+                if not client:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Client not found.'
+                    }
+                    return JsonResponse(response_data)
+
+                if dt.strptime(str(follow_up_date), '%Y-%m-%d').date() > dt.now().date():
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Selected followup date date cannot be later than today.'
+                    }
+                    return JsonResponse(response_data)
+
+                if dt.strptime(str(follow_up_date), '%Y-%m-%d').date() < client.date_of_enrollment:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Selected followup date cannot be earlier than client enrolment date.'
+                    }
+                    return JsonResponse(response_data)
+
                 follow_up = ClientFollowUp()
                 follow_up.client = client
                 follow_up.date_of_followup = follow_up_date
@@ -1380,6 +1401,7 @@ def update_follow_up(request):
             follow_up = ClientFollowUp.objects.get(id=follow_up_id)
 
             if follow_up is not None:
+                client = follow_up.client
                 follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
                 follow_up_result_type = ClientLTFUResultType.objects.filter(id__exact=request.POST.get('follow_up_result_type')).first()
                 follow_up_date = request.POST.get('edit_follow_up_date')
@@ -1388,6 +1410,27 @@ def update_follow_up(request):
                 if follow_up_type is not None \
                         and follow_up_result_type is not None \
                         and follow_up_date is not None:
+
+                    if not client:
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'Client not found.'
+                        }
+                        return JsonResponse(response_data)
+
+                    if dt.strptime(str(follow_up_date), '%Y-%m-%d').date() > dt.now().date():
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'Selected followup date date cannot be later than today.'
+                        }
+                        return JsonResponse(response_data)
+
+                    if dt.strptime(str(follow_up_date), '%Y-%m-%d').date() < client.date_of_enrollment:
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'Selected followup date cannot be earlier than client enrolment date.'
+                        }
+                        return JsonResponse(response_data)
 
                     follow_up.date_of_followup = follow_up_date
                     follow_up.type_of_followup = follow_up_type
