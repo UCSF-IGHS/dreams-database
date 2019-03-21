@@ -7,7 +7,7 @@
     <div class="modal fade " id="client-exit-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
          xmlns="http://www.w3.org/1999/html"
          >
-        <form id="form_client_exit" class="form-horizontal">
+        <form id="form_client_exit" class="form-horizontal" method="post">
         {% csrf_token %}
           <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -30,9 +30,12 @@
                             </div>
                             <div class="form-group has-feedback">
                                  <label for="id_date_of_exit" class="control-label">Date:</label>
-                                 <input type="text" class="form-control clear_value date" id="id_date_of_exit" name="date_of_exit" required placeholder="Select date of exit" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                                 <input type="text" class="form-control clear_value date" id="id_date_of_exit" name="id_date_of_exit" required placeholder="Select date of exit" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                                  <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                                  <label id="date_of_exit_error" class="error text-danger" style="display: none;"></label>
+                            </div>
+                            <div class="form-group" id="notes_section">
+                                <span id="error-space" class="label error-space" style="color: red;"></span>
                             </div>
                         </div>
                     </div>
