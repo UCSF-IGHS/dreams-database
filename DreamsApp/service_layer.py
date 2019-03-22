@@ -10,7 +10,6 @@ class FollowUpsServiceLayer:
         self.user: User = user
         self.followup: ClientFollowUp = follow_up
 
-
     def can_create_followup(self):
         return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.add_clientfollowup')
 
