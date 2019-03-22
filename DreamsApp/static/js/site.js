@@ -1651,9 +1651,6 @@ $(document).ready(function () {
     });
     /* End of Confirmation modal*/
 
-    $('#filter-log-form').submit(function (event) {
-        // this is going as expected!
-    });
 
     $('#audit-log-clear-filtes').click(function (event) {
         $('#filter-log-text').val('');

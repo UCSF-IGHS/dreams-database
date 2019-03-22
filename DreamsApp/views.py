@@ -24,6 +24,7 @@ from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settin
 from DreamsApp.forms import *
 from dateutil.relativedelta import relativedelta
 from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, ReferralServiceLayer, FollowUpsServiceLayer
+from operator import itemgetter
 
 
 def get_enrollment_form_config_data(request):
@@ -1607,9 +1608,9 @@ def logs(request):
                 filter_date = request.GET.get('filter-log-date', '')
 
                 # getting logs
-                logs = Audit.objects.filter(Q(table__in=filter_text.split(" ")) |
-                                            Q(action__in=filter_text.split(" ")) |
-                                            Q(search_text__in=filter_text.split(" ")) |
+                logs = Audit.objects.filter(Q(table__icontains=filter_text.split(" ")[0]) |
+                                            Q(action__icontains=filter_text.split(" ")[0]) |
+                                            Q(search_text__icontains=filter_text.split(" ")[0]) |
                                             Q(user__username__icontains=filter_text.split(" ")[0]) |
                                             Q(user__first_name__icontains=filter_text.split(" ")[0]) |
                                             Q(user__last_name__icontains=filter_text.split(" ")[0])
@@ -1670,25 +1671,22 @@ def logs(request):
 
 
 def filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs):
-    if ip != '':
+    if ip:
         logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
-    if filter_date_from == '' and filter_date == '':
-        pass
-    elif filter_date_from != '' and filter_date == '':
+    if filter_date_from and not filter_date:
         fyr, fmnth, fdt = filter_date_from.split('-')
         constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-        logs = logs.filter(Q(timestamp__date__gte=constructed_date_from))
-    elif filter_date_from == '' and filter_date != '':
+        logs = logs.filter(Q(timestamp__gte=constructed_date_from))
+    elif not filter_date_from and filter_date:
         yr, mnth, dat = filter_date.split('-')
         constructed_date = date(int(yr), int(mnth), int(dat))
-        logs = logs.filter(Q(timestamp__date__lte=constructed_date))
-    else:
+        logs = logs.filter(Q(timestamp__lte=constructed_date))
+    elif filter_date_from and filter_date:
         yr, mnth, dat = filter_date.split('-')
         constructed_date = date(int(yr), int(mnth), int(dat))
         fyr, fmnth, fdt = filter_date_from.split('-')
         constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-        logs = logs.filter(Q(timestamp__date__gte=constructed_date_from) &
-                           Q(timestamp__date__lte=constructed_date))
+        logs = logs.filter(Q(timestamp__gte=constructed_date_from) and Q(timestamp__lte=constructed_date))
     return logs
 
 
@@ -3155,13 +3153,16 @@ def download_audit_logs(request):
             filter_date = request.GET.get('filter-log-date', '')
 
             # getting logs
-            logs = Audit.objects.filter(Q(table__in=filter_text.split(" ")) |
-                                        Q(action__in=filter_text.split(" ")) |
-                                        Q(search_text__in=filter_text.split(" ")) |
+            logs = None
+
+            logs = Audit.objects.filter(Q(table__icontains=filter_text.split(" ")[0]) |
+                                        Q(action__icontains=filter_text.split(" ")[0]) |
+                                        Q(search_text__icontains=filter_text.split(" ")[0]) |
                                         Q(user__username__icontains=filter_text.split(" ")[0]) |
                                         Q(user__first_name__icontains=filter_text.split(" ")[0]) |
                                         Q(user__last_name__icontains=filter_text.split(" ")[0])
                                         ).order_by('-timestamp')
+
 
             logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs).values()
 
@@ -3177,15 +3178,17 @@ def download_audit_logs(request):
             writer.writerow(header)
 
             for log in logs:
-                audittrail = AuditTrail.objects.filter(audit=Audit.objects.get(id=log['id'])).values()
+                audittrail = AuditTrail.objects.filter(Q(audit_id=log['id'])).values()
                 column = ""
                 old_value = ""
                 new_value = ""
 
-                for trail in audittrail:
-                    column += str(trail['column']) + '\n'
-                    old_value += str(trail['old_value']) + '\n'
-                    new_value += str(trail['new_value']) + '\n'
+                if len(audittrail) > 0:
+                    mykeys = ['column', 'old_value', 'new_value']
+                    myvalues = [itemgetter(*mykeys)(x) for x in audittrail]
+                    column = ', '.join([str(x[0]) for x in myvalues])
+                    old_value = ', '.join([str(x[1]) for x in myvalues])
+                    new_value = ', '.join([str(x[2]) for x in myvalues])
 
                 writer.writerow({'timestamp': log['timestamp'], 'user_name': get_user_name(log['user_id']), 'table': log['table'], 'column': column, 'old_value': old_value, 'new_value': new_value, 'action': log['action'], 'search_text': log['search_text']})
 
