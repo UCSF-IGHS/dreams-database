@@ -1225,7 +1225,7 @@ def initiate_referral(request):
                 else:
                     referral.receiving_ip = ImplementingPartner.objects.filter(id__exact=int(request.POST.get('implementing-partners-select'))).first()
 
-                #referral.save()
+                referral.save()
                 response_data = {
                     'status': 'success',
                     'message': 'Referral added'
