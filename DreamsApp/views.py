@@ -2400,7 +2400,7 @@ def download_raw_enrollment_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.prepare_enrolment_export_doc(response, ip_list_str, sub_county, ward, show_PHI)
+        export_doc.prepare_enrolment_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
 
         return response
 
@@ -2425,7 +2425,7 @@ def download_raw_intervention_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_intervention_excel_doc(response, ip_list_str, sub_county, ward, show_PHI)
+        export_doc.get_intervention_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
 
         return response
     except Exception as e:
@@ -2481,7 +2481,7 @@ def download_services_received_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_individual_layering_report(response, ip_list_str, sub_county, ward, show_PHI)
+        export_doc.get_individual_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
         return response
 
     except Exception as e:
