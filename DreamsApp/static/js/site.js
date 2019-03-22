@@ -206,7 +206,7 @@ $(document).ready(function () {
         row_string += "</ul>"
             + "</div>"
             + "</td>"
-            + "</tr>"
+            + "</tr>";
 
         if (append)
             clients_tbody.append(row_string);
@@ -324,11 +324,11 @@ $(document).ready(function () {
 
     $('#dreams-profile-tab-control a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         //Load tabs
-        var target = $(e.target)
-        var panel_id = target.attr('href')
+        var target = $(e.target);
+        var panel_id = target.attr('href');
         var intervention_category_code = target.data("intervention_category_code");
-        var table_id = $(this).data("tab_intervention_table_id")
-        var row_count = $(table_id + '  tbody  tr').length
+        var table_id = $(this).data("tab_intervention_table_id");
+        var row_count = $(table_id + '  tbody  tr').length;
         if (row_count > 0)
             return  // Loading has been done before...
 
@@ -356,6 +356,7 @@ $(document).ready(function () {
                 var hts_results = $.parseJSON(data.hts_results);
                 var pregnancy_results = $.parseJSON(data.pregnancy_results);
                 var permissions = $.parseJSON(data.permissions);
+                interventionPermissionsGlobal = permissions;
                 // Clear table
                 $(table_id + '  tbody').empty();
                 $.each(ivs, function (index, iv) {
@@ -372,7 +373,7 @@ $(document).ready(function () {
                         iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
                         iv.fields.no_of_sessions_attended = iv.fields.no_of_sessions_attended == null ? "" : iv.fields.no_of_sessions_attended;
 
-                        if (data.is_editable_by_ip[iv.pk] == false) {
+                        if (data.is_editable_by_ip[iv.pk] == false || data.client_is_exited[iv.pk] == false) {
                             permissions = null;
                         }
 
@@ -394,6 +395,7 @@ $(document).ready(function () {
 
             // handle a non-successful response
             error: function (xhr, errmsg, err) {
+                interventionPermissionsGlobal = null;
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                     " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
                 console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
@@ -662,15 +664,28 @@ $(document).ready(function () {
 
         var can_change_intervention = permissions.can_change_intervention;
         var can_delete_intervention = permissions.can_delete_intervention;
+        var client_is_exited = permissions.client_is_exited;
 
-        if (can_change_intervention && can_delete_intervention) {
-            return "<td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td>";
-        } else if (can_change_intervention) {
-            return "<td> <span class='glyphicon glyphicon-pencil edit_intervention_click' arial-label='Arial-Hidden' > Edit</span> </td>";
-        } else if (can_delete_intervention) {
-            return "<td> <span class='glyphicon glyphicon-trash delete_intervention_click' arial-label='Arial-Hidden'> Delete</span> </td>";
+        if (client_is_exited) {
+            if (can_change_intervention && can_delete_intervention) {
+                return "<td><span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Delete</span> </td>";
+            } else if (can_change_intervention) {
+                return "<td><span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Edit</span> </td>";
+            } else if (can_delete_intervention) {
+                return "<td><span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Delete</span> </td>";
+            } else {
+                return "";
+            }
         } else {
-            return "";
+            if (can_change_intervention && can_delete_intervention) {
+                return "<td> <span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden'> Delete</span> </td>";
+            } else if (can_change_intervention) {
+                return "<td> <span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' > Edit</span> </td>";
+            } else if (can_delete_intervention) {
+                return "<td> <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden'> Delete</span> </td>";
+            } else {
+                return "";
+            }
         }
     }
 
@@ -932,9 +947,9 @@ $(document).ready(function () {
             dataType: 'json',
             data: $('#intervention-entry-form').serialize(),
             success: function (data) {
-                var status = data.status
-                var message = data.message
-                var alert_id = '#action_alert_' + currentInterventionCategoryCode_Global
+                var status = data.status;
+                var message = data.message;
+                var alert_id = '#action_alert_' + currentInterventionCategoryCode_Global;
                 if (status == 'fail') {
                     $(alert_id).removeClass('hidden').addClass('alert-danger')
                         .text(message)
@@ -959,7 +974,7 @@ $(document).ready(function () {
                     iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
                     iv.fields.no_of_sessions_attended = iv.fields.no_of_sessions_attended == null ? "" : iv.fields.no_of_sessions_attended;
                     if (modalMode == "new") {
-                        if (data.is_editable_by_ip[iv.pk] == false) {
+                        if (data.is_editable_by_ip[iv.pk] == false || data.client_is_exited[iv.pk] == false) {
                             permissions = null;
                         }
 
@@ -970,7 +985,7 @@ $(document).ready(function () {
                             .trigger('madeVisible')
                     }
                     else if (modalMode == "edit") {
-                        var row_id = 'intervention_' + iv.pk
+                        var row_id = 'intervention_' + iv.pk;
                         $('#' + row_id + ' .intervention_date').text(iv.fields.intervention_date);
                         // check for the rest of the fields
                         // Specified name
@@ -3282,16 +3297,15 @@ $(document).ready(function () {
         }
     });
 
-
     // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
         var localToday = new Date();
         fetchAndLoadExitReasons();
         fetchFollowUpAttempts();
         $('#client-exit-modal #id_reason_for_exit').val('');
+        createDatePicker("#client-exit-modal #id_date_of_exit", localToday, new Date(2015, 10, 1), localToday);
         $('#client-exit-modal #reason_for_exit_other').val('');
         $('#form_client_exit #error-space').text("");
-        createDatePicker("#client-exit-modal #id_date_of_exit", "+0Y +0M +0D", new Date(2015, 10, 1));
         $("#client-exit-modal #id_date_of_exit").datepicker("setDate", localToday);
     });
 
@@ -3299,8 +3313,8 @@ $(document).ready(function () {
         var localToday = new Date();
         $('#client-unexit-modal #id_reason_for_unexit').val('');
         $('#client-unexit-modal #id_reason_for_exit').val('');
+        createDatePicker("#client-unexit-modal #id_date_of_unexit", localToday, new Date(2015, 10, 1), localToday);
         $('#form_client_unexit #error-space').text("");
-        createDatePicker("#client-unexit-modal #id_date_of_unexit", "+0Y +0M +0D", new Date(2015, 10, 1));
 
         var clientStatus = $('.client_status_action_text').html();
         if ($.trim(clientStatus) == 'Exit Client') {
@@ -3425,11 +3439,16 @@ $(document).ready(function () {
                 if(data.status == 'success'){
                     var client_status = data.client_status;
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                   .text(data.message + ' Successfully')
+                   .text(data.message + ' successfully')
                    .trigger('madeVisible');
                     $('.client_exit_voided_status').html(client_status);
                     $('.client_status_action_text').html('Exit Client');
                     $('p#p_exit_client').attr('data-target', '#client-exit-modal');
+                    $('#client-unexit-modal').modal('hide');
+
+                    // this hides add, edit, delete elements in followups, interventions, enrolment pages
+                    addUserActions(interventionPermissionsGlobal);
+                    $('.exit_unexit_toggle').show();
                     $('#client-unexit-modal').modal('hide');
                 }
                 else {
@@ -3459,6 +3478,7 @@ $(document).ready(function () {
         var dateOfExit = $('#form_client_exit #id_date_of_exit').val();
         var exitComment = $('textarea#reason_for_exit_other').val();
 
+        $('#error-space').text("");
         if (reasonForExit == '') {
             $('#reason_for_exit_error').html('* Required field').css({ 'color': 'red' });
             $('#reason_for_exit_error').show();
@@ -3502,11 +3522,15 @@ $(document).ready(function () {
                 if (data.status == 'success') {
                     var client_status = data.client_status;
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                        .text(data.message + ' Successfully')
+                        .text(data.message + ' successfully')
                         .trigger('madeVisible');
                     $('.client_exit_voided_status').html(client_status);
                     $('.client_status_action_text').html('Undo Exit Client');
                     $('p#p_exit_client').attr('data-target', '#client-unexit-modal');
+                    $('#client-exit-modal').modal('hide');
+
+                    // this unhides add, edit, delete elements in followups, interventions, enrolment pages
+                    $('.exit_unexit_toggle').hide();
                     $('#client-exit-modal').modal('hide');
                 }
                 else {
@@ -3518,7 +3542,7 @@ $(document).ready(function () {
             },
             error: function (xhr, errmsg, err) {
                 $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                    .text('Could not save changes')
+                    .text(xhr.responseText)
                     .trigger('madeVisible');
                 $('#form_client_exit #error-space').html(xhr.responseText);
             }
@@ -3526,15 +3550,15 @@ $(document).ready(function () {
     });
 
     $('#collapseOne').on('shown.bs.collapse', function () {
-        $('#search-expand-collapse-glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus')
-        $('#advanced_filter_text_span').html('Hide Advanced Search Filters')
+        $('#search-expand-collapse-glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus');
+        $('#advanced_filter_text_span').html('Hide Advanced Search Filters');
         // Set advanced search
-        $('#is_advanced_search').val('True')
+        $('#is_advanced_search').val('True');
     });
 
     $('#collapseOne').on('hidden.bs.collapse', function () {
-        $('#search-expand-collapse-glyphicon').removeClass('glyphicon-minus').addClass('glyphicon-plus')
-        $('#advanced_filter_text_span').html('Show Search Advanced Filters')
+        $('#search-expand-collapse-glyphicon').removeClass('glyphicon-minus').addClass('glyphicon-plus');
+        $('#advanced_filter_text_span').html('Show Search Advanced Filters');
         // Handle reset of advanced filters
         $('#is_advanced_search').val('False')
     });
