@@ -15,6 +15,8 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.db import connection as db_conn_2, transaction
+from django.utils.timezone import make_aware
+from django.utils import timezone
 import urllib.parse
 import json
 from datetime import date, timedelta, datetime as dt
@@ -263,7 +265,7 @@ def clients(request):
                 client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
                 minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
                 max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
-                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]))
+                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
 
                 response_data = {
                     'page': 'clients',
@@ -305,7 +307,7 @@ def follow_ups(request):
                 client = Client.objects.get(id=client_id)
                 client_follow_ups = ClientFollowUp.objects.filter(client=client)
 
-                follow_up_service_layer = FollowUpsServiceLayer(request.user)
+                follow_up_service_layer = FollowUpsServiceLayer(request.user, client)
                 follow_up_perms = {
                     'can_create_follow_up': follow_up_service_layer.can_create_followup(),
                     'can_delete_follow_up': follow_up_service_layer.can_delete_followup(),
@@ -364,6 +366,11 @@ def client_profile(request):
                     ip_code = None
             except Exception as e:
                 ip_code = None
+
+            client_found = None
+            is_editable_by_ip = False
+            can_add_intervention = False
+            client_status = None
 
             try:
                 client_found = Client.objects.get(id=client_id)
@@ -544,10 +551,10 @@ def edit_client(request):
                 client_id = int(str(request.POST.get('client_id')))
                 client = Client.objects.filter(id=client_id).first()
 
-                if not client.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner):
+                if not client.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner) or client.exited:
                     response_data = {
                         'status': 'failed',
-                        'message': 'Operation not allowed. Client is not editable by your Implementing partner',
+                        'message': 'Operation not allowed. Client is not editable by your Implementing partner or is exited',
                         'client_id': client.id
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
@@ -635,10 +642,10 @@ def delete_client(request):
                 client_id = int(request.GET['client_id'])
                 client = Client.objects.filter(id__exact=client_id).first()
 
-                if not client.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner):
+                if not client.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner) or client.exited:
                     response_data = {
                         'status': 'failed',
-                        'message': 'Operation not allowed. Client is not editable by your Implementing partner',
+                        'message': 'Operation not allowed. Client is not editable by your Implementing partner or is exited',
                         'client_id': client.id
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
@@ -709,10 +716,25 @@ def unexit_client(request):
             reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
             date_of_exit = request.POST.get('date_of_unexit', datetime.now())
             client = Client.objects.filter(id=client_id).first()
+
+            if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() > dt.now().date():
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected unexit date cannot be later than today.'
+                }
+                return JsonResponse(response_data)
+
+            if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() < client.date_of_enrollment:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected unexit date cannot be earlier than client enrolment date.'
+                }
+                return JsonResponse(response_data)
+
             client.exited = not client.exited
             client.reason_exited = reason_for_exit
             client.exited_by = request.user
-            client.date_exited = date_of_exit
+            client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
             client.save()
             response_data = {
                 'status': 'success',
@@ -746,14 +768,45 @@ def exit_client(request):
             date_of_exit = request.POST.get('date_of_exit', datetime.now())
             exit_comment = request.POST.get('exit_comment')
 
+            client = Client.objects.get(id=client_id)
+            if not client:
+                response_data = {
+                    'status': 'failed',
+                    'message': 'There is no client found.'
+                }
+                return JsonResponse(response_data, status=500)
+
+            last_intervention_offered = get_last_intervention_offered(client)
+
+            if last_intervention_offered and dt.strptime(str(last_intervention_offered.intervention_date), '%Y-%m-%d').date() > dt.strptime(date_of_exit, '%Y-%m-%d').date():
+                response_data = {
+                    'status': 'failed',
+                    'message': 'You cannot exit this client since she has received an intervention after the selected exit date.'
+                }
+                return JsonResponse(response_data, status=500)
+
+            if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() > dt.now().date():
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected exit date cannot be later than today.'
+                }
+                return JsonResponse(response_data)
+
+            if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() < client.date_of_enrollment:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected exit date cannot be earlier than client enrolment date.'
+                }
+                return JsonResponse(response_data)
+
             if reason_for_exit is not None:
                 if reason_for_exit.code == OTHER_CODE:
                     if is_not_null_or_empty(exit_comment):
-                        exited_client = other_client_exit(client_id, reason_for_exit, exit_comment, request.user, date_of_exit)
+                        exited_client = other_client_exit(client, reason_for_exit, exit_comment, request.user, date_of_exit)
                     else:
                         raise Exception('Reason for exit missing')
                 else:
-                    exited_client = client_exit(client_id, reason_for_exit, request.user, date_of_exit)
+                    exited_client = client_exit(client, reason_for_exit, request.user, date_of_exit)
 
             response_data = {
                 'status': 'success',
@@ -776,25 +829,31 @@ def exit_client(request):
         return JsonResponse(response_data, status=500)
 
 
-def other_client_exit(client_id, reason_for_exit, exit_comment, exit_user, date_of_exit):
-    client = Client.objects.filter(id=client_id).first()
+def other_client_exit(client, reason_for_exit, exit_comment, exit_user, date_of_exit):
     client.exited = True
     client.exit_reason = reason_for_exit
     client.reason_exited = exit_comment
     client.exited_by = exit_user
-    client.date_exited = date_of_exit
+    client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
     client.save()
     return client
 
 
-def client_exit(client_id, reason_for_exit, exit_user, date_of_exit):
-    client = Client.objects.filter(id=client_id).first()
+def client_exit(client, reason_for_exit, exit_user, date_of_exit):
     client.exited = True
     client.exit_reason = reason_for_exit
     client.exited_by = exit_user
-    client.date_exited = date_of_exit
+    client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
     client.save()
     return client
+
+
+def get_last_intervention_offered(client: Client):
+    last_intervention = None
+    get_last_intervention = Intervention.objects.filter(client=client).order_by("-intervention_date")
+    if get_last_intervention:
+        last_intervention = get_last_intervention.first()
+    return last_intervention
 
 
 def testajax(request):
@@ -1109,7 +1168,8 @@ def save_intervention(request):
                                     'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
                                 }),
                                 'is_editable_by_ip': is_editable_by_ip,
-                                'is_visible_by_ip': is_visible_by_ip
+                                'is_visible_by_ip': is_visible_by_ip,
+                                'client_is_exited': intervention.client.exited
                             }
                             return JsonResponse(response_data)
 
@@ -1203,10 +1263,12 @@ def get_intervention_list(request):
                 'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
                 'permissions': json.dumps({
                     'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
-                    'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
+                    'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention'),
+                    'client_is_exited': client_found.exited
                 }),
                 'is_editable_by_ip': is_editable_by_ip,
-                'is_visible_by_ip': is_visible_by_ip
+                'is_visible_by_ip': is_visible_by_ip,
+                'client_is_exited': client_found.exited
             }
             return JsonResponse(response_data)
         else:
@@ -1251,20 +1313,56 @@ def add_follow_up(request):
             follow_up_date = request.POST.get('follow_up_date')
             follow_up_comments = request.POST.get('follow_up_comments')
 
-            follow_up = ClientFollowUp()
-            follow_up.client = client
-            follow_up.date_of_followup = follow_up_date
-            follow_up.type_of_followup = follow_up_type
-            follow_up.result_of_followup = follow_up_result_type
-            follow_up.comment = follow_up_comments
-            follow_up.save()
+            if not client or client.exited:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'There is no client found or the client has been exited.'
+                }
+                return JsonResponse(response_data)
 
-            response_data = {
-                'status': 'success',
-                'message': 'Follow up details added'
-            }
-            return JsonResponse(response_data, status=200)
+            if dt.strptime(str(follow_up_date), '%Y-%m-%d').date() > dt.now().date():
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected follow up date cannot be later than today.'
+                }
+                return JsonResponse(response_data)
 
+            if dt.strptime(str(follow_up_date), '%Y-%m-%d').date() < client.date_of_enrollment:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected follow up date cannot be earlier than client enrolment date.'
+                }
+                return JsonResponse(response_data)
+
+            add_follow_up_perm = FollowUpsServiceLayer(request.user)
+            if not add_follow_up_perm.can_create_followup():
+                response_data = {
+                    'status': 'fail',
+                    'message': 'You do not have permission to add a followup.'
+                }
+                return JsonResponse(response_data)
+
+            if follow_up_type is not None \
+                    and follow_up_result_type is not None\
+                    and follow_up_date is not None:
+
+                follow_up = ClientFollowUp()
+                follow_up.client = client
+                follow_up.date_of_followup = follow_up_date
+                follow_up.type_of_followup = follow_up_type
+                follow_up.result_of_followup = follow_up_result_type
+                follow_up.comment = follow_up_comments
+                follow_up.save()
+
+                response_data = {
+                    'status': 'success',
+                    'message': 'Follow up details added'
+                }
+            else:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Error with submitted follow up details'
+                }
     except Exception as e:
         if type(e) is ValidationError:
             errormsg = '; '.join(ValidationError(e).messages)
@@ -1275,7 +1373,8 @@ def add_follow_up(request):
             'status': 'fail',
             'message': "An error has occurred: " + errormsg
         }
-        return JsonResponse(response_data)
+
+    return JsonResponse(response_data)
 
 
 def update_follow_up(request):
@@ -1285,28 +1384,66 @@ def update_follow_up(request):
             follow_up = ClientFollowUp.objects.get(id=follow_up_id)
 
             if follow_up is not None:
+                client = follow_up.client
+
+                if not client or client.exited:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'There is no client found or the client has been exited.'
+                    }
+                    return JsonResponse(response_data)
+
+                edit_follow_up_perm = FollowUpsServiceLayer(request.user)
+                if not edit_follow_up_perm.can_edit_followup():
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'You do not have permission to edit a followup.'
+                    }
+                    return JsonResponse(response_data)
+
                 follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
                 follow_up_result_type = ClientLTFUResultType.objects.filter(id__exact=request.POST.get('follow_up_result_type')).first()
-                follow_up_date = request.POST.get('follow_up_date')
+                follow_up_date = request.POST.get('edit_follow_up_date')
                 follow_up_comments = request.POST.get('follow_up_comments')
 
-                follow_up.date_of_followup = follow_up_date
-                follow_up.type_of_followup = follow_up_type
-                follow_up.result_of_followup = follow_up_result_type
-                follow_up.comment = follow_up_comments
-                follow_up.save()
+                if dt.strptime(str(follow_up_date), '%Y-%m-%d').date() > dt.now().date():
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Selected follow up date cannot be later than today.'
+                    }
+                    return JsonResponse(response_data)
 
-                response_data = {
-                    'status': 'success',
-                    'message': 'Follow up details updated'
-                }
-                return JsonResponse(response_data)
+                if dt.strptime(str(follow_up_date), '%Y-%m-%d').date() < client.date_of_enrollment:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Selected follow up date cannot be earlier than client enrolment date.'
+                    }
+                    return JsonResponse(response_data)
+
+                if follow_up_type is not None \
+                        and follow_up_result_type is not None \
+                        and follow_up_date is not None:
+
+                    follow_up.date_of_followup = follow_up_date
+                    follow_up.type_of_followup = follow_up_type
+                    follow_up.result_of_followup = follow_up_result_type
+                    follow_up.comment = follow_up_comments
+                    follow_up.save()
+
+                    response_data = {
+                        'status': 'success',
+                        'message': 'Follow up details updated'
+                    }
+                else:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Error with submitted follow up details'
+                    }
             else:
                 response_data = {
                     'status': 'fail',
                     'message': "Error follow up not found"
                 }
-                return JsonResponse(response_data)
     except Exception as e:
         if type(e) is ValidationError:
             errormsg = '; '.join(ValidationError(e).messages)
@@ -1317,7 +1454,8 @@ def update_follow_up(request):
             'status': 'fail',
             'message': "An error has occurred: " + errormsg
         }
-        return JsonResponse(response_data)
+
+    return JsonResponse(response_data)
 
 
 def update_intervention(request):
@@ -1330,9 +1468,9 @@ def update_intervention(request):
                 if intervention_id is not None and type(intervention_id) is int:
                     intervention = Intervention.objects.get(id__exact=intervention_id)
 
-                    if not intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner):
+                    if not intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner) or intervention.client.exited:
                         raise Exception(
-                            'You do not have the rights to update this intervention.'
+                            'You do not have the rights to update this intervention or the client has been exited.'
                         )
 
                     # check if intervention belongs to the ip
@@ -1408,8 +1546,10 @@ def update_intervention(request):
                             'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
                             'permissions': json.dumps({
                                 'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
-                                'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
-                            })
+                                'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention'),
+                                'client_is_exited': intervention.client.exited
+                            }),
+                            'client_is_exited': intervention.client.exited
                         }
                     else:
                         # Intervention does not belong to Implementing partner. Send back error message
@@ -1452,6 +1592,23 @@ def delete_follow_up(request):
                 follow_up = ClientFollowUp.objects.filter(pk=follow_up_id).first()
 
                 if follow_up is not None:
+                    client = follow_up.client
+
+                    if not client or client.exited:
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'There is no client found or the client has been exited.'
+                        }
+                        return JsonResponse(response_data)
+
+                    delete_follow_up_perm = FollowUpsServiceLayer(request.user)
+                    if not delete_follow_up_perm.can_delete_followup():
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'You do not have permission to delete a followup.'
+                        }
+                        return JsonResponse(response_data)
+
                     ClientFollowUp.objects.filter(pk=follow_up_id).delete()
                     log_custom_actions(request.user.id, "DreamsApp_clientfollowup", follow_up_id, "DELETE", None)
 
@@ -1489,10 +1646,10 @@ def delete_intervention(request):
                     # Check if intervention belongs to IP
                     intervention = Intervention.objects.filter(pk=intervention_id).first()
 
-                    if not intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner):
+                    if not intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner) or intervention.client.exited:
                         response_data = {
                             'status': 'fail',
-                            'message': 'You do not have the rights to delete this intervention.'
+                            'message': 'You do not have the rights to delete this intervention or the client has been exited.'
                         }
                         return JsonResponse(response_data)
 
@@ -2314,7 +2471,7 @@ def download_raw_enrollment_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.prepare_enrolment_export_doc(response, ip_list_str, sub_county, ward, show_PHI)
+        export_doc.prepare_enrolment_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
 
         return response
 
@@ -2339,7 +2496,7 @@ def download_raw_intervention_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_intervention_export_doc(response, ip_list_str, sub_county, ward, show_PHI)
+        export_doc.get_intervention_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
 
         return response
     except Exception as e:
@@ -2395,7 +2552,7 @@ def download_services_received_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_individual_layering_report(response, ip_list_str, sub_county, ward, show_PHI)
+        export_doc.get_individual_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
         return response
 
     except Exception as e:
@@ -2473,7 +2630,7 @@ def viewBaselineData(request):
                     minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                         client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
                     max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
-                    min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]))
+                    min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
 
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
@@ -2788,6 +2945,22 @@ def transfer_client(request):
 
                 transfer_form = ClientTransferForm(request.POST)
                 if transfer_form.is_valid():
+                    client = transfer_form.instance.client
+                    if not client or client.exited:
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'There is no client found or the client has been exited.'
+                        }
+                        return JsonResponse(response_data)
+
+                    initiate_transfer_perm = TransferServiceLayer(request.user)
+                    if not initiate_transfer_perm.can_initiate_transfer():
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'You do not have permission to initiate a tranfer.'
+                        }
+                        return JsonResponse(response_data)
+
                     num_of_pending_transfers = ClientTransfer.objects.filter(client=transfer_form.instance.client,
                                                                              transfer_status=ClientTransferStatus.objects.get(
                                                                                  code__exact=TRANSFER_INITIATED_STATUS)).count()
@@ -2800,7 +2973,6 @@ def transfer_client(request):
                         }
                     else:
                         client_transfer = transfer_form.save(commit=False)
-
                         client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
                         client_transfer.source_implementing_partner = ip
                         client_transfer.initiated_by = request.user
@@ -2917,35 +3089,42 @@ def accept_client_transfer(request):
                 client_transfer_id = request.POST.get("id", "")
                 if client_transfer_id != "":
                     client_transfer = ClientTransfer.objects.get(id__exact=client_transfer_id)
+                    client = client_transfer.client
 
-                    transfer_perm = TransferServiceLayer(request.user, client_transfer=client_transfer)
-                    can_accept_transfer = transfer_perm.can_accept_transfer()
+                    if client and not client.exited:
+                        transfer_perm = TransferServiceLayer(request.user, client_transfer=client_transfer)
+                        can_accept_transfer = transfer_perm.can_accept_transfer()
 
-                    if not can_accept_transfer:
-                        raise PermissionDenied
+                        if not can_accept_transfer:
+                            raise PermissionDenied
 
-                    if client_transfer is not None:
-                        accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
+                        if client_transfer is not None:
+                            accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
 
-                        client_transfer.transfer_status = accepted_client_transfer_status
-                        client_transfer.completed_by = request.user
-                        client_transfer.end_date = dt.now()
+                            client_transfer.transfer_status = accepted_client_transfer_status
+                            client_transfer.completed_by = request.user
+                            client_transfer.end_date = dt.now()
 
-                        # Update the client to receive interventions from this new ip.
-                        client = Client.objects.get(id__exact=client_transfer.client.id)
-                        if ip is None and request.user.is_superuser:
-                            ip = client_transfer.destination_implementing_partner
-                        client.implementing_partner = ip
+                            # Update the client to receive interventions from this new ip.
+                            client = Client.objects.get(id__exact=client_transfer.client.id)
+                            if ip is None and request.user.is_superuser:
+                                ip = client_transfer.destination_implementing_partner
+                            client.implementing_partner = ip
 
-                        with transaction.atomic():
-                            client.save()
-                            client_transfer.save()
+                            with transaction.atomic():
+                                client.save()
+                                client_transfer.save()
 
-                        messages.info(request, "Transfer successfully accepted.")
-                        return redirect("/client?client_id={}".format(client.id))
+                            messages.info(request, "Transfer successfully accepted.")
+                            return redirect("/client?client_id={}".format(client.id))
+                        else:
+                            messages.error(request,
+                                           "Transfer not effected. There is no client or the client has been exited.")
+
                     else:
                         messages.error(request,
                                        "Transfer not effected. Contact System Administrator if this error Persists.")
+
                 else:
                     messages.error(request,
                                    "Transfer not effected. Contact System Administrator if this error Persists.")
@@ -3318,7 +3497,7 @@ def get_min_max_date_of_birth(request):
             minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                 client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
             max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
-            min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]))
+            min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
 
             response_data = {
                 "min_dob": min_dob,

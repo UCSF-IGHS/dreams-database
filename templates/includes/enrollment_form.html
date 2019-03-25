@@ -41,7 +41,65 @@
                              <span id="spn_last_name" class="clear_span"></span>
                          </div>
 
-                         <div class="form-group has-feedback">
+                        <div class="form-group has-feedback">
+                             <label for="date_of_enrollment" class="control-label">Date of Enrollment:</label>
+                             <input type="text" class="form-control clear_value" name="date_of_enrollment" id="id_date_of_enrollment" placeholder="Select date of Enrollment" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                             <script>
+                                $(function() {
+                                  $( "#id_date_of_enrollment").datepicker({
+                                      beforeShow: function(input, inst) {
+                                          $(document).off('focusin.bs.modal');
+                                      },
+                                      onClose:function(){
+                                          $(document).on('focusin.bs.modal');
+                                      },
+                                      maxDate: '0y 0m 0d',
+                                      minDate:  (new Date(2015, 9 , 1)),
+                                      dateFormat: 'yy-mm-dd',
+                                      changeMonth: true,
+                                      changeYear: true
+                                  });
+                                });
+                                {% if client != None %}
+                                    setTimeout(function () {
+
+                                    }, 1000);
+                                {% endif %}
+                            </script>
+                             <span id="spn_date_of_enrollment" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group hidden">
+                             <label for="aget_at_enrollment" class="control-label">Age at Enrollment</label>
+                             <input type="text" class="form-control validate_field clear_value" id="id_age_at_enrollment" name="age_at_enrollment" >
+                             <span id="spn_age_at_enrollment" class="clear_span"></span>
+                         </div>
+
+                        <div class="form-group">
+                            <label for="verification_document">Verification Document</label>
+                            <select id="id_verification_document" name="verification_document" class="form-control  enrolment-input listen-to-change" data-show_value="96" data-show_if_true="verification-doc-other" >
+                                <option value="">Select Option</option>
+                                {% for verification_document in verification_documents %}
+                                <option data-verification_document_id="{{ verification_document.id }}" value="{{ verification_document.code }}">{{ verification_document.name }}</option>
+                                {% endfor %}
+                            </select>
+                             <span id="spn_verification_document" class="clear_span"></span>
+                        </div>
+
+                        <div class="form-group verification-doc-other hidden">
+                             <label for="verification-doc-other" class="control-label">Verification Doc. Other</label>
+                             <input type="text" class="form-control  clear_value" id="id_verification-doc-other" name="verification-doc-other" >
+                             <span id="spn_verification-doc-other" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="verification_doc_no" class="control-label">Verification Doc. No.</label>
+                             <input type="text" class="form-control validate_field clear_value" id="id_verification_doc_no" name="verification_doc_no" >
+                             <span id="spn_verification_doc_no" class="clear_span"></span>
+                         </div>
+
+                        <div class="form-group has-feedback">
                              <label for="date_of_birth" class="control-label">Date of Birth:</label>
                              <input type="text" class="form-control clear_value" id="id_date_of_birth" name="date_of_birth" placeholder="Select date of birth" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                              <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
@@ -70,69 +128,6 @@
                             <label>
                               <input type="checkbox" class="clear_true" id="id_is_date_of_birth_estimated" name="is_date_of_birth_estimated"> Is Date of Birth Estimated?
                             </label>
-                         </div>
-
-                        <div class="form-group">
-                            <label for="verification_document">Verification Document</label>
-                            <select id="id_verification_document" name="verification_document" class="form-control  enrolment-input listen-to-change" data-show_value="96" data-show_if_true="verification-doc-other" >
-                                <option value="">Select Option</option>
-                                {% for verification_document in verification_documents %}
-                                <option data-verification_document_id="{{ verification_document.id }}" value="{{ verification_document.code }}">{{ verification_document.name }}</option>
-                                {% endfor %}
-                            </select>
-                             <span id="spn_verification_document" class="clear_span"></span>
-                        </div>
-
-                        <div class="form-group verification-doc-other hidden">
-                             <label for="verification-doc-other" class="control-label">Verification Doc. Other</label>
-                             <input type="text" class="form-control  clear_value" id="id_verification-doc-other" name="verification-doc-other" >
-                             <span id="spn_verification-doc-other" class="clear_span"></span>
-                         </div>
-
-                         <div class="form-group">
-                             <label for="verification_doc_no" class="control-label">Verification Doc. No.</label>
-                             <input type="text" class="form-control validate_field clear_value" id="id_verification_doc_no" name="verification_doc_no" >
-                             <span id="spn_verification_doc_no" class="clear_span"></span>
-                         </div>
-
-                         <div class="form-group has-feedback">
-                             <label for="date_of_enrollment" class="control-label">Date of Enrollment:</label>
-                             <input type="text" class="form-control clear_value" name="date_of_enrollment" id="id_date_of_enrollment" placeholder="Select date of Enrollment" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
-                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
-                             <script>
-                                $(function() {
-                                  $( "#id_date_of_enrollment").datepicker({
-                                      beforeShow: function(input, inst) {
-                                          $(document).off('focusin.bs.modal');
-                                      },
-                                      onClose:function(){
-                                          $(document).on('focusin.bs.modal');
-                                      },
-                                      maxDate: '0y 0m 0d',
-                                      minDate:  (new Date(2015, 9 , 1)),
-                                      dateFormat: 'yy-mm-dd',
-                                      changeMonth: true,
-                                      changeYear: true
-                                  });
-                                });
-                                {% if client != None %}
-                                    setTimeout(function () {
-                                        /*var parsed_date = Date.parse("{{ client.date_of_enrollment }}");
-                                        var date_object = new Date(parsed_date);
-                                        var formatted_date = date_object.getFullYear() + '-' + date_object.getMonth() + '-' + date_object.getDate();
-                                        $( "#date_of_enrollment" ).datepicker( "setDate", formatted_date );*/
-                                    }, 1000);
-
-                                {% endif %}
-
-                            </script>
-                             <span id="spn_date_of_enrollment" class="clear_span"></span>
-                         </div>
-
-                         <div class="form-group hidden">
-                             <label for="aget_at_enrollment" class="control-label">Age at Enrollment</label>
-                             <input type="text" class="form-control validate_field clear_value" id="id_age_at_enrollment" name="age_at_enrollment" >
-                             <span id="spn_age_at_enrollment" class="clear_span"></span>
                          </div>
 
                          <div class="form-group">

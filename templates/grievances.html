@@ -21,17 +21,6 @@
                           <div class="form-group has-feedback" style="margin-top: 10px;">
                                  <input type="text" class="form-control required_field clear_value" id="filter_date" name="filter_date" value="{% if filter_date != None %}{{ filter_date }}{% endif %}" placeholder="Select date" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
                                  <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
-                                 <script>
-                                    $(function() {
-                                      $( "#filter_date" ).datepicker({
-                                          dateFormat: 'yy-mm-dd',
-                                          minDate: '-24y',
-                                          maxDate: '-10y',
-                                          changeMonth: true,
-                                          changeYear: true
-                                      });
-                                    });
-                                </script>
                           </div>
                           <div class="form-group has-feedback" >
                                <button type="submit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-filter"></span> Filter </button>
