@@ -13,6 +13,7 @@ class DreamsRawExportTemplateRenderer(object):
         return MySQLdb.connect(
             host=database['HOST'], user=database['USER'],
             passwd=database['PASSWORD'], db=database['NAME'],
+            port=int(database['PORT']),
             cursorclass=cursors.DictCursor)
 
     def get_export_rows(self, ip_list, county, sub_county, ward):
