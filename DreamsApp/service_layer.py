@@ -2,6 +2,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from DreamsApp.models import *
+from DreamsApp.constants import *
 
 
 class FollowUpsServiceLayer:
@@ -24,10 +25,6 @@ class FollowUpsServiceLayer:
 
 
 class TransferServiceLayer:
-
-    TRANSFER_INITIATED_STATUS = 1
-    TRANSFER_ACCEPTED_STATUS = 2
-    TRANSFER_REJECTED_STATUS = 3
 
     def __init__(self, user, client_transfer=None):
         self.user: User = user
@@ -95,6 +92,7 @@ class TransferServiceLayer:
 
 
 class ClientEnrolmentServiceLayer:
+
     def __init__(self, user):
         self.user: User = user
         self.dt_format = "%Y-%m-%d"
@@ -122,10 +120,6 @@ class ClientEnrolmentServiceLayer:
 
 
 class ReferralServiceLayer:
-    REFERRAL_PENDING_STATUS = 1
-    REFERRAL_COMPLETED_STATUS = 2
-    REFERRAL_REJECTED_STATUS = 3
-    REFERRAL_EXPIRED_STATUS = 4
 
     def __init__(self, user, client_referral=None):
         self.user: User = user
