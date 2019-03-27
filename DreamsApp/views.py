@@ -3249,7 +3249,7 @@ def get_client_referrals_count(request):
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             client_referrals_count = Referral.objects.filter(referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
-                        Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False))))).count()
+                        Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False))))).filter(client__exited=False).count()
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             client_referrals_count = 0

@@ -60,82 +60,78 @@
 
                         {% if can_accept_or_reject and referred_in %}
                             <td>
-                                {% if client_referral.can_be_accepted_or_rejected %}
-                                     {% if client_referral.client.exited %}
-                                        <a id="accept-{{ client_referral.id }}" name="complete-referral-modal"
-                                           class='glyphicon glyphicon-ok badge btn btn-success exit_unexit_toggle'
-                                           arial-label='Arial-Hidden'
-                                           style="padding-bottom: 8px; display: none" data-toggle="modal"
-                                           data-target="#referral-intervention-modal"
-                                           data-referral-id="{{ client_referral.id }}"
-                                           data-client-name="{{ client_referral.client.get_full_name }}"
-                                           data-client-id="{{ client_referral.client.id }}"
-                                           data-client-dreams-id="{{ client_referral.client.dreams_id }}"
-                                           data-referral-intervention-type-id="{{ client_referral.intervention_type.id }}"
-                                           data-referral-intervention-type-code="{{ client_referral.intervention_type.code }}"
-                                           data-referral-intervention-type-name="{{ client_referral.intervention_type.name }}"
-                                           data-referral-external-organisation-id="{{ client_referral.external_organisation.id }}"
-                                           data-referral-external-organisation-other="{{ client_referral.external_organisation_other }}"
-                                           data-referral-intervention-type-is_specified="{{ client_referral.intervention_type.is_specified }}"
-                                           data-referral-intervention-type-has_hts_result="{{ client_referral.intervention_type.has_hts_result }}"
-                                           data-referral-intervention-type-has_ccc_number="{{ client_referral.intervention_type.has_ccc_number }}"
-                                           data-referral-intervention-type-has_pregnancy_result="{{ client_referral.intervention_type.has_pregnancy_result }}"
-                                           data-referral-intervention-type-has_no_of_sessions="{{ client_referral.intervention_type.has_no_of_sessions }}">
-                                            Complete
-                                        </a> &nbsp;&nbsp;
-                                        <a id="reject-{{ client_referral.id }}" name="reject-referral-modal"
-                                           class='glyphicon glyphicon-remove badge btn btn-danger exit_unexit_toggle'
-                                           arial-label='Arial-Hidden' style="padding-bottom: 8px; display: none" data-toggle="modal"
-                                           data-target="#reject-referral-modal"
-                                           data-id="{{ client_referral.id }}"
-                                           data-client-name="{{ client_referral.client.get_full_name }}"
-                                           data-client-dreams-id="{{ client_referral.client.dreams_id }}"
-                                           data-client-date-of-birth="{{ client_referral.client.date_of_birth }}"
-                                           data-client-intervention-id="{{ client_referral.intervention_type.id }}"
-                                           data-client-intervention-name="{{ client_referral.intervention_type.name }}"
-                                           data-client-referral-date="{{ client_referral.referral_date }}"
-                                           data-client-referral-expiration-date="{{ client_referral.referral_expiration_date }}">
-                                            Reject
-                                        </a>
-                                     {% else %}
-                                         <a id="accept-{{ client_referral.id }}" name="complete-referral-modal"
-                                           class='glyphicon glyphicon-ok badge btn btn-success exit_unexit_toggle'
-                                           arial-label='Arial-Hidden'
-                                           style="padding-bottom: 8px;" data-toggle="modal"
-                                           data-target="#referral-intervention-modal"
-                                           data-referral-id="{{ client_referral.id }}"
-                                           data-client-name="{{ client_referral.client.get_full_name }}"
-                                           data-client-id="{{ client_referral.client.id }}"
-                                           data-client-dreams-id="{{ client_referral.client.dreams_id }}"
-                                           data-referral-intervention-type-id="{{ client_referral.intervention_type.id }}"
-                                           data-referral-intervention-type-code="{{ client_referral.intervention_type.code }}"
-                                           data-referral-intervention-type-name="{{ client_referral.intervention_type.name }}"
-                                           data-referral-external-organisation-id="{{ client_referral.external_organisation.id }}"
-                                           data-referral-external-organisation-other="{{ client_referral.external_organisation_other }}"
-                                           data-referral-intervention-type-is_specified="{{ client_referral.intervention_type.is_specified }}"
-                                           data-referral-intervention-type-has_hts_result="{{ client_referral.intervention_type.has_hts_result }}"
-                                           data-referral-intervention-type-has_ccc_number="{{ client_referral.intervention_type.has_ccc_number }}"
-                                           data-referral-intervention-type-has_pregnancy_result="{{ client_referral.intervention_type.has_pregnancy_result }}"
-                                           data-referral-intervention-type-has_no_of_sessions="{{ client_referral.intervention_type.has_no_of_sessions }}">
-                                            Complete
-                                        </a> &nbsp;&nbsp;
-                                        <a id="reject-{{ client_referral.id }}" name="reject-referral-modal"
-                                           class='glyphicon glyphicon-remove badge btn btn-danger exit_unexit_toggle'
-                                           arial-label='Arial-Hidden' style="padding-bottom: 8px;" data-toggle="modal"
-                                           data-target="#reject-referral-modal"
-                                           data-id="{{ client_referral.id }}"
-                                           data-client-name="{{ client_referral.client.get_full_name }}"
-                                           data-client-dreams-id="{{ client_referral.client.dreams_id }}"
-                                           data-client-date-of-birth="{{ client_referral.client.date_of_birth }}"
-                                           data-client-intervention-id="{{ client_referral.intervention_type.id }}"
-                                           data-client-intervention-name="{{ client_referral.intervention_type.name }}"
-                                           data-client-referral-date="{{ client_referral.referral_date }}"
-                                           data-client-referral-expiration-date="{{ client_referral.referral_expiration_date }}">
-                                            Reject
-                                        </a>
-                                    {% endif %}
-                                {% else %}
-                                    <span>{{ client_referral.referral_status.name }}</span>
+                                 {% if client_referral.client.exited %}
+                                    <a id="accept-{{ client_referral.id }}" name="complete-referral-modal"
+                                       class='glyphicon glyphicon-ok badge btn btn-success exit_unexit_toggle'
+                                       arial-label='Arial-Hidden'
+                                       style="padding-bottom: 8px; display: none" data-toggle="modal"
+                                       data-target="#referral-intervention-modal"
+                                       data-referral-id="{{ client_referral.id }}"
+                                       data-client-name="{{ client_referral.client.get_full_name }}"
+                                       data-client-id="{{ client_referral.client.id }}"
+                                       data-client-dreams-id="{{ client_referral.client.dreams_id }}"
+                                       data-referral-intervention-type-id="{{ client_referral.intervention_type.id }}"
+                                       data-referral-intervention-type-code="{{ client_referral.intervention_type.code }}"
+                                       data-referral-intervention-type-name="{{ client_referral.intervention_type.name }}"
+                                       data-referral-external-organisation-id="{{ client_referral.external_organisation.id }}"
+                                       data-referral-external-organisation-other="{{ client_referral.external_organisation_other }}"
+                                       data-referral-intervention-type-is_specified="{{ client_referral.intervention_type.is_specified }}"
+                                       data-referral-intervention-type-has_hts_result="{{ client_referral.intervention_type.has_hts_result }}"
+                                       data-referral-intervention-type-has_ccc_number="{{ client_referral.intervention_type.has_ccc_number }}"
+                                       data-referral-intervention-type-has_pregnancy_result="{{ client_referral.intervention_type.has_pregnancy_result }}"
+                                       data-referral-intervention-type-has_no_of_sessions="{{ client_referral.intervention_type.has_no_of_sessions }}">
+                                        Complete
+                                    </a> &nbsp;&nbsp;
+                                    <a id="reject-{{ client_referral.id }}" name="reject-referral-modal"
+                                       class='glyphicon glyphicon-remove badge btn btn-danger exit_unexit_toggle'
+                                       arial-label='Arial-Hidden' style="padding-bottom: 8px; display: none" data-toggle="modal"
+                                       data-target="#reject-referral-modal"
+                                       data-id="{{ client_referral.id }}"
+                                       data-client-name="{{ client_referral.client.get_full_name }}"
+                                       data-client-dreams-id="{{ client_referral.client.dreams_id }}"
+                                       data-client-date-of-birth="{{ client_referral.client.date_of_birth }}"
+                                       data-client-intervention-id="{{ client_referral.intervention_type.id }}"
+                                       data-client-intervention-name="{{ client_referral.intervention_type.name }}"
+                                       data-client-referral-date="{{ client_referral.referral_date }}"
+                                       data-client-referral-expiration-date="{{ client_referral.referral_expiration_date }}">
+                                        Reject
+                                    </a>
+                                 {% else %}
+                                     <a id="accept-{{ client_referral.id }}" name="complete-referral-modal"
+                                       class='glyphicon glyphicon-ok badge btn btn-success exit_unexit_toggle'
+                                       arial-label='Arial-Hidden'
+                                       style="padding-bottom: 8px;" data-toggle="modal"
+                                       data-target="#referral-intervention-modal"
+                                       data-referral-id="{{ client_referral.id }}"
+                                       data-client-name="{{ client_referral.client.get_full_name }}"
+                                       data-client-id="{{ client_referral.client.id }}"
+                                       data-client-dreams-id="{{ client_referral.client.dreams_id }}"
+                                       data-referral-intervention-type-id="{{ client_referral.intervention_type.id }}"
+                                       data-referral-intervention-type-code="{{ client_referral.intervention_type.code }}"
+                                       data-referral-intervention-type-name="{{ client_referral.intervention_type.name }}"
+                                       data-referral-external-organisation-id="{{ client_referral.external_organisation.id }}"
+                                       data-referral-external-organisation-other="{{ client_referral.external_organisation_other }}"
+                                       data-referral-intervention-type-is_specified="{{ client_referral.intervention_type.is_specified }}"
+                                       data-referral-intervention-type-has_hts_result="{{ client_referral.intervention_type.has_hts_result }}"
+                                       data-referral-intervention-type-has_ccc_number="{{ client_referral.intervention_type.has_ccc_number }}"
+                                       data-referral-intervention-type-has_pregnancy_result="{{ client_referral.intervention_type.has_pregnancy_result }}"
+                                       data-referral-intervention-type-has_no_of_sessions="{{ client_referral.intervention_type.has_no_of_sessions }}">
+                                        Complete
+                                    </a> &nbsp;&nbsp;
+                                    <a id="reject-{{ client_referral.id }}" name="reject-referral-modal"
+                                       class='glyphicon glyphicon-remove badge btn btn-danger exit_unexit_toggle'
+                                       arial-label='Arial-Hidden' style="padding-bottom: 8px;" data-toggle="modal"
+                                       data-target="#reject-referral-modal"
+                                       data-id="{{ client_referral.id }}"
+                                       data-client-name="{{ client_referral.client.get_full_name }}"
+                                       data-client-dreams-id="{{ client_referral.client.dreams_id }}"
+                                       data-client-date-of-birth="{{ client_referral.client.date_of_birth }}"
+                                       data-client-intervention-id="{{ client_referral.intervention_type.id }}"
+                                       data-client-intervention-name="{{ client_referral.intervention_type.name }}"
+                                       data-client-referral-date="{{ client_referral.referral_date }}"
+                                       data-client-referral-expiration-date="{{ client_referral.referral_expiration_date }}">
+                                        Reject
+                                    </a>
                                 {% endif %}
                             </td>
                         {% else %}
