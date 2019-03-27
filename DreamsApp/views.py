@@ -3171,8 +3171,10 @@ def download_audit_logs(request):
 
             return response
 
-        except (AttributeError, UnicodeEncodeError):
-            return HttpResponseServerError("Unicode error")
+        except AttributeError:
+            return HttpResponseServerError(AttributeError)
+        except UnicodeEncodeError:
+            return HttpResponseServerError(UnicodeEncodeError)
         except Exception as e:
             tb = traceback.format_exc(e)
             return HttpResponseServerError(tb)
