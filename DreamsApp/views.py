@@ -3183,7 +3183,7 @@ def reject_client_transfer(request):
 
 def reject_client_referral(request):
     try:
-        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        if is_valid_post_request(request):
             if request.method == 'POST':
 
                 client_referral_id = request.POST.get("id", "")
