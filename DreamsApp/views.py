@@ -1045,6 +1045,13 @@ def save_intervention(request):
                         return JsonResponse(response_data)
 
                     referral = Referral.objects.get(pk=referral_id)
+                    if referral.referral_expiration_date < dt.now().date():
+                        response_data = {
+                            'status': 'fail',
+                            'message': "Error: This referral has already expired and cannot be completed."
+                        }
+                        return JsonResponse(response_data)
+
                     referral_service_layer = ReferralServiceLayer(request.user, referral)
                     if not referral_service_layer.can_complete_referral():
                         response_data = {
@@ -1106,7 +1113,6 @@ def save_intervention(request):
                                     intervention.external_organisation_other = None
                             else:
                                 intervention.implementing_partner = referral.referring_ip
-
                             referral.save()
 
                         else:
@@ -3182,24 +3188,31 @@ def reject_client_referral(request):
 
                 client_referral_id = request.POST.get("id", "")
                 client_referral = None
-                if client_referral_id != "":
+                if client_referral_id:
                     client_referral = Referral.objects.get(id__exact=client_referral_id)
 
-                if client_referral is not None:
-                    referral_perm = ReferralServiceLayer(request.user, client_referral=client_referral)
-                    if not referral_perm.can_reject_referral():
-                        raise PermissionDenied
+                    if client_referral is not None:
+                        referral_perm = ReferralServiceLayer(request.user, client_referral=client_referral)
+                        if not referral_perm.can_reject_referral():
+                            raise PermissionDenied
 
-                    client_referral.referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_REJECTED_STATUS)
-                    client_referral.completed_by = request.user
-                    client_referral.end_date = dt.now()
-                    client_referral.rejectreason = request.POST.get("reject_reason", "")
-                    client_referral.save()
-
-                    messages.info(request, "Referral successfully rejected.")
+                        if client_referral.referral_expiration_date >= dt.now().date():
+                            client_referral.referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_REJECTED_STATUS)
+                            client_referral.completed_by = request.user
+                            client_referral.end_date = dt.now()
+                            client_referral.rejectreason = request.POST.get("reject_reason", "")
+                            client_referral.save()
+                            messages.info(request, "Referral successfully rejected.")
+                        else:
+                             messages.warning(request,
+                                              "This referral has already expired and cannot be completed..")
+                    else:
+                        messages.warning(request,
+                                     "Referral does not exist.")
                 else:
-                    messages.warning(request,
-                                     "Referral not rejected. Contact System Administrator if this error Persists.")
+                    messages.error(request,
+                                   "Invalid referral ID.")
+
         else:
             raise PermissionDenied
     except Exception as e:

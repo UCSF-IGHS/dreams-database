@@ -3669,7 +3669,6 @@ $(document).ready(function () {
         e.preventDefault();
         var el = $(this);
         fetchIntervention($(el).data('referral-intervention-type-code'));
-
         $("#referral-intervention-modal #intervention_client_name").text("For: " + $(el).data('client-name') + " (" + $(el).data('client-dreams-id') + ")" );
         $("#referral-intervention-modal #client").val($(el).data('client-id'));
         $("#referral-intervention-modal #intervention_id").val($(el).data('referral-intervention-type-id'));
