@@ -1,5 +1,6 @@
 import os
 import traceback
+from functools import reduce
 
 import unicodecsv
 from django.contrib import messages
@@ -25,6 +26,7 @@ from DreamsApp.forms import *
 from dateutil.relativedelta import relativedelta
 from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, ReferralServiceLayer, FollowUpsServiceLayer
 from operator import itemgetter
+import operator
 
 
 def get_enrollment_form_config_data(request):
@@ -1597,7 +1599,7 @@ def logs(request):
         try:
             ip = request.user.implementingpartneruser.implementing_partner.id
         except ImplementingPartnerUser.DoesNotExist:
-            pass
+            return HttpResponseServerError("You do not belong to an implementing partner.")
 
         # user is allowed to view logs
         if request.method == 'GET':
@@ -1605,19 +1607,22 @@ def logs(request):
                 page = request.GET.get('page', 1)
                 filter_text = request.GET.get('filter-log-text', '')
                 filter_date_from = request.GET.get('filter-log-date-from', '')
-                filter_date = request.GET.get('filter-log-date', '')
+                filter_date_to = request.GET.get('filter-log-date', '')
 
                 # getting logs
-                logs = Audit.objects.filter(Q(table__icontains=filter_text.split(" ")[0]) |
-                                            Q(action__icontains=filter_text.split(" ")[0]) |
-                                            Q(search_text__icontains=filter_text.split(" ")[0]) |
-                                            Q(user__username__icontains=filter_text.split(" ")[0]) |
-                                            Q(user__first_name__icontains=filter_text.split(" ")[0]) |
-                                            Q(user__last_name__icontains=filter_text.split(" ")[0])
-                                            ).order_by('-timestamp')
+                if filter_text:
+                    logs = Audit.objects.filter(
+                        reduce(operator.or_, (Q(table__icontains=item) for item in filter_text.split(" "))) |
+                        reduce(operator.or_, (Q(action__icontains=item) for item in filter_text.split(" "))) |
+                        reduce(operator.or_, (Q(search_text__icontains=item) for item in filter_text.split(" "))) |
+                        reduce(operator.or_, (Q(user__username__icontains=item) for item in filter_text.split(" "))) |
+                        reduce(operator.or_, (Q(user__first_name__icontains=item) for item in filter_text.split(" "))) |
+                        reduce(operator.or_, (Q(user__last_name__icontains=item) for item in filter_text.split(" ")))
+                        ).order_by('-timestamp')
+                else:
+                    logs = Audit.objects.all().order_by('-timestamp')
 
-                logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs)
-
+                logs = filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs)
                 paginator = Paginator(logs, 25)  # Showing 25 contacts per page
                 try:
                     logs_list = paginator.page(page)
@@ -1628,7 +1633,7 @@ def logs(request):
                 return render(request, 'log.html', {'page': 'logs', 'page_title': 'DREAMS Logs', 'logs': logs_list,
                                                     'filter_text': filter_text,
                                                     'filter_date_from': filter_date_from,
-                                                    'filter_date': filter_date,
+                                                    'filter_date': filter_date_to,
                                                     'items_in_page': 0 if logs_list.end_index() == 0 else
                                                     (logs_list.end_index() - logs_list.start_index() + 1)
                                                     }
@@ -1636,57 +1641,29 @@ def logs(request):
             except Exception as e:
                 tb = traceback.format_exc(e)
                 return HttpResponseServerError(tb)
-        elif request.method == 'POST':
-            # get the form data
-            filter_text = request.POST.get('filter-log-text', '')
-            filter_date = request.POST.get('filter-log-date', '')
-            filter_date_from = request.POST.get('filter-log-date-from', '')
-
-            logs = Audit.objects.filter(Q(table__icontains=filter_text) |
-                                        Q(action__icontains=filter_text) |
-                                        Q(search_text__icontains=filter_text) |
-                                        Q(user__username__icontains=filter_text) |
-                                        Q(user__first_name__icontains=filter_text) |
-                                        Q(user__last_name__icontains=filter_text)).order_by('-timestamp')
-
-            logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs)
-
-            paginator = Paginator(logs, 25)
-            try:
-                logs_list = paginator.page(1)
-            except PageNotAnInteger:
-                logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
-            except EmptyPage:
-                logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
-            return render(request, 'log.html', {'page': 'logs',
-                                                'page_title': 'DREAMS Logs',
-                                                'logs': logs_list,
-                                                'filter_text': filter_text,
-                                                'filter_date_from': filter_date_from,
-                                                'filter_date': filter_date,
-                                                'items_in_page': 0 if logs_list.end_index() == 0 else
-                                                (logs_list.end_index() - logs_list.start_index() + 1)})
+        else:
+            raise bad_request(request)
     else:
         raise PermissionDenied
 
 
-def filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs):
+def filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs):
     if ip:
         logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
-    if filter_date_from and not filter_date:
+    if filter_date_from and not filter_date_to:
         fyr, fmnth, fdt = filter_date_from.split('-')
         constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
         logs = logs.filter(Q(timestamp__gte=constructed_date_from))
-    elif not filter_date_from and filter_date:
-        yr, mnth, dat = filter_date.split('-')
+    elif not filter_date_from and filter_date_to:
+        yr, mnth, dat = filter_date_to.split('-')
         constructed_date = date(int(yr), int(mnth), int(dat))
         logs = logs.filter(Q(timestamp__lte=constructed_date))
-    elif filter_date_from and filter_date:
-        yr, mnth, dat = filter_date.split('-')
-        constructed_date = date(int(yr), int(mnth), int(dat))
+    elif filter_date_from and filter_date_to:
+        yr, mnth, dat = filter_date_to.split('-')
+        constructed_date_to = date(int(yr), int(mnth), int(dat))
         fyr, fmnth, fdt = filter_date_from.split('-')
         constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-        logs = logs.filter(Q(timestamp__gte=constructed_date_from) and Q(timestamp__lte=constructed_date))
+        logs = logs.filter(Q(timestamp__range=[constructed_date_from, constructed_date_to]))
     return logs
 
 
@@ -3150,22 +3127,22 @@ def download_audit_logs(request):
         try:
             filter_text = request.GET.get('filter-log-text', '')
             filter_date_from = request.GET.get('filter-log-date-from', '')
-            filter_date = request.GET.get('filter-log-date', '')
+            filter_date_to = request.GET.get('filter-log-date', '')
 
             # getting logs
-            logs = None
+            if filter_text:
+                logs = Audit.objects.filter(
+                    reduce(operator.or_, (Q(table__icontains=item) for item in filter_text.split(" "))) |
+                    reduce(operator.or_, (Q(action__icontains=item) for item in filter_text.split(" "))) |
+                    reduce(operator.or_, (Q(search_text__icontains=item) for item in filter_text.split(" "))) |
+                    reduce(operator.or_, (Q(user__username__icontains=item) for item in filter_text.split(" "))) |
+                    reduce(operator.or_, (Q(user__first_name__icontains=item) for item in filter_text.split(" "))) |
+                    reduce(operator.or_, (Q(user__last_name__icontains=item) for item in filter_text.split(" ")))
+                ).order_by('-timestamp')
+            else:
+                logs = Audit.objects.all().order_by('-timestamp')
 
-            logs = Audit.objects.filter(Q(table__icontains=filter_text.split(" ")[0]) |
-                                        Q(action__icontains=filter_text.split(" ")[0]) |
-                                        Q(search_text__icontains=filter_text.split(" ")[0]) |
-                                        Q(user__username__icontains=filter_text.split(" ")[0]) |
-                                        Q(user__first_name__icontains=filter_text.split(" ")[0]) |
-                                        Q(user__last_name__icontains=filter_text.split(" ")[0])
-                                        ).order_by('-timestamp')
-
-
-            logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs).values()
-
+            logs = filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs).values()
             columns = ['timestamp', 'user_name', 'table', 'column', 'old_value', 'new_value', 'action', 'search_text']
             header = ['Timestamp', 'User', 'Table', 'Field', 'Old Value', 'New Value', 'Action', 'Text']
 
@@ -3184,11 +3161,11 @@ def download_audit_logs(request):
                 new_value = ""
 
                 if len(audittrail) > 0:
-                    mykeys = ['column', 'old_value', 'new_value']
-                    myvalues = [itemgetter(*mykeys)(x) for x in audittrail]
-                    column = ', '.join([str(x[0]) for x in myvalues])
-                    old_value = ', '.join([str(x[1]) for x in myvalues])
-                    new_value = ', '.join([str(x[2]) for x in myvalues])
+                    column_keys = ['column', 'old_value', 'new_value']
+                    column_values = [itemgetter(*column_keys)(x) for x in audittrail]
+                    column = ', '.join([str(x[0]) for x in column_values])
+                    old_value = ', '.join([str(x[1]) for x in column_values])
+                    new_value = ', '.join([str(x[2]) for x in column_values])
 
                 writer.writerow({'timestamp': log['timestamp'], 'user_name': get_user_name(log['user_id']), 'table': log['table'], 'column': column, 'old_value': old_value, 'new_value': new_value, 'action': log['action'], 'search_text': log['search_text']})
 
