@@ -601,7 +601,6 @@ $(document).ready(function () {
                 textMessage += "* " + err_messages + "</br>"
             });
             $('#error-space').html(textMessage);
-            // And return
             return false;
         }
         return true;
@@ -3726,13 +3725,13 @@ $(document).ready(function () {
             $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
             return false;
         }
-        var postUrl = "/ivSave"; // by default
+        var postUrl = "/ivSave";
 
         // do an ajax post
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url: postUrl, // the endpoint
-            type: "POST", // http method
+            url: postUrl,
+            type: "POST",
             dataType: 'json',
             data: $('#referral-intervention-entry-form').serialize(),
             success: function (data) {

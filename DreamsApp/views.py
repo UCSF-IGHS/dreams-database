@@ -968,8 +968,7 @@ def get_intervention_type(request):
 
 def save_intervention(request):
     try:
-        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() \
-                and request.user.is_active and request.user.has_perm('DreamsApp.add_intervention'):
+        if is_valid_post_request(request) and request.user.has_perm('DreamsApp.add_intervention'):
             try:
                 client = Client.objects.get(id__exact=int(request.POST.get('client')))
                 status = True
@@ -1006,9 +1005,6 @@ def save_intervention(request):
                                                                        client=client).exclude(voided=True)
                     client_interventions_count = client_interventions.count()
                     if intervention_type.is_given_once and client_interventions.count() > 0:
-                        """An intervention has been found. This is an error
-                            Return error message to user
-                        """
                         response_data = {
                             'status': 'fail',
                             'message': "Error: This is a one time service that has already been offered. Please conside"
@@ -3184,10 +3180,10 @@ def reject_client_transfer(request):
 def reject_client_referral(request):
     try:
         if is_valid_post_request(request):
-            if request.method == 'POST':
+            client_referral_id = request.POST.get("id", "")
+            reject_reason = request.POST.get("reject_reason", "")
 
-                client_referral_id = request.POST.get("id", "")
-                client_referral = None
+            if reject_reason:
                 if client_referral_id:
                     client_referral = Referral.objects.get(id__exact=client_referral_id)
 
@@ -3200,7 +3196,7 @@ def reject_client_referral(request):
                             client_referral.referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_REJECTED_STATUS)
                             client_referral.completed_by = request.user
                             client_referral.end_date = dt.now()
-                            client_referral.rejectreason = request.POST.get("reject_reason", "")
+                            client_referral.rejectreason = reject_reason
                             client_referral.save()
                             messages.info(request, "Referral successfully rejected.")
                         else:
@@ -3212,7 +3208,9 @@ def reject_client_referral(request):
                 else:
                     messages.error(request,
                                    "Invalid referral ID.")
-
+            else:
+                messages.error(request,
+                               "Input value for reason to reject referral.")
         else:
             raise PermissionDenied
     except Exception as e:

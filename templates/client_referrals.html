@@ -58,7 +58,7 @@
                         <td>{{ client_referral.referral_date }}</td>
                         <td>{{ client_referral.referral_expiration_date }}</td>
 
-                        {% if can_accept_or_reject and referred_in %}
+                        {% if can_accept_or_reject and referred_in and client_referral.referral_status.id == 1 %}
                             <td>
                                  {% if client_referral.client.exited %}
                                     <a id="accept-{{ client_referral.id }}" name="complete-referral-modal"
