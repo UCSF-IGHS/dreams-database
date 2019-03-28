@@ -1595,7 +1595,6 @@ def logs(request):
         if not request.user.is_superuser and not request.user.has_perm('DreamsApp.can_manage_audit'):
             raise PermissionDenied('Operation not allowed. [Missing Permission]')
 
-        ip = ''
         try:
             ip = request.user.implementingpartneruser.implementing_partner.id
         except ImplementingPartnerUser.DoesNotExist:
@@ -1660,7 +1659,7 @@ def filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs)
         logs = logs.filter(Q(timestamp__lte=constructed_date))
     elif filter_date_from and filter_date_to:
         yr, mnth, dat = filter_date_to.split('-')
-        constructed_date_to = date(int(yr), int(mnth), int(dat))
+        constructed_date_to = date(int(yr), int(mnth), int(dat)) + timedelta(days=1)
         fyr, fmnth, fdt = filter_date_from.split('-')
         constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
         logs = logs.filter(Q(timestamp__range=[constructed_date_from, constructed_date_to]))
