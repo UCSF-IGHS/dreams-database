@@ -1007,8 +1007,7 @@ def save_intervention(request):
                     if intervention_type.is_given_once and client_interventions.count() > 0:
                         response_data = {
                             'status': 'fail',
-                            'message': "Error: This is a one time service that has already been offered. Please conside"
-                                       "r editing if necessary"
+                            'message': "Error: This is a one time service that has already been offered. Please consider editing if necessary"
                         }
                         return JsonResponse(response_data)
                 except Exception as e:
@@ -1024,7 +1023,6 @@ def save_intervention(request):
                 referral_id = request.POST.get('referral_id')
                 referral = None
 
-                INTERVENTION_BY_REFERRAL = '1'
                 intervention_is_by_referral = True if intervention_by_referral == INTERVENTION_BY_REFERRAL else False
                 if intervention_is_by_referral:
                     if external_organization_code:
@@ -1086,8 +1084,8 @@ def save_intervention(request):
                         intervention = Intervention()
                         intervention.client = client
                         intervention.intervention_type = intervention_type
-                        intervention.name_specified = request.POST.get('other_specify',
-                                                                       '') if intervention_type.is_specified else ''
+                        intervention.name_specified = intervention_type.name if intervention_type.is_specified else request.POST.get(
+                            'other_specify', '')
                         intervention.intervention_date = request.POST.get('intervention_date')
                         created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
                         intervention.created_by = created_by
@@ -1096,7 +1094,7 @@ def save_intervention(request):
                         intervention.date_changed = dt.now()
                         intervention.comment = request.POST.get('comment', '')
 
-                        if intervention_by_referral == "1":
+                        if intervention_by_referral == INTERVENTION_BY_REFERRAL:
                             referral.referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_COMPLETED_STATUS)
                             intervention.referral = referral
 
@@ -1107,8 +1105,6 @@ def save_intervention(request):
 
                                 if other_external_organization_code:
                                     intervention.external_organisation_other = other_external_organization_code
-                                else:
-                                    intervention.external_organisation_other = None
                             else:
                                 intervention.implementing_partner = referral.referring_ip
                             referral.save()
@@ -1119,8 +1115,6 @@ def save_intervention(request):
                                     pk=external_organization_code)
                                 if other_external_organization_code:
                                     intervention.external_organisation_other = other_external_organization_code
-                                else:
-                                    intervention.external_organisation_other = None
 
                             intervention.implementing_partner = ImplementingPartner.objects. \
                                 get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
@@ -1140,7 +1134,7 @@ def save_intervention(request):
 
                         intervention.save(user_id=request.user.id, action="INSERT")  # Logging
 
-                        if intervention_by_referral == "1":
+                        if intervention_by_referral == INTERVENTION_BY_REFERRAL:
                             response_data = {
                                 'status': 'success',
                                 'message': 'Referral successfully completed'
@@ -3185,7 +3179,7 @@ def reject_client_referral(request):
             client_referral_id = request.POST.get("id", "")
             reject_reason = request.POST.get("reject_reason", "")
 
-            if reject_reason:
+            if reject_reason and reject_reason.strip():
                 if client_referral_id:
                     client_referral = Referral.objects.get(id__exact=client_referral_id)
 
@@ -3233,8 +3227,6 @@ def get_client_transfers_count(request):
             client_transfers_count = ClientTransfer.objects.filter(
                 destination_implementing_partner=ip,
                 transfer_status=initiated_client_transfer_status).count()
-        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            client_transfers_count = 0
         except Exception:
             client_transfers_count = 0
 
@@ -3250,12 +3242,8 @@ def get_client_referrals_count(request):
             ip = request.user.implementingpartneruser.implementing_partner
             client_referrals_count = Referral.objects.filter(referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
                         Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False))))).filter(client__exited=False).count()
-
-        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            client_referrals_count = 0
         except Exception:
             client_referrals_count = 0
-
     return HttpResponse(client_referrals_count)
 
 
