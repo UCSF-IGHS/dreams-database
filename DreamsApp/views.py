@@ -1220,8 +1220,13 @@ def initiate_referral(request):
                 if bool(to_external_organization):
                     if request.POST.get('referral-external-organization-select'):
                         referral.external_organisation = ExternalOrganisation.objects.filter(id__exact=int(request.POST.get('referral-external-organization-select'))).first()
-                    elif request.POST.get('other-organization-name'):
-                        referral.external_organisation_other = request.POST.get('other-organization-name')
+
+                        if int(request.POST.get('referral-external-organization-select')) == OTHER_EXTERNAL_ORGANISATION_ID:
+                            if request.POST.get('other-organization-name'):
+                                referral.external_organisation_other = request.POST.get('other-organization-name')
+                    else:
+                        if request.POST.get('other-organization-name'):
+                            referral.external_organisation_other = request.POST.get('other-organization-name')
                 else:
                     referral.receiving_ip = ImplementingPartner.objects.filter(id__exact=int(request.POST.get('implementing-partners-select'))).first()
 
