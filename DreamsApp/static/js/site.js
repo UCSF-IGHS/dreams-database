@@ -70,6 +70,14 @@ $(document).ready(function () {
         });
     });
 
+    $('#client-make-referral-form #referral-date').change(function(event){
+        var selected_date = new Date($('#client-make-referral-form #referral-date').val());
+        var expiry_days = 60;
+        selected_date.setDate(selected_date.getDate() + expiry_days);
+        var expiry_date = selected_date.getFullYear() + '-' + (selected_date.getMonth() + 1)  + '-' + selected_date.getDate();
+        $('#client-make-referral-form #expiry-date').val(expiry_date);
+    });
+
     $("#date-of-completion").datepicker({
          beforeShow: function (input, inst) {
              $(document).off('focusin.bs.modal');
@@ -3359,14 +3367,6 @@ $(document).ready(function () {
         }
     });
 
-    $('#client-make-referral-modal').on('show.bs.modal', function (e) {
-        fetchAndLoadInterventionTypes();
-        fetchAndLoadImplementingPartners();
-        fetchAndLoadExternalOrganizations();
-        $('#client-exit-modal #id_reason_for_exit').val('');
-        $("#client-exit-modal #id_date_of_exit").datepicker("setDate", new Date());
-    });
-
     // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
         var localToday = new Date();
@@ -3646,9 +3646,13 @@ $(document).ready(function () {
     });
 
     $('#client-make-referral-modal').on('shown.bs.modal', function (e) {
+        fetchAndLoadInterventionTypes();
+        fetchAndLoadImplementingPartners();
+        fetchAndLoadExternalOrganizations();
+
         createDatePicker("#client-make-referral-form #referral-date", '+0Y +0M +0D', new Date(2015, 9, 1));
 
-
+        $("#client-make-referral-modal #expiry-date").val(new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + new Date().getDate());
         $('#client-make-referral-form #referral-date').val('');
         $('#client-make-referral-form #error-space').text("");
     });
