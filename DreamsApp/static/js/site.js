@@ -78,6 +78,15 @@ $(document).ready(function () {
         $('#client-make-referral-form #expiry-date').val(expiry_date);
     });
 
+    $('div#other-external-organization-div').hide();
+    $('#client-make-referral-form select#referral-external-organization-select').change(function(event){
+        if ($(this).children("option:selected").text() == 'Other') {
+            $('div#other-external-organization-div').show();
+        } else {
+             $('div#other-external-organization-div').hide();
+        }
+    });
+
     $("#date-of-completion").datepicker({
          beforeShow: function (input, inst) {
              $(document).off('focusin.bs.modal');
@@ -470,14 +479,14 @@ $(document).ready(function () {
         });
     }
 
-    $('div.external-organization-div').hide();
+    $('div#external-organization-div').hide();
     $('input[type=checkbox]#to-external-organization').change(function() {
        if (this.checked) {
            $('label#implementing-partner-label').hide();
            $('#implementing-partners-select').hide();
-           $('div.external-organization-div').show();
+           $('div#external-organization-div').show();
        } else {
-           $('div.external-organization-div').hide();
+           $('div#external-organization-div').hide();
            $('#implementing-partners-select').show();
        }
     });
