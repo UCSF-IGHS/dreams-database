@@ -939,9 +939,9 @@ $(document).ready(function () {
             $('#intervention-entry-form .processing-indicator').addClass('hidden');
             return false;
         }
+
         // validate form
-        var intervention_code = null;
-        if (!validateInterventionEntryForm(intervention_code)) {
+        if (!validateInterventionEntryForm(null)) {
             $('#btn_save_intervention').removeAttr("disabled");
             $('#intervention-entry-form .processing-indicator').addClass('hidden');
             return false;

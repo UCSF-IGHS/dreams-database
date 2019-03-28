@@ -993,7 +993,7 @@ def save_intervention(request):
                                "Please contact System Administrator for help."
                 }
                 return JsonResponse(response_data)
-            # check
+
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_type_code = int(request.POST.get('intervention_type_code'))
@@ -1024,7 +1024,9 @@ def save_intervention(request):
                 referral_id = request.POST.get('referral_id')
                 referral = None
 
-                if intervention_by_referral == "1":
+                INTERVENTION_BY_REFERRAL = '1'
+                intervention_is_by_referral = True if intervention_by_referral == INTERVENTION_BY_REFERRAL else False
+                if intervention_is_by_referral:
                     if external_organization_code:
                         if client.date_of_enrollment is not None and intervention_date < client.date_of_enrollment:
                             response_data = {
