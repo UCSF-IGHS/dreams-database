@@ -206,13 +206,17 @@
               </fieldset>
 
             <div class="form-group form-inline">
-                {{ demo_form.client.as_hidden }}
+                {{ demo_form.as_hidden }}
             </div>
 
-            {% if is_editable_by_ip == True %}
+            {% if is_editable_by_ip %}
                 <div class="form-group form-inline">
                     <label class="control-label enrolment-label"></label>
-                    <button type="submit" class="btn btn-sm btn-primary" style=""> &nbsp; &nbsp;&nbsp; &nbsp; Save &nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    {% if demo_form.instance.exited %}
+                        <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle" style="display: none;"> &nbsp; &nbsp;&nbsp; &nbsp; Save &nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    {% else %}
+                        <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle" style=""> &nbsp; &nbsp;&nbsp; &nbsp; Save &nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    {% endif %}
                 </div>
             {% endif %}
         </fieldset>

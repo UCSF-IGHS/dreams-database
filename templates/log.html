@@ -6,15 +6,14 @@
         <div class="statusBox" >
             <div>
                 <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER: {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
-
                 <h6>DREAMS Audit Log</h6>
             </div>
             <div class="floatRightLinks" style="margin-top: -10px;">
                 <div class="rightItem">
-                    <form id="filter-log-form" class="form-inline" method="post" action="/logs">
+                    <form id="filter-log-form" class="form-inline" method="get" action="/logs">
                         {% csrf_token %}
                         <div class="form-group" id="text-div">
-                            <input type="text" class="form-control" name="filter-log-text" id="filter-log-text" placeholder="Enter Filter text" value="{{ filter_text }}" style="width: 300px;">
+                            <input type="text" class="form-control" name="filter-log-text" id="filter-log-text" value="{{ filter_text }}" placeholder="Enter Filter text" style="width: 300px;">
                         </div>
                         <div class="form-group  has-feedback" style="margin-top: 10px;">
                              <input type="text" class="form-control " id="filter-log-date-from" name="filter-log-date-from" value="{{ filter_date_from }}" placeholder="Filter date from" style="cursor: pointer;">
@@ -31,10 +30,9 @@
                         </div>
                         <div class="form-group" role="group"  aria-label="...">
                             <button class="btn btn-sm btn-danger" title="Clear filters" id="audit-log-clear-filtes" style="height: 32px;"><span class="glyphicon glyphicon-remove"></span> Clear filters</button>
-
                         </div>
                         <div class="form-group pull-right" style="padding: 1%;">
-                            <a class="btn btn-primary" style="height: 32px;" href="{% url 'download_audit_logs' %}?filter-log-text={{ filter_text }}&filter-log-date-from={{ filter_date_from }}&filter-log-date={{ filter_date }}" target="_blank">Export to Excel</a>
+                            <button type="submit" class="btn btn-primary" style="height: 32px;" formaction="download-audit-logs" formtarget="_blank">Export to CSV</button>
                         </div>
                     </form>
                     <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Filter DREAMS logs by typing text and/or selecting date in the input above.</span>
