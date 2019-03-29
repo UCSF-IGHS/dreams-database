@@ -3671,6 +3671,7 @@ $(document).ready(function () {
         $("#referral-intervention-modal #client").val($(el).data('client-id'));
         $("#referral-intervention-modal #intervention_id").val($(el).data('referral-intervention-type-id'));
         $("#referral-intervention-modal #intervention_type_code").val($(el).data('referral-intervention-type-code'));
+        $("#referral-intervention-modal #intervention_type_name").text("Intervention: " + $(el).data('referral-intervention-type-name'));
         $("#referral-intervention-modal #referral_id").val($(el).data('referral-id'));
 
         fetchExternalOrganisations('referral-intervention-modal');

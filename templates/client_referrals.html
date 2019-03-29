@@ -177,6 +177,7 @@
                                     aria-hidden="true">&times;</span></button>
                             <h4 class="modal-title" id="exampleModalLabel">ADD INTERVENTION FOR REFERRAL</h4>
                             <h5 id="intervention_client_name"></h5>
+                            <h5 id="intervention_type_name"></h5>
                         </div>
                         <div class="modal-body">
                             {% csrf_token %}
@@ -305,38 +306,36 @@
                             <input id="reject_client_referral_id" type="hidden" name="id" value="">
 
                             <div class="form-group form-inline">
-                                <label for="client_name" class="control-label enrolment-label">Client:</label>
+                                <label for="reject_client_name" class="control-label enrolment-label">Client:</label>
                                 <a id="reject_client_name" class="referral-dialogue-link"></a>
                             </div>
                             <div class="form-group form-inline">
-                                <label for="client_dreams_id" class="control-label enrolment-label">DREAMS ID:</label>
+                                <label for="reject_client_dreams_id" class="control-label enrolment-label">DREAMS ID:</label>
                                 <a id="reject_client_dreams_id" class="referral-dialogue-link"></a>
                             </div>
                             <div class="form-group form-inline">
-                                <label for="client_date_of_birth" class="control-label enrolment-label">Date of
+                                <label for="reject_client_date_of_birth" class="control-label enrolment-label">Date of
                                     Birth:</label>
                                 <a id="reject_client_date_of_birth" class="referral-dialogue-link"></a>
                             </div>
                             <div class="form-group form-inline">
-                                <label for="client_intervention" class="control-label enrolment-label">Intervention:</label>
+                                <label for="reject_client_intervention" class="control-label enrolment-label">Intervention:</label>
                                 <a id="reject_client_intervention" class="referral-dialogue-link"></a>
                             </div>
                             <div class="form-group form-inline">
-                                <label for="client_referral_date" class="control-label enrolment-label">Referral Date:</label>
+                                <label for="reject_client_referral_date" class="control-label enrolment-label">Referral Date:</label>
                                 <a id="reject_client_referral_date" class="referral-dialogue-link"></a>
                             </div>
                             <div class="form-group form-inline">
-                                <label for="client_referral_expiration_date" class="control-label enrolment-label">Referral Expiration Date:</label>
+                                <label for="reject_client_referral_expiration_date" class="control-label enrolment-label">Referral Expiration Date:</label>
                                 <a id="reject_client_referral_expiration_date" class="referral-dialogue-link"></a>
                             </div>
-
                             <div class="form-group form-inline">
                                 <label for="reject_reason" class="control-label enrolment-label">Reject Reason:</label>
                                 <textarea id="reject_reason" name="reject_reason" class="form-control" rows="5"
                                           cols="40" required></textarea>
                             </div>
                         </div>
-
                         <div class="modal-footer">
                             <div class="form-group">
                                 <button type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel
