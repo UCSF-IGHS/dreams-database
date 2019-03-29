@@ -482,12 +482,11 @@ $(document).ready(function () {
     $('div#external-organization-div').hide();
     $('input[type=checkbox]#to-external-organization').change(function() {
        if (this.checked) {
-           $('label#implementing-partner-label').hide();
-           $('#implementing-partners-select').hide();
+           $('div#implementing-partner-div').hide();
            $('div#external-organization-div').show();
        } else {
            $('div#external-organization-div').hide();
-           $('#implementing-partners-select').show();
+           $('div#implementing-partner-div').show();
        }
     });
 
