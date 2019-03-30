@@ -281,35 +281,37 @@ $(document).ready(function () {
     $('#intervention-modal').on('show.bs.modal', function (event) {
         // check the mode... Can be new or edit
         $('#btn_save_intervention').removeAttr("disabled");
-        var button = $(event.relatedTarget) // Button that triggered the modal
+        var button = $(event.relatedTarget);// Button that triggered the modal
         var currentClientId = $('#current_client_id').val();
-
-        var interventionCategoryCode = $("#dreams-profile-tab-control ul li.active a").data('intervention_category_code')
+        var interventionCategoryCode = $("#dreams-profile-tab-control ul li.active a").data('intervention_category_code');
         if (currentClientId == null || interventionCategoryCode == null)
             return;
         fetchRelatedInterventions(interventionCategoryCode, currentClientId);
-        if ((typeof $(button).data('whatever') != 'undefined' && $(button).data('whatever') != null))
+        if ((typeof $(button).data('whatever') != 'undefined' && $(button).data('whatever') != null)) {
             modalMode = "new";
-        else
-            modalMode = "edit";
-        fetchExternalOrganisations('intervention-modal');
-    });
-
-    $('#intervention-modal').on('shown.bs.modal', function (event) {
-        if (modalMode == "edit") {
-            $('#intervention_id').val(intervention.pk) // This is the intervention id
-            $('#intervention-modal #intervention-type-select').val(currentInterventionType.fields.code).change();
-
-            prePopulateInterventionModal(intervention, currentInterventionType);
-
-        }
-        else {
             $('#intervention-modal #intervention-type-select').val('').change();
+        } else {
+            modalMode = "edit";
+            $('#intervention_id').val(intervention.pk); // This is the intervention id
+            $('#intervention-modal #intervention-type-select').val(currentInterventionType.fields.code).change();
+            prePopulateInterventionModal(intervention, currentInterventionType);
         }
+        fetchExternalOrganisations('external-organization-select', 'intervention-modal');
     });
+
+    // $('#intervention-modal').on('shown.bs.modal', function (event) {
+    //     if (modalMode == "edit") {
+    //         $('#intervention_id').val(intervention.pk); // This is the intervention id
+    //         $('#intervention-modal #intervention-type-select').val(currentInterventionType.fields.code).change();
+    //         prePopulateInterventionModal(intervention, currentInterventionType);
+    //     }
+    //     else {
+    //         $('#intervention-modal #intervention-type-select').val('').change();
+    //     }
+    // });
 
     $('#intervention-modal').on('hide.bs.modal', function (event) {
-        $('#intervention-type-select').removeAttr('disabled')
+        $('#intervention-type-select').removeAttr('disabled');
         $('div#external_organization_section').addClass('hidden');
         $('#error-space').text("");
         $('#comments-text').val("");
@@ -445,7 +447,7 @@ $(document).ready(function () {
                 setSelectOptions(interventionTypes, '#referral-interventions-select', 'Select Intervention Type');
             },
             error: function (xhr, errmsg, err) {
-                console.log(xhr.status + ": " + xhr.responseText);
+                alert(xhr.status + ": " + xhr.responseText);
             }
         });
     }
@@ -475,7 +477,7 @@ $(document).ready(function () {
             dataType: 'json',
             async: false,
             success: function (data) {
-                var externalOrganizations = $.parseJSON(data.external_orgs)
+                var externalOrganizations = $.parseJSON(data.external_orgs);
                 setSelectOptions(externalOrganizations, '#referral-external-organization-select', 'Select External Organization');
             },
             error: function (xhr, errmsg, err) {
@@ -532,7 +534,19 @@ $(document).ready(function () {
         });
     }
 
-    function fetchExternalOrganisations(form_id) {
+    function setExternalOrganisationsSelect(externalOrganisations) {
+        var externalOrganisationSelect = $('#external-organization-select');
+        externalOrganisationSelect.empty();
+        externalOrganisationSelect.append($("<option />").attr("value", '').text('Select External Organisation').addClass('selected disabled hidden').css({display: 'none'}));
+
+        if (externalOrganisations.length > 0) {
+            $.each(externalOrganisations, function () {
+                externalOrganisationSelect.append($("<option />").attr("value", this.pk).text(this.fields.name));
+            });
+        }
+    }
+
+    function fetchExternalOrganisations(select_to_populate, form_id) {
         $('#' + form_id + ' .processing-indicator').removeClass('hidden');
         $.ajax({
             url: "/getExternalOrganisations",
@@ -541,7 +555,7 @@ $(document).ready(function () {
             async: false,
             success: function (data) {
                 externalOrganisations = $.parseJSON(data.external_orgs); // Gloabal variable
-                setExternalOrganisationsSelect(externalOrganisations);
+                setSelectOptions(externalOrganisations, '#' + select_to_populate, "Select External Organisation");
                 $('#' + form_id + ' .processing-indicator').addClass('hidden');
             },
             error: function (xhr, errmsg, err) {
@@ -584,8 +598,9 @@ $(document).ready(function () {
 
 
     function setSelectOptions(selectOptions, selectID, defaultText) {
-       var select = $(selectID);
-        select.empty();
+        var select = $(selectID);
+        alert(select.val());
+        //select.empty();
         select.append($("<option />").attr("value", '').text(defaultText).addClass('selected disabled hidden').css({display: 'none'}));
 
         if (selectOptions.length > 0) {
@@ -866,13 +881,13 @@ $(document).ready(function () {
         });
 
         if (interventionTypeEmpty == false) {
-            showSection(false, '#other_specify_section')
-            showSection(false, '#intervention_date_section')
-            showSection(false, '#hts_result_section')
-            showSection(false, '#ccc_number_section')
-            showSection(false, '#pregnancy_test_section')
-            showSection(false, '#no_of_sessions_section')
-            showSection(false, '#notes_section')
+            showSection(false, '#other_specify_section');
+            showSection(false, '#intervention_date_section');
+            showSection(false, '#hts_result_section');
+            showSection(false, '#ccc_number_section');
+            showSection(false, '#pregnancy_test_section');
+            showSection(false, '#no_of_sessions_section');
+            showSection(false, '#notes_section');
         }
     });
 
@@ -3847,7 +3862,7 @@ $(document).ready(function () {
         $("#referral-intervention-modal #intervention_type_name").text("Intervention: " + $(el).data('referral-intervention-type-name'));
         $("#referral-intervention-modal #referral_id").val($(el).data('referral-id'));
 
-        fetchExternalOrganisations('referral-intervention-modal');
+        fetchExternalOrganisations('external-organization-select', 'referral-intervention-modal');
         $('#referral-intervention-modal #btn_save_referral_intervention').removeAttr("disabled");
 
         if (checkIfValueExists($(el).data('referral-external-organisation-id'))) {
