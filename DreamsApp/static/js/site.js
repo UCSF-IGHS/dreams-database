@@ -286,7 +286,10 @@ $(document).ready(function () {
         var interventionCategoryCode = $("#dreams-profile-tab-control ul li.active a").data('intervention_category_code');
         if (currentClientId == null || interventionCategoryCode == null)
             return;
+
         fetchRelatedInterventions(interventionCategoryCode, currentClientId);
+        fetchExternalOrganisations('external-organization-select', 'intervention-modal');
+
         if ((typeof $(button).data('whatever') != 'undefined' && $(button).data('whatever') != null)) {
             modalMode = "new";
             $('#intervention-modal #intervention-type-select').val('').change();
@@ -296,19 +299,8 @@ $(document).ready(function () {
             $('#intervention-modal #intervention-type-select').val(currentInterventionType.fields.code).change();
             prePopulateInterventionModal(intervention, currentInterventionType);
         }
-        fetchExternalOrganisations('external-organization-select', 'intervention-modal');
     });
 
-    // $('#intervention-modal').on('shown.bs.modal', function (event) {
-    //     if (modalMode == "edit") {
-    //         $('#intervention_id').val(intervention.pk); // This is the intervention id
-    //         $('#intervention-modal #intervention-type-select').val(currentInterventionType.fields.code).change();
-    //         prePopulateInterventionModal(intervention, currentInterventionType);
-    //     }
-    //     else {
-    //         $('#intervention-modal #intervention-type-select').val('').change();
-    //     }
-    // });
 
     $('#intervention-modal').on('hide.bs.modal', function (event) {
         $('#intervention-type-select').removeAttr('disabled');
@@ -599,7 +591,6 @@ $(document).ready(function () {
 
     function setSelectOptions(selectOptions, selectID, defaultText) {
         var select = $(selectID);
-        alert(select.val());
         //select.empty();
         select.append($("<option />").attr("value", '').text(defaultText).addClass('selected disabled hidden').css({display: 'none'}));
 
@@ -876,6 +867,8 @@ $(document).ready(function () {
                 interventionTypeEmpty = true;
                 // external organization section
                 showSection(true, '#external_organization_section');
+
+                currentInterventionType_Global = type;
                 return false;
             }
         });
@@ -2447,7 +2440,7 @@ $(document).ready(function () {
             },
             // handle a non-successful response
             error: function (xhr, errmsg, err) {
-                alert("Failed!!" + errmsg + err)
+                alert("Failed!!" + errmsg + err);
             }
         });
     }
@@ -2476,7 +2469,7 @@ $(document).ready(function () {
             },
             // handle a non-successful response
             error: function (xhr, errmsg, err) {
-                alert("Failed!!" + errmsg + err)
+                alert("Failed!!" + errmsg + err);
             }
         });
     }
@@ -2593,7 +2586,7 @@ $(document).ready(function () {
             },
             // handle a non-successful response
             error: function (xhr, errmsg, err) {
-                alert("Failed!!" + errmsg + err)
+                alert("Failed!!" + errmsg + err);
             }
         });
     });
@@ -2607,12 +2600,12 @@ $(document).ready(function () {
         var searchOption = $(event.target).val();
         $('#client_search_errors').html("").addClass("hidden");
         if (searchOption == "search_dreams_id") {
-            $('.search_dreams_id').removeClass("hidden").addClass("shown")
-            $('.search_name').addClass("hidden")
+            $('.search_dreams_id').removeClass("hidden").addClass("shown");
+            $('.search_name').addClass("hidden");
         }
         else if (searchOption == "search_name") {
-            $('.search_dreams_id').addClass("hidden")
-            $('.search_name').removeClass("hidden").addClass("shown")
+            $('.search_dreams_id').addClass("hidden");
+            $('.search_name').removeClass("hidden").addClass("shown");
         }
     });
 
