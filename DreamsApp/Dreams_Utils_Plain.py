@@ -1,7 +1,9 @@
 import unicodecsv as unicodecsv
 import MySQLdb
 import MySQLdb.cursors as cursors
+import logging
 from django.conf import settings
+from datetime import datetime
 
 
 class DreamsRawExportTemplateRenderer(object):
@@ -13,6 +15,7 @@ class DreamsRawExportTemplateRenderer(object):
         return MySQLdb.connect(
             host=database['HOST'], user=database['USER'],
             passwd=database['PASSWORD'], db=database['NAME'],
+            port=int(database['PORT']),
             cursorclass=cursors.DictCursor)
 
     def get_export_rows(self, ip_list, county, sub_county, ward):
@@ -58,6 +61,8 @@ class DreamsRawExportTemplateRenderer(object):
             return cursor
 
         except Exception as e:
+            logging.error(
+                "Exception {} {} ".format(e, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
             raise e
 
     def fetch_intervention_rows(self, ip_list, county, sub_county, ward):

@@ -1,6 +1,8 @@
 import os
 import traceback
+from functools import reduce
 
+import unicodecsv
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
@@ -20,12 +22,13 @@ from django.utils import timezone
 import urllib.parse
 import json
 from datetime import date, timedelta, datetime as dt
-from openpyxl import Workbook
 from openpyxl.styles import Font
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
 from dateutil.relativedelta import relativedelta
 from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, ReferralServiceLayer, FollowUpsServiceLayer
+from operator import itemgetter
+import operator
 
 
 def get_enrollment_form_config_data(request):
@@ -399,7 +402,8 @@ def client_profile(request):
                                                                                                            client_found}),
                                                                'is_editable_by_ip': is_editable_by_ip,
                                                                'can_add_intervention': can_add_intervention,
-                                                               'client_status': client_status
+                                                               'client_status': client_status,
+                                                               '60_days_from_now': dt.now() + + timedelta(days=60)
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
@@ -413,7 +417,8 @@ def client_profile(request):
                                'transfer_form': ClientTransferForm(ip_code=ip_code, initial={'client': client_found}),
                                'is_editable_by_ip': is_editable_by_ip,
                                'can_add_intervention': can_add_intervention,
-                               'client_status': client_status
+                               'client_status': client_status,
+                               '60_days_from_now': dt.now() + + timedelta(days=60)
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -912,8 +917,10 @@ def get_exit_reasons(request):
 def is_valid_get_request(request):
     return request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active
 
+
 def is_valid_post_request(request):
     return request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active
+
 
 def get_intervention_types(request):
     try:
@@ -1211,6 +1218,140 @@ def save_intervention(request):
             'message': errormsg
         }
         return JsonResponse(response_data)
+
+
+def initiate_referral(request):
+    try:
+        if is_valid_post_request(request):
+            OTHER_EXTERNAL_ORGANISATION_ID = ExternalOrganisation.objects.get(name='Other').pk
+            client = Client.objects.filter(id__exact=int(request.POST.get('referral-client-id'))).first()
+            source_implementing_partner = ImplementingPartner.objects.filter(id__exact=client.implementing_partner.id).first()
+            intervention_type = InterventionType.objects.filter(id__exact=int(request.POST.get('referral-interventions-select'))).first()
+            referral_date = request.POST.get('referral-date')
+            expiry_date = request.POST.get('expiry-date')
+            comment = request.POST.get('comment')
+            to_external_organization = request.POST.get('to-external-organization')
+
+            if not client:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Client not found.'
+                }
+                return JsonResponse(response_data)
+
+            if dt.strptime(str(referral_date), '%Y-%m-%d').date() > dt.now().date():
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected referral date cannot be later than today.'
+                }
+                return JsonResponse(response_data)
+
+            if dt.strptime(str(referral_date), '%Y-%m-%d').date() < client.date_of_enrollment:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected referral date cannot be earlier than client enrolment date.'
+                }
+                return JsonResponse(response_data)
+
+            if dt.strptime(str(referral_date), '%Y-%m-%d').date() > dt.strptime(str(expiry_date), '%Y-%m-%d').date():
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Selected referral date cannot be later than referral expiry date.'
+                }
+                return JsonResponse(response_data)
+
+            if bool(to_external_organization):
+                if not request.POST.get('referral-external-organization-select') and not request.POST.get('other-organization-name'):
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Select or input value for external organisation.'
+                    }
+                    return JsonResponse(response_data)
+
+                if int(request.POST.get('referral-external-organization-select')) == OTHER_EXTERNAL_ORGANISATION_ID and not request.POST.get('other-organization-name'):
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Input value for other external organisation.'
+                    }
+                    return JsonResponse(response_data)
+
+            else:
+                if not request.POST.get('implementing-partners-select'):
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Select or input value for external organisation.'
+                    }
+                    return JsonResponse(response_data)
+
+            if request.user.has_perm('DreamsApp.add_referral'):
+                referral = Referral()
+                referral.client = client
+                referral.referring_ip = source_implementing_partner
+                referral.intervention_type = intervention_type
+                referral.referral_status = ReferralStatus.objects.get(name='Pending')
+                referral.referral_date = referral_date
+                referral.referral_expiration_date = expiry_date
+                referral.comments = comment
+
+                if bool(to_external_organization):
+                    if request.POST.get('referral-external-organization-select'):
+                        referral.external_organisation = ExternalOrganisation.objects.filter(id__exact=int(request.POST.get('referral-external-organization-select'))).first()
+
+                        if int(request.POST.get('referral-external-organization-select')) == OTHER_EXTERNAL_ORGANISATION_ID:
+                            if request.POST.get('other-organization-name'):
+                                referral.external_organisation_other = request.POST.get('other-organization-name')
+                    else:
+                        if request.POST.get('other-organization-name'):
+                            referral.external_organisation_other = request.POST.get('other-organization-name')
+                else:
+                    referral.receiving_ip = ImplementingPartner.objects.filter(id__exact=int(request.POST.get('implementing-partners-select'))).first()
+
+                referral.save()
+                response_data = {
+                    'status': 'success',
+                    'message': 'Referral added'
+                }
+                return JsonResponse(response_data)
+            else:
+                raise PermissionDenied
+
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+
+def get_all_intervention_types(request):
+    try:
+        if is_valid_get_request(request):
+            intervention_types = InterventionType.objects.all()
+            response_data = {
+                'intervention_types': serializers.serialize('json', intervention_types)
+            }
+            return JsonResponse(response_data)
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
+def get_implementing_partners(request):
+    try:
+       if is_valid_get_request(request):
+            if has_get_arg('referral-client-id', request):
+                client_id = int(request.GET.get('referral-client-id'))
+                client_implementing_partner = Client.objects.get(id=client_id).implementing_partner
+                implementing_partners = ImplementingPartner.objects.all().exclude(id=client_implementing_partner.id)
+                response_data = {
+                    'implementing_partners': serializers.serialize('json', implementing_partners)
+                }
+                return JsonResponse(response_data)
+            else:
+                return ValueError('Client ID is required')
+    except Exception as e:
+        tb = traceback.format_exc(e)
+        return HttpResponseServerError(tb)
+
+
+def has_get_arg(arg_name, request):
+    return arg_name in request.GET or request.GET.get(arg_name)
 
 
 def get_intervention_list(request):
@@ -1803,11 +1944,10 @@ def logs(request):
         if not request.user.is_superuser and not request.user.has_perm('DreamsApp.can_manage_audit'):
             raise PermissionDenied('Operation not allowed. [Missing Permission]')
 
-        ip = ''
         try:
             ip = request.user.implementingpartneruser.implementing_partner.id
         except ImplementingPartnerUser.DoesNotExist:
-            pass
+            return HttpResponseServerError("You do not belong to an implementing partner.")
 
         # user is allowed to view logs
         if request.method == 'GET':
@@ -1815,19 +1955,22 @@ def logs(request):
                 page = request.GET.get('page', 1)
                 filter_text = request.GET.get('filter-log-text', '')
                 filter_date_from = request.GET.get('filter-log-date-from', '')
-                filter_date = request.GET.get('filter-log-date', '')
+                filter_date_to = request.GET.get('filter-log-date', '')
 
                 # getting logs
-                logs = Audit.objects.filter(Q(table__in=filter_text.split(" ")) |
-                                            Q(action__in=filter_text.split(" ")) |
-                                            Q(search_text__in=filter_text.split(" ")) |
-                                            Q(user__username__icontains=filter_text.split(" ")[0]) |
-                                            Q(user__first_name__icontains=filter_text.split(" ")[0]) |
-                                            Q(user__last_name__icontains=filter_text.split(" ")[0])
-                                            ).order_by('-timestamp')
+                if filter_text:
+                    logs = Audit.objects.filter(
+                        reduce(operator.or_, (Q(table__icontains=item) for item in filter_text.split(" "))) |
+                        reduce(operator.or_, (Q(action__icontains=item) for item in filter_text.split(" "))) |
+                        reduce(operator.or_, (Q(search_text__icontains=item) for item in filter_text.split(" "))) |
+                        reduce(operator.or_, (Q(user__username__icontains=item) for item in filter_text.split(" "))) |
+                        reduce(operator.or_, (Q(user__first_name__icontains=item) for item in filter_text.split(" "))) |
+                        reduce(operator.or_, (Q(user__last_name__icontains=item) for item in filter_text.split(" ")))
+                        ).order_by('-timestamp')
+                else:
+                    logs = Audit.objects.all().order_by('-timestamp')
 
-                logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs)
-
+                logs = filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs)
                 paginator = Paginator(logs, 25)  # Showing 25 contacts per page
                 try:
                     logs_list = paginator.page(page)
@@ -1838,7 +1981,7 @@ def logs(request):
                 return render(request, 'log.html', {'page': 'logs', 'page_title': 'DREAMS Logs', 'logs': logs_list,
                                                     'filter_text': filter_text,
                                                     'filter_date_from': filter_date_from,
-                                                    'filter_date': filter_date,
+                                                    'filter_date': filter_date_to,
                                                     'items_in_page': 0 if logs_list.end_index() == 0 else
                                                     (logs_list.end_index() - logs_list.start_index() + 1)
                                                     }
@@ -1846,60 +1989,29 @@ def logs(request):
             except Exception as e:
                 tb = traceback.format_exc(e)
                 return HttpResponseServerError(tb)
-        elif request.method == 'POST':
-            # get the form data
-            filter_text = request.POST.get('filter-log-text', '')
-            filter_date = request.POST.get('filter-log-date', '')
-            filter_date_from = request.POST.get('filter-log-date-from', '')
-
-            logs = Audit.objects.filter(Q(table__icontains=filter_text) |
-                                        Q(action__icontains=filter_text) |
-                                        Q(search_text__icontains=filter_text) |
-                                        Q(user__username__icontains=filter_text) |
-                                        Q(user__first_name__icontains=filter_text) |
-                                        Q(user__last_name__icontains=filter_text)).order_by('-timestamp')
-
-            logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs)
-
-            paginator = Paginator(logs, 25)
-            try:
-                logs_list = paginator.page(1)
-            except PageNotAnInteger:
-                logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
-            except EmptyPage:
-                logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
-            return render(request, 'log.html', {'page': 'logs',
-                                                'page_title': 'DREAMS Logs',
-                                                'logs': logs_list,
-                                                'filter_text': filter_text,
-                                                'filter_date_from': filter_date_from,
-                                                'filter_date': filter_date,
-                                                'items_in_page': 0 if logs_list.end_index() == 0 else
-                                                (logs_list.end_index() - logs_list.start_index() + 1)})
+        else:
+            raise bad_request(request)
     else:
         raise PermissionDenied
 
 
-def filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs):
-    if ip != '':
+def filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs):
+    if ip:
         logs = logs.filter(Q(user__implementingpartneruser__implementing_partner__id__exact=ip))
-    if filter_date_from == '' and filter_date == '':
-        pass
-    elif filter_date_from != '' and filter_date == '':
+    if filter_date_from and not filter_date_to:
         fyr, fmnth, fdt = filter_date_from.split('-')
         constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-        logs = logs.filter(Q(timestamp__date__gte=constructed_date_from))
-    elif filter_date_from == '' and filter_date != '':
-        yr, mnth, dat = filter_date.split('-')
+        logs = logs.filter(Q(timestamp__gte=constructed_date_from))
+    elif not filter_date_from and filter_date_to:
+        yr, mnth, dat = filter_date_to.split('-')
         constructed_date = date(int(yr), int(mnth), int(dat))
-        logs = logs.filter(Q(timestamp__date__lte=constructed_date))
-    else:
-        yr, mnth, dat = filter_date.split('-')
-        constructed_date = date(int(yr), int(mnth), int(dat))
+        logs = logs.filter(Q(timestamp__lte=constructed_date))
+    elif filter_date_from and filter_date_to:
+        yr, mnth, dat = filter_date_to.split('-')
+        constructed_date_to = date(int(yr), int(mnth), int(dat)) + timedelta(days=1)
         fyr, fmnth, fdt = filter_date_from.split('-')
         constructed_date_from = date(int(fyr), int(fmnth), int(fdt))
-        logs = logs.filter(Q(timestamp__date__gte=constructed_date_from) &
-                           Q(timestamp__date__lte=constructed_date))
+        logs = logs.filter(Q(timestamp__range=[constructed_date_from, constructed_date_to]))
     return logs
 
 
@@ -3423,69 +3535,71 @@ def download_audit_logs(request):
         try:
             filter_text = request.GET.get('filter-log-text', '')
             filter_date_from = request.GET.get('filter-log-date-from', '')
-            filter_date = request.GET.get('filter-log-date', '')
+            filter_date_to = request.GET.get('filter-log-date', '')
 
             # getting logs
-            logs = Audit.objects.filter(Q(table__in=filter_text.split(" ")) |
-                                        Q(action__in=filter_text.split(" ")) |
-                                        Q(search_text__in=filter_text.split(" ")) |
-                                        Q(user__username__icontains=filter_text.split(" ")[0]) |
-                                        Q(user__first_name__icontains=filter_text.split(" ")[0]) |
-                                        Q(user__last_name__icontains=filter_text.split(" ")[0])
-                                        ).order_by('-timestamp')
+            if filter_text:
+                logs = Audit.objects.filter(
+                    reduce(operator.or_, (Q(table__icontains=item) for item in filter_text.split(" "))) |
+                    reduce(operator.or_, (Q(action__icontains=item) for item in filter_text.split(" "))) |
+                    reduce(operator.or_, (Q(search_text__icontains=item) for item in filter_text.split(" "))) |
+                    reduce(operator.or_, (Q(user__username__icontains=item) for item in filter_text.split(" "))) |
+                    reduce(operator.or_, (Q(user__first_name__icontains=item) for item in filter_text.split(" "))) |
+                    reduce(operator.or_, (Q(user__last_name__icontains=item) for item in filter_text.split(" ")))
+                ).order_by('-timestamp')
+            else:
+                logs = Audit.objects.all().order_by('-timestamp')
 
-            logs = filter_audit_logs_by_date_and_ip(filter_date, filter_date_from, ip, logs)
-
+            logs = filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs).values()
+            columns = ['timestamp', 'user_name', 'table', 'column', 'old_value', 'new_value', 'action', 'search_text']
             header = ['Timestamp', 'User', 'Table', 'Field', 'Old Value', 'New Value', 'Action', 'Text']
 
-            wb = Workbook()
-            ws = wb.active
-            ws.append(header)
-            row_idx = 2
+            export_file_name = urllib.parse.quote("/tmp/audit_log_export-{}.csv".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="{}"'.format(export_file_name)
+
+            writer = unicodecsv.DictWriter(response, fieldnames=columns, extrasaction='raise')
+            header = dict(zip(columns, header))
+            writer.writerow(header)
 
             for log in logs:
-                ws.cell(row=row_idx, column=1).value = log.timestamp
-                ws.cell(row=row_idx, column=2).value = log.get_user_name()
-                ws.cell(row=row_idx, column=3).value = log.table
+                audittrail = AuditTrail.objects.filter(Q(audit_id=log['id'])).values()
+                column = ""
+                old_value = ""
+                new_value = ""
 
-                adt_idx = row_idx
-                for audittrail in log.audittrail_set.all():
-                    ws.cell(row=adt_idx, column=4).value = audittrail.column
-                    ws.cell(row=adt_idx, column=5).value = audittrail.old_value
-                    ws.cell(row=adt_idx, column=6).value = audittrail.new_value
-                    adt_idx += 1
+                if len(audittrail) > 0:
+                    column_keys = ['column', 'old_value', 'new_value']
+                    column_values = [itemgetter(*column_keys)(x) for x in audittrail]
+                    column = ', '.join([str(x[0]) for x in column_values])
+                    old_value = ', '.join([str(x[1]) for x in column_values])
+                    new_value = ', '.join([str(x[2]) for x in column_values])
 
-                if adt_idx == row_idx:
-                    adt_idx += 1
+                writer.writerow({'timestamp': log['timestamp'], 'user_name': get_user_name(log['user_id']), 'table': log['table'], 'column': column, 'old_value': old_value, 'new_value': new_value, 'action': log['action'], 'search_text': log['search_text']})
 
-                ws.cell(row=row_idx, column=7).value = log.action
-                ws.cell(row=row_idx, column=8).value = log.search_text
-                row_idx = adt_idx
-
-            dims = {}
-            for row in ws.rows:
-                for cell in row:
-                    if cell.value:
-                        dims[cell.column] = max(dims.get(cell.column, 0), len(str(cell.value)))
-
-            for col, value in dims.items():
-                ws.column_dimensions[col].width = value
-
-            ft = Font(bold=True)
-            for cell in ws["1:1"]:
-                cell.font = ft
-
-            response = HttpResponse(content_type='application/ms-excel')
-            response['Content-Disposition'] = 'attachment; filename=Audit_Logs.xlsx'
-
-            wb.save(response)
             return response
 
+        except AttributeError:
+            return HttpResponseServerError(AttributeError)
+        except UnicodeEncodeError:
+            return HttpResponseServerError(UnicodeEncodeError)
         except Exception as e:
             tb = traceback.format_exc(e)
             return HttpResponseServerError(tb)
     else:
         raise SuspiciousOperation
+
+
+def get_user_name(user_id):
+    if not user_id:
+        return ''
+    else:
+        user = User.objects.get(id=user_id)
+        if not user:
+            return ''
+
+        full_name = user.get_full_name()
+        return full_name if full_name else full_name
 
 
 def get_min_max_date_of_birth(request):

@@ -8,6 +8,7 @@
     {% include 'includes/client_void_form.html' %}
     {% include 'includes/enrollment_form.html' %}
     {% include 'includes/cash_transfer_details_form.html' %}
+    {% include 'includes/client_make_referral_form.html' %}
 
     <!-- Beginning modal-->
     <!-- Modal -->
@@ -293,6 +294,14 @@
                             <span class="glyphicon glyphicon-search"></span> Follow Ups
                         </p>
                     {%  endif %}
+                    {% if perms.DreamsApp.add_referral and not client.exited and not client.voided %}
+                        <p class="underline_hover" id="p_unexit_client" data-client_id='{{ client.id }}'
+                           data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                           data-toggle="modal" data-target="#client-make-referral-modal" title="Make Referral">
+                            <span class="glyphicon glyphicon-refresh"></span> <span
+                                class="client_status_action_text">Make Referral</span>
+                        </p>
+                    {% endif %}
                 </div><!--/col-->
                 <!--<div class="col-xs-12 col-sm-2 hidden">
                 <p><strong> </strong> <br>
