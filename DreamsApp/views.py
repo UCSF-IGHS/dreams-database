@@ -3308,10 +3308,10 @@ def reject_client_referral(request):
                             client_referral.save()
                             messages.info(request, "Referral successfully rejected.")
                         else:
-                             messages.warning(request,
-                                              "This referral has already expired and cannot be completed..")
+                             messages.error(request,
+                                              "This referral has already expired and cannot be rejected.")
                     else:
-                        messages.warning(request,
+                        messages.error(request,
                                      "Referral does not exist.")
                 else:
                     messages.error(request,
