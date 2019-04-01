@@ -591,7 +591,7 @@ $(document).ready(function () {
 
     function setSelectOptions(selectOptions, selectID, defaultText) {
         var select = $(selectID);
-        //select.empty();
+        select.empty();
         select.append($("<option />").attr("value", '').text(defaultText).addClass('selected disabled hidden').css({display: 'none'}));
 
         if (selectOptions.length > 0) {
