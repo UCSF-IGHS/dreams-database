@@ -2,6 +2,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from DreamsApp.models import *
+from DreamsApp.constants import *
 
 
 class FollowUpsServiceLayer:
@@ -24,10 +25,6 @@ class FollowUpsServiceLayer:
 
 
 class TransferServiceLayer:
-
-    TRANSFER_INITIATED_STATUS = 1
-    TRANSFER_ACCEPTED_STATUS = 2
-    TRANSFER_REJECTED_STATUS = 3
 
     def __init__(self, user, client_transfer=None):
         self.user: User = user
@@ -95,6 +92,7 @@ class TransferServiceLayer:
 
 
 class ClientEnrolmentServiceLayer:
+
     def __init__(self, user):
         self.user: User = user
         self.dt_format = "%Y-%m-%d"
@@ -122,13 +120,49 @@ class ClientEnrolmentServiceLayer:
 
 
 class ReferralServiceLayer:
-    REFERRAL_PENDING_STATUS = 1
-    REFERRAL_COMPLETED_STATUS = 2
-    REFERRAL_REJECTED_STATUS = 3
-    REFERRAL_EXPIRED_STATUS = 4
 
-    def __init__(self, user):
-        self.user = user
+    def __init__(self, user, client_referral=None):
+        self.user: User = user
+        self.client_referral = client_referral
 
     def can_accept_or_reject_referral(self):
         return self.user is not None and (self.user.is_superuser or self.user.has_perm('DreamsApp.change_referral'))
+
+    def can_initiate_referral(self):
+        return self.user is not None and (self.user.is_superuser or self.user.has_perm('DreamsApp.add_referral'))
+
+    def can_complete_referral(self):
+        action_allowed = False
+
+        if self.user is not None and self.client_referral is not None:
+            receiving_ip = self.client_referral.receiving_ip
+            referring_ip = self.client_referral.referring_ip
+
+            if self.client_referral.referral_status.pk == REFERRAL_PENDING_STATUS:
+                if self.user.is_superuser:
+                    action_allowed = True
+                else:
+                    user_ip = self.user.implementingpartneruser.implementing_partner
+                    if self.user.has_perm('DreamsApp.change_referral') and (receiving_ip == user_ip or (referring_ip == user_ip and (self.client_referral.external_organisation or (
+                            self.client_referral.external_organisation_other)))):
+                        action_allowed = True
+
+        return action_allowed
+
+    def can_reject_referral(self):
+        action_allowed = False
+
+        if self.user is not None and self.client_referral is not None:
+            receiving_ip = self.client_referral.receiving_ip
+            referring_ip = self.client_referral.referring_ip
+
+            if self.client_referral.referral_status.pk == REFERRAL_PENDING_STATUS:
+                if self.user.is_superuser:
+                    action_allowed = True
+                else:
+                    user_ip = self.user.implementingpartneruser.implementing_partner
+                    if self.user.has_perm('DreamsApp.change_referral') and (receiving_ip == user_ip or (referring_ip == user_ip and (self.client_referral.external_organisation or (
+                            self.client_referral.external_organisation_other)))):
+                        action_allowed = True
+
+        return action_allowed

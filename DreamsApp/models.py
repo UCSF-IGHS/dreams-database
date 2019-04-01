@@ -9,8 +9,6 @@ from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from DreamsApp.constants import *
 from django.utils.html import format_html
-# from DreamsApp.service_layer import TransferServiceLayer
-# from DreamsApp.service_layer import ClientEnrolmentServiceLayer
 
 
 class MaritalStatus(models.Model):
