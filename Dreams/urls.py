@@ -100,6 +100,8 @@ urlpatterns = [
     url(r'^client/void$', views.void_client, name='void_client'),
     url(r'^export-client-transfers/(?P<transferred_in>[0-1])$', views.export_client_transfers,
         name='export_client_transfers'),
+    url(r'^export-client-referrals/(?P<referred_in>[0-1])$', views.export_client_referrals,
+        name='export_client_referrals'),
     url(r'^download-audit-logs', views.download_audit_logs, name='download_audit_logs'),
     url(r'^addFollowUp$', views.add_follow_up),
 
