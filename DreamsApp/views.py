@@ -3068,9 +3068,12 @@ def export_client_referrals(request, *args, **kwargs):
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if referred_in:
-                c_referrals = Referral.objects.values(*columns).filter(receiving_ip=ip)
+                c_referrals = Referral.objects.values(*columns).filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
+                            Q(external_organisation__isnull=False) | Q(
+                        external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
             else:
-                c_referrals = Referral.objects.values(*columns).filter(referring_ip=ip)
+                c_referrals = Referral.objects.values(*columns).filter(referring_ip=ip).order_by('referral_status', '-referral_date')
+
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             c_referrals = Referral.objects.values(*columns)
 
