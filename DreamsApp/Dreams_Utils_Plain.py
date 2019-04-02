@@ -23,15 +23,15 @@ class DreamsRawExportTemplateRenderer(object):
     def get_export_rows(self, ip_list, county, sub_county, ward):
         cursor = self.get_connection().cursor()
 
-        multiple_ip_county_query = '{} {} {}'.format("SELECT", RAW_ENROLMENT_EXPORT_COLUMNS, "FROM flat_dreams_enrollment WHERE voided=0 AND county_of_residence_id = %s AND implementing_partner_id IN %s ")
-        multiple_ip_sub_county_query = '{} {} {}'.format("SELECT", RAW_ENROLMENT_EXPORT_COLUMNS, "FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND implementing_partner_id IN %s ")
-        multiple_ip_ward_query = '{} {} {}'.format("SELECT", RAW_ENROLMENT_EXPORT_COLUMNS, "FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND implementing_partner_id IN %s ")
-        multiple_ip_default_query = '{} {} {}'.format("SELECT", RAW_ENROLMENT_EXPORT_COLUMNS, "FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id IN %s ")
+        multiple_ip_county_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND county_of_residence_id = %s AND implementing_partner_id IN %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        multiple_ip_sub_county_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND implementing_partner_id IN %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        multiple_ip_ward_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND implementing_partner_id IN %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        multiple_ip_default_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id IN %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
 
-        single_ip_county_query = '{} {} {}'.format("SELECT", RAW_ENROLMENT_EXPORT_COLUMNS, "FROM flat_dreams_enrollment WHERE voided=0 AND county_of_residence_id = %s AND implementing_partner_id = %s ")
-        single_ip_sub_county_query = '{} {} {}'.format("SELECT", RAW_ENROLMENT_EXPORT_COLUMNS, "FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND implementing_partner_id = %s ")
-        single_ip_ward_query = '{} {} {}'.format("SELECT", RAW_ENROLMENT_EXPORT_COLUMNS, "FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND implementing_partner_id = %s ")
-        single_ip_default_query = '{} {} {}'.format("SELECT", RAW_ENROLMENT_EXPORT_COLUMNS, "FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id = %s ")
+        single_ip_county_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND county_of_residence_id = %s AND implementing_partner_id = %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        single_ip_sub_county_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND implementing_partner_id = %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        single_ip_ward_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND implementing_partner_id = %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        single_ip_default_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id = %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
 
         try:
             county = int(county) if county else None
@@ -69,15 +69,16 @@ class DreamsRawExportTemplateRenderer(object):
 
     def fetch_intervention_rows(self, ip_list, county, sub_county, ward):
         cursor = self.get_connection().cursor()
-        multiple_ip_county_query = '{} {} {}'.format("SELECT", RAW_INTERVENTION_EXPORT_COLUMNS, "FROM stag_client_intervention i WHERE voided=0 AND i.county_of_residence_id = %s AND i.implementing_partner_id IN %s ")
-        multiple_ip_sub_county_query = '{} {} {}'.format("SELECT", RAW_INTERVENTION_EXPORT_COLUMNS, "FROM stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id IN %s ")
-        multiple_ip_ward_query = '{} {} {}'.format("SELECT", RAW_INTERVENTION_EXPORT_COLUMNS, "FROM stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id IN %s ")
-        multiple_ip_default_query = '{} {} {}'.format("SELECT", RAW_INTERVENTION_EXPORT_COLUMNS, "FROM stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id IN %s ")
 
-        single_ip_county_query = '{} {} {}'.format("SELECT", RAW_INTERVENTION_EXPORT_COLUMNS, "FROM stag_client_intervention i WHERE voided=0 AND i.county_of_residence_id = %s AND i.implementing_partner_id = %s ")
-        single_ip_sub_county_query = '{} {} {}'.format("SELECT", RAW_INTERVENTION_EXPORT_COLUMNS, "FROM stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id = %s ")
-        single_ip_ward_query = '{} {} {}'.format("SELECT", RAW_INTERVENTION_EXPORT_COLUMNS, "FROM stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id = %s ")
-        single_ip_default_query = '{} {} {}'.format("SELECT", RAW_INTERVENTION_EXPORT_COLUMNS, "FROM stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %s ")
+        multiple_ip_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.county_of_residence_id = %s AND i.implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        multiple_ip_sub_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        multiple_ip_ward_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        multiple_ip_default_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+
+        single_ip_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.county_of_residence_id = %s AND i.implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        single_ip_sub_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        single_ip_ward_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        single_ip_default_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
 
         try:
             county = int(county) if county else None
@@ -114,15 +115,15 @@ class DreamsRawExportTemplateRenderer(object):
     def extract_service_layering_for_all_girls(self, ip_list, county, sub_county, ward):
 
         cursor = self.get_connection().cursor()
-        multiple_ip_county_query = '{} {} {}'.format("SELECT", INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS, "FROM stag_individual_client_service_layering WHERE county_of_residence_id = %s AND  implementing_partner_id IN %s ")
-        multiple_ip_sub_county_query = '{} {} {}'.format("SELECT", INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS, "FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND  implementing_partner_id IN %s ")
-        multiple_ip_ward_query = '{} {} {}'.format("SELECT", INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS, "FROM stag_individual_client_service_layering WHERE ward_id = %s AND  implementing_partner_id IN %s ")
-        multiple_ip_default_query = '{} {} {}'.format("SELECT", INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS, "FROM stag_individual_client_service_layering WHERE implementing_partner_id IN %s ")
+        multiple_ip_county_query = "SELECT {} FROM stag_individual_client_service_layering WHERE county_of_residence_id = %s AND  implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        multiple_ip_sub_county_query = "SELECT {} FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND  implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        multiple_ip_ward_query = "SELECT {} FROM stag_individual_client_service_layering WHERE ward_id = %s AND  implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        multiple_ip_default_query = "SELECT {} FROM stag_individual_client_service_layering WHERE implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
 
-        single_ip_county_query = '{} {} {}'.format("SELECT", INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS, "FROM stag_individual_client_service_layering WHERE county_of_residence_id = %s AND implementing_partner_id = %s ")
-        single_ip_sub_county_query = '{} {} {}'.format("SELECT", INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS, "FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND implementing_partner_id = %s ")
-        single_ip_ward_query = '{} {} {}'.format("SELECT", INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS, "FROM stag_individual_client_service_layering WHERE ward_id = %s AND implementing_partner_id = %s ")
-        single_ip_default_query = '{} {} {}'.format("SELECT", INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS, "FROM stag_individual_client_service_layering WHERE implementing_partner_id = %s ")
+        single_ip_county_query = "SELECT {} FROM stag_individual_client_service_layering WHERE county_of_residence_id = %s AND implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        single_ip_sub_county_query = "SELECT {} FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        single_ip_ward_query = "SELECT {} FROM stag_individual_client_service_layering WHERE ward_id = %s AND implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        single_ip_default_query = "SELECT {} FROM stag_individual_client_service_layering WHERE implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
 
         try:
             county = int(county) if county else None
@@ -239,7 +240,7 @@ class DreamsRawExportTemplateRenderer(object):
 
     def fetch_intervention_transferred_in_rows(self, ip, from_intervention_date, to_intervention_date):
         cursor = self.get_connection().cursor()
-        query = '{} {} {}'.format("SELECT", INTERVENTION_TRANSFERRED_IN_COLUMNS, "FROM stag_client_intervention i WHERE i.voided=0 AND i.transferred_client=1")
+        query = "SELECT {} FROM stag_client_intervention i WHERE i.voided=0 AND i.transferred_client=1".format(INTERVENTION_TRANSFERRED_IN_COLUMNS)
         params = []
 
         if ip is not None:
