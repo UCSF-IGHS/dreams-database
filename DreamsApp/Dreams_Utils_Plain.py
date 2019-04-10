@@ -166,8 +166,7 @@ class DreamsRawExportTemplateRenderer(object):
             if not show_PHI:
                 phi_cols = ['first_name', 'middle_name', 'last_name', 'verification_doc_no', 'phone_number',
                             'dss_id_number', 'guardian_name', 'guardian_phone_number', 'guardian_national_id']
-                col_names_set = set(col_names) - set(phi_cols)
-                col_names = [item for item in col_names if item in col_names_set]
+                col_names = [item for item in col_names if item not in phi_cols]
 
             writer = unicodecsv.DictWriter(response, fieldnames=col_names, extrasaction='ignore')
             writer.writeheader()
