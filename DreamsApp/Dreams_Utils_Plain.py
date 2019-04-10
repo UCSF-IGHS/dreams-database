@@ -186,7 +186,7 @@ class DreamsRawExportTemplateRenderer(object):
 
             if not show_PHI:
                 phi_cols = ['client_name']
-                col_names = list(set(col_names) - set(phi_cols))
+                col_names = [item for item in col_names if item not in phi_cols]
 
             writer = unicodecsv.DictWriter(response, fieldnames=col_names, extrasaction='ignore')
             writer.writeheader()
@@ -206,7 +206,7 @@ class DreamsRawExportTemplateRenderer(object):
 
             if not show_PHI:
                 phi_cols = ['first_name', 'middle_name', 'last_name']
-                col_names = list(set(col_names) - set(phi_cols))
+                col_names = [item for item in col_names if item not in phi_cols]
 
             writer = unicodecsv.DictWriter(response, fieldnames=col_names, extrasaction='ignore')
             writer.writeheader()
@@ -226,7 +226,7 @@ class DreamsRawExportTemplateRenderer(object):
 
             if not show_PHI:
                 phi_cols = ['first_name', 'middle_name', 'last_name']
-                col_names = list(set(col_names) - set(phi_cols))
+                col_names = [item for item in col_names if item not in phi_cols]
 
             writer = unicodecsv.DictWriter(response, fieldnames=col_names, extrasaction='ignore')
             writer.writeheader()
