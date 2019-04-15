@@ -4,6 +4,8 @@ import MySQLdb.cursors as cursors
 import logging
 from django.conf import settings
 from datetime import datetime
+from DreamsApp.constants import RAW_ENROLMENT_EXPORT_COLUMNS, RAW_INTERVENTION_EXPORT_COLUMNS, \
+    INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS, INTERVENTION_TRANSFERRED_IN_COLUMNS
 
 
 class DreamsRawExportTemplateRenderer(object):
@@ -21,15 +23,15 @@ class DreamsRawExportTemplateRenderer(object):
     def get_export_rows(self, ip_list, county, sub_county, ward):
         cursor = self.get_connection().cursor()
 
-        multiple_ip_county_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND county_of_residence_id = %s AND  implementing_partner_id IN %s "
-        multiple_ip_sub_county_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND  implementing_partner_id IN %s "
-        multiple_ip_ward_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND  implementing_partner_id IN %s "
-        multiple_ip_default_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id IN %s "
+        multiple_ip_county_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND county_of_residence_id = %s AND implementing_partner_id IN %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        multiple_ip_sub_county_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND implementing_partner_id IN %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        multiple_ip_ward_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND implementing_partner_id IN %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        multiple_ip_default_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id IN %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
 
-        single_ip_county_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND county_of_residence_id = %s AND implementing_partner_id = %s "
-        single_ip_sub_county_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND implementing_partner_id = %s "
-        single_ip_ward_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND implementing_partner_id = %s "
-        single_ip_default_query = "SELECT * FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id = %s "
+        single_ip_county_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND county_of_residence_id = %s AND implementing_partner_id = %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        single_ip_sub_county_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND implementing_partner_id = %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        single_ip_ward_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND implementing_partner_id = %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        single_ip_default_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id = %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
 
         try:
             county = int(county) if county else None
@@ -62,123 +64,21 @@ class DreamsRawExportTemplateRenderer(object):
 
         except Exception as e:
             logging.error(
-                "Exception {} {} ".format(e, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+                "Exception {} {} ".format(e, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
             raise e
 
     def fetch_intervention_rows(self, ip_list, county, sub_county, ward):
         cursor = self.get_connection().cursor()
 
-        multiple_ip_county_query = """select
-                                        i.client_id,
-                                        i.dreams_id,
-                                        CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name,
-                                        i.date_of_birth,
-                                        i.implementing_partner,
-                                        i.implementing_partner_id,
-                                        i.county_of_residence,
-                                        i.sub_county,
-                                        i.ward,
-                                        i.village,
-                                        i.date_of_enrollment as date_of_enrollment,
-                                        DATE(i.intervention_date) date_of_intervention,
-                                        DATE(i.date_created) date_created,
-                                        i.intervention as intervention_type,
-                                        i.intervention_category,
-                                        i.hts_result,
-                                        i.pregnancy_test_result,
-                                        i.client_ccc_number,
-                                        i.date_linked_to_ccc,
-                                        i.no_of_sessions_attended,
-                                        i.comment,
-                                        i.current_age,
-                                        i.age_at_intervention,
-                                        i.external_organisation,
-                                        i.external_organisation_other,
-                                        (CASE WHEN i.referred_client = 1 THEN 'Yes' ELSE 'No' END) AS referred_client,
-                                        (SELECT name FROM DreamsApp_implementingpartner WHERE id=i.receiving_ip_id LIMIT 1) AS receiving_ip,
-                                        i.referral_date,
-                                        i.referral_status
-                                        from stag_client_intervention i
-                                        WHERE voided=0
-                                        AND i.county_of_residence_id = %s
-                                        AND i.implementing_partner_id IN %s """
+        multiple_ip_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.county_of_residence_id = %s AND i.implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        multiple_ip_sub_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        multiple_ip_ward_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        multiple_ip_default_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
 
-        multiple_ip_sub_county_query = """select
-  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner, i.implementing_partner_id, i.county_of_residence,i.sub_county,
-  i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
-  i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention, i.external_organisation, i.external_organisation_other, (CASE WHEN i.referred_client = 1 THEN 'Yes' ELSE 'No' END) AS referred_client, (SELECT name FROM DreamsApp_implementingpartner WHERE id=i.receiving_ip_id LIMIT 1) AS receiving_ip, i.referral_date, i.referral_status
-from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id IN %s """
-
-        multiple_ip_ward_query = """select
-  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
-  i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
-  i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention, i.external_organisation, i.external_organisation_other, (CASE WHEN i.referred_client = 1 THEN 'Yes' ELSE 'No' END) AS referred_client, (SELECT name FROM DreamsApp_implementingpartner WHERE id=i.receiving_ip_id LIMIT 1) AS receiving_ip, i.referral_date, i.referral_status
-from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id IN %s """
-
-        multiple_ip_default_query = """select
-  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
-  i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
-  i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention, i.external_organisation, i.external_organisation_other, (CASE WHEN i.referred_client = 1 THEN 'Yes' ELSE 'No' END) AS referred_client, (SELECT name FROM DreamsApp_implementingpartner WHERE id=i.receiving_ip_id LIMIT 1) AS receiving_ip, i.referral_date, i.referral_status
-from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id IN %s """
-
-        single_ip_county_query = """select
-                                      i.client_id,
-                                      i.dreams_id,
-                                      CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name,
-                                      i.date_of_birth,
-                                      i.implementing_partner,
-                                      i.implementing_partner_id,
-                                      i.county_of_residence,
-                                      i.sub_county,
-                                      i.ward,
-                                      i.village,
-                                      i.date_of_enrollment as date_of_enrollment,
-                                      DATE(i.intervention_date) date_of_intervention,
-                                      DATE(i.date_created) date_created,
-                                      i.intervention as intervention_type,
-                                      i.intervention_category,
-                                      i.hts_result,
-                                      i.pregnancy_test_result,
-                                      i.client_ccc_number,
-                                      i.date_linked_to_ccc,
-                                      i.no_of_sessions_attended,
-                                      i.comment,
-                                      i.current_age,
-                                      i.age_at_intervention,
-                                      i.external_organisation,
-                                      i.external_organisation_other,
-                                      (CASE WHEN i.referred_client = 1 THEN 'Yes' ELSE 'No' END) AS referred_client,
-                                      (SELECT name FROM DreamsApp_implementingpartner WHERE id=i.receiving_ip_id LIMIT 1) AS receiving_ip,
-                                      i.referral_date,
-                                      i.referral_status
-                                      from stag_client_intervention i
-                                      WHERE voided=0
-                                      AND i.county_of_residence_id = %s
-                                      AND i.implementing_partner_id = %s """
-
-        single_ip_sub_county_query = """select
-  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
-  i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
-  i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention, i.external_organisation, i.external_organisation_other, (CASE WHEN i.referred_client = 1 THEN 'Yes' ELSE 'No' END) AS referred_client, (SELECT name FROM DreamsApp_implementingpartner WHERE id=i.receiving_ip_id LIMIT 1) AS receiving_ip, i.referral_date, i.referral_status
-from stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id = %s """
-
-        single_ip_ward_query = """select
-  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
-  i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
-  i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention, i.external_organisation, i.external_organisation_other, (CASE WHEN i.referred_client = 1 THEN 'Yes' ELSE 'No' END) AS referred_client, (SELECT name FROM DreamsApp_implementingpartner WHERE id=i.receiving_ip_id LIMIT 1) AS receiving_ip, i.referral_date, i.referral_status
-from stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id = %s """
-
-        single_ip_default_query = """select
-  i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
-  i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
-  i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-  i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention, i.external_organisation, i.external_organisation_other, (CASE WHEN i.referred_client = 1 THEN 'Yes' ELSE 'No' END) AS referred_client, (SELECT name FROM DreamsApp_implementingpartner WHERE id=i.receiving_ip_id LIMIT 1) AS receiving_ip, i.referral_date, i.referral_status
-from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %s """
+        single_ip_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.county_of_residence_id = %s AND i.implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        single_ip_sub_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        single_ip_ward_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        single_ip_default_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
 
         try:
             county = int(county) if county else None
@@ -215,15 +115,15 @@ from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %
     def extract_service_layering_for_all_girls(self, ip_list, county, sub_county, ward):
 
         cursor = self.get_connection().cursor()
-        multiple_ip_county_query = "SELECT * FROM stag_individual_client_service_layering WHERE county_of_residence_id = %s AND  implementing_partner_id IN %s "
-        multiple_ip_sub_county_query = "SELECT * FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND  implementing_partner_id IN %s "
-        multiple_ip_ward_query = "SELECT * FROM stag_individual_client_service_layering WHERE ward_id = %s AND  implementing_partner_id IN %s "
-        multiple_ip_default_query = "SELECT * FROM stag_individual_client_service_layering WHERE implementing_partner_id IN %s "
+        multiple_ip_county_query = "SELECT {} FROM stag_individual_client_service_layering WHERE county_of_residence_id = %s AND  implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        multiple_ip_sub_county_query = "SELECT {} FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND  implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        multiple_ip_ward_query = "SELECT {} FROM stag_individual_client_service_layering WHERE ward_id = %s AND  implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        multiple_ip_default_query = "SELECT {} FROM stag_individual_client_service_layering WHERE implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
 
-        single_ip_county_query = "SELECT * FROM stag_individual_client_service_layering WHERE county_of_residence_id = %s AND implementing_partner_id = %s "
-        single_ip_sub_county_query = "SELECT * FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND implementing_partner_id = %s "
-        single_ip_ward_query = "SELECT * FROM stag_individual_client_service_layering WHERE ward_id = %s AND implementing_partner_id = %s "
-        single_ip_default_query = "SELECT * FROM stag_individual_client_service_layering WHERE implementing_partner_id = %s "
+        single_ip_county_query = "SELECT {} FROM stag_individual_client_service_layering WHERE county_of_residence_id = %s AND implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        single_ip_sub_county_query = "SELECT {} FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        single_ip_ward_query = "SELECT {} FROM stag_individual_client_service_layering WHERE ward_id = %s AND implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        single_ip_default_query = "SELECT {} FROM stag_individual_client_service_layering WHERE implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
 
         try:
             county = int(county) if county else None
@@ -266,7 +166,7 @@ from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %
             if not show_PHI:
                 phi_cols = ['first_name', 'middle_name', 'last_name', 'verification_doc_no', 'phone_number',
                             'dss_id_number', 'guardian_name', 'guardian_phone_number', 'guardian_national_id']
-                col_names = list(set(col_names) - set(phi_cols))
+                col_names = [item for item in col_names if item not in phi_cols]
 
             writer = unicodecsv.DictWriter(response, fieldnames=col_names, extrasaction='ignore')
             writer.writeheader()
@@ -286,7 +186,7 @@ from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %
 
             if not show_PHI:
                 phi_cols = ['client_name']
-                col_names = list(set(col_names) - set(phi_cols))
+                col_names = [item for item in col_names if item not in phi_cols]
 
             writer = unicodecsv.DictWriter(response, fieldnames=col_names, extrasaction='ignore')
             writer.writeheader()
@@ -306,7 +206,7 @@ from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %
 
             if not show_PHI:
                 phi_cols = ['first_name', 'middle_name', 'last_name']
-                col_names = list(set(col_names) - set(phi_cols))
+                col_names = [item for item in col_names if item not in phi_cols]
 
             writer = unicodecsv.DictWriter(response, fieldnames=col_names, extrasaction='ignore')
             writer.writeheader()
@@ -318,7 +218,7 @@ from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %
             raise e
         return
 
-    def get_intervention_excel_transferred_in_doc(self, response, ip, from_intervention_date, to_intervention_date, show_PHI):
+    def get_intervention_transferred_in_doc(self, response, ip, from_intervention_date, to_intervention_date, show_PHI):
 
         try:
             cursor_data = self.fetch_intervention_transferred_in_rows(ip, from_intervention_date, to_intervention_date)
@@ -326,7 +226,7 @@ from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %
 
             if not show_PHI:
                 phi_cols = ['first_name', 'middle_name', 'last_name']
-                col_names = list(set(col_names) - set(phi_cols))
+                col_names = [item for item in col_names if item not in phi_cols]
 
             writer = unicodecsv.DictWriter(response, fieldnames=col_names, extrasaction='ignore')
             writer.writeheader()
@@ -341,18 +241,7 @@ from stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %
     def fetch_intervention_transferred_in_rows(self, ip, from_intervention_date, to_intervention_date):
         cursor = self.get_connection().cursor()
 
-        query = """select
-          i.client_id, i.dreams_id, CONCAT_WS(" ",i.first_name, i.middle_name, i.last_name) AS client_name, i.date_of_birth, 
-          i.implementing_partner,  i.implementing_partner_id,i.county_of_residence,i.sub_county,
-          i.ward, i.village, i.date_of_enrollment as date_of_enrollment, DATE(i.intervention_date) date_of_intervention, 
-          DATE(i.date_created) date_created, i.intervention as intervention_type, i.intervention_category, i.hts_result,
-          i.pregnancy_test_result, i.client_ccc_number, i.date_linked_to_ccc,
-          i.no_of_sessions_attended, i.comment, i.current_age, i.age_at_intervention, i.external_organisation, i.external_organisation_other, 
-          (CASE WHEN i.referred_client = 1 THEN 'Yes' ELSE 'No' END) AS referred_client, 
-          (SELECT name FROM DreamsApp_implementingpartner WHERE id=i.receiving_ip_id LIMIT 1) AS receiving_ip, i.referral_date, i.referral_status
-          from stag_client_intervention i
-          WHERE i.voided=0 AND i.transferred_client=1 
-          """
+        query = "SELECT {} FROM stag_client_intervention i WHERE i.voided=0 AND i.transferred_client=1".format(INTERVENTION_TRANSFERRED_IN_COLUMNS)
         params = []
 
         if ip is not None:

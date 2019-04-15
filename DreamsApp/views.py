@@ -18,11 +18,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.db import connection as db_conn_2, transaction
 from django.utils.timezone import make_aware
-from django.utils import timezone
 import urllib.parse
 import json
 from datetime import date, timedelta, datetime as dt
-from openpyxl.styles import Font
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
 from DreamsApp.forms import *
 from dateutil.relativedelta import relativedelta
@@ -3406,8 +3404,8 @@ def download_raw_intervention_transferred_in_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_intervention_excel_transferred_in_doc(response, ip, from_intervention_date, to_intervention_date,
-                                                             show_PHI)
+        export_doc.get_intervention_transferred_in_doc(response, ip, from_intervention_date, to_intervention_date,
+                                                       show_PHI)
         return response
 
     except Exception as e:
