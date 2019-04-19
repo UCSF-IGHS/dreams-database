@@ -2,8 +2,7 @@
 
 {% block enrollment_new %}
     <div class="modal fade " id="enrollment-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-         xmlns="http://www.w3.org/1999/html"
-    >
+         xmlns="http://www.w3.org/1999/html">
         <form method="POST" class="post-form" id="enrollment-form" action="/clientSave">
 
             <input class="disabled hidden" id="temp_current_ip" value="{{ current_ip }}">
@@ -29,45 +28,23 @@
                                 {{ demo_form.implementing_partner|add_class:"input-sm form-control enrolment-input hidden" }}
                                 {{ demo_form.implementing_partner.errors }}
                             </div>
+
                             <div class="form-group">
                                 {{ demo_form.first_name.errors }}
                                 <label class="control-label enrolment-label">{{ demo_form.first_name.label_tag }}</label>
                                 {{ demo_form.first_name |add_class:"input-sm form-control enrolment-input" }}
                             </div>
+
                             <div class="form-group">
                                 {{ demo_form.middle_name.errors }}
                                 <label class="control-label enrolment-label">{{ demo_form.middle_name.label_tag }}</label>
                                 {{ demo_form.middle_name |add_class:"input-sm form-control enrolment-input" }}
                             </div>
+
                             <div class="form-group">
                                 {{ demo_form.last_name.errors }}
                                 <label class="control-label enrolment-label">{{ demo_form.last_name.label_tag }}</label>
                                 {{ demo_form.last_name |add_class:"input-sm form-control enrolment-input" }}
-                            </div>
-                            <div class="form-group">
-                                {{ demo_form.date_of_birth.errors }}
-                                <label class="control-label enrolment-label">{{ demo_form.date_of_birth.label_tag }}</label>
-                                <div class="form-group has-feedback">
-                                    {{ demo_form.date_of_birth|add_class:"input-sm form-control enrolment-input pointer-area" }}
-                                    <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
-                                    <script>
-                                        $(function () {
-                                            $("#id_date_of_birth").datepicker({
-                                                beforeShow: function(input, inst) {
-                                                    $(document).off('focusin.bs.modal');
-                                                },
-                                                onClose:function(){
-                                                    $(document).on('focusin.bs.modal');
-                                                },
-                                                minDate: (new Date('{{ min_dob }}')),
-                                                maxDate: (new Date('{{ max_dob }}')),
-                                                dateFormat: 'yy-mm-dd',
-                                                changeMonth: true,
-                                                changeYear: true
-                                            });
-                                        });
-                                    </script>
-                                </div>
                             </div>
 
                             <div class="form-group">
@@ -95,31 +72,63 @@
                                     </script>
                                 </div>
                             </div>
+
+                            <div class="form-group">
+                                {{ demo_form.date_of_birth.errors }}
+                                <label class="control-label enrolment-label">{{ demo_form.date_of_birth.label_tag }}</label>
+                                <div class="form-group has-feedback">
+                                    {{ demo_form.date_of_birth|add_class:"input-sm form-control enrolment-input pointer-area" }}
+                                    <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                                    <script>
+                                        $(function () {
+                                            $("#id_date_of_birth").datepicker({
+                                                beforeShow: function(input, inst) {
+                                                    $(document).off('focusin.bs.modal');
+                                                },
+                                                onClose:function(){
+                                                    $(document).on('focusin.bs.modal');
+                                                },
+                                                minDate: (new Date('{{ min_dob }}')),
+                                                maxDate: (new Date('{{ max_dob }}')),
+                                                dateFormat: 'yy-mm-dd',
+                                                changeMonth: true,
+                                                changeYear: true
+                                            });
+                                        });
+                                    </script>
+                                </div>
+                            </div>
+
                             <div class="form-group">
                                 {{ demo_form.verification_document.errors }}
                                 <label class="control-label enrolment-label">{{ demo_form.verification_document.label_tag }}</label>
                                 {{ demo_form.verification_document|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:verification-doc-other" }}
                             </div>
+
                             <div class="form-group verification-doc-other {% if not demo_form.verification_document_other.value %} hidden {% endif %}">
                                 {{ demo_form.verification_document_other.errors }}
                                 <label class="control-label enrolment-label">{{ demo_form.verification_document_other.label_tag }}</label>
                                 {{ demo_form.verification_document_other|add_class:"input-sm form-control enrolment-input" }}
                             </div>
+
                             <div class="form-group">
                                 {{ demo_form.verification_doc_no.errors }}
                                 <label class="control-label enrolment-label">{{ demo_form.verification_doc_no.label_tag }}</label>
                                 {{ demo_form.verification_doc_no|add_class:"input-sm form-control enrolment-input" }}
                             </div>
+
                             <div class="form-group">
                                 {{ demo_form.marital_status.errors }}
                                 <label class="control-label enrolment-label">{{ demo_form.marital_status.label_tag }}</label>
                                 {{ demo_form.marital_status|add_class:"input-sm form-control enrolment-input" }}
                             </div>
+
                             <div class="form-group">
                                 {{ demo_form.phone_number.errors }}
                                 <label class="control-label enrolment-label">{{ demo_form.phone_number.label_tag }}</label>
                                 {{ demo_form.phone_number|attr:"max_length:10"|add_class:"input-sm form-control enrolment-input" }}
                             </div>
+
                             <div class="form-group">
                                 {{ demo_form.dss_id_number.errors }}
                                 <label class="control-label enrolment-label">{{ demo_form.dss_id_number.label_tag }}</label>

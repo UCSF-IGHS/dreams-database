@@ -182,14 +182,14 @@ class Client(models.Model):
     last_name = models.CharField(verbose_name='Last Name', max_length=100, null=True, blank=True)
     date_of_birth = models.DateField(verbose_name='Date of Birth', null=True, blank=True)
     is_date_of_birth_estimated = models.NullBooleanField(verbose_name='Date of Birth Estimated', default=False, blank=True)
-    verification_document = models.ForeignKey(VerificationDocument, null=True, blank=True, verbose_name='Verification Document')  # New
+    verification_document = models.ForeignKey(VerificationDocument, null=True, blank=True, verbose_name='Verification Document')
     verification_document_other = models.CharField(max_length=50, verbose_name="Verification Document(Other)", blank=True, null=True)
     verification_doc_no = models.CharField(verbose_name='Verification Doc No', max_length=50, null=True, blank=True)
     date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True, blank=True)
     age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=MINIMUM_ENROLMENT_AGE, null=True, blank=True)
     marital_status = models.ForeignKey(MaritalStatus, verbose_name='Marital Status', null=True, blank=True)
 
-    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True, verbose_name='Implementing Partner')  # New
+    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True, verbose_name='Implementing Partner')
 
     phone_number = models.CharField(verbose_name='Phone Number', max_length=13, null=True, blank=True)
     dss_id_number = models.CharField(verbose_name='DSS ID Number', max_length=50, null=True, blank=True)
@@ -314,6 +314,8 @@ class Client(models.Model):
 
             elif self.transferred_in(user_ip):
                 editable = True
+            # elif self.exited:
+            #     editable = False
 
             else:
                 editable = True
@@ -329,7 +331,8 @@ class Client(models.Model):
 
             elif self.transferred_in(user_ip):
                 can_add_intervention = True
-
+            elif self.exited:
+                can_add_intervention = False
             else:
                 can_add_intervention = True
             return can_add_intervention
@@ -466,6 +469,10 @@ class Referral(models.Model):
         verbose_name = 'Referral'
         verbose_name_plural = 'Referrals'
 
+    @property
+    def can_be_accepted_or_rejected(self):
+        return self.referral_status.code == REFERRAL_PENDING_STATUS
+
 
 class Intervention(models.Model):
     intervention_date = models.DateField()
@@ -517,7 +524,8 @@ class Intervention(models.Model):
             elif self.client.transferred_in(user_ip):
                 if self.implementing_partner == user_ip:
                     editable = True
-
+            # elif self.client.exited:
+            #     editable = False
             else:
                 editable = True
             return editable
@@ -1507,13 +1515,13 @@ class ClientTransfer(models.Model):
         verbose_name_plural = 'Client Transfers'
 
 
-class ClientLTFUTypeManager(models.Manager):
+class ClientFollowUpTypeManager(models.Manager):
     def get_by_natural_key(self, name):
         return self.get(name=name)
 
 
-class ClientLTFUType(models.Model):
-    objects = ClientLTFUTypeManager()
+class ClientFollowUpType(models.Model):
+    objects = ClientFollowUpTypeManager()
 
     code = models.CharField(max_length=10, null=False, blank=False)
     name = models.CharField(max_length=100, null=False, blank=False)
@@ -1525,8 +1533,8 @@ class ClientLTFUType(models.Model):
         return (self.name, )
 
     class Meta(object):
-        verbose_name = 'LTFU Type'
-        verbose_name_plural = 'LTFU Types'
+        verbose_name = 'Follow Up Type'
+        verbose_name_plural = 'Follow Up Types'
 
 
 class ClientLTFUResultTypeManager(models.Manager):
@@ -1551,19 +1559,19 @@ class ClientLTFUResultType(models.Model):
         verbose_name_plural = 'LTFU Result Types'
 
 
-class ClientLTFU(models.Model):
-    client = models.ForeignKey(Client, null=False, blank=False, related_name='client_ltfu')
+class ClientFollowUp(models.Model):
+    client = models.ForeignKey(Client, null=False, blank=False, related_name='client_follow_up')
     date_of_followup = models.DateField(blank=False, null=False, verbose_name='Date of Followup')
-    type_of_followup = models.ForeignKey(ClientLTFUType, null=False, blank=False, related_name='type_of_followup')
-    result_of_followup = models.ForeignKey(ClientLTFUResultType, blank=False, null=False, related_name='result_of_followup')
+    type_of_followup = models.ForeignKey(ClientFollowUpType, null=False, blank=False, related_name='follow_up_type')
+    result_of_followup = models.ForeignKey(ClientLTFUResultType, null=False, related_name='result_of_followup')
     comment = models.CharField(null=True, blank=True, max_length=255, verbose_name='Comment')
 
     def __str__(self):
-        return '{}'.format(self.client.dreams_id)
+        return '{} Follow Up Type: {} Status: {}'.format(self.client.dreams_id, self.type_of_followup.name, self.result_of_followup.name)
 
     class Meta(object):
-        verbose_name = 'Client LTFU'
-        verbose_name_plural = 'Client LTFUs'
+        verbose_name = 'Client Follow Up'
+        verbose_name_plural = 'Client Follow Ups'
 
 
 class ConfigurableParameter(models.Model):

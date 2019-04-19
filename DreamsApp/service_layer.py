@@ -1,10 +1,34 @@
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
-from datetime import datetime
+from datetime import datetime, timedelta
 from DreamsApp.models import *
 
 
+class FollowUpsServiceLayer:
+
+    def __init__(self, user, follow_up=None):
+        self.user: User = user
+        self.followup: ClientFollowUp = follow_up
+
+    def can_create_followup(self):
+        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.add_clientfollowup')
+
+    def can_delete_followup(self):
+        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.delete_clientfollowup')
+
+    def can_edit_followup(self):
+        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.edit_clientfollowup')
+
+    def can_view_followup(self):
+        return self.user is not None and self.user.is_superuser or self.user.has_perm('DreamsApp.view_clientfollowup')
+
+
 class TransferServiceLayer:
+
+    TRANSFER_INITIATED_STATUS = 1
+    TRANSFER_ACCEPTED_STATUS = 2
+    TRANSFER_REJECTED_STATUS = 3
+
     def __init__(self, user, client_transfer=None):
         self.user: User = user
         self.client_transfer = client_transfer
@@ -93,5 +117,18 @@ class ClientEnrolmentServiceLayer:
         enrolment_cutoff_age = self.get_minimum_maximum_enrolment_age(self.ENROLMENT_CUTOFF_DATE)
 
         max_dob = date_of_enrolment - relativedelta(years=int(enrolment_cutoff_age[0]))
-        min_dob = date_of_enrolment - relativedelta(years=int(enrolment_cutoff_age[1]))
+        min_dob = date_of_enrolment - relativedelta(years=int(enrolment_cutoff_age[1]) + 1) + timedelta(days=1)
         return date_of_birth >= min_dob and date_of_birth <= max_dob
+
+
+class ReferralServiceLayer:
+    REFERRAL_PENDING_STATUS = 1
+    REFERRAL_COMPLETED_STATUS = 2
+    REFERRAL_REJECTED_STATUS = 3
+    REFERRAL_EXPIRED_STATUS = 4
+
+    def __init__(self, user):
+        self.user = user
+
+    def can_accept_or_reject_referral(self):
+        return self.user is not None and (self.user.is_superuser or self.user.has_perm('DreamsApp.change_referral'))
