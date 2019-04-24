@@ -189,7 +189,7 @@ $(document).ready(function () {
             + "<span class='caret'></span>"
             + "<span class='sr-only'>Toggle Dropdown</span>"
             + "</button>"
-            + "<ul class='dropdown-menu'>"
+            + "<ul class='dropdown-menu'>";
         if (can_manage_client) {
             row_string += "<li><a href='#' class='edit_intervention_click edit_client' data-view_mode='view' data-toggle='modal' data-target='#enrollment-modal' data-client_id='" + pk + "' style='cursor: pointer;word-spacing: 0px !important;'> View Enrollment </a></li>";
             row_string += "<li><a href=\"/client_baseline_info?client_id=" + pk + "\" style='cursor: pointer;word-spacing: 0px !important;'> Baseline Information </a></li>";
@@ -1193,9 +1193,8 @@ $(document).ready(function () {
 
         $('button#btn_edit_follow_up').removeAttr("disabled");
         $('#edit-follow-up-entry-form .processing-indicator').addClass('hidden');
-
-        event.stopPropagation();
         event.preventDefault();
+        event.stopPropagation();
     });
 
     $('#btn_delete_follow_up_confirmation').click(function (event) {
