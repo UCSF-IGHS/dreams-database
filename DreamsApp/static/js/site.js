@@ -1,12 +1,11 @@
 $(document).ready(function () {
-
     const MIN_UNSUCCESSFUL_FOLLOW_UP_ATTEMPTS = 4, LOST_TO_FOLLOW_UP_CODE = 'Lost to follow-up', OTHER_CODE = 'Other';
 
     $('div#other_external_organization').hide();
     $('#external-organization-select').change(function () {
         var selectedExternalOrganization = $(this).find(':selected');
         var otherOption = "Other";
-        if(selectedExternalOrganization.text() == otherOption) {
+        if (selectedExternalOrganization.text() == otherOption) {
             $('div#other_external_organization').show();
         } else {
             $('div#other_external_organization').hide();
@@ -14,14 +13,13 @@ $(document).ready(function () {
         }
     });
 
-     $('#form_demographics #id_date_of_enrollment').change(function(event){
+    $('#form_demographics #id_date_of_enrollment').change(function (event) {
         event.preventDefault();
-
-        // Do ajax for login
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
-            url: '/getMinMaxDateOfBirth', // the endpoint
-            type: "POST", // http method
+            url: '/getMinMaxDateOfBirth',
+            type: "POST",
             dataType: 'json',
             data: {
                 csrfmiddlewaretoken: csrftoken,
@@ -33,23 +31,21 @@ $(document).ready(function () {
                 $("#form_demographics #id_date_of_birth").datepicker("option", "minDate", new Date(data.min_dob));
             },
 
-            // handle a non-successful response
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    " <a href='#' class='close'>&times;</a></div>");
+                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     });
 
     $('#enrollment-form #id_date_of_enrollment').change(function(event){
         event.preventDefault();
-
-        // Do ajax for login
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
-            url: '/getMinMaxDateOfBirth', // the endpoint
-            type: "POST", // http method
+            url: '/getMinMaxDateOfBirth',
+            type: "POST",
             dataType: 'json',
             data: {
                 csrfmiddlewaretoken: csrftoken,
@@ -61,11 +57,10 @@ $(document).ready(function () {
                 $("#enrollment-form #id_date_of_birth").datepicker("option", "minDate", new Date(data.min_dob));
             },
 
-            // handle a non-successful response
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    " <a href='#' class='close'>&times;</a></div>");
+                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     });
@@ -118,26 +113,19 @@ $(document).ready(function () {
     $('input[name=ovc_checkbox]').change(function () {
         if (this.checked) {
             $('fieldset#ovc_more_section').removeClass('hidden');
-            // clear values
-
         } else {
             $('fieldset#ovc_more_section').addClass('hidden');
-
         }
     });
 
     $('#alert_modal').on('shown.bs.modal', function (e) {
-        // Start counter to close this modal
         setTimeout(function () {
-            // hide alert_modal after 2 seconds
             $('#alert_modal').modal('hide');
         }, 5000);
     });
 
     $('#alert_enrollment_modal').on('shown.bs.modal', function (e) {
-        // Start counter to close this modal
         setTimeout(function () {
-            // hide alert_modal after 2 seconds
             $('#alert_enrollment_modal').modal('hide');
         }, 5000);
     });
@@ -146,7 +134,6 @@ $(document).ready(function () {
         fetchRelatedInterventions();
     });
 
-    //For getting CSRF token
     function getCookie(name) {
         var cookieValue = null;
         if (document.cookie && document.cookie != '') {
@@ -163,15 +150,13 @@ $(document).ready(function () {
         return cookieValue;
     }
 
-    /* Login form submission */
-
     $('#dp-login-form').submit(function (event) {
         event.preventDefault();
-        // Do ajax for login
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
-            url: '/', // the endpoint
-            type: "POST", // http method
+            url: '/',
+            type: "POST",
             dataType: 'json',
             data: $('#dp-login-form').serialize(),
             success: function (data) {
@@ -184,19 +169,15 @@ $(document).ready(function () {
                     $('.invalid-password-span').removeClass('hidden');
                     $('.invalid-password-span').html(result.message);
                 }
-
             },
 
-            // handle a non-successful response
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    " <a href='#' class='close'>&times;</a></div>");
+                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     });
-
-    /* End Login form submission */
 
     function insertClientTableRow(clients_tbody, pk, dreams_id, first_name, middle_name, last_name, date_of_enrollment, append, can_manage_client, can_change_client, can_delete_client) {
         var is_superuser = $('#is_superuser').val();
@@ -243,7 +224,7 @@ $(document).ready(function () {
 
     $('#clients_search_form').submit(function (event) {
         event.preventDefault();
-        //Check search option
+
         var searchOption = $('#clientSearchOption').val();
         if (searchOption == "search_dreams_id") {
             // Check if dreams id is entered
@@ -264,24 +245,19 @@ $(document).ready(function () {
             });
 
             if (validParts < 2) {
-                // Show error message
                 $('#client_search_errors').html("* INCOMPLETE DETAILS: Please enter at least 2 names.").removeClass("hidden").addClass("shown");
-                // Then return
                 return;
             }
         }
 
         $('#client_search_errors').html("").addClass("hidden");
         var csrftoken = getCookie('csrftoken');
-
         $(this).unbind("submit").submit();
-        return;
     });
 
     $('#intervention-modal').on('show.bs.modal', function (event) {
-        // check the mode... Can be new or edit
         $('#btn_save_intervention').removeAttr("disabled");
-        var button = $(event.relatedTarget);// Button that triggered the modal
+        var button = $(event.relatedTarget);
         var currentClientId = $('#current_client_id').val();
         var interventionCategoryCode = $("#dreams-profile-tab-control ul li.active a").data('intervention_category_code');
         if (currentClientId == null || interventionCategoryCode == null)
@@ -295,19 +271,17 @@ $(document).ready(function () {
             $('#intervention-modal #intervention-type-select').val('').change();
         } else {
             modalMode = "edit";
-            $('#intervention_id').val(intervention.pk); // This is the intervention id
+            $('#intervention_id').val(intervention.pk);
             $('#intervention-modal #intervention-type-select').val(currentInterventionType.fields.code).change();
             prePopulateInterventionModal(intervention, currentInterventionType);
         }
     });
-
 
     $('#intervention-modal').on('hide.bs.modal', function (event) {
         $('#intervention-type-select').removeAttr('disabled');
         $('div#external_organization_section').addClass('hidden');
         $('#error-space').text("");
         $('#comments-text').val("");
-        // reset the form
         intervention = null;
     });
 
@@ -322,7 +296,7 @@ $(document).ready(function () {
         filterTable(targetTable, filterValue);
     });
 
-    $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');  // set the default tab on load
+    $('.nav-tabs a[href="#' + "behavioural-interventions" + '"]').tab('show');
     $('.nav-tabs a[href="#' + "demographics" + '"]').tab('show');
 
     function getResultName(results_list, has_resultType, resultId) {
@@ -339,27 +313,23 @@ $(document).ready(function () {
     }
 
     $('#dreams-profile-tab-control a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-        //Load tabs
         var target = $(e.target);
         var panel_id = target.attr('href');
         var intervention_category_code = target.data("intervention_category_code");
         var table_id = $(this).data("tab_intervention_table_id");
         var row_count = $(table_id + '  tbody  tr').length;
         if (row_count > 0)
-            return  // Loading has been done before...
+            return;
 
-        // Show loading spinner on tab
         var spinner = $(panel_id + ' .spinner');
         spinner.removeClass('hidden');
-
-        // Do an ajax POST to get elements
 
         var csrftoken = getCookie('csrftoken');
         $('#intervention_category_code').val(intervention_category_code);
 
         $.ajax({
-            url: "/ivList", // the endpoint
-            type: "POST", // http method
+            url: "/ivList",
+            type: "POST",
             dataType: 'json',
             data: {
                 csrfmiddlewaretoken: csrftoken,
@@ -373,11 +343,11 @@ $(document).ready(function () {
                 var pregnancy_results = $.parseJSON(data.pregnancy_results);
                 var permissions = $.parseJSON(data.permissions);
                 interventionPermissionsGlobal = permissions;
-                // Clear table
+
                 $(table_id + '  tbody').empty();
                 $.each(ivs, function (index, iv) {
                     if (data.is_visible_by_ip[iv.pk] == true) {
-                        var iv_type = {}
+                        var iv_type = {};
                         $.each(ivTypes, function (index, obj) {
                             if (obj.pk == iv.fields.intervention_type) {
                                 iv_type = obj;
@@ -397,24 +367,20 @@ $(document).ready(function () {
                     }
                 });
 
-                // hide spinner
                 $(panel_id + ' .spinner').addClass('hidden');
-
-                // Check for number of rows added
                 var new_row_count = $(table_id + '  tbody  tr').length;
-                // check if no records and insert empty table message
+
                 if (new_row_count < 1) {
                     var cols = $(table_id).data('cols');
                     $(table_id + '  tbody').append("<tr class='zero_message_row'><td  colspan='" + cols + "' class='table-message'> No interventions found</td></tr>");
                 }
             },
 
-            // handle a non-successful response
             error: function (xhr, errmsg, err) {
                 interventionPermissionsGlobal = null;
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    " <a href='#' class='close'>&times;</a></div>");
+                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     });
@@ -425,7 +391,6 @@ $(document).ready(function () {
         $(table_id + ' tr').filter(function () {
             return rex.test($(this).text());
         }).show();
-
     }
 
     function fetchAndLoadInterventionTypes() {
@@ -546,15 +511,15 @@ $(document).ready(function () {
             dataType: 'json',
             async: false,
             success: function (data) {
-                externalOrganisations = $.parseJSON(data.external_orgs); // Gloabal variable
+                externalOrganisations = $.parseJSON(data.external_orgs);
                 setSelectOptions(externalOrganisations, '#' + select_to_populate, "Select External Organisation");
                 $('#' + form_id + ' .processing-indicator').addClass('hidden');
             },
             error: function (xhr, errmsg, err) {
                 alert(errmsg);
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    " <a href='#' class='close'>&times;</a></div>");
+                console.log(xhr.status + ": " + xhr.responseText);
                 $('#' + form_id + ' .processing-indicator').addClass('hidden');
             }
         });
@@ -564,30 +529,30 @@ $(document).ready(function () {
         currentInterventionCategoryCode_Global = interventionCategoryCode;
         var csrftoken = getCookie('csrftoken');
         $('#intervention-entry-form .processing-indicator').removeClass('hidden');
+
         $.ajax({
-            url: "/ivgetTypes", // the endpoint
-            type: "POST", // http method
+            url: "/ivgetTypes",
+            type: "POST",
             dataType: 'json',
             async: false,
             data: {
                 csrfmiddlewaretoken: csrftoken,
-                category_code: interventionCategoryCode,   //$('#i_types').val()
+                category_code: interventionCategoryCode,
                 current_client_id: currentClientId
             },
             success: function (data) {
-                interventionTypes = $.parseJSON(data.itypes); // Gloabal variable
+                interventionTypes = $.parseJSON(data.itypes);
                 setInterventionTypesSelect(interventionTypes);
                 $('#intervention-entry-form .processing-indicator').addClass('hidden');
             },
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    " <a href='#' class='close'>&times;</a></div>");
+                console.log(xhr.status + ": " + xhr.responseText);
                 $('#intervention-entry-form .processing-indicator').addClass('hidden');
             }
         });
     }
-
 
     function setSelectOptions(selectOptions, selectID, defaultText) {
         var select = $(selectID);
@@ -650,16 +615,15 @@ $(document).ready(function () {
         var selected_date_string = $('#date-of-completion').val();
         if (selected_date_string == null || selected_date_string == "")
             return "";
-        var split_date_string_array = selected_date_string.split('/'); // MM, DD, YYYY
+        var split_date_string_array = selected_date_string.split('/');
         var formatted_date_string = split_date_string_array[2] + "-" + split_date_string_array[0] + "-" + split_date_string_array[1];
         $('#date-of-completion-formatted').val(formatted_date_string);
     });
 
     function validateInterventionEntryForm(intervention_code) {
-        // validate form
-        var validation_errors_array = $.merge([], validateInterventionType(intervention_code)); // validate intervention type is selected
+        var validation_errors_array = $.merge([], validateInterventionType(intervention_code));
         validation_errors_array = $.merge(validation_errors_array, validateDateField());
-
+        //  hts result
         if (currentInterventionType_Global.fields.has_hts_result == true)
             validation_errors_array = $.merge(validation_errors_array, validateSelectOption('HTS Test Result option ', "#hts-result-select"));
 
@@ -675,7 +639,6 @@ $(document).ready(function () {
         if (currentInterventionType_Global.fields.has_no_of_sessions == true)
             validation_errors_array = $.merge(validation_errors_array, validateTextInput('Number of Sessions attended ', "#number-of-ss-sessions-attended"));
 
-        // check for errors
         if (validation_errors_array.length > 0) {
             // show validation errors
             $('#error-space').html("");
@@ -711,8 +674,8 @@ $(document).ready(function () {
         var selected_date_string = $('#date-of-completion').val();
 
         if (selected_date_string == null || selected_date_string == "")
-            return ["Intervention Date not Entered"]
-        var split_date_string_array = selected_date_string.split('/') // MM, DD, YYYY
+            return ["Intervention Date not Entered"];
+        var split_date_string_array = selected_date_string.split('/');
         var selected_date_object = new Date(parseInt(split_date_string_array[2]), parseInt(split_date_string_array[0]) - 1, parseInt(split_date_string_array[1]));
         if (selected_date_object > new Date())
             return ["Intervention Date cannot be later than Today"];
@@ -721,7 +684,6 @@ $(document).ready(function () {
     }
 
     function setDateField(dateVal) {
-        // set the original value
         $('#date-of-completion-formatted').val(dateVal);
         var split_date_string_array = dateVal.split('-');
         $('#date-of-completion').val(split_date_string_array[1] + "/" + parseInt(split_date_string_array[2]) + "/" + parseInt(split_date_string_array[0]));
@@ -780,7 +742,7 @@ $(document).ready(function () {
     }
 
     function insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, top, permissions) { // top is a boolean for either position to insert the record
-        var tabpanel_id = '#behavioural-interventions'
+        var tabpanel_id = '#behavioural-interventions';
         switch (intervention_category_code) {
             case 1001:
                 if (!top)
@@ -818,7 +780,7 @@ $(document).ready(function () {
                 break;
 
         }
-        // check for the number of rows in the table
+
         if ($(table_id + '  tbody  tr').length > 0)
             $(tabpanel_id + ' .message-view').addClass('hidden');
         setInterventionActionHandler(iv, iv_type, intervention_category_code);
@@ -827,16 +789,16 @@ $(document).ready(function () {
     function setInterventionActionHandler(iv, iv_type, intervention_category_code) {
         $('#intervention_' + iv.pk + ' .edit_intervention_click').click(function (event) {
             modalMode = 'edit';
-            currentInterventionCategoryCode_Global = intervention_category_code; // this will be needed during update!
+            currentInterventionCategoryCode_Global = intervention_category_code;
             currentInterventionType = iv_type;
             intervention = iv;
-            $('#intervention-modal').modal('show'); // this is to show the modal
+            $('#intervention-modal').modal('show');
         });
 
         $('#intervention_' + iv.pk + ' .delete_intervention_click').click(function (event) {
             // Show a confirm delete dialog
             $('#confirm-delete-mordal').modal('show');
-            currentInterventionCategoryCode_Global = intervention_category_code; // this will be needed during update!
+            currentInterventionCategoryCode_Global = intervention_category_code;
             interventionTypes = [iv_type];
             intervention = iv;
             $('#intervention_delete_id').val(intervention.pk);
@@ -844,9 +806,7 @@ $(document).ready(function () {
     }
 
     $('#intervention-type-select').change(function () {
-        // get selected option id
-        var currentInterventionTypeCode = $(this).val(); // code
-        // search global variable
+        var currentInterventionTypeCode = $(this).val();
         var interventionTypeEmpty = false;
 
         $.each(interventionTypes, function (index, type) {
@@ -884,15 +844,12 @@ $(document).ready(function () {
         }
     });
 
-
     function prePopulateInterventionModal(iv, iv_type) {
-        //$('#intervention-type-select').attr('disabled','disabled') //This has been commented out. Intervention type can now be changed on edit
-        // Populate values
         $('#intervention-type-select').val(iv_type.fields.code).change();
         setDateField(iv.fields.intervention_date); // done
         if (iv_type.fields.is_specified)
             $('#other_specify').val(iv.fields.name_specified);
-        // check for the rest of the fields
+        // hts result
         if (iv_type.fields.has_hts_result)
             $('#hts-result-select').val(iv.fields.hts_result);
         // ccc number
@@ -907,7 +864,6 @@ $(document).ready(function () {
         // notes
         $('#comments-text').val(iv.fields.comment);
 
-        // check if external organisation
         if (iv.fields.external_organisation) {
             $('#external-organization-checkbox').prop('checked', true);
             $('fieldset#external_organization_more_section').removeClass('hidden');
@@ -974,10 +930,10 @@ $(document).ready(function () {
             $("#follow-up-entry-form #follow_up_date_warning").text('');
         }
 
-        $('button#btn_save_follow_up').attr('disabled', 'disabled')
+        $('button#btn_save_follow_up').attr('disabled', 'disabled');
         $('#follow-up-entry-form .processing-indicator').removeClass('hidden');
-
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
             url: '/addFollowUp',
             type: "POST",
@@ -999,15 +955,14 @@ $(document).ready(function () {
                 }
             }, error: function (xhr, errmsg, err) {
                 $('#client_follow_ups_alert').removeClass('hidden').addClass('alert-danger')
-                    .text('An error occurred while processing client details. Contact system administratior if this persists')
+                    .text('An error occurred while processing client details. Contact system administrator if this persists.')
                     .trigger('madeVisible');
-                $('#follow-up-entry-form #error-space').html("* An error occurred while processing client details. Contact system administratior if this persists");
+                $('#follow-up-entry-form #error-space').html("* An error occurred while processing client details. Contact system administrator if this persists.");
             }
         });
 
         $('button#btn_save_follow_up').removeAttr("disabled");
         $('#follow-up-entry-form .processing-indicator').addClass('hidden');
-
         event.preventDefault();
         event.stopPropagation();
     });
@@ -1025,19 +980,18 @@ $(document).ready(function () {
             return false;
         }
 
-        // validate form
         if (!validateInterventionEntryForm(null)) {
             $('#btn_save_intervention').removeAttr("disabled");
             $('#intervention-entry-form .processing-indicator').addClass('hidden');
             return false;
         }
-        var postUrl = modalMode == "edit" ? "/ivUpdate" : "/ivSave"; // by default
 
-        // do an ajax post
+        var postUrl = modalMode == "edit" ? "/ivUpdate" : "/ivSave";
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
-            url: postUrl, // the endpoint
-            type: "POST", // http method
+            url: postUrl,
+            type: "POST",
             dataType: 'json',
             data: $('#intervention-entry-form').serialize(),
             success: function (data) {
@@ -1051,7 +1005,7 @@ $(document).ready(function () {
                     $("#intervention-modal").each(function () {
                         this.reset;
                     });
-                    // $('#intervention-modal').modal('hide');
+
                     $('#btn_save_intervention').removeAttr("disabled");
                     $('#intervention-entry-form .processing-indicator').addClass('hidden');
                     $('#intervention-entry-form #error-space').html("* " + message);
@@ -1073,7 +1027,7 @@ $(document).ready(function () {
                         }
 
                         insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, true, permissions);
-                        $(table_id + ' tr.zero_message_row').remove(); // Remove the Zero message tr
+                        $(table_id + ' tr.zero_message_row').remove();
                         $(alert_id).removeClass('hidden').addClass('alert-success')
                             .text('Intervention has been Saved successfully!')
                             .trigger('madeVisible')
@@ -1081,7 +1035,6 @@ $(document).ready(function () {
                     else if (modalMode == "edit") {
                         var row_id = 'intervention_' + iv.pk;
                         $('#' + row_id + ' .intervention_date').text(iv.fields.intervention_date);
-                        // check for the rest of the fields
                         // Specified name
                         $('#' + row_id + ' .name').text(iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified));
 
@@ -1110,21 +1063,20 @@ $(document).ready(function () {
                     $('#intervention-modal').modal('hide');
                 }
             },
-            // handle a non-successful response
+
             error: function (xhr, errmsg, err) {
                 $('#action_alert_' + currentInterventionCategoryCode_Global).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again: ' + errmsg);
                 $('#btn_save_intervention').removeAttr("disabled");
-                console.log(xhr.status + " " + err + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                console.log(xhr.status + " " + err + ": " + xhr.responseText);
                 $('#intervention-entry-form .processing-indicator').addClass('hidden');
                 $('#intervention-entry-form #error-space').html("* " + message);
             }
         });
     });
 
-
     $('.dp-action-alert').on('madeVisible', function (event) {
         var alert_space = $(event.target);
-        var timeout = alert_space.hasClass('alert-danger') ? 15000 : 5000;  // Errors display longer!
+        var timeout = alert_space.hasClass('alert-danger') ? 15000 : 5000;
         setTimeout(function () {
             alert_space.removeClass('alert-success').removeClass('alert-danger')
                 .addClass('hidden')
@@ -1134,8 +1086,6 @@ $(document).ready(function () {
 
     $('tr').on('rowChangeMade', function (event) {
         var tr = $(this).addClass('success');
-        //tr.css('background-color', '#5bc0de');
-
         setTimeout(function () {
             tr.removeClass('success');
         }, 5000);
@@ -1222,6 +1172,7 @@ $(document).ready(function () {
 
         var btn = $(event.target);
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
             url: '/editFollowUp',
             type: "POST",
@@ -1262,8 +1213,8 @@ $(document).ready(function () {
 
     $('#btn_delete_follow_up_confirmation').click(function (event) {
         var btn = $(event.target);
-
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
             url: '/deleteFollowUp',
             type: "POST",
@@ -1301,12 +1252,11 @@ $(document).ready(function () {
 
     $('#btn_delete_intervention_confirmation').click(function (event) {
         var btn = $(event.target);
-        // do an ajax post delete
-
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
-            url: '/ivDelete', // the endpoint
-            type: "POST", // http method
+            url: '/ivDelete',
+            type: "POST",
             dataType: 'json',
             data: $('#intervention_delete_form').serialize(),
             success: function (data) {
@@ -1329,7 +1279,7 @@ $(document).ready(function () {
                         .trigger('madeVisible');
                 $('#confirm-delete-mordal').modal('hide');
             },
-            // handle a non-successful response
+
             error: function (xhr, errmsg, err) {
                 $('#action_alert_' + currentInterventionCategoryCode_Global).removeClass('hidden')
                     .addClass('alert-danger')
@@ -1343,12 +1293,10 @@ $(document).ready(function () {
     function validateClientForm(clientForm) {
         var errors = 0;
 
-        // reset all validate fields
         clientForm.find('.validate_field').each(function (index, field) {
             $('#spn_' + $(field).attr('id')).addClass('hidden');
         });
 
-        // validate required fields
         clientForm.find('.required_field').each(function (index, field) {
             if ($(field).val() == null || $(field).val() == '') {
                 var spanId = '#spn_' + $(field).attr('id');
@@ -1380,37 +1328,35 @@ $(document).ready(function () {
         var target = $(event.target);
         var target_id = '#' + target.attr('id');
         var formatted_target_id = target_id + '_formatted';
-
         var selected_date_string = $(target_id).val();
+
         if (selected_date_string == null || selected_date_string == "")
             return;
-        var split_date_string_array = selected_date_string.split('/') // MM, DD, YYYY
+
+        var split_date_string_array = selected_date_string.split('/');
         var formatted_date_string = split_date_string_array[2] + "-" + split_date_string_array[0] + "-" + split_date_string_array[1]
         $(formatted_target_id).val(formatted_date_string);
     });
 
     function deleteClient(client_id) {
-        var client_id = client_id;
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
             url: '/clientDelete',
             type: "GET",
             dataType: 'json',
             data: {'client_id': client_id},
             success: function (data) {
-                var result = $.parseJSON(data)
+                var result = $.parseJSON(data);
                 if (result.status == "success") {
-                    // show
                     $('#clients_row_' + client_id).remove();
                     $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
                         .text(result.message)
                         .trigger('madeVisible');
                     // check number of rows in table
                     if ($('#dp-patient-list-body tr').length < 1) {
-                        // No more record in the table
                         $('#dp-patient-list-body').append("<tr><td colspan='4' style='text-align: center'>0 Clients</td></tr>");
                     }
-
                 }
                 else {
                     $('#client_actions_alert').removeClass('hidden').addClass('alert-danger')
@@ -1420,7 +1366,6 @@ $(document).ready(function () {
                 $('#confirmationModal').modal('hide');
             },
 
-            // handle a non-successful response
             error: function (xhr, errmsg, err) {
                 $('#confirmationModal').modal('hide');
                 $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')
@@ -1436,9 +1381,10 @@ $(document).ready(function () {
         var view_mode = button.data('view_mode');
         if (client_id != null && client_id != 0) {
             var csrftoken = getCookie('csrftoken');
+
             $.ajax({
-                url: '/clientEdit', // the endpoint
-                type: "GET", // http method
+                url: '/clientEdit',
+                type: "GET",
                 dataType: 'json',
                 data: {'client_id': client_id},
                 success: function (response_data) {
@@ -1451,11 +1397,11 @@ $(document).ready(function () {
                         $('#enrollment-form :input').attr('disabled', false);
                     $('#enrollment-form #btn_hide_enrollment').attr('disabled', false);
                     $('#enrollment-form #close__enrollment_modal').attr('disabled', false);
-                    // set client_id-- this is not named the same way in the model as in the form
-                    $('#enrollment-form #client_id').val(client.pk)
+
+                    $('#enrollment-form #client_id').val(client.pk);
                     $.each(client.fields, function (index, field) {
                         $('#enrollment-form #' + index).val(field);
-                    })
+                    });
 
                     // set IP values
                     $('#implementing_partner option').each(function () {
@@ -1495,13 +1441,10 @@ $(document).ready(function () {
                     getSubCounties(true, $('#county_of_residence').val(), client.fields.sub_county, client.fields.ward)   // bool, code and id
                 },
 
-                // handle a non-successful response
                 error: function (xhr, errmsg, err) {
-                    //$(alert_id).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again')
                     $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-
+                        " <a href='#' class='close'>&times;</a></div>");
+                    console.log(xhr.status + ": " + xhr.responseText);
                 }
             });
         }
@@ -1518,12 +1461,10 @@ $(document).ready(function () {
 
     $('#enrollment-form').submit(function (event) {
         event.preventDefault();
-
         $('#btn_hide_enrollment').attr("disabled", true);
         $('#btn_save_enrollment').attr("disabled", true);
-
         $('#id_implementing_partner').val($('#temp_current_ip').val());
-        // validate
+
         if (!$('#enrollment-form').valid()) {
             $('#btn_hide_enrollment').attr("disabled", false);
             $('#btn_save_enrollment').attr("disabled", false);
@@ -1540,6 +1481,7 @@ $(document).ready(function () {
         }
 
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
             url: post_url,
             type: "POST",
@@ -1551,7 +1493,7 @@ $(document).ready(function () {
                 var clients_tbody = $('#dp-patient-list-body');
                 var date_of_enrollment = new Date($('#enrollment-form #date_of_enrollment').val());
                 date_of_enrollment = $.datepicker.formatDate('MM d, yy', date_of_enrollment);
-                // redirect to demographics page
+
                 $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
                     .text(result.message)
                     .trigger('madeVisible');
@@ -1569,7 +1511,7 @@ $(document).ready(function () {
             }
         }).fail(function (xhr, errmsg, err) {
             $('#alert_enrollment').removeClass('hidden').addClass('alert-danger')
-                .text('An error occurred while processing client details. Contact system administratior if this persists')
+                .text('An error occurred while processing client details. Contact system administrator if this persists.')
                 .trigger('madeVisible')
         }).always(function () {
             $('#btn_hide_enrollment').removeAttr("disabled");
@@ -1588,9 +1530,10 @@ $(document).ready(function () {
     function getSubCountiesFilter(setSelected, c_code, sub_county_id, ward_id) {
         var county_id = setSelected == true ? c_code : $('#county_filter').val();
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
-            url: "/getSubCounties", // the endpoint
-            type: "GET", // http method
+            url: "/getSubCounties",
+            type: "GET",
             dataType: 'json',
             data: {
                 county_id: county_id,
@@ -1601,25 +1544,22 @@ $(document).ready(function () {
                 $("#sub_county_filter").append("<option value=''>Select Sub-County</option>");
                 $.each(sub_counties, function (index, field) {
                     $("#sub_county_filter").append("<option data-sub_county_id='" + field.pk + "' value='" + field.pk + "'>" + field.fields.name + "</option>");
-                })
+                });
 
-                // setting sub-county when necessary
-                if (setSelected) {    // set selected sub county
+                if (setSelected) {
                     $('#sub_county_filter option').each(function () {
                         if (sub_county_id != null && $(this).data('sub_county_id') == sub_county_id) {
                             $(this).prop("selected", true);
-                            // Load wards since a subcounty has been selected
                             getWardsFilter(true, $(this).val(), ward_id)
                         }
                     });
                 }
             },
 
-            // handle a non-successful response
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    " <a href='#' class='close'>&times;</a></div>");
+                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     }
@@ -1631,9 +1571,10 @@ $(document).ready(function () {
     function getWardsFilter(setSelected, sc_id, ward_id) {
         var sc_id = setSelected ? sc_id : $('#sub_county_filter').val();
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
-            url: "/getWards", // the endpoint
-            type: "GET", // http method
+            url: "/getWards",
+            type: "GET",
             dataType: 'json',
             data: {
                 sub_county_id: sc_id,
@@ -1655,11 +1596,10 @@ $(document).ready(function () {
                 }
             },
 
-            // handle a non-successful response
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    " <a href='#' class='close'>&times;</a></div>");
+                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     }
@@ -1671,9 +1611,10 @@ $(document).ready(function () {
     function getSubCounties(setSelected, c_code, sub_county_id, ward_id) {
         var county_id = setSelected == true ? c_code : $('#id_county_of_residence').val();
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
-            url: "/getSubCounties", // the endpoint
-            type: "GET", // http method
+            url: "/getSubCounties",
+            type: "GET",
             dataType: 'json',
             data: {
                 county_id: county_id,
@@ -1686,23 +1627,20 @@ $(document).ready(function () {
                     $("#id_sub_county").append("<option data-sub_county_id='" + field.pk + "' value='" + field.pk + "'>" + field.fields.name + "</option>");
                 });
 
-                // setting sub-county when necessary
-                if (setSelected) {    // set selected sub county
+                if (setSelected) {
                     $('#id_sub_county option').each(function () {
                         if (sub_county_id != null && $(this).data('sub_county_id') == sub_county_id) {
                             $(this).prop("selected", true);
-                            // Load wards since a subcounty has been selected
                             getWards(true, $(this).val(), ward_id);
                         }
                     });
                 }
             },
 
-            // handle a non-successful response
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    " <a href='#' class='close'>&times;</a></div>");
+                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     }
@@ -1715,8 +1653,8 @@ $(document).ready(function () {
         var sc_id = setSelected ? sc_id : $('#id_sub_county').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({
-            url: "/getWards", // the endpoint
-            type: "GET", // http method
+            url: "/getWards",
+            type: "GET",
             dataType: 'json',
             data: {
                 sub_county_id: sc_id,
@@ -1738,29 +1676,24 @@ $(document).ready(function () {
                 }
             },
 
-            // handle a non-successful response
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    " <a href='#' class='close'>&times;</a></div>");
+                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     }
 
-
-    /* Confirmation modal*/
     $('a[data-confirm-client-delete]').click(function (event) {
         var clientId = $(this).data('client_id');
         $('#confirmationModal #frm_title').html('Confirm Client Delete Action');
-        $('#confirmationModal #frm_body > h4').html('Are you sure you want to delete this client? Changes cannot be undone');
+        $('#confirmationModal #frm_body > h4').html('Are you sure you want to delete this client? Changes cannot be undone.');
         $('#confirmationModal').modal({show: true});
-        // Add delete event listener on confirmation
+
         $('#confirmationModal #dataConfirmOK').click(function (event) {
             deleteClient(clientId);
         });
     });
-    /* End of Confirmation modal*/
-
 
     $('#audit-log-clear-filtes').click(function (event) {
         $('#filter-log-text').val('');
@@ -1769,39 +1702,37 @@ $(document).ready(function () {
         window.location.href = "/logs";
     });
 
-    /* users section */
-
     $('.user_action').click(function (event) {
         var btn = event.target;
         var u_action = $(btn).data('user_action');
         var ip_user_id = $(btn).data('ip_user_id');
-
         var confirm_title = "";
         var confirm_message = "";
         var active = false;
         var callback_func = null;
+
         switch (u_action) {
             case "deactivate_user":
-                confirm_title = 'Confirm User Deactivation Action'
-                confirm_message = 'Are you sure you want to Deactivate this User?'
-                callback_func = toggleUserStatus
+                confirm_title = 'Confirm User Deactivation Action';
+                confirm_message = 'Are you sure you want to Deactivate this User?';
+                callback_func = toggleUserStatus;
                 active = false;
                 break;
             case "activate_user":
-                confirm_title = 'Confirm User Activation Action'
-                confirm_message = 'Are you sure you want to Activate User?'
-                callback_func = toggleUserStatus
+                confirm_title = 'Confirm User Activation Action';
+                confirm_message = 'Are you sure you want to Activate User?';
+                callback_func = toggleUserStatus;
                 active = true;
                 break;
             case "delete_user":
-                confirm_title = 'Confirm User Delete Action'
-                confirm_message = 'Are you sure you want to Delete this User? This action cannot be undone.'
-                callback_func = deleteUser
+                confirm_title = 'Confirm User Delete Action';
+                confirm_message = 'Are you sure you want to Delete this User? This action cannot be undone.';
+                callback_func = deleteUser;
                 break;
             case "delete_follow_up":
-                confirm_title = "Delete Follow Up"
-                confirm_message = "Are you sure you want to delete this follow up?"
-                callback_func = deleteFollowUp
+                confirm_title = "Delete Follow Up";
+                confirm_message = "Are you sure you want to delete this follow up?";
+                callback_func = deleteFollowUp;
             default:
                 break;
         }
@@ -1809,16 +1740,14 @@ $(document).ready(function () {
         $('#confirmationModal #frm_title').html(confirm_title);
         $('#confirmationModal #frm_body > h4').html(confirm_message);
         $('#confirmationModal').modal({show: true});
-        // Add delete event listener on confirmation
+
         $('#confirmationModal #dataConfirmOK').click(function (event) {
             callback_func(ip_user_id, active, btn);
-            $(event.target).off('click'); // Works like a charm
+            $(event.target).off('click');
         });
     });
 
     function toggleUserStatus(ip_user_id, activate, target) {
-        // deactivate using ajax
-        // No form, just a normal get
         $.ajax({
             url: '/admin/users/toggle_status',
             type: "GET",
@@ -1829,27 +1758,24 @@ $(document).ready(function () {
             },
             success: function (data) {
                 if (data.status == "success") {
-                    // Show message
                     $('#user_actions_alert').removeClass('hidden').addClass('alert-success')
                         .text(data.message)
-                        .trigger('madeVisible')
-                    // Change view
-                    $(target).addClass('hidden')// Hide current
-                    $(target).siblings('.hidden').removeClass('hidden') // Show sibling
-                    // change status text
-                    var tblData = $(target).parent().parent() // <td>
+                        .trigger('madeVisible');
+                    $(target).addClass('hidden');
+                    $(target).siblings('.hidden').removeClass('hidden');
+
+                    var tblData = $(target).parent().parent();
                     tblData.siblings().eq(4).html(activate ? "Active" : "Disabled");
-                    tblRow = tblData.parent()  // <tr>
+                    tblRow = tblData.parent();
                     tblRow.trigger('rowChangeMade')
                 }
                 else {
                     $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
                         .text(data.message)
-                        .trigger('madeVisible')
+                        .trigger('madeVisible');
                 }
             },
 
-            // handle a non-successful response
             error: function (xhr, errmsg, err) {
                 $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
                     .text(errmsg)
@@ -1857,12 +1783,11 @@ $(document).ready(function () {
             }
         });
 
-        // hide modal
         $("#confirmationModal").modal('hide');
     }
 
     function deleteUser(ip_user_id, active, target) {
-        //alert("Deleting: " + ip_user_id)
+
     }
 
     $("#user-entry-form").validate({
@@ -1911,11 +1836,9 @@ $(document).ready(function () {
         if (!$(e.target).valid())
             return false;
 
-        /* Form is valid. You can proceed to submit and register user. We are using an ajax call */
         var csrftoken = getCookie('csrftoken');
-
-        // Show loading modal
         $("#processing-user-form").removeClass('hidden');
+
         $.ajax({
             url: '/admin/users/save',
             type: "POST",
@@ -1923,7 +1846,6 @@ $(document).ready(function () {
             data: $('#user-entry-form').serialize(),
             success: function (data) {
                 if (data.status == "success") {
-                    // Prepend added users! This needs to be done!
                     $("#user-modal").modal('hide');
                     window.location.href = "/admin/users";
                 }
@@ -1933,18 +1855,15 @@ $(document).ready(function () {
                         .trigger('madeVisible');
                     $("#user-modal").modal('hide');
                 }
-                // Hide loading modal
                 $("#processing-user-form").addClass('hidden');
             },
-            // handle a non-successful response
+
             error: function (xhr, errmsg, err) {
-                //Hide loading modal
                 $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
                     .text('Error: ' + errmsg)
                     .trigger('madeVisible');
                 $("#loading-modal").modal('hide');
                 $("#processing-user-form").addClass('hidden');
-
             }
         });
     });
@@ -2000,15 +1919,14 @@ $(document).ready(function () {
     });
 
     $("#user_change_password_form").submit(function (event) {
-        event.preventDefault()
-        if (!$(event.target).valid()) // Check if form is valid
-            return false;   // return, form is not valid
+        event.preventDefault();
+        if (!$(event.target).valid())
+            return false;
 
-        // Form is valid, do an ajax call
         var csrftoken = getCookie('csrftoken');
-        // start spinner
-        $('#user_change_password_form .processing-indicator').removeClass('hidden')
-        $('#user_change_password_form .btn-toggle-enabled').addClass('disabled')
+        $('#user_change_password_form .processing-indicator').removeClass('hidden');
+        $('#user_change_password_form .btn-toggle-enabled').addClass('disabled');
+
         $.ajax({
             url: '/admin/users/change_cred',
             type: "POST",
@@ -2018,28 +1936,26 @@ $(document).ready(function () {
                 if (data.status == "success") {
                     $('#user_credentials_alert').removeClass('hidden').addClass('alert-success')
                         .text(data.message)
-                        .trigger('madeVisible_logout')
+                        .trigger('madeVisible_logout');
                 }
                 else {
                     $('#user_credentials_alert').removeClass('hidden').addClass('alert-danger')
                         .text(data.message)
-                        .trigger('madeVisible_logout')
+                        .trigger('madeVisible_logout');
                     $("#user-modal").modal('hide');
                 }
-                $('#user_change_password_form .processing-indicator').addClass('hidden')
-                $('#user_change_password_form .btn-toggle-enabled').removeClass('disabled')
+                $('#user_change_password_form .processing-indicator').addClass('hidden');
+                $('#user_change_password_form .btn-toggle-enabled').removeClass('disabled');
             },
 
-            // handle a non-successful response
             error: function (xhr, errmsg, err) {
                 $('#user_credentials_alert').removeClass('hidden').addClass('alert-danger')
-                    .text('An error occurred while processing client details. Contact system administratior if this persists')
-                    .trigger('madeVisible')
-                $('#user_change_password_form .processing-indicator').addClass('hidden')
-                $('#user_change_password_form .btn-toggle-enabled').removeClass('disabled')
+                    .text('An error occurred while processing client details. Contact system administrator if this persists.')
+                    .trigger('madeVisible');
+                $('#user_change_password_form .processing-indicator').addClass('hidden');
+                $('#user_change_password_form .btn-toggle-enabled').removeClass('disabled');
             }
         });
-
     });
 
     function getOptionName(list, id) {
@@ -2054,10 +1970,10 @@ $(document).ready(function () {
     $("#grievances-form-submit").click(function (e) {
         var viewMode = $('#grievance-modal').data('view_mode');
         if (viewMode == 'view')
-            return
+            return;
         var urlT = viewMode == 'add' ? '/grievances/create' : '/grievances/edit';
         if (!$('#grievances-form').valid())
-            return
+            return;
 
         $.ajax({
             url: urlT,
@@ -2071,16 +1987,14 @@ $(document).ready(function () {
                     'reporter_category': $.parseJSON(data.reporter_categories),
                     'grievance_nature': $.parseJSON(data.grievance_nature),
                     'status': $.parseJSON(data.status_list)
-                }
+                };
                 if (data.status == 'fail') {
                     $('#grievances_alert').removeClass('hidden').addClass('alert-danger')
                         .text(data.message)
-                        .trigger('madeVisible')
+                        .trigger('madeVisible');
                 }
                 else {
-                    // Success.. Add grievance
                     if (viewMode == 'add') {
-                        // Add grievance
                         var row = "<tr style='cursor: pointer; background-color: transparent;' id='grievance_" + grievance_id + "'>"
                             + "<td class='date' style='width: 120px;'>" + $.datepicker.formatDate('MM dd, yy', new Date(grievance.date)) + "</td>"
                             + "<td class='grievance_nature'>" + getOptionName(options.grievance_nature, grievance.grievance_nature) + "</td>"
@@ -2102,18 +2016,18 @@ $(document).ready(function () {
                             + "</ul>"
                             + "</div>"
                             + "</td>"
-                            + "</tr>"
-                        $('#dreams-grievance-table').find('tbody').prepend(row)
+                            + "</tr>";
+                        $('#dreams-grievance-table').find('tbody').prepend(row);
                         $('#dreams-grievance-table #grievance_' + grievance_id + ' .grievance-action').click(function (e) {
-                            var action = ''
-                            var viewMode = $(this).data('view_mode')
-                            var grievanceId = $(this).data('grievance_id')
+                            var action = '';
+                            var viewMode = $(this).data('view_mode');
+                            var grievanceId = $(this).data('grievance_id');
                             switch (viewMode) {
                                 case 'view':
-                                    viewGrievance(grievanceId, true)
+                                    viewGrievance(grievanceId, true);
                                     break;
                                 case 'edit':
-                                    viewGrievance(grievanceId, false)
+                                    viewGrievance(grievanceId, false);
                                     break;
                                 case 'delete':
                                     $('#confirmationModal #frm_title').html('Confirm Grievance Delete Action');
@@ -2121,25 +2035,24 @@ $(document).ready(function () {
                                     $('#confirmationModal').modal({show: true});
                                     // Add delete event listener on confirmation
                                     $('#confirmationModal #dataConfirmOK').click(function (event) {
-                                        deleteGrievance(grievanceId)
-                                        $(event.target).off('click'); // Works like a charm
+                                        deleteGrievance(grievanceId);
+                                        $(event.target).off('click');
                                     });
                                     break;
                                 default:
                                     return;
                             }
-                        })
+                        });
                     }
                     else {
-                        // Edit
                         var rowId = grievance.id;
-                        var row = $('#grievance_' + rowId)
+                        var row = $('#grievance_' + rowId);
                         $.each(Object.keys(grievance), function (index, key) {
                             if (row.find('.' + key) != null) {
                                 if ($.inArray(key, ['grievance_nature', 'reporter_category', 'status']) > -1) {
                                     row.find('.' + key).html(getOptionName(options[key], grievance[key]));
                                 }
-                                else if (key == 'date')  // handle date formatting
+                                else if (key == 'date')
                                     row.find('.date').html($.datepicker.formatDate('MM dd, yy', new Date(grievance.date)))
                                 else
                                     row.find('.' + key).html(grievance[key]);
@@ -2148,11 +2061,11 @@ $(document).ready(function () {
                     }
                     $('#grievances_alert').removeClass('hidden').addClass('alert-success')
                         .text(data.message)
-                        .trigger('madeVisible')
+                        .trigger('madeVisible');
                     $("#grievance-modal").modal('hide');
                 }
             },
-            // handle a non-successful response
+
             error: function (xhr, errmsg, err) {
                 alert("Failed!!" + errmsg + err)
             }
@@ -2189,18 +2102,18 @@ $(document).ready(function () {
         createDatePicker("#id_date", '-24y', '-10y');
         switch (viewMode) {
             case 'add':
-                $('#grievance-modal .input-sm').val("");    // reset all fields
-                $("#grievances-form").validate().resetForm(); // reset validation errors
-                $("#grievance-modal #grievances-form-submit").removeClass('hidden')
-                $("#grievance-modal #btn_cancel_action").html('Cancel')
+                $('#grievance-modal .input-sm').val("");
+                $("#grievances-form").validate().resetForm();
+                $("#grievance-modal #grievances-form-submit").removeClass('hidden');
+                $("#grievance-modal #btn_cancel_action").html('Cancel');
                 break;
             case 'edit':
-                $("#grievance-modal #grievances-form-submit").removeClass('hidden')
-                $("#grievance-modal #btn_cancel_action").html('Cancel')
+                $("#grievance-modal #grievances-form-submit").removeClass('hidden');
+                $("#grievance-modal #btn_cancel_action").html('Cancel');
                 break;
             case 'view':
-                $("#grievance-modal #grievances-form-submit").addClass('hidden')
-                $("#grievance-modal #btn_cancel_action").html('Close')
+                $("#grievance-modal #grievances-form-submit").addClass('hidden');
+                $("#grievance-modal #btn_cancel_action").html('Close');
                 break;
         }
     });
@@ -2212,16 +2125,14 @@ $(document).ready(function () {
             return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
         }
 
-        // days since the birthdate
         var days = Math.floor((now.getTime() - birthDate.getTime()) / 1000 / 60 / 60 / 24);
         var age = 0;
-        // iterate the years
+
         for (var y = birthDate.getFullYear(); y <= now.getFullYear(); y++) {
             var daysInYear = isLeap(y) ? 366 : 365;
             if (days >= daysInYear) {
                 days -= daysInYear;
                 age++;
-                // increment the age only if there are available enough days for the year.
             }
         }
         return age;
@@ -2235,11 +2146,11 @@ $(document).ready(function () {
     }, "Please specify a valid phone number e.g. 07XXXXXXXX");
 
     jQuery.validator.addMethod("minTwoNames", function (first_name, element) {
-        var nameArray = [$('#id_first_name').val(), $('#id_middle_name').val(), $('#id_last_name').val()]
+        var nameArray = [$('#id_first_name').val(), $('#id_middle_name').val(), $('#id_last_name').val()];
         var countOfNameParts = 0
         $.each(nameArray, function (index, namePart) {
             if ($.trim(namePart) != "")
-                countOfNameParts++
+                countOfNameParts++;
         });
         return countOfNameParts > 1;
     }, " * Please enter at least 2 Names");
@@ -2250,7 +2161,7 @@ $(document).ready(function () {
 
     $.validator.addMethod('positiveNumberZeroExclusive', function (value) {
         if (value == "")
-            return true
+            return true;
         return Number(value) > 0;
     }, ' Enter a positive number greater than 0.');
 
@@ -2277,7 +2188,7 @@ $(document).ready(function () {
     $.validator.addMethod('under18WithID', function (value) {
         var currDOB = new Date($('#id_date_of_birth').val());
         var age = getAge(currDOB);
-        var verificationDoc = $('#id_verification_document').val() || 0
+        var verificationDoc = $('#id_verification_document').val() || 0;
 
         if (age < 18 && verificationDoc == 2)
             return false;
@@ -2294,7 +2205,7 @@ $(document).ready(function () {
     //requiresChildren
     $.validator.addMethod('requiresChildren', function (value) {
         var hasBiologicalChildren = $('#id_has_biological_children').val() || 0
-        var noOfBiologicalChildren = parseInt($('#id_no_of_biological_children').val()) || 0
+        var noOfBiologicalChildren = parseInt($('#id_no_of_biological_children').val()) || 0;
 
         if (hasBiologicalChildren == 1 && noOfBiologicalChildren < 1)
             return false;
@@ -2306,7 +2217,7 @@ $(document).ready(function () {
         var isEntered = false;
         if (value != "")
             isEntered = true;
-        var ever_had_sex = parseInt($('#id_ever_had_sex').val(), 10) || 0
+        var ever_had_sex = parseInt($('#id_ever_had_sex').val(), 10) || 0;
 
         if (ever_had_sex > 0 && !isEntered)
             return false;
@@ -2318,7 +2229,7 @@ $(document).ready(function () {
         var isEntered = false;
         if (value != "" && value.toString() != "0")
             isEntered = true;
-        var other_specify = parseInt($('#id_verification_document').val(), 10) || 0
+        var other_specify = parseInt($('#id_verification_document').val(), 10) || 0;
 
         if (other_specify == 96 && !isEntered)
             return false;
@@ -2399,15 +2310,13 @@ $(document).ready(function () {
         },
         highlight: function (element) {
             $('#grievances-form').find('.error').addClass('text-danger')
-            //$(element).parent().find('.error').addClass('text-danger')
         },
         unhighlight: function (element) {
             $(element).parent().find('.error').removeClass('text-danger')
         }
-    })
+    });
 
     function viewGrievance(grievanceId, readonly) {
-        // get grievance by id
         $.ajax({
             url: '/grievances/get',
             type: "GET",
@@ -2421,24 +2330,23 @@ $(document).ready(function () {
                         .trigger('madeVisible')
                 }
                 else {
-                    // Populate grievance modal
-                    $("#grievances-form #id").val(grievanceId)
+                    $("#grievances-form #id").val(grievanceId);
                     $.each(Object.keys(grievance.fields), function (index, key) {
-                        $("#grievances-form #id_" + key).val(grievance.fields[key])
+                        $("#grievances-form #id_" + key).val(grievance.fields[key]);
                         if (readonly) {
-                            $("#grievance-modal").data('view_mode', 'view')
-                            $("#grievances-form #id_" + key).attr('disabled', 'disabled')
+                            $("#grievance-modal").data('view_mode', 'view');
+                            $("#grievances-form #id_" + key).attr('disabled', 'disabled');
                         }
                         else {
-                            $("#grievance-modal").data('view_mode', 'edit')
-                            $("#grievances-form #id_" + key).attr('disabled', false)
+                            $("#grievance-modal").data('view_mode', 'edit');
+                            $("#grievances-form #id_" + key).attr('disabled', false);
                         }
                     });
 
                     $("#grievance-modal").modal('show');
                 }
             },
-            // handle a non-successful response
+
             error: function (xhr, errmsg, err) {
                 alert("Failed!!" + errmsg + err);
             }
@@ -2459,7 +2367,6 @@ $(document).ready(function () {
                         .trigger('madeVisible')
                 }
                 else {
-                    // Success..
                     $('#dreams-grievance-table #grievance_' + grievanceId).remove();
                     $('#grievances_alert').removeClass('hidden').addClass('alert-success')
                         .text(data.message)
@@ -2467,7 +2374,7 @@ $(document).ready(function () {
                 }
                 $('#confirmationModal').modal('hide');
             },
-            // handle a non-successful response
+
             error: function (xhr, errmsg, err) {
                 alert("Failed!!" + errmsg + err);
             }
@@ -2475,28 +2382,29 @@ $(document).ready(function () {
     }
 
     $('.grievance-action').click(function (e) {
-        var action = ''
-        var viewMode = $(this).data('view_mode')
-        var grievanceId = $(this).data('grievance_id')
+        var action = '';
+        var viewMode = $(this).data('view_mode');
+        var grievanceId = $(this).data('grievance_id');
+
         switch (viewMode) {
             case 'add':
                 $('#grievance-modal').data('view_mode', 'add');
                 $('#grievance-modal').modal({show: true});
                 break;
             case 'view':
-                viewGrievance(grievanceId, true)
+                viewGrievance(grievanceId, true);
                 break;
             case 'edit':
-                viewGrievance(grievanceId, false)
+                viewGrievance(grievanceId, false);
                 break;
             case 'delete':
                 $('#confirmationModal #frm_title').html('Confirm Grievance Delete Action');
                 $('#confirmationModal #frm_body > h4').html('Are you sure you want to Delete Grievance? This action cannot be undone.');
                 $('#confirmationModal').modal({show: true});
-                // Add delete event listener on confirmation
+
                 $('#confirmationModal #dataConfirmOK').click(function (event) {
-                    deleteGrievance(grievanceId)
-                    $(event.target).off('click'); // Works like a charm
+                    deleteGrievance(grievanceId);
+                    $(event.target).off('click');
                 });
                 break;
             default:
@@ -2507,33 +2415,31 @@ $(document).ready(function () {
     $('#cash-transfer-details-modal').on('show.bs.modal', function (e) {
         var id = $('#cash-transfer-details-form #id').val();
         if (id == '' || id == null) {
-            $('#cash-transfer-details-form input').val("")
+            $('#cash-transfer-details-form input').val("");
             $('#cash-transfer-details-form select').val(0).change();
         }
         else {
-            // CT details exist. Need to show necessary options
             if ($('#cash-transfer-details-form #id_is_client_recepient').prop('checked')) {
-                $('#cash-transfer-details-form #fg-ct_form-recipient').addClass('hidden')
-                $('#cash-transfer-details-form #fg-recipient_relationship_with_client').addClass('hidden')
-                // set the default value for client
+                $('#cash-transfer-details-form #fg-ct_form-recipient').addClass('hidden');
+                $('#cash-transfer-details-form #fg-recipient_relationship_with_client').addClass('hidden');
                 $('#cash-transfer-details-form #id_client').val($("#id_client option:nth-child(2)").val());
-                $('#cash-transfer-details-form.fg-client').removeClass('hidden')
+                $('#cash-transfer-details-form.fg-client').removeClass('hidden');
             }
             else {
-                $('#cash-transfer-details-form #fg-ct_form-recipient').removeClass('hidden')
-                $('#cash-transfer-details-form #fg-recipient_relationship_with_client').removeClass('hidden')
-                $('#cash-transfer-details-form .fg-client').addClass('hidden')
+                $('#cash-transfer-details-form #fg-ct_form-recipient').removeClass('hidden');
+                $('#cash-transfer-details-form #fg-recipient_relationship_with_client').removeClass('hidden');
+                $('#cash-transfer-details-form .fg-client').addClass('hidden');
             }
 
             var selectedText = $('#cash-transfer-details-form #id_payment_mode option:selected').text();
             var selectedIndex = $('#cash-transfer-details-form #id_payment_mode').val();
-            $('#cash-transfer-details-form .fg-mode').addClass('hidden')
+            $('#cash-transfer-details-form .fg-mode').addClass('hidden');
             if (id == '' || id == null)
-                $('#cash-transfer-details-form .fg-mode input').val("")
+                $('#cash-transfer-details-form .fg-mode input').val("");
             if ($.inArray('Mobile', selectedText.split(' ')) > -1)
-                $('#cash-transfer-details-form .fg-mode-mobile-money').removeClass('hidden')
+                $('#cash-transfer-details-form .fg-mode-mobile-money').removeClass('hidden');
             else if ($.inArray('Bank', selectedText.split(' ')) > -1)
-                $('#cash-transfer-details-form .fg-mode-bank').removeClass('hidden')
+                $('#cash-transfer-details-form .fg-mode-bank').removeClass('hidden');
         }
     });
 
@@ -2558,10 +2464,9 @@ $(document).ready(function () {
     });
 
     $('#cash-transfer-details-form-submit').click(function (e) {
-        // Check if form is valid
         if (!$('#cash-transfer-details-form').valid())
-            return
-        // valid form.. Proceed to ajax call
+            return;
+
         $.ajax({
             url: '/cashTransfer/save',
             type: "POST",
@@ -2572,21 +2477,20 @@ $(document).ready(function () {
                 if (data.status == 'fail') {
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                         .text(data.message)
-                        .trigger('madeVisible')
+                        .trigger('madeVisible');
                 }
                 else {
-                    // success... Show alert and update id i
                     if ($('#cash-transfer-details-form #id').val().trim() == "")
                         $('#cash-transfer-details-form #id').val(ct_detail_id)
                     $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
                         .text(data.message)
-                        .trigger('madeVisible')
+                        .trigger('madeVisible');
                     $('#cash-transfer-details-modal').modal('hide');
                 }
             },
-            // handle a non-successful response
+
             error: function (xhr, errmsg, err) {
-                alert("Failed!!" + errmsg + err);
+                alert("Failed: " + errmsg + " " + err);
             }
         });
     });
@@ -2595,7 +2499,6 @@ $(document).ready(function () {
         $(this).html("Please contact System Administrator for a new password!").css('color', '#F00');
     });
 
-    // Updating client search
     $('#clientSearchOption').change(function (event) {
         var searchOption = $(event.target).val();
         $('#client_search_errors').html("").addClass("hidden");
@@ -2608,8 +2511,6 @@ $(document).ready(function () {
             $('.search_name').removeClass("hidden").addClass("shown");
         }
     });
-
-    /* Validate Enrolment Form */
 
     $("#enrollment-form").validate({
         groups: {
@@ -2726,15 +2627,13 @@ $(document).ready(function () {
             }
         },
         highlight: function (element) {
-            //$('#form_demographics').find('.error').addClass('text-danger') 
             $('#form_demographics .error').addClass('text-danger')
         },
         unhighlight: function (element) {
             $('#form_demographics').find('.error').removeClass('text-danger')
         }
-
     });
-    /* Demographics */
+
     $("#form_demographics").validate({
         groups: {
             full_name: "id_first_name id_middle_name id_last_name"
@@ -2826,7 +2725,6 @@ $(document).ready(function () {
             }
         },
         highlight: function (element) {
-            //$('#form_demographics').find('.error').addClass('text-danger') 
             $('#form_demographics .error').addClass('text-danger')
         },
         unhighlight: function (element) {
@@ -2834,14 +2732,11 @@ $(document).ready(function () {
         }
     });
 
-    /*
-        Individual household information validation
-     */
     $.validator.addMethod('requiredIfHeadOfHouseholdIsOtherSpecify', function (value) {
         var isEntered = false;
         if (value != "")
             isEntered = true;
-        var head_of_household = parseInt($('#id_head_of_household').val(), 10) || 0
+        var head_of_household = parseInt($('#id_head_of_household').val(), 10) || 0;
 
         if (head_of_household == 96 && !isEntered)
             return false;
@@ -2982,7 +2877,6 @@ $(document).ready(function () {
             }
         },
         highlight: function (element) {
-            //$('#form_demographics').find('.error').addClass('text-danger') 
             $('#form_ind_household .error').addClass('text-danger')
         },
         unhighlight: function (element) {
@@ -2990,9 +2884,6 @@ $(document).ready(function () {
         }
     });
 
-    /* Education and Employment validation
-
-     */
     $("#form_edu_and_employment").validate({
         rules: {
             currently_in_school: {
@@ -3011,7 +2902,6 @@ $(document).ready(function () {
             }
         },
         highlight: function (element) {
-            //$('#form_demographics').find('.error').addClass('text-danger') 
             $('#form_edu_and_employment .error').addClass('text-danger')
         },
         unhighlight: function (element) {
@@ -3019,10 +2909,6 @@ $(document).ready(function () {
         }
     });
 
-
-    /* HIV Testing validation
-
-     */
     $("#form_hiv_testing").validate({
         rules: {
             ever_tested_for_hiv: {
@@ -3035,29 +2921,25 @@ $(document).ready(function () {
             }
         },
         highlight: function (element) {
-            //$('#form_demographics').find('.error').addClass('text-danger') 
             $('#form_hiv_testing .error').addClass('text-danger')
         },
         unhighlight: function (element) {
             $('#form_hiv_testing').find('.error').removeClass('text-danger')
         }
-
     });
 
-    /* Sexual activity validation
-
-     */
     $.validator.addMethod('requiredPositiveIfHasCurrentSexualPartnerElseZero', function (value) {
         var isEntered = false;
         var sexualPartnersInLast12Months = 0;
         if (value != "")
             sexualPartnersInLast12Months = parseInt(value, 10) || 0;
         isEntered = true;
-        var has_sexual_partner = parseInt($('#id_has_sexual_partner').val(), 10) || 0
+        var has_sexual_partner = parseInt($('#id_has_sexual_partner').val(), 10) || 0;
         if (has_sexual_partner == 1 && (!isEntered || (sexualPartnersInLast12Months == 0)))
             return false;
         return true;
     }, ' ');
+
     $("#form_sexuality").validate({
         rules: {
             ever_had_sex: {
@@ -3093,7 +2975,6 @@ $(document).ready(function () {
             }
         },
         highlight: function (element) {
-            //$('#form_demographics').find('.error').addClass('text-danger') 
             $('#form_sexuality .error').addClass('text-danger')
         },
         unhighlight: function (element) {
@@ -3101,10 +2982,6 @@ $(document).ready(function () {
         }
     });
 
-
-    /* Reproductive health validation
-
-     */
     $("#form_rep_health").validate({
         rules: {
             fp_methods_awareness: {
@@ -3123,7 +3000,6 @@ $(document).ready(function () {
             currently_use_modern_fp: {
                 required: true
             }
-
         },
         messages: {
             fp_methods_awareness: {
@@ -3141,10 +3017,8 @@ $(document).ready(function () {
             currently_use_modern_fp: {
                 required: "* Required field"
             }
-
         },
         highlight: function (element) {
-            //$('#form_demographics').find('.error').addClass('text-danger') 
             $('#form_rep_health .error').addClass('text-danger')
         },
         unhighlight: function (element) {
@@ -3152,10 +3026,6 @@ $(document).ready(function () {
         }
     });
 
-
-    /* GBV validation
-
-     */
     $("#form_gbv").validate({
         rules: {
             humiliated_ever: {
@@ -3210,7 +3080,6 @@ $(document).ready(function () {
             }
         },
         highlight: function (element) {
-            //$('#form_demographics').find('.error').addClass('text-danger') 
             $('#form_gbv .error').addClass('text-danger')
         },
         unhighlight: function (element) {
@@ -3218,9 +3087,6 @@ $(document).ready(function () {
         }
     });
 
-    /* Drug Use validation
-
-     */
     $("#form_drug_use").validate({
         rules: {
             used_alcohol_last_12months: {
@@ -3245,7 +3111,6 @@ $(document).ready(function () {
             }
         },
         highlight: function (element) {
-            //$('#form_demographics').find('.error').addClass('text-danger') 
             $('#form_drug_use .error').addClass('text-danger')
         },
         unhighlight: function (element) {
@@ -3260,12 +3125,11 @@ $(document).ready(function () {
     });
 
     $('.listen-to-change').on('change keyup', function () {
-
         var val = $(this).val();
-        var show_if_true = $(this).data('show_if_true'); // class to show if true
-        var hide_if_true = $(this).data('hide_if_true'); // class to hide if true
-        var hide_if_false = $(this).data('hide_if_false'); // class to hide if fasle
-        var show_value = $(this).data('show_value'); // value to determine show/hide
+        var show_if_true = $(this).data('show_if_true');
+        var hide_if_true = $(this).data('hide_if_true');
+        var hide_if_false = $(this).data('hide_if_false');
+        var show_value = $(this).data('show_value');
 
         if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
             var hide_classes = hide_if_false.split(" ");
@@ -3276,7 +3140,6 @@ $(document).ready(function () {
             var hide_on_show_classes = hide_if_true.split(" ");
             hide_if_true = hide_on_show_classes;
         }
-
 
         if (val == show_value || show_value == 'any') {
             $('.' + show_if_true).removeClass('hidden');
@@ -3291,11 +3154,8 @@ $(document).ready(function () {
                     });
                 }
             }
-
         } else {
-
             $('.' + show_if_true).addClass('hidden');
-
             $('.' + show_if_true).find('input,select').each(function () {
                 $(this).val('');
                 $(this).attr('checked', false);
@@ -3309,7 +3169,6 @@ $(document).ready(function () {
                         $(this).val('');
                         $(this).attr('checked', false);
                     });
-
                 }
             }
 
@@ -3323,13 +3182,11 @@ $(document).ready(function () {
     });
 
     $('.listen-to-change-listvalues').on('change keyup', function () {
-
         var val = $(this).val();
-        var show_if_true_cascade = $(this).data('show_if_true_cascade'); // class to show if true
-        var hide_if_true_cascade = $(this).data('hide_if_true_cascade'); // class to hide if true
-        var hide_if_false_cascade = $(this).data('hide_if_false_cascade'); // class to hide if fasle
-        var show_value_cascade = $(this).data('show_value_cascade'); // value to determine show/hide
-
+        var show_if_true_cascade = $(this).data('show_if_true_cascade');
+        var hide_if_true_cascade = $(this).data('hide_if_true_cascade');
+        var hide_if_false_cascade = $(this).data('hide_if_false_cascade');
+        var show_value_cascade = $(this).data('show_value_cascade');
 
         if (!(typeof show_value_cascade == undefined) && show_value_cascade != null && show_value_cascade != '') {
             var show_value_cascade = show_value_cascade.split(" ");
@@ -3358,11 +3215,8 @@ $(document).ready(function () {
                     });
                 }
             }
-
         } else {
-
             $('.' + show_if_true_cascade).addClass('hidden');
-
             $('.' + show_if_true_cascade).find('input,select').each(function () {
                 $(this).val('');
                 $(this).attr('checked', false);
@@ -3376,7 +3230,6 @@ $(document).ready(function () {
                         $(this).val('');
                         $(this).attr('checked', false);
                     });
-
                 }
             }
 
@@ -3389,7 +3242,6 @@ $(document).ready(function () {
         }
     });
 
-    // Get client details on exit dialog show event
     $('#client-exit-modal').on('show.bs.modal', function (e) {
         var localToday = new Date();
         fetchAndLoadExitReasons();
@@ -3438,7 +3290,6 @@ $(document).ready(function () {
             }
         },
         highlight: function (element) {
-            //$('#form_demographics').find('.error').addClass('text-danger') 
             $('#form_client_exit .error').addClass('text-danger')
         },
         unhighlight: function (element) {
@@ -3464,7 +3315,6 @@ $(document).ready(function () {
             }
         }, 
         highlight: function (element) { 
-            //$('#form_demographics').find('.error').addClass('text-danger') 
             $('#form_client_unexit .error').addClass('text-danger') 
         }, 
         unhighlight: function (element) { 
@@ -3644,14 +3494,12 @@ $(document).ready(function () {
     $('#collapseOne').on('shown.bs.collapse', function () {
         $('#search-expand-collapse-glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus');
         $('#advanced_filter_text_span').html('Hide Advanced Search Filters');
-        // Set advanced search
         $('#is_advanced_search').val('True');
     });
 
     $('#collapseOne').on('hidden.bs.collapse', function () {
         $('#search-expand-collapse-glyphicon').removeClass('glyphicon-minus').addClass('glyphicon-plus');
         $('#advanced_filter_text_span').html('Show Search Advanced Filters');
-        // Handle reset of advanced filters
         $('#is_advanced_search').val('False')
     });
 
@@ -3696,7 +3544,6 @@ $(document).ready(function () {
         $('#implementing_partner_error').addClass('hidden');
         $('#referral_date_error').addClass('hidden');
         $('#referral_expiry_date_error').addClass('hidden');
-
         $("#btn_submit_refer_client").removeAttr("disabled");
 
         if (intervention === '') {
@@ -3764,11 +3611,10 @@ $(document).ready(function () {
         e.stopPropagation();
     });
 
-
     $('#client-transfer-form').submit(function (e) {
         e.preventDefault();
-
         $("#btn_submit_transfer_client_form").attr("disabled", true);
+
         $.ajax({
             url: $(this).attr('action'),
             type: $(this).attr('method'),
@@ -3797,9 +3643,7 @@ $(document).ready(function () {
                 $(alert_id).addClass('alert-success');
                 show_notification(alert_id, message);
             }
-
         }).fail(function (jqXHR, textStatus, errorThrown) {
-
         }).always(function () {
             $("#btn_submit_transfer_client_form").attr("disabled", false);
             $("#btn_submit_transfer_client_form").removeAttr("disabled");
@@ -3889,7 +3733,6 @@ $(document).ready(function () {
         $("#referral-intervention-modal").show();
     });
 
-
     function checkIfValueExists(input_value) {
         return (input_value != null && input_value != 'undefined' && input_value != '' && input_value != 'None');
     }
@@ -3900,16 +3743,15 @@ $(document).ready(function () {
         $('#referral-intervention-entry-form .processing-indicator').removeClass('hidden');
         var intervention_code =  $('#referral-intervention-entry-form #intervention_type_code').val(); // pass current intervention code
 
-        // validate form
         if (!validateInterventionEntryForm(intervention_code)) {
             $('#referral-intervention-entry-form #btn_save_referral_intervention').removeAttr("disabled");
             $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
             return false;
         }
-        var postUrl = "/ivSave";
 
-        // do an ajax post
+        var postUrl = "/ivSave";
         var csrftoken = getCookie('csrftoken');
+
         $.ajax({
             url: postUrl,
             type: "POST",
@@ -3941,29 +3783,26 @@ $(document).ready(function () {
                     $('#referral-intervention-entry-form #btn_save_referral_intervention').removeAttr("disabled");
                     $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
                     $('#referral-intervention-modal').modal('hide');
-
-                    //refresh window after 3 seconds
                     setTimeout(window.location.reload.bind(location), 3000);
                 }
             },
-            // handle a non-successful response
+
             error: function (xhr, errmsg, err) {
                 $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again: ' + errmsg);
                 $('#referral-intervention-entry-form #btn_save_referral_intervention').removeAttr("disabled");
-                console.log(xhr.status + " " + err + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                console.log(xhr.status + " " + err + ": " + xhr.responseText);
                 $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
                 $('#referral-intervention-entry-form #error-space').html("* " + message);
             }
         });
     });
 
-
     function fetchIntervention(interventionTypeCode) {
         var csrftoken = getCookie('csrftoken');
         $('#referral-intervention-entry-form .processing-indicator').removeClass('hidden');
         $.ajax({
-            url: "/ivgetType", // the endpoint
-            type: "POST", // http method
+            url: "/ivgetType",
+            type: "POST",
             dataType: 'json',
             async: false,
             data: {
@@ -3972,13 +3811,12 @@ $(document).ready(function () {
             },
             success: function (data) {
                 currentInterventionType_Global = $.parseJSON(data.itype)[0];
-                //currentInterventionCategoryCode_Global = currentInterventionType_Global.fields.intervention_category;
                 $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
             },
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    " <a href='#' class='close'>&times;</a></div>");
+                console.log(xhr.status + ": " + xhr.responseText);
                 $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
             }
         });
@@ -3996,7 +3834,6 @@ $(document).ready(function () {
             });
         });
     });
-
 
     function getClientTransfersCount() {
         var el = $('#client-transfers-count-span');
@@ -4017,7 +3854,6 @@ $(document).ready(function () {
     }
 
     setTimeout(getClientTransfersCount(), 180000);
-
 
     function getClientReferralsCount() {
         var el = $('#client-referrals-count-span');
@@ -4041,10 +3877,10 @@ $(document).ready(function () {
 
     $("#btn_submit_void_client_form").click(function (e) {
         e.preventDefault();
-
         $("#btn_submit_void_client_form").attr("disabled", true);
         var void_form = $("#void-client-form");
         var close_void_client_modal = true;
+
         $.ajax({
             url: void_form.attr('action'),
             type: void_form.attr('method'),
@@ -4106,9 +3942,6 @@ $(document).ready(function () {
     });
 });
 
-// Handling cross module validation for sexuality and reproductive health modules in enrollment
-// if ever had sex question is answered yes, to question 506
-
 $('.girl-ever-had-sex').change(function () {
     var value = $(this).val();
     if (value == 2) {
@@ -4118,6 +3951,3 @@ $('.girl-ever-had-sex').change(function () {
         $('#sex-related').removeClass("hidden")
     }
 });
-
-
-
