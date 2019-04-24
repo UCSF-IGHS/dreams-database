@@ -240,7 +240,6 @@ class DreamsRawExportTemplateRenderer(object):
 
     def fetch_intervention_transferred_in_rows(self, ip, from_intervention_date, to_intervention_date):
         cursor = self.get_connection().cursor()
-
         query = "SELECT {} FROM stag_client_intervention i WHERE i.voided=0 AND i.transferred_client=1".format(INTERVENTION_TRANSFERRED_IN_COLUMNS)
         params = []
 
