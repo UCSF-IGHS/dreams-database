@@ -224,19 +224,14 @@ $(document).ready(function () {
 
     $('#clients_search_form').submit(function (event) {
         event.preventDefault();
-
         var searchOption = $('#clientSearchOption').val();
         if (searchOption == "search_dreams_id") {
-            // Check if dreams id is entered
             if ($('#search-term-dreams_id').val() == "") {
-                // Show error dialog
-                // Then return
                 $('#client_search_errors').html("* MISSING DREAMS ID: Please enter a valid DREAMS ID.").removeClass("hidden").addClass("shown");
                 return;
             }
         }
         else if (searchOption == "search_name") {
-            // Check that atleast 2 names are entered
             var namePartsArray = [$('#search-term-first_name').val(), $('#search-term-middle_name').val(), $('#search-term-last_name').val()]
             var validParts = 0;
             $.each(namePartsArray, function (index, namePart) {
@@ -323,7 +318,6 @@ $(document).ready(function () {
 
         var spinner = $(panel_id + ' .spinner');
         spinner.removeClass('hidden');
-
         var csrftoken = getCookie('csrftoken');
         $('#intervention_category_code').val(intervention_category_code);
 
@@ -3437,7 +3431,7 @@ $(document).ready(function () {
             return;
         }
 
-         if (dateOfExit == '') {
+        if (dateOfExit == '') {
             $('#date_of_exit_error').html('* Required field').css({ 'color': 'red' });
             $('#date_of_exit_error').show();
             return;
