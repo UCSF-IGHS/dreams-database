@@ -2053,7 +2053,7 @@ $(document).ready(function () {
             },
 
             error: function (xhr, errmsg, err) {
-                alert("Failed!!" + errmsg + err)
+                alert("Failed " + errmsg + " " + err);
             }
         });
     });
@@ -2334,7 +2334,7 @@ $(document).ready(function () {
             },
 
             error: function (xhr, errmsg, err) {
-                alert("Failed!!" + errmsg + err);
+                alert("Failed " + errmsg + " " + err);
             }
         });
     }
@@ -2362,7 +2362,7 @@ $(document).ready(function () {
             },
 
             error: function (xhr, errmsg, err) {
-                alert("Failed!!" + errmsg + err);
+                alert("Failed " + errmsg + " " + err);
             }
         });
     }
