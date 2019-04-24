@@ -98,7 +98,6 @@ $(document).ready(function () {
     $('input#external-organization-checkbox').change(function () {
         if (this.checked) {
             $('fieldset#external_organization_more_section').removeClass('hidden');
-            // expand date range
             $("#date-of-completion").datepicker("option", "minDate", new Date(1970, 0, 0));
         } else {
             $('fieldset#external_organization_more_section').addClass('hidden');
@@ -140,7 +139,6 @@ $(document).ready(function () {
             var cookies = document.cookie.split(';');
             for (var i = 0; i < cookies.length; i++) {
                 var cookie = jQuery.trim(cookies[i]);
-                // Does this cookie string begin with the name we want?
                 if (cookie.substring(0, name.length + 1) == (name + '=')) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
@@ -165,7 +163,6 @@ $(document).ready(function () {
                     window.location.href = "/clients";
                 }
                 else {
-                    // Indicate error
                     $('.invalid-password-span').removeClass('hidden');
                     $('.invalid-password-span').html(result.message);
                 }
@@ -215,7 +212,6 @@ $(document).ready(function () {
             $('#confirmationModal #frm_title').html('Confirm Client Delete Action');
             $('#confirmationModal #frm_body > h4').html('Are you sure you want to delete this client? Changes cannot be undone');
             $('#confirmationModal').modal({show: true});
-            // Add delete event listener on confirmation
             $('#confirmationModal #dataConfirmOK').click(function (event) {
                 deleteClient(clientId);
             });
@@ -230,8 +226,7 @@ $(document).ready(function () {
                 $('#client_search_errors').html("* MISSING DREAMS ID: Please enter a valid DREAMS ID.").removeClass("hidden").addClass("shown");
                 return;
             }
-        }
-        else if (searchOption == "search_name") {
+        } else if (searchOption == "search_name") {
             var namePartsArray = [$('#search-term-first_name').val(), $('#search-term-middle_name').val(), $('#search-term-last_name').val()]
             var validParts = 0;
             $.each(namePartsArray, function (index, namePart) {
@@ -465,7 +460,7 @@ $(document).ready(function () {
         });
     }
 
-    var followupAttempts = 0;
+    followupAttempts = 0;
     function fetchFollowUpAttempts() {
         var currentClientId = $('#current_client_id').val();
         $.ajax({
@@ -605,7 +600,6 @@ $(document).ready(function () {
     }
 
     $('#date-of-completion').change(function () {
-        // get the current value
         var selected_date_string = $('#date-of-completion').val();
         if (selected_date_string == null || selected_date_string == "")
             return "";
@@ -634,7 +628,6 @@ $(document).ready(function () {
             validation_errors_array = $.merge(validation_errors_array, validateTextInput('Number of Sessions attended ', "#number-of-ss-sessions-attended"));
 
         if (validation_errors_array.length > 0) {
-            // show validation errors
             $('#error-space').html("");
             var textMessage = "";
             $.each(validation_errors_array, function (index, err_messages) {
@@ -735,7 +728,7 @@ $(document).ready(function () {
         }
     }
 
-    function insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, top, permissions) { // top is a boolean for either position to insert the record
+    function insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, top, permissions) {
         var tabpanel_id = '#behavioural-interventions';
         switch (intervention_category_code) {
             case 1001:
@@ -790,7 +783,6 @@ $(document).ready(function () {
         });
 
         $('#intervention_' + iv.pk + ' .delete_intervention_click').click(function (event) {
-            // Show a confirm delete dialog
             $('#confirm-delete-mordal').modal('show');
             currentInterventionCategoryCode_Global = intervention_category_code;
             interventionTypes = [iv_type];
@@ -840,7 +832,7 @@ $(document).ready(function () {
 
     function prePopulateInterventionModal(iv, iv_type) {
         $('#intervention-type-select').val(iv_type.fields.code).change();
-        setDateField(iv.fields.intervention_date); // done
+        setDateField(iv.fields.intervention_date);
         if (iv_type.fields.is_specified)
             $('#other_specify').val(iv.fields.name_specified);
         // hts result
@@ -1049,6 +1041,7 @@ $(document).ready(function () {
                         setInterventionActionHandler(iv, iv_type, intervention_category_code);
                         $(alert_id).removeClass('hidden').addClass('alert-success').text('Intervention has been Updated successfully!');
                     }
+
                     $("#intervention-modal").each(function () {
                         this.reset;
                     });
@@ -1347,7 +1340,7 @@ $(document).ready(function () {
                     $('#client_actions_alert').removeClass('hidden').addClass('alert-success')
                         .text(result.message)
                         .trigger('madeVisible');
-                    // check number of rows in table
+
                     if ($('#dp-patient-list-body tr').length < 1) {
                         $('#dp-patient-list-body').append("<tr><td colspan='4' style='text-align: center'>0 Clients</td></tr>");
                     }
@@ -1432,7 +1425,7 @@ $(document).ready(function () {
                         }
                     });
 
-                    getSubCounties(true, $('#county_of_residence').val(), client.fields.sub_county, client.fields.ward)   // bool, code and id
+                    getSubCounties(true, $('#county_of_residence').val(), client.fields.sub_county, client.fields.ward)
                 },
 
                 error: function (xhr, errmsg, err) {
@@ -2027,7 +2020,7 @@ $(document).ready(function () {
                                     $('#confirmationModal #frm_title').html('Confirm Grievance Delete Action');
                                     $('#confirmationModal #frm_body > h4').html('Are you sure you want to Delete Grievance? This action cannot be undone.');
                                     $('#confirmationModal').modal({show: true});
-                                    // Add delete event listener on confirmation
+
                                     $('#confirmationModal #dataConfirmOK').click(function (event) {
                                         deleteGrievance(grievanceId);
                                         $(event.target).off('click');
@@ -2450,7 +2443,6 @@ $(document).ready(function () {
         },
         highlight: function (element) {
             $('#cash-transfer-details-form').find('.error').addClass('text-danger')
-            //$(element).parent().find('.error').addClass('text-danger')
         },
         unhighlight: function (element) {
             $(element).parent().find('.error').removeClass('text-danger')
@@ -3735,7 +3727,7 @@ $(document).ready(function () {
         event.preventDefault();
         $('#btn_save_referral_intervention').attr("disabled", "disabled");
         $('#referral-intervention-entry-form .processing-indicator').removeClass('hidden');
-        var intervention_code =  $('#referral-intervention-entry-form #intervention_type_code').val(); // pass current intervention code
+        var intervention_code =  $('#referral-intervention-entry-form #intervention_type_code').val();
 
         if (!validateInterventionEntryForm(intervention_code)) {
             $('#referral-intervention-entry-form #btn_save_referral_intervention').removeAttr("disabled");
