@@ -10,6 +10,6 @@ DATABASES = {
         'USER': 'dreams-django',
         'PASSWORD':"+3H'H%xfS92yQ:mZ",
         'HOST':'localhost',
-        'PORT':'',
+        'PORT':'3306',
     }
 }
