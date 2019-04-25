@@ -2249,7 +2249,7 @@ def change_cred(request):
 def bad_request(request):
     context = {'user': request.user, 'error_code': 400, 'error_title': 'Bad Request (Error 400)',
                'error_message':
-                   'Your browser sent a request that this server could not understand<br>. '}
+                   'Your browser sent a request that this server could not understand. '}
     return render(request, 'error_page.html', context)
 
 
@@ -2271,7 +2271,7 @@ def server_error(request):
     context = {'user': request.user, 'error_code': 500, 'error_title': 'Server Error (Error 500)',
                'error_message':
                    'A server error occurred while processing your request. Please try again or contact your '
-                   'administrator if the error persists.<br>. '}
+                   'administrator if the error persists. '}
     return render(request, 'error_page.html', context)
 
 
