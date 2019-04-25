@@ -17,7 +17,7 @@ REFERRAL_EXPIRED_STATUS = 4
 INTERVENTION_BY_REFERRAL = '1'
 INTERVENTION_NOT_BY_REFERRAL = '0'
 
-RAW_ENROLMENT_EXPORT_COLUMNS = """hjjj, kjkkk"""
+RAW_ENROLMENT_EXPORT_COLUMNS = """*"""
 
 RAW_INTERVENTION_EXPORT_COLUMNS = """i.client_id,
                                         i.dreams_id,
