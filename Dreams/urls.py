@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 
-from django.conf.urls import url, handler400, handler403, handler404, handler500
+from django.conf.urls import url
 from django.contrib import admin
 from DreamsApp import views
 
@@ -101,7 +101,7 @@ urlpatterns = [
     url(r'^addFollowUp$', views.add_follow_up),
 ]
 
+handler404 = views.page_not_found
 handler400 = views.bad_request
 handler403 = views.permission_denied
-handler404 = views.page_not_found
 handler500 = views.server_error
