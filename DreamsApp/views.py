@@ -2253,7 +2253,7 @@ def bad_request(request):
     return render(request, 'error_page.html', context)
 
 
-def permission_denied(request):  # PermissionDenied('Operation not allowed. [Missing Permission]')
+def permission_denied(request):
     context = {'user': request.user, 'error_code': 403, 'error_title': 'Permission Denied (Error 403)',
                'error_message':
                    'You do not have permission to view this page [Missing Permission]. '
@@ -2666,13 +2666,6 @@ def download_services_received_export(request):
     except Exception as e:
         traceback.format_exc()
         return
-
-
-def error_404(request):
-    context = {'user': request.user, 'error_code': 404, 'page_title': 'DREAMS Application Error',
-               'error_title': 'Page Not Found (Error 404)',
-               'error_message': 'The page you are looking for does not exist. Go back to previous page or Home page'}
-    return render(request, 'error_page.html', context)
 
 
 def viewBaselineData(request):
