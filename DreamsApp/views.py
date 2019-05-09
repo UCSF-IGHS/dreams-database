@@ -1910,7 +1910,7 @@ def user_help(request):
             raise PermissionDenied
     except Exception as e:
         tb = traceback.format_exc(e)
-        return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+        return HttpResponseServerError(tb)
 
 
 def user_help_download(request):
@@ -1919,20 +1919,17 @@ def user_help_download(request):
             manual_filename = request.POST.get('manual') if request.method == 'POST' else request.GET.get('manual')
             manual_friendly_name = request.POST.get(
                 'manual_friendly_name') if request.method == 'POST' else request.GET.get('manual_friendly_name')
-            fs = FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'templates', 'manuals'))
-            com_path = fs.location
+            fs = FileSystemStorage(location=os.path.join(settings.BASE_DIR, '../templates', 'manuals'))
             filename = manual_filename + '.pdf'
             if fs.exists(filename):
-                with fs.open(filename) as pdf:
+                with fs.open(filename, 'rb') as pdf:
                     response = HttpResponse(pdf, content_type='application/pdf')
                     response['Content-Disposition'] = 'attachment; filename="' + manual_friendly_name + '"'
                     return response
             else:
-                traceback.format_exc()
-            return
+                raise "The manual for " + manual_friendly_name + " is not found"
         except Exception as e:
-            traceback.format_exc()
-            return
+            raise e
     else:
         raise PermissionDenied
 
