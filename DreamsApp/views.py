@@ -2249,11 +2249,11 @@ def change_cred(request):
 def bad_request(request):
     context = {'user': request.user, 'error_code': 400, 'error_title': 'Bad Request (Error 400)',
                'error_message':
-                   'Your browser sent a request that this server could not understand<br>. '}
+                   'Your browser sent a request that this server could not understand. '}
     return render(request, 'error_page.html', context)
 
 
-def permission_denied(request):  # PermissionDenied('Operation not allowed. [Missing Permission]')
+def permission_denied(request):
     context = {'user': request.user, 'error_code': 403, 'error_title': 'Permission Denied (Error 403)',
                'error_message':
                    'You do not have permission to view this page [Missing Permission]. '
@@ -2271,7 +2271,7 @@ def server_error(request):
     context = {'user': request.user, 'error_code': 500, 'error_title': 'Server Error (Error 500)',
                'error_message':
                    'A server error occurred while processing your request. Please try again or contact your '
-                   'administrator if the error persists.<br>. '}
+                   'administrator if the error persists. '}
     return render(request, 'error_page.html', context)
 
 
@@ -2666,13 +2666,6 @@ def download_services_received_export(request):
     except Exception as e:
         traceback.format_exc()
         return
-
-
-def error_404(request):
-    context = {'user': request.user, 'error_code': 404, 'page_title': 'DREAMS Application Error',
-               'error_title': 'Page Not Found (Error 404)',
-               'error_message': 'The page you are looking for does not exist. Go back to previous page or Home page'}
-    return render(request, 'error_page.html', context)
 
 
 def viewBaselineData(request):
