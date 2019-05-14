@@ -58,29 +58,28 @@
                     <tr>
                         <td>{{ client_referral.client.dreams_id }}</td>
                         <td>{{ client_referral.referring_ip.name }}</td>
-                        {% if client_referral.external_organisation %}
-                            <td>{{ client_referral.external_organisation.name }}</td>
-                        {% else %}
-                            {% if client_referral.external_organisation_other %}
-                                <td>{{ client_referral.external_organisation_other }} (Other)</td>
+                        <td>
+                            {% if client_referral.external_organisation %}
+                                {{ client_referral.external_organisation.name }}
                             {% else %}
-                                <td></td>
+                                {% if client_referral.external_organisation_other %}
+                                    {{ client_referral.external_organisation_other }} (Other)
+                                {% endif %}
                             {% endif %}
-                        {% endif %}
+                        </td>
                         <td>{{ client_referral.intervention_type.name }}</td>
                         <td>{{ client_referral.referral_date }}</td>
                         <td>{{ client_referral.referral_expiration_date }}</td>
-                        {% if client_referral.comments %}
-                            <td>{{ client_referral.comments }}</td>
-                        {% else %}
-                            <td></td>
-                        {% endif %}
-                        {% if client_referral.receiving_ip_comment %}
-                            <td>{{ client_referral.receiving_ip_comment }}</td>
-                        {% else %}
-                            <td></td>
-                        {% endif %}
-
+                        <td>
+                            {% if client_referral.comments %}
+                                {{ client_referral.comments }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if client_referral.receiving_ip_comment %}
+                                {{ client_referral.receiving_ip_comment }}
+                            {% endif %}
+                        </td>
                         {% if can_accept_or_reject and referred_in and client_referral.referral_status.id == 1 %}
                             <td>
                                  {% if client_referral.client.exited %}
