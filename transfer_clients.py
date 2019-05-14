@@ -60,9 +60,10 @@ class TransferClients:
         return open(path, "r")
 
     def validate_header(self, file: TextIO, file_cols: tuple, has_header: bool) -> None:
-        header = str(file.readline())
-        if hash(header[:-1].upper()) != hash(','.join(file_cols).upper()):
-            raise Exception('Invalid header columns')
+        if has_header:
+            header = str(file.readline())
+            if hash(header[:-1].upper()) != hash(','.join(file_cols).upper()):
+                raise Exception('Invalid header columns')
 
     def validate_clients(self, conn: cursors, file: TextIO, has_header: bool) -> tuple:
         validated_dreams_ids = []
