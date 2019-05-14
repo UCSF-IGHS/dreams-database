@@ -11,9 +11,9 @@ file_cols = (
 )
 
 conn_params = {
-    'NAME': 'dreams_production',
-    'USER': 'dreams-django',
-    'PASSWORD':"+3H'H%xfS92yQ:mZ",
+    'NAME': 'dreams_local_env',
+    'USER': 'root',
+    'PASSWORD':"reambi1000!",
     'HOST':'localhost',
     'PORT':'3306',
 }
@@ -23,7 +23,7 @@ TRANSFER_COMPLETED_STATUS = 2
 INSERT_CLIENT_TRANSFER_TRANSFER_QUERY = 'INSERT INTO DreamsApp_clienttransfer ( client_id, start_date, date_created, \
                             transfer_reason, completed_by_id, destination_implementing_partner_id, initiated_by_id, \
                             source_implementing_partner_id, transfer_status_id ) SELECT c.id, now( ), now( ), \
-                            {}, {}, {}, {}, {}, {} FROM DreamsApp_client c WHERE c.dreams_id \
+                            "{}", {}, {}, {}, {}, {} FROM DreamsApp_client c WHERE c.dreams_id \
                             in ({})'
 
 UPDATE_CLIENTS_TRANSFER_QUERY = 'UPDATE DreamsApp_client c SET c.implementing_partner_id = {} ' \
@@ -86,16 +86,24 @@ class TransferClients:
 
     def transfer_clients(self, conn: cursors, dreams_ids: tuple, user_initiating_transfer: int, source_ip: str,
                          destination_ip: str, transfer_reason: str) -> None:
-        concatenated_dreams_ids = ','.join(list(dreams_ids))
-        update_ip_query = INSERT_CLIENT_TRANSFER_TRANSFER_QUERY.format(transfer_reason, user_initiating_transfer,
-                                                                       destination_ip, user_initiating_transfer,
-                                                                       source_ip, TRANSFER_COMPLETED_STATUS,
-                                                                       concatenated_dreams_ids)
-        insert_into_transfers_query = UPDATE_CLIENTS_TRANSFER_QUERY.format(destination_ip, concatenated_dreams_ids)
-        conn.execute(update_ip_query)
-        conn.execute(insert_into_transfers_query)
-        print('Transfer completed')
-
+        try:
+            concatenated_dreams_ids = '"' + '","'.join(list(dreams_ids)) + '"'
+            update_ip_query = INSERT_CLIENT_TRANSFER_TRANSFER_QUERY.format(transfer_reason, user_initiating_transfer,
+                                                                           destination_ip, user_initiating_transfer,
+                                                                           source_ip, TRANSFER_COMPLETED_STATUS,
+                                                                           concatenated_dreams_ids)
+            insert_into_transfers_query = UPDATE_CLIENTS_TRANSFER_QUERY.format(destination_ip, concatenated_dreams_ids)
+            cursor = conn.cursor()
+            cursor.execute(update_ip_query)
+            cursor.execute(insert_into_transfers_query)
+            conn.commit()
+            print('Transfer completed')
+        except MySQLdb.Error as e:
+            print("Error. Performing rollback. {}".format(e))
+            conn.rollback()
+        finally:
+            cursor.close()
+            conn.close()
 
 transfer_clients = TransferClients()
 params = transfer_clients.initialize_params(sys.argv)
