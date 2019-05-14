@@ -11,9 +11,9 @@ file_cols = (
 )
 
 conn_params = {
-    'NAME': 'dreams_local_env',
-    'USER': 'root',
-    'PASSWORD':"reambi1000!",
+    'NAME': 'dreams_production',
+    'USER': 'dreams-django',
+    'PASSWORD':"+3H'H%xfS92yQ:mZ",
     'HOST':'localhost',
     'PORT':'3306',
 }
@@ -111,5 +111,5 @@ params = transfer_clients.initialize_params(sys.argv)
 conn = transfer_clients.connect(conn_params)
 file = transfer_clients.load_file(params['transfer_file_path'])
 dreams_ids = transfer_clients.validate_dreams_ids(conn, file)
-transfer_clients.transfer_clients(conn, dreams_ids, params['client_performing_transfer_id'],
-                                  params['source_ip_id'], params['destination_ip_id'], params['transfer_reason'])
+# transfer_clients.transfer_clients(conn, dreams_ids, params['client_performing_transfer_id'],
+#                                   params['source_ip_id'], params['destination_ip_id'], params['transfer_reason'])
