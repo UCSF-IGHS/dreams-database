@@ -71,8 +71,9 @@ class TransferClients:
         lines = file.readlines()[1:] if has_header else file.readlines()
         for line in lines:
             db_line = self.get_db_line(conn, line.split(',')[0]).fetchone()
+            print('Verifying {}'.format(line.split(',')[0]))
             if db_line and sorted(line.upper()[:-1]) == sorted(
-                    ','.join([str(value) for value in db_line.values() if value is not None]).upper()):
+                    ','.join([str(value).strip() for value in db_line.values() if value is not None]).upper()):
                 validated_dreams_ids.append(line.split(',')[0])
             else:
                 raise Exception('Invalid record for {}.'.format(line,))
@@ -111,5 +112,5 @@ params = transfer_clients.initialize_params(sys.argv)
 conn = transfer_clients.connect(conn_params)
 file = transfer_clients.load_file(params['transfer_file_path'])
 dreams_ids = transfer_clients.validate_dreams_ids(conn, file)
-# transfer_clients.transfer_clients(conn, dreams_ids, params['client_performing_transfer_id'],
-#                                   params['source_ip_id'], params['destination_ip_id'], params['transfer_reason'])
+transfer_clients.transfer_clients(conn, dreams_ids, params['client_performing_transfer_id'],
+                                  params['source_ip_id'], params['destination_ip_id'], params['transfer_reason'])
