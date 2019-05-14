@@ -40,10 +40,11 @@
             <th>Dreams ID</th>
             <th>Referring IP</th>
             <th>External Organisation</th>
-            <th>External Organisation Other</th>
             <th>Intervention</th>
             <th>Referral Date</th>
-            <th>Referral Expiration Date</th>
+            <th>Expiration Date</th>
+            <th>Referring Comment</th>
+            <th>Completing Comment</th>
 
             {% if can_accept_or_reject and referred_in %}
                 <th>Action</th>
@@ -57,11 +58,28 @@
                     <tr>
                         <td>{{ client_referral.client.dreams_id }}</td>
                         <td>{{ client_referral.referring_ip.name }}</td>
-                        <td>{{ client_referral.external_organisation.name }}</td>
-                        <td>{{ client_referral.external_organisation_other }}</td>
+                        {% if client_referral.external_organisation %}
+                            <td>{{ client_referral.external_organisation.name }}</td>
+                        {% else %}
+                            {% if client_referral.external_organisation_other %}
+                                <td>{{ client_referral.external_organisation_other }} (Other)</td>
+                            {% else %}
+                                <td></td>
+                            {% endif %}
+                        {% endif %}
                         <td>{{ client_referral.intervention_type.name }}</td>
                         <td>{{ client_referral.referral_date }}</td>
                         <td>{{ client_referral.referral_expiration_date }}</td>
+                        {% if client_referral.comments %}
+                            <td>{{ client_referral.comments }}</td>
+                        {% else %}
+                            <td></td>
+                        {% endif %}
+                        {% if client_referral.receiving_ip_comment %}
+                            <td>{{ client_referral.receiving_ip_comment }}</td>
+                        {% else %}
+                            <td></td>
+                        {% endif %}
 
                         {% if can_accept_or_reject and referred_in and client_referral.referral_status.id == 1 %}
                             <td>

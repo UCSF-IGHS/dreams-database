@@ -3153,6 +3153,13 @@ def client_referrals(request, *args, **kwargs):
             else:
                 c_referrals = Referral.objects.filter(referring_ip=ip).order_by('referral_status', '-referral_date')
 
+            for c in c_referrals:
+                intervention = Intervention.objects.filter(referral_id=c.pk)
+                if intervention:
+                    c.receiving_ip_comment = intervention.first().comment
+                else:
+                    c.receiving_ip_comment = ""
+
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             return render(request, 'login.html')
 
