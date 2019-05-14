@@ -51,8 +51,8 @@ class TransferClients:
 
     def connect(self, params: dict) -> cursors:
         return MySQLdb.connect(
-            host=params['HOST'], user=conn_params['USER'],
-            passwd=params['PASSWORD'], db=conn_params['NAME'],
+            host=params['HOST'], user=params['USER'],
+            passwd=params['PASSWORD'], db=params['NAME'],
             port=int(params['PORT']),
             cursorclass=cursors.DictCursor)
 
@@ -71,11 +71,11 @@ class TransferClients:
         lines = file.readlines()[1:] if has_header else file.readlines()
         for line in lines:
             db_line = self.get_db_line(conn, line.split(',')[0]).fetchone()
-            if sorted(line.upper()[:-1]) == sorted(
+            if db_line and sorted(line.upper()[:-1]) == sorted(
                     ','.join([str(value) for value in db_line.values() if value is not None]).upper()):
                 validated_dreams_ids.append(line.split(',')[0])
             else:
-                raise Exception('Invalid record for {}'.format(line.split(',')[0]))
+                raise Exception('Invalid record for {}.'.format(line,))
         return tuple(validated_dreams_ids)
 
     def get_db_line(self, conn: cursors, dreams_id: str) -> str:
