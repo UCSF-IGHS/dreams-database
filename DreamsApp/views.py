@@ -3142,7 +3142,6 @@ def client_transfers(request, *args, **kwargs):
 def client_referrals(request, *args, **kwargs):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         referred_in = bool(int(kwargs.pop('referred_in', 1)))
-
         referral_perm = ReferralServiceLayer(request.user)
         can_accept_or_reject = referral_perm.can_accept_or_reject_referral()
 
