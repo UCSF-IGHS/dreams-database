@@ -38,7 +38,13 @@
                style="margin: 0px;border-radius: 5px;border: #efc636 solid 1px;">
             <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
             <th>Dreams ID</th>
-            <th>Referring IP</th>
+            <th>
+                {% if referred_in %}
+                    Referring IP
+                {% else %}
+                     Referred TO IP
+                {% endif %}
+            </th>
             <th>External Organisation</th>
             <th>Intervention</th>
             <th>Referral Date</th>
@@ -57,7 +63,15 @@
                 {% for client_referral in client_referrals %}
                     <tr>
                         <td>{{ client_referral.client.dreams_id }}</td>
-                        <td>{{ client_referral.referring_ip.name }}</td>
+                        <td>
+                            {% if referred_in %}
+                                {{ client_referral.referring_ip.name }}
+                            {% else %}
+                                {% if client_referral.receiving_ip %}
+                                    {{ client_referral.receiving_ip.name }}
+                                {% endif %}
+                            {% endif %}
+                        </td>
                         <td>
                             {% if client_referral.external_organisation %}
                                 {{ client_referral.external_organisation.name }}
