@@ -3139,22 +3139,28 @@ def client_transfers(request, *args, **kwargs):
 def client_referrals(request, *args, **kwargs):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         referred_in = bool(int(kwargs.pop('referred_in', 1)))
-
         referral_perm = ReferralServiceLayer(request.user)
         can_accept_or_reject = referral_perm.can_accept_or_reject_referral()
 
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if referred_in:
-                c_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
+                client_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
             else:
-                c_referrals = Referral.objects.filter(referring_ip=ip).order_by('referral_status', '-referral_date')
+                client_referrals = Referral.objects.filter(referring_ip=ip).order_by('referral_status', '-referral_date')
+
+            for client_referral in client_referrals:
+                intervention = Intervention.objects.filter(referral_id=client_referral.pk)
+                if intervention:
+                    client_referral.receiving_ip_comment = intervention.first().comment
+                else:
+                    client_referral.receiving_ip_comment = ""
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             return render(request, 'login.html')
 
         page = request.GET.get('page', 1)
-        paginator = Paginator(c_referrals, 20)
+        paginator = Paginator(client_referrals, 20)
 
         try:
             referrals = paginator.page(page)

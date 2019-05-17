@@ -38,12 +38,19 @@
                style="margin: 0px;border-radius: 5px;border: #efc636 solid 1px;">
             <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
             <th>Dreams ID</th>
-            <th>Referring IP</th>
+            <th>
+                {% if referred_in %}
+                    Referring IP
+                {% else %}
+                     Referred TO IP
+                {% endif %}
+            </th>
             <th>External Organisation</th>
-            <th>External Organisation Other</th>
             <th>Intervention</th>
             <th>Referral Date</th>
-            <th>Referral Expiration Date</th>
+            <th>Expiration Date</th>
+            <th>Referring Comment</th>
+            <th>Completing Comment</th>
 
             {% if can_accept_or_reject and referred_in %}
                 <th>Action</th>
@@ -56,13 +63,37 @@
                 {% for client_referral in client_referrals %}
                     <tr>
                         <td>{{ client_referral.client.dreams_id }}</td>
-                        <td>{{ client_referral.referring_ip.name }}</td>
-                        <td>{{ client_referral.external_organisation.name }}</td>
-                        <td>{{ client_referral.external_organisation_other }}</td>
+                        <td>
+                            {% if referred_in %}
+                                {{ client_referral.referring_ip.name }}
+                            {% else %}
+                                {% if client_referral.receiving_ip %}
+                                    {{ client_referral.receiving_ip.name }}
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if client_referral.external_organisation %}
+                                {{ client_referral.external_organisation.name }}
+                            {% else %}
+                                {% if client_referral.external_organisation_other %}
+                                    {{ client_referral.external_organisation_other }} (Other)
+                                {% endif %}
+                            {% endif %}
+                        </td>
                         <td>{{ client_referral.intervention_type.name }}</td>
                         <td>{{ client_referral.referral_date }}</td>
                         <td>{{ client_referral.referral_expiration_date }}</td>
-
+                        <td>
+                            {% if client_referral.comments %}
+                                {{ client_referral.comments }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if client_referral.receiving_ip_comment %}
+                                {{ client_referral.receiving_ip_comment }}
+                            {% endif %}
+                        </td>
                         {% if can_accept_or_reject and referred_in and client_referral.referral_status.id == 1 %}
                             <td>
                                  {% if client_referral.client.exited %}
