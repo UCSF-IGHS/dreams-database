@@ -3821,13 +3821,14 @@ $(document).ready(function () {
     });
 
     function getClientTransfersCount() {
-        var el = $('#client-transfers-count-span');
+        var el = $('#client-transfers-count-total-span');
         $.ajax({
             url: $(el).data('count-url')
         }).done(function (data, textStatus, jqXHR) {
-            if (data != 0) {
+            if (data[0] != 0) {
                 $(el).text(data).show();
-                $('.client-transfers-count-span').text(data).show();
+                $('.client-transfers-count-in-span').text(data[1]).show();
+                $('.client-transfers-count-out-span').text(data[2]).show();
             } else {
                 $(el).text("").hide();
             }
@@ -3841,13 +3842,15 @@ $(document).ready(function () {
     setTimeout(getClientTransfersCount(), 180000);
 
     function getClientReferralsCount() {
-        var el = $('#client-referrals-count-span');
+        var el = $('#client-referrals-count-total-span');
+
         $.ajax({
             url: $(el).data('count-url')
         }).done(function (data, textStatus, jqXHR) {
-            if (data != 0) {
+             if (data[0] != 0) {
                 $(el).text(data).show();
-                $('.client-referrals-count-span').text(data).show();
+                $('.client-referrals-count-in-span').text(data[1]).show();
+                $('.client-referrals-count-out-span').text(data[2]).show();
             } else {
                 $(el).text("").hide();
             }
