@@ -3325,11 +3325,26 @@ def reject_client_referral(request):
     return redirect(reverse("client_referrals", kwargs={'referred_in': 1}))
 
 
-def get_pending_client_transfers_count(request):
-    client_transfers_count_array = [0, 0, 0]
-
+def get_pending_client_transfers_total_count(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         client_transfers_total_count = 0
+
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            client_transfers_total_count = ClientTransfer.objects.filter(
+                Q(destination_implementing_partner=ip) | Q(source_implementing_partner=ip),
+                transfer_status=initiated_client_transfer_status).count()
+
+        except Exception:
+            client_transfers_total_count = 0
+    return HttpResponse(client_transfers_total_count)
+
+
+def get_pending_client_transfers_in_out_count(request):
+    client_transfers_count_array = [0, 0]
+
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         client_transfers_in_count = 0
         client_transfers_out_count = 0
 
@@ -3342,28 +3357,37 @@ def get_pending_client_transfers_count(request):
             client_transfers_out_count = ClientTransfer.objects.filter(
                 source_implementing_partner=ip,
                 transfer_status=initiated_client_transfer_status).count()
-            client_transfers_total_count = ClientTransfer.objects.filter(
-                Q(destination_implementing_partner=ip) | Q(source_implementing_partner=ip),
-                transfer_status=initiated_client_transfer_status).count()
 
-            client_transfers_count_array = [client_transfers_total_count, client_transfers_in_count, client_transfers_out_count]
+            client_transfers_count_array = [client_transfers_in_count, client_transfers_out_count]
         except Exception:
-            client_transfers_count_array = [0, 0, 0]
+            client_transfers_count_array = [0, 0]
     return HttpResponse(client_transfers_count_array)
 
 
-def get_pending_client_referrals_count(request):
-    client_referrals_count_array = [0, 0, 0]
+def get_pending_client_referrals_total_count(request):
+    client_referrals_total_count = 0
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
+
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            client_referrals_total_count = Referral.objects.filter(referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip)))).filter(client__exited=False).count()
+
+        except Exception:
+            client_referrals_total_count = 0
+    return HttpResponse(client_referrals_total_count)
+
+
+def get_pending_client_referrals_in_out_count(request):
+    client_referrals_count_array = [0, 0]
 
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
-        client_referrals_total_count = 0
         client_referrals_in_count = 0
         client_referrals_out_count = 0
 
         try:
             ip = request.user.implementingpartneruser.implementing_partner
-            client_referrals_total_count = Referral.objects.filter(referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip)))).filter(client__exited=False).count()
             client_referrals_in_count = Referral.objects.filter(
                 referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
                         Q(external_organisation__isnull=False) | Q(
@@ -3373,9 +3397,9 @@ def get_pending_client_referrals_count(request):
                         Q(external_organisation__isnull=False) | Q(
                     external_organisation_other__isnull=False))).filter(client__exited=False).count()
 
-            client_referrals_count_array = [client_referrals_total_count, client_referrals_in_count, client_referrals_out_count]
+            client_referrals_count_array = [client_referrals_in_count, client_referrals_out_count]
         except Exception:
-            client_referrals_count_array = [0, 0, 0]
+            client_referrals_count_array = [0, 0]
     return HttpResponse(client_referrals_count_array)
 
 

@@ -3825,13 +3825,25 @@ $(document).ready(function () {
         $.ajax({
             url: $(el).data('count-url')
         }).done(function (data, textStatus, jqXHR) {
-            if (data[0] != 0) {
+            if (data != 0) {
                 $(el).text(data).show();
-                $('.client-transfers-count-in-span').text(data[1]).show();
-                $('.client-transfers-count-out-span').text(data[2]).show();
+                getClientTransfersInOutCount();
             } else {
                 $(el).text("").hide();
             }
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            alert(textStatus + ": " + errorThrown);
+        }).always(function () {
+            setTimeout(getClientTransfersCount, 180000);
+        });
+    }
+
+    function getClientTransfersInOutCount() {
+        $.ajax({
+            url: '/get-pending-client-transfers-in-out-count'
+        }).done(function (data, textStatus, jqXHR) {
+            $('.client-transfers-count-in-span').text(data[0]).show();
+            $('.client-transfers-count-out-span').text(data[1]).show();
         }).fail(function (jqXHR, textStatus, errorThrown) {
             alert(textStatus + ": " + errorThrown);
         }).always(function () {
@@ -3847,13 +3859,26 @@ $(document).ready(function () {
         $.ajax({
             url: $(el).data('count-url')
         }).done(function (data, textStatus, jqXHR) {
-             if (data[0] != 0) {
+             if (data != 0) {
                 $(el).text(data).show();
-                $('.client-referrals-count-in-span').text(data[1]).show();
-                $('.client-referrals-count-out-span').text(data[2]).show();
+                getClientReferralsInOutCount();
             } else {
                 $(el).text("").hide();
             }
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            alert(textStatus + ": " + errorThrown);
+        }).always(function () {
+            setTimeout(getClientReferralsCount, 180000);
+        });
+    }
+
+    function getClientReferralsInOutCount() {
+        $.ajax({
+            url: '/get-pending-client-referrals-in-out-count'
+        }).done(function (data, textStatus, jqXHR) {
+                $('.client-referrals-count-in-span').text(data[0]).show();
+                $('.client-referrals-count-out-span').text(data[1]).show();
+
         }).fail(function (jqXHR, textStatus, errorThrown) {
             alert(textStatus + ": " + errorThrown);
         }).always(function () {
