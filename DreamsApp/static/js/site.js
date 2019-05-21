@@ -3667,6 +3667,7 @@ $(document).ready(function () {
         $("#reject-referral-modal #reject_client_name").text($(el).data('client-name'));
         $("#reject-referral-modal #reject_client_dreams_id").text($(el).data('client-dreams-id'));
         $("#reject-referral-modal #reject_client_date_of_birth").text($(el).data('client-date-of-birth'));
+        $("#reject-referral-modal #reject_client_age_at_enrollment").text($(el).data('client-age-at-enrollment') + " years " + "(Current Age: " + $(el).data('client-current-age') + " years)");
         $("#reject-referral-modal #reject_client_intervention").text($(el).data('client-intervention-name'));
         $("#reject-referral-modal #reject_client_referral_date").text($(el).data('client-referral-date'));
         $("#reject-referral-modal #reject_client_referral_expiration_date").text($(el).data('client-referral-expiration-date'));
@@ -3679,6 +3680,8 @@ $(document).ready(function () {
         fetchIntervention($(el).data('referral-intervention-type-code'));
         $("#referral-intervention-modal #intervention_client_name").text("For: " + $(el).data('client-name') + " (" + $(el).data('client-dreams-id') + ")" );
         $("#referral-intervention-modal #client").val($(el).data('client-id'));
+        $("#referral-intervention-modal #intervention_client_date_of_birth").text("Date of Birth: " + $(el).data('client-date-of-birth'));
+        $("#referral-intervention-modal #intervention_client_age_at_enrollment").text("Age at Enrollment: " + $(el).data('client-age-at-enrollment') + " years " + " (Current Age: " + $(el).data('client-current-age') + " years)");
         $("#referral-intervention-modal #intervention_id").val($(el).data('referral-intervention-type-id'));
         $("#referral-intervention-modal #intervention_type_code").val($(el).data('referral-intervention-type-code'));
         $("#referral-intervention-modal #intervention_type_name").text("Intervention: " + $(el).data('referral-intervention-type-name'));
