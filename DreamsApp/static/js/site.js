@@ -79,6 +79,7 @@ $(document).ready(function () {
             $('div#other-external-organization-div').show();
         } else {
              $('div#other-external-organization-div').hide();
+             $('#other-organization-name').val("");
         }
     });
 
