@@ -435,7 +435,6 @@ $(document).ready(function () {
 
     $('div#external-organization-div').hide();
     $('input[type=checkbox]#to-external-organization').change(function() {
-
        if (this.checked) {
            $('div#implementing-partner-div').hide();
            $('div#external-organization-div').show();
@@ -443,9 +442,9 @@ $(document).ready(function () {
        } else {
            $('div#external-organization-div').hide();
            $('div#other-external-organization-div').hide();
+           $('#other-organization-name').val("");
            $('div#implementing-partner-div').show();
            $("#implementing-partners-select option:first").prop('selected','selected');
-           $('#other-organization-name').val("");
        }
     });
 
