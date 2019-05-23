@@ -3846,8 +3846,6 @@ $(document).ready(function () {
             $('.client-transfers-count-out-span').text(data[1]).show();
         }).fail(function (jqXHR, textStatus, errorThrown) {
             alert(textStatus + ": " + errorThrown);
-        }).always(function () {
-            setTimeout(getClientTransfersCount, 180000);
         });
     }
 
