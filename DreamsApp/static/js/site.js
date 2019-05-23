@@ -600,10 +600,10 @@ $(document).ready(function () {
     }
 
     $('#referral-interventions-select').change(function () {
-        var it = $(this).find(":selected");
+        var intervention = $(this).find(":selected");
         var currentClientAge = $('#current_client_age').val();
-        var is_age_restricted = it.attr('is_age_restricted');
-        if (eval(is_age_restricted) && (currentClientAge < it.attr("min_age") || currentClientAge > it.attr("max_age"))) {
+        var isAgeRestricted = intervention.attr('is_age_restricted');
+        if (eval(isAgeRestricted) && (currentClientAge < intervention.attr("min_age") || currentClientAge > intervention.attr("max_age"))) {
             $('#div_referral_out_of_age_bracket_warning').fadeIn('fast');
             $('#div_referral_out_of_age_bracket_warning').removeClass('hide');
         } else {
