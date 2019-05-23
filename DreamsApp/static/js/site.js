@@ -3872,10 +3872,11 @@ $(document).ready(function () {
 
     function getClientReferralsInOutCount() {
         $.ajax({
-            url: '/get-pending-client-referrals-in-out-count'
+            url: '/get-pending-client-referrals-in-out-count',
+            dataType: 'json',
         }).done(function (data, textStatus, jqXHR) {
-                $('.client-referrals-count-in-span').text(data[0]).show();
-                $('.client-referrals-count-out-span').text(data[1]).show();
+            $('#client-referrals-count-in-span').text(data[0]).show();
+            $('#client-referrals-count-out-span').text(data[1]).show();
 
         }).fail(function (jqXHR, textStatus, errorThrown) {
             alert(textStatus + ": " + errorThrown);
