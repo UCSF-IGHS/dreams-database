@@ -3343,7 +3343,6 @@ def get_pending_client_transfers_total_count(request):
 
 def get_pending_client_transfers_in_out_count(request):
     client_transfers_count_array = [0, 0]
-
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
@@ -3356,9 +3355,9 @@ def get_pending_client_transfers_in_out_count(request):
                 transfer_status=initiated_client_transfer_status).count()
 
             client_transfers_count_array = [client_transfers_in_count, client_transfers_out_count]
-        except Exception:
+        except:
             client_transfers_count_array = [0, 0]
-    return HttpResponse(client_transfers_count_array)
+    return HttpResponse(json.dumps(client_transfers_count_array))
 
 
 def get_pending_client_referrals_total_count(request):

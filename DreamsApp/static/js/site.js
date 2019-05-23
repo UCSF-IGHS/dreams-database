@@ -3840,10 +3840,11 @@ $(document).ready(function () {
 
     function getClientTransfersInOutCount() {
         $.ajax({
-            url: '/get-pending-client-transfers-in-out-count'
+            url: '/get-pending-client-transfers-in-out-count',
+            dataType: 'json'
         }).done(function (data, textStatus, jqXHR) {
-            $('.client-transfers-count-in-span').text(data[0]).show();
-            $('.client-transfers-count-out-span').text(data[1]).show();
+            $('#client-transfers-count-in-span').text(data[0]).show();
+            $('#client-transfers-count-out-span').text(data[1]).show();
         }).fail(function (jqXHR, textStatus, errorThrown) {
             alert(textStatus + ": " + errorThrown);
         });
