@@ -390,8 +390,8 @@ $(document).ready(function () {
             async: false,
             success: function (data) {
                 var interventionTypes = $.parseJSON(data.intervention_types);
-                setSelectOptions(interventionTypes, '#referral-interventions-select', 'Select Intervention Type');
-            },
+                setSelectOptions(interventionTypes, '#referral-interventions-select', 'Select Intervention Type', checkAgeRestriction=true);
+                },
             error: function (xhr, errmsg, err) {
                 alert(xhr.status + ": " + xhr.responseText);
             }
@@ -543,15 +543,22 @@ $(document).ready(function () {
         });
     }
 
-    function setSelectOptions(selectOptions, selectID, defaultText) {
+    function setSelectOptions(selectOptions, selectID, defaultText, checkAgeRestriction=false) {
         var select = $(selectID);
         select.empty();
         select.append($("<option />").attr("value", '').text(defaultText).addClass('selected disabled hidden').css({display: 'none'}));
 
         if (selectOptions.length > 0) {
-            $.each(selectOptions, function () {
-                select.append($("<option />").attr("value", this.pk).text(this.fields.name));
-            });
+            if (checkAgeRestriction) {
+                $.each(selectOptions, function () {
+                    select.append($("<option />").attr("value", this.pk).attr("is_age_restricted", this.fields.is_age_restricted)
+                        .attr("min_age", this.fields.min_age).attr("max_age", this.fields.max_age).text(this.fields.name));
+                });
+            } else {
+                $.each(selectOptions, function () {
+                    select.append($("<option />").attr("value", this.pk).text(this.fields.name));
+                });
+            }
         }
     }
 
@@ -591,6 +598,22 @@ $(document).ready(function () {
             }
         });
     }
+
+    $('#referral-interventions-select').change(function () {
+        var intervention = $(this).find(":selected");
+        var currentClientAge = $('#current_client_age').val();
+        var isAgeRestricted = intervention.attr('is_age_restricted');
+        if (eval(isAgeRestricted) && (currentClientAge < intervention.attr("min_age") || currentClientAge > intervention.attr("max_age"))) {
+            $('#div_referral_out_of_age_bracket_warning').fadeIn('fast');
+            $('#div_referral_out_of_age_bracket_warning').removeClass('hide');
+        } else {
+            if (!$('#div_referral_out_of_age_bracket_warning').hasClass("hide")) {
+                $('#div_referral_out_of_age_bracket_warning').fadeOut('fast', function () {
+                    $('#div_referral_out_of_age_bracket_warning').addClass('hide');
+                });
+            }
+        }
+    });
 
     function showSection(show, elementId) {
         if (show)
