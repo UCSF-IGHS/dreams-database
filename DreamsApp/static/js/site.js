@@ -2172,7 +2172,10 @@ $(document).ready(function () {
     }, ' ');
 
     $.validator.addMethod('under18WithID', function (value) {
-        var currDOB = new Date($('#id_date_of_birth').val());
+        var date_of_birth = $('#id_date_of_birth').val();
+        var currDOB = new Date(date_of_birth.split("/")[2],
+                                date_of_birth.split("/")[1],
+                                date_of_birth.split("/")[0]);
         var age = getAge(currDOB);
         var verificationDoc = $('#id_verification_document').val() || 0;
 
