@@ -98,9 +98,9 @@
                             <td>
                                  {% if client_referral.client.exited %}
                                     <a id="accept-{{ client_referral.id }}" name="complete-referral-modal"
-                                       class='glyphicon glyphicon-ok badge btn btn-success exit_unexit_toggle'
+                                       class='glyphicon glyphicon-ok badge btn btn-success exit_unexit_toggle referral-button referral-button-hide'
                                        arial-label='Arial-Hidden'
-                                       style="padding-bottom: 8px; display: none" data-toggle="modal"
+                                       data-toggle="modal"
                                        data-target="#referral-intervention-modal"
                                        data-referral-id="{{ client_referral.id }}"
                                        data-client-name="{{ client_referral.client.get_full_name }}"
@@ -122,8 +122,8 @@
                                         Complete
                                     </a> &nbsp;&nbsp;
                                     <a id="reject-{{ client_referral.id }}" name="reject-referral-modal"
-                                       class='glyphicon glyphicon-remove badge btn btn-danger exit_unexit_toggle'
-                                       arial-label='Arial-Hidden' style="padding-bottom: 8px; display: none" data-toggle="modal"
+                                       class='glyphicon glyphicon-remove badge btn btn-danger exit_unexit_toggle referral-button referral-button-hide'
+                                       arial-label='Arial-Hidden' data-toggle="modal"
                                        data-target="#reject-referral-modal"
                                        data-id="{{ client_referral.id }}"
                                        data-client-name="{{ client_referral.client.get_full_name }}"
@@ -161,10 +161,11 @@
                                         data-referral-intervention-type-has_pregnancy_result="{{ client_referral.intervention_type.has_pregnancy_result }}"
                                         data-referral-intervention-type-has_no_of_sessions="{{ client_referral.intervention_type.has_no_of_sessions }}">
                                          Complete
+
                                     </a> &nbsp;&nbsp;
                                     <a id="reject-{{ client_referral.id }}" name="reject-referral-modal"
-                                       class='glyphicon glyphicon-remove badge btn btn-danger exit_unexit_toggle'
-                                       arial-label='Arial-Hidden' style="padding-bottom: 8px;" data-toggle="modal"
+                                       class='glyphicon glyphicon-remove badge btn btn-danger exit_unexit_toggle referral-button'
+                                       arial-label='Arial-Hidden' data-toggle="modal"
                                        data-target="#reject-referral-modal"
                                        data-id="{{ client_referral.id }}"
                                        data-client-name="{{ client_referral.client.get_full_name }}"

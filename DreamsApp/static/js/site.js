@@ -79,6 +79,7 @@ $(document).ready(function () {
             $('div#other-external-organization-div').show();
         } else {
              $('div#other-external-organization-div').hide();
+             $('#other-organization-name').val("");
         }
     });
 
@@ -390,8 +391,8 @@ $(document).ready(function () {
             async: false,
             success: function (data) {
                 var interventionTypes = $.parseJSON(data.intervention_types);
-                setSelectOptions(interventionTypes, '#referral-interventions-select', 'Select Intervention Type');
-            },
+                setSelectOptions(interventionTypes, '#referral-interventions-select', 'Select Intervention Type', checkAgeRestriction=true);
+                },
             error: function (xhr, errmsg, err) {
                 alert(xhr.status + ": " + xhr.responseText);
             }
@@ -437,9 +438,13 @@ $(document).ready(function () {
        if (this.checked) {
            $('div#implementing-partner-div').hide();
            $('div#external-organization-div').show();
+           $("#referral-external-organization-select option:first").prop('selected','selected');
        } else {
            $('div#external-organization-div').hide();
+           $('div#other-external-organization-div').hide();
+           $('#other-organization-name').val("");
            $('div#implementing-partner-div').show();
+           $("#implementing-partners-select option:first").prop('selected','selected');
        }
     });
 
@@ -543,15 +548,22 @@ $(document).ready(function () {
         });
     }
 
-    function setSelectOptions(selectOptions, selectID, defaultText) {
+    function setSelectOptions(selectOptions, selectID, defaultText, checkAgeRestriction=false) {
         var select = $(selectID);
         select.empty();
         select.append($("<option />").attr("value", '').text(defaultText).addClass('selected disabled hidden').css({display: 'none'}));
 
         if (selectOptions.length > 0) {
-            $.each(selectOptions, function () {
-                select.append($("<option />").attr("value", this.pk).text(this.fields.name));
-            });
+            if (checkAgeRestriction) {
+                $.each(selectOptions, function () {
+                    select.append($("<option />").attr("value", this.pk).attr("is_age_restricted", this.fields.is_age_restricted)
+                        .attr("min_age", this.fields.min_age).attr("max_age", this.fields.max_age).text(this.fields.name));
+                });
+            } else {
+                $.each(selectOptions, function () {
+                    select.append($("<option />").attr("value", this.pk).text(this.fields.name));
+                });
+            }
         }
     }
 
@@ -591,6 +603,22 @@ $(document).ready(function () {
             }
         });
     }
+
+    $('#referral-interventions-select').change(function () {
+        var intervention = $(this).find(":selected");
+        var currentClientAge = $('#current_client_age').val();
+        var isAgeRestricted = intervention.attr('is_age_restricted');
+        if (eval(isAgeRestricted) && (currentClientAge < intervention.attr("min_age") || currentClientAge > intervention.attr("max_age"))) {
+            $('#div_referral_out_of_age_bracket_warning').fadeIn('fast');
+            $('#div_referral_out_of_age_bracket_warning').removeClass('hide');
+        } else {
+            if (!$('#div_referral_out_of_age_bracket_warning').hasClass("hide")) {
+                $('#div_referral_out_of_age_bracket_warning').fadeOut('fast', function () {
+                    $('#div_referral_out_of_age_bracket_warning').addClass('hide');
+                });
+            }
+        }
+    });
 
     function showSection(show, elementId) {
         if (show)
@@ -3507,7 +3535,12 @@ $(document).ready(function () {
 
         createDatePicker("#client-make-referral-form #referral-date", '+0Y +0M +0D', new Date(2015, 9, 1));
 
-        $("#client-make-referral-modal #expiry-date").val(new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + new Date().getDate());
+        $("#client-make-referral-modal #to-external-organization").prop('checked',false);
+        $('div#implementing-partner-div').show();
+        $('div#external-organization-div').hide();
+        $('div#other-external-organization-div').hide();
+        $('#other-organization-name').val("");
+        $('#client-make-referral-modal #expiry-date').val(new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + new Date().getDate());
         $('#client-make-referral-form #referral-date').val('');
         $('#client-make-referral-form #error-space').text("");
     });
@@ -3824,13 +3857,13 @@ $(document).ready(function () {
     });
 
     function getClientTransfersCount() {
-        var el = $('#client-transfers-count-span');
+        var el = $('#client-transfers-count-total-span');
         $.ajax({
             url: $(el).data('count-url')
         }).done(function (data, textStatus, jqXHR) {
             if (data != 0) {
                 $(el).text(data).show();
-                $('.client-transfers-count-span').text(data).show();
+                getClientTransfersInOutCount();
             } else {
                 $(el).text("").hide();
             }
@@ -3841,19 +3874,47 @@ $(document).ready(function () {
         });
     }
 
+    function getClientTransfersInOutCount() {
+        $.ajax({
+            url: '/get-pending-client-transfers-in-out-count',
+            dataType: 'json'
+        }).done(function (data, textStatus, jqXHR) {
+            $('#client-transfers-count-in-span').text(data[0]).show();
+            $('#client-transfers-count-out-span').text(data[1]).show();
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            alert(textStatus + ": " + errorThrown);
+        });
+    }
+
     setTimeout(getClientTransfersCount(), 180000);
 
     function getClientReferralsCount() {
-        var el = $('#client-referrals-count-span');
+        var el = $('#client-referrals-count-total-span');
+
         $.ajax({
             url: $(el).data('count-url')
         }).done(function (data, textStatus, jqXHR) {
-            if (data != 0) {
+             if (data != 0) {
                 $(el).text(data).show();
-                $('.client-referrals-count-span').text(data).show();
+                getClientReferralsInOutCount();
             } else {
                 $(el).text("").hide();
             }
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            alert(textStatus + ": " + errorThrown);
+        }).always(function () {
+            setTimeout(getClientReferralsCount, 180000);
+        });
+    }
+
+    function getClientReferralsInOutCount() {
+        $.ajax({
+            url: '/get-pending-client-referrals-in-out-count',
+            dataType: 'json',
+        }).done(function (data, textStatus, jqXHR) {
+            $('#client-referrals-count-in-span').text(data[0]).show();
+            $('#client-referrals-count-out-span').text(data[1]).show();
+
         }).fail(function (jqXHR, textStatus, errorThrown) {
             alert(textStatus + ": " + errorThrown);
         }).always(function () {
