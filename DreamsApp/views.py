@@ -1224,7 +1224,7 @@ def initiate_referral(request):
             OTHER_EXTERNAL_ORGANISATION_ID = ExternalOrganisation.objects.get(name='Other').pk
             client = Client.objects.filter(id__exact=int(request.POST.get('referral-client-id'))).first()
             source_implementing_partner = ImplementingPartner.objects.filter(id__exact=client.implementing_partner.id).first()
-            intervention_type = InterventionType.objects.filter(id__exact=int(request.POST.get('referral-interventions-select'))).first()
+            intervention_type = InterventionType.objects.filter(code__exact=int(request.POST.get('referral-interventions-select'))).first()
             referral_date = request.POST.get('referral-date')
             expiry_date = request.POST.get('expiry-date')
             comment = request.POST.get('comment')

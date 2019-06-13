@@ -383,6 +383,7 @@ $(document).ready(function () {
         }).show();
     }
 
+    var interventionTypes;
     function fetchAndLoadInterventionTypes() {
         $.ajax({
             url: "/getInterventionTypes",
@@ -390,8 +391,8 @@ $(document).ready(function () {
             dataType: 'json',
             async: false,
             success: function (data) {
-                var interventionTypes = $.parseJSON(data.intervention_types);
-                setSelectOptions(interventionTypes, '#referral-interventions-select', 'Select Intervention Type', checkAgeRestriction=true);
+                interventionTypes = $.parseJSON(data.intervention_types);
+                $('#referral-category-interventions-select').val($("#referral-category-interventions-select option:first").val()).change();
                 },
             error: function (xhr, errmsg, err) {
                 alert(xhr.status + ": " + xhr.responseText);
@@ -3529,6 +3530,16 @@ $(document).ready(function () {
 
     $("#btn_submit_transfer_client_form").click(function (e) {
         $('#client-transfer-form').submit();
+    });
+
+    $('#referral-category-interventions-select').change(function () {
+        $('#referral-interventions-select').empty();
+        var interventionsCategory = $(this).find(':selected').val();
+        for (var interventionType in interventionTypes) {
+            var interventionDetails = interventionTypes[interventionType].fields;
+            if (interventionDetails['intervention_category'] == interventionsCategory)
+                $('#referral-interventions-select').append($("<option />").attr("value", interventionDetails['code']).text(interventionDetails['name']));
+        }
     });
 
     $('#client-make-referral-modal').on('shown.bs.modal', function (e) {
