@@ -3145,10 +3145,12 @@ def client_referrals(request, *args, **kwargs):
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if referred_in:
-                client_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
+                client_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
+                Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False)))).order_by(
+                    'referral_status', '-referral_date')
             else:
                 client_referrals = Referral.objects.filter(Q(referring_ip=ip)).exclude((Q(referring_ip=ip) and (
-                            Q(external_organisation__isnull=False) | Q(
+                    Q(external_organisation__isnull=False) | Q(
                         external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
 
             for client_referral in client_referrals:
@@ -3171,9 +3173,15 @@ def client_referrals(request, *args, **kwargs):
         except EmptyPage:
             referrals = paginator.page(paginator.num_pages)
 
-        return render(request, "client_referrals.html",
-                      {'client_referrals': referrals, 'can_accept_or_reject': can_accept_or_reject,
-                       'referred_in': referred_in, 'page': 'referrals'})
+        return render(request,
+                      "client_referrals.html",
+                      {
+                          'client_referrals': referrals,
+                          'can_accept_or_reject': can_accept_or_reject,
+                          'referred_in': referred_in,
+                          'page': 'referrals',
+                          'now': datetime.now().date()
+                      })
     else:
         return redirect('login')
 
@@ -3366,7 +3374,9 @@ def get_pending_client_referrals_total_count(request):
         pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
-            client_referrals_total_count = Referral.objects.filter(referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip)))).filter(client__exited=False).count()
+            client_referrals_total_count = Referral.objects.filter(
+                referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip)))).filter(
+                client__exited=False).filter(referral_expiration_date__gte=datetime.now().date()).count()
         except:
             client_referrals_total_count = 0
     return HttpResponse(client_referrals_total_count)
@@ -3381,12 +3391,15 @@ def get_pending_client_referrals_in_out_count(request):
             ip = request.user.implementingpartneruser.implementing_partner
             client_referrals_in_count = Referral.objects.filter(
                 referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
-                        Q(external_organisation__isnull=False) | Q(
-                    external_organisation_other__isnull=False))))).filter(client__exited=False).count()
+                    Q(external_organisation__isnull=False) | Q(
+                        external_organisation_other__isnull=False))))).filter(client__exited=False).filter(
+                referral_expiration_date__gte=datetime.now().date()).count()
             client_referrals_out_count = Referral.objects.filter(
-                referral_status=pending_client_referral_status and (Q(referring_ip=ip))).exclude(Q(referring_ip=ip) and (
-                        Q(external_organisation__isnull=False) | Q(
-                    external_organisation_other__isnull=False))).filter(client__exited=False).count()
+                referral_status=pending_client_referral_status and (Q(referring_ip=ip))).exclude(
+                Q(referring_ip=ip) and (
+                    Q(external_organisation__isnull=False) | Q(
+                        external_organisation_other__isnull=False))).filter(client__exited=False).filter(
+                referral_expiration_date__gte=datetime.now().date()).count()
 
             client_referrals_count_array = [client_referrals_in_count, client_referrals_out_count]
         except Exception:
