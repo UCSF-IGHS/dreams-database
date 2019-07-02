@@ -620,6 +620,27 @@ $(document).ready(function () {
         }
     });
 
+    $('input#date-of-completion').change(function() {
+        var completionDate = $(this).val();
+        var referralDate = $('input[type=hidden]#client_referral_date').val();
+        if (completionDate) {
+            var formattedCompletionDate = new Date(parseInt(completionDate.split('/')[2]), 
+                                                    parseInt(completionDate.split('/')[0]) - 1, 
+                                                    parseInt(completionDate.split('/')[1]));
+            var formattedReferralDate = new Date(parseInt(referralDate.split('/')[2]), 
+                                                    parseInt(referralDate.split('/')[0]) - 1, 
+                                                    parseInt(referralDate.split('/')[1]));
+            if (formattedCompletionDate < formattedReferralDate) {
+                $('#div-date-before-referral-date').fadeIn('fast');
+                $('#div-date-before-referral-date').removeClass('hide');
+            } else {
+                $('#div-date-before-referral-date').fadeOut('fast', function () {
+                    $('#div-date-before-referral-date').addClass('hide');
+                });
+            }
+        }
+    });
+
     function showSection(show, elementId) {
         if (show)
             $(elementId).removeClass('hidden');
@@ -3714,6 +3735,7 @@ $(document).ready(function () {
         e.preventDefault();
         var el = $(this);
         fetchIntervention($(el).data('referral-intervention-type-code'));
+        $('#div-date-before-referral-date').hide();
         $("#referral-intervention-modal #intervention_client_name").text("For: " + $(el).data('client-name') + " (" + $(el).data('client-dreams-id') + ")" );
         $("#referral-intervention-modal #client").val($(el).data('client-id'));
         $("#referral-intervention-modal #intervention_client_date_of_birth").text("Date of Birth: " + $(el).data('client-date-of-birth'));
@@ -3721,6 +3743,7 @@ $(document).ready(function () {
         $("#referral-intervention-modal #intervention_id").val($(el).data('referral-intervention-type-id'));
         $("#referral-intervention-modal #intervention_type_code").val($(el).data('referral-intervention-type-code'));
         $("#referral-intervention-modal #intervention_type_name").text("Intervention: " + $(el).data('referral-intervention-type-name'));
+        $("#referral-intervention-modal #client_referral_date").val($(el).data('client-referral-date'));
         $("#referral-intervention-modal #referral_id").val($(el).data('referral-id'));
 
         fetchExternalOrganisations('external-organization-select', 'referral-intervention-modal');
