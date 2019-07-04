@@ -3533,7 +3533,7 @@ $(document).ready(function () {
     });
 
     $('#referral-category-interventions-select').change(function () {
-        $('#referral-interventions-select').empty();
+        $('#referral-interventions-select').empty().append($("<option />").addClass("selected disabled hidden").text('Select intervention'));
         var interventionsCategory = $(this).find(':selected').val();
         for (var interventionType in interventionTypes) {
             var interventionDetails = interventionTypes[interventionType].fields;
