@@ -401,7 +401,8 @@ def client_profile(request):
                                                                'is_editable_by_ip': is_editable_by_ip,
                                                                'can_add_intervention': can_add_intervention,
                                                                'client_status': client_status,
-                                                               '60_days_from_now': dt.now() + + timedelta(days=60)
+                                                               '60_days_from_now': dt.now() + + timedelta(days=60),
+                                                               'intervention_categories': InterventionCategory.objects.all()
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
@@ -416,7 +417,8 @@ def client_profile(request):
                                'is_editable_by_ip': is_editable_by_ip,
                                'can_add_intervention': can_add_intervention,
                                'client_status': client_status,
-                               '60_days_from_now': dt.now() + + timedelta(days=60)
+                               '60_days_from_now': dt.now() + + timedelta(days=60),
+                               'intervention_categories': InterventionCategory.objects.all()
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -1224,7 +1226,7 @@ def initiate_referral(request):
             OTHER_EXTERNAL_ORGANISATION_ID = ExternalOrganisation.objects.get(name='Other').pk
             client = Client.objects.filter(id__exact=int(request.POST.get('referral-client-id'))).first()
             source_implementing_partner = ImplementingPartner.objects.filter(id__exact=client.implementing_partner.id).first()
-            intervention_type = InterventionType.objects.filter(id__exact=int(request.POST.get('referral-interventions-select'))).first()
+            intervention_type = InterventionType.objects.filter(code__exact=int(request.POST.get('referral-interventions-select'))).first()
             referral_date = request.POST.get('referral-date')
             expiry_date = request.POST.get('expiry-date')
             comment = request.POST.get('comment')
