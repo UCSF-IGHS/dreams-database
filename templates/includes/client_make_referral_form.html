@@ -21,11 +21,12 @@
                             <div class="form-group">
                                  <label id="referral_intervention_label" for="referral_intervention" class="control-label">Category:</label>
                                  <select class="form-control" id="referral-category-interventions-select" name="referral-category-interventions-select">
-                                    <option class="selected disabled hidden">Select Intervention Category</option>
+                                    <option value class="selected disabled hidden">Select Intervention Category</option>
                                      {% for intervention_category in intervention_categories %}
                                         <option value="{{ intervention_category.id }}">{{ intervention_category.name }}</option>
                                      {% endfor %}
                                  </select>
+                                 <span id="referral_intervention_category_error" class="label error-space" style="color: red; font-size: 12px"></span>
                              </div>
                              <div class="form-group">
                                  <label id="referral_intervention_label" for="referral_intervention" class="control-label">Intervention:</label>
