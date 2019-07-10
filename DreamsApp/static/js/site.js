@@ -3590,6 +3590,10 @@ $(document).ready(function () {
         $('#client-make-referral-form #error-space').text('');
     });
 
+    var displayErrorMessage = function(elemID, message) {
+        $('#' + elemID).removeClass('hidden').text(message).trigger('madeVisible');
+    };
+
     $('form#client-make-referral-form').submit(function (e) {
         var interventionCategory = $('select#referral-category-interventions-select option:selected').val();
         var intervention = $('select#referral-interventions-select option:selected').val();
@@ -3611,25 +3615,26 @@ $(document).ready(function () {
         $("#btn_submit_refer_client").removeAttr("disabled");
 
         if (interventionCategory === '')
-            $('#referral_intervention_category_error').removeClass('hidden').text('Please select an intervention category type').trigger('madeVisible');
+            displayErrorMessage('referral_intervention_category_error', 'Please select an intervention category type');
 
         if (intervention === '')
-            $('#referral_intervention_error').removeClass('hidden').text('Please select an intervention type').trigger('madeVisible');
+            displayErrorMessage('referral_intervention_error', 'Please select an intervention type');
 
-        if (toExternalOrganization && ((externalOrganization === '' || externalOrganization === 'undefined') && (otherOrganization === '' || otherOrganization === 'undefined')))
-            $('#external_organization_error').removeClass('hidden').text('Please select external organization or implementing partner').trigger('madeVisible');
+        if (toExternalOrganization && ((externalOrganization === '' || externalOrganization === 'undefined')
+            && (otherOrganization === '' || otherOrganization === 'undefined')))
+            displayErrorMessage('external_organization_error', 'Please select external organization or implementing partner');
 
         if (!toExternalOrganization && (implementingPartner === '' || implementingPartner === 'undefined'))
-            $('#implementing_partner_error').removeClass('hidden').text('Please select an implementing partner').trigger('madeVisible');
+            displayErrorMessage('implementing_partner_error', 'Please select an implementing partner');
 
         if (toExternalOrganization && externalOrganization === '')
-            $('#external_organization_error').removeClass('hidden').text('Please select an external organization').trigger('madeVisible');
+            displayErrorMessage('external_organization_error', 'Please select an external organization');
 
         if (referralDate === '')
-            $('#referral_date_error').removeClass('hidden').text('Please insert a referral date').trigger('madeVisible');
+            displayErrorMessage('referral_date_error', 'Please insert a referral date').trigger('madeVisible');
 
         if (expiryDate === '')
-            $('#referral_expiry_date_error').removeClass('hidden').text('Please insert a referral expiry date').trigger('madeVisible');
+            displayErrorMessage('referral_expiry_date_error', 'Please insert a referral expiry date');
 
         if ($('#referral_intervention_category_error').hasClass('hidden') &&
             $('#referral_intervention_error').hasClass('hidden') &&
