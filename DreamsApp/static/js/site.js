@@ -3596,7 +3596,7 @@ $(document).ready(function () {
         var referralDate = $('#client-make-referral-form #referral-date').val();
         var implementingPartner = $('#client-make-referral-form #implementing-partners-select option:selected').val();
         var toExternalOrganization = $('input[name="to-external-organization"]').is(':checked');
-        var externalOrganization = $('#client-make-referral-form #external-organization-select option:selected').val();
+        var externalOrganization = $('#client-make-referral-form #referral-external-organization-select option:selected').val();
         var otherOrganization = $('#client-make-referral-form #other-organization-name').val();
         var expiryDate = $('#client-make-referral-form #expiry-date').val();
         var comment = $('#client-make-referral-form #comment').text();
@@ -3621,6 +3621,9 @@ $(document).ready(function () {
 
         if (!toExternalOrganization && (implementingPartner === '' || implementingPartner === 'undefined'))
             $('#implementing_partner_error').removeClass('hidden').text('Please select an implementing partner').trigger('madeVisible');
+
+        if (toExternalOrganization && externalOrganization === '')
+            $('#external_organization_error').removeClass('hidden').text('Please select an external organization').trigger('madeVisible');
 
         if (referralDate === '')
             $('#referral_date_error').removeClass('hidden').text('Please insert a referral date').trigger('madeVisible');
