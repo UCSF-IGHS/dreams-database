@@ -73,7 +73,7 @@ class TransferClients:
             db_line = self.get_db_line(conn, line.split(',')[0]).fetchone()
             print('Verifying {}'.format(line.split(',')[0]))
             if db_line and sorted(line.upper()[:-1]) == sorted(
-                    ','.join([str(value).strip() for value in db_line.values() if value is not None]).upper()):
+                    ','.join([str(value).strip() if value is not None else '' for value in db_line.values()]).upper()):
                 validated_dreams_ids.append(line.split(',')[0])
             else:
                 raise Exception('Invalid record for {}.'.format(line,))
@@ -81,7 +81,7 @@ class TransferClients:
 
     def get_db_line(self, conn: cursors, dreams_id: str) -> str:
         query = 'SELECT dreams_id, first_name, last_name, implementing_partner_id \
-                  FROM DreamsApp_client WHERE dreams_id = "{}"'.format(dreams_id)
+                  FROM DreamsApp_client WHERE dreams_id = "{}" AND voided = 0'.format(dreams_id)
         cursor = conn.cursor()
         cursor.execute(query)
         return cursor
@@ -113,4 +113,4 @@ conn = transfer_clients.connect(conn_params)
 file = transfer_clients.load_file(params['transfer_file_path'])
 dreams_ids = transfer_clients.validate_dreams_ids(conn, file)
 transfer_clients.transfer_clients(conn, dreams_ids, params['client_performing_transfer_id'],
-                                  params['source_ip_id'], params['destination_ip_id'], params['transfer_reason'])
+                                params['source_ip_id'], params['destination_ip_id'], params['transfer_reason'])
