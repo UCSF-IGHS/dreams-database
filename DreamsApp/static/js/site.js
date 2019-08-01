@@ -66,11 +66,14 @@ $(document).ready(function () {
     });
 
     $('#client-make-referral-form #referral-date').change(function(event){
-        var selected_date = new Date($('#client-make-referral-form #referral-date').val());
+        var selectedDate = new Date($('#client-make-referral-form #referral-date').val());
         var expiry_days = 60;
-        selected_date.setDate(selected_date.getDate() + expiry_days);
-        var expiry_date = selected_date.getFullYear() + '-' + (selected_date.getMonth() + 1)  + '-' + selected_date.getDate();
-        $('#client-make-referral-form #expiry-date').val(expiry_date);
+        selectedDate.setDate(selectedDate.getDate() + expiry_days);
+        var year = selectedDate.getFullYear();
+        var month = '00' + (selectedDate.getMonth() + 1);
+        var day = '00' + selectedDate.getDate();
+        var expiryDate = year + '-' + month.substr(month.length - 2, month.length)  + '-' + day.substr(day.length - 2, day.length);
+        $('#client-make-referral-form #expiry-date').val(expiryDate);
     });
 
     $('div#other-external-organization-div').hide();
@@ -3554,7 +3557,7 @@ $(document).ready(function () {
     });
 
     $('#referral-category-interventions-select').change(function () {
-        $('#referral-interventions-select').empty().append($("<option />").addClass("selected disabled hidden").text('Select intervention'));
+        $('#referral-interventions-select').empty().append($("<option />").addClass("selected disabled hidden").attr("value", '').text('Select intervention'));
         var interventionsCategory = $(this).find(':selected').val();
         for (var interventionType in interventionTypes) {
             var interventionDetails = interventionTypes[interventionType].fields;
@@ -3571,27 +3574,39 @@ $(document).ready(function () {
         createDatePicker("#client-make-referral-form #referral-date", '+0Y +0M +0D', new Date(2015, 9, 1));
 
         $("#client-make-referral-modal #to-external-organization").prop('checked',false);
+
+        var currDate = new Date();
+        var year = currDate.getFullYear();
+        var month = '00' + (currDate.getMonth() + 1);
+        var day = '00' + currDate.getDate();
+        var expiryDate = year + '-' + month.substr(month.length - 2, month.length)  + '-' + day.substr(day.length - 2, day.length);
+
         $('div#implementing-partner-div').show();
         $('div#external-organization-div').hide();
         $('div#other-external-organization-div').hide();
-        $('#other-organization-name').val("");
-        $('#client-make-referral-modal #expiry-date').val(new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + new Date().getDate());
+        $('#other-organization-name').val('');
+        $('#client-make-referral-modal #expiry-date').val(expiryDate);
         $('#client-make-referral-form #referral-date').val('');
-        $('#client-make-referral-form #error-space').text("");
+        $('#client-make-referral-form #error-space').text('');
     });
 
-    $('#client-make-referral-form').submit(function (e) {
-        e.preventDefault();
+    var displayErrorMessage = function(elemID, message) {
+        $('#' + elemID).removeClass('hidden').text(message).trigger('madeVisible');
+    };
+
+    $('form#client-make-referral-form').submit(function (e) {
+        var interventionCategory = $('select#referral-category-interventions-select option:selected').val();
         var intervention = $('select#referral-interventions-select option:selected').val();
         var referralDate = $('#client-make-referral-form #referral-date').val();
         var implementingPartner = $('#client-make-referral-form #implementing-partners-select option:selected').val();
         var toExternalOrganization = $('input[name="to-external-organization"]').is(':checked');
-        var externalOrganization = $('#client-make-referral-form #external-organization-select option:selected').val();
+        var externalOrganization = $('#client-make-referral-form #referral-external-organization-select option:selected').val();
         var otherOrganization = $('#client-make-referral-form #other-organization-name').val();
         var expiryDate = $('#client-make-referral-form #expiry-date').val();
         var comment = $('#client-make-referral-form #comment').text();
 
         $("#btn_submit_refer_client").attr("disabled", true);
+        $('#referral_intervention_category_error').addClass('hidden');
         $('#referral_intervention_error').addClass('hidden');
         $('#external_organization_error').addClass('hidden');
         $('#implementing_partner_error').addClass('hidden');
@@ -3599,32 +3614,34 @@ $(document).ready(function () {
         $('#referral_expiry_date_error').addClass('hidden');
         $("#btn_submit_refer_client").removeAttr("disabled");
 
-        if (intervention === '') {
-            $('#referral_intervention_error').removeClass('hidden').text('Please select an intervention type')
-                                                                    .trigger('madeVisible');
-            return false;
+        if (interventionCategory === '')
+            displayErrorMessage('referral_intervention_category_error', 'Please select an intervention category type');
 
-        } else if (toExternalOrganization && ((externalOrganization  === '' || externalOrganization  === 'undefined') && (otherOrganization  === '' || otherOrganization  === 'undefined'))) {
-            $('#external_organization_error').removeClass('hidden').text('Please select external organization or implementing partner')
-                                                                    .trigger('madeVisible');
-            return false;
+        if (intervention === '')
+            displayErrorMessage('referral_intervention_error', 'Please select an intervention type');
 
-        } else if (!toExternalOrganization && (implementingPartner === '' || implementingPartner === 'undefined')) {
-            $('#implementing_partner_error').removeClass('hidden').text('Please select an implementing partner')
-                                                                    .trigger('madeVisible');
-            return false;
+        if (toExternalOrganization && ((externalOrganization === '' || externalOrganization === 'undefined')
+            && (otherOrganization === '' || otherOrganization === 'undefined')))
+            displayErrorMessage('external_organization_error', 'Please select external organization or implementing partner');
 
-        } else if (referralDate === '') {
-            $('#referral_date_error').removeClass('hidden').text('Please insert a referral date')
-                                                                    .trigger('madeVisible');
-            return false;
+        if (!toExternalOrganization && (implementingPartner === '' || implementingPartner === 'undefined'))
+            displayErrorMessage('implementing_partner_error', 'Please select an implementing partner');
 
-        } else if (expiryDate === '') {
-            $('#referral_expiry_date_error').removeClass('hidden').text('Please insert a referral expiry date')
-                                                                    .trigger('madeVisible');
-            return false;
+        if (toExternalOrganization && externalOrganization === '')
+            displayErrorMessage('external_organization_error', 'Please select an external organization');
 
-        } else {
+        if (referralDate === '')
+            displayErrorMessage('referral_date_error', 'Please insert a referral date').trigger('madeVisible');
+
+        if (expiryDate === '')
+            displayErrorMessage('referral_expiry_date_error', 'Please insert a referral expiry date');
+
+        if ($('#referral_intervention_category_error').hasClass('hidden') &&
+            $('#referral_intervention_error').hasClass('hidden') &&
+            $('#external_organization_error').hasClass('hidden') &&
+            $('#implementing_partner_error').hasClass('hidden') &&
+            $('#referral_date_error').hasClass('hidden') &&
+            $('#referral_expiry_date_error').hasClass('hidden')) {
             $.ajax({
                 url: $(this).attr('action'),
                 type: $(this).attr('method'),
@@ -3661,6 +3678,7 @@ $(document).ready(function () {
         }
 
         $("#btn_submit_refer_client").removeAttr("disabled");
+        e.preventDefault();
         e.stopPropagation();
     });
 
