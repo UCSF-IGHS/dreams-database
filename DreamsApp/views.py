@@ -2566,6 +2566,32 @@ def download_raw_enrollment_export(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
+        start_date = request.POST.get('from_enrollment_date')
+        end_date = request.POST.get('to_enrollment_date')
+
+        # The code below validates the from date and the to date
+        # This code should be refactored into a method in form_validations.py
+
+        if start_date and end_date:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+            if start_date > end_date:
+                raise ValidationError('Start date cannot more than end date')
+            if start_date > datetime.today():
+                raise ValidationError('Start date cannot in the future')
+            if end_date > datetime.today():
+                raise ValidationError('End date cannot in the future')
+        elif start_date and not end_date:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = None
+            if start_date > datetime.today():
+                raise ValidationError('Start date cannot in the future')
+        elif not start_date and end_date:
+            start_date = None
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+            if end_date > datetime.today():
+                raise ValidationError('End date cannot in the future')
+
         export_file_name = urllib.parse.quote(("/tmp/raw_enrolment_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
@@ -2578,7 +2604,7 @@ def download_raw_enrollment_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.prepare_enrolment_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
+        export_doc.prepare_enrolment_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, start_date, end_date)
 
         return response
 

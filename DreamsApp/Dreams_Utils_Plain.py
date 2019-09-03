@@ -20,18 +20,32 @@ class DreamsRawExportTemplateRenderer(object):
             port=int(database['PORT']),
             cursorclass=cursors.DictCursor)
 
-    def get_export_rows(self, ip_list, county, sub_county, ward):
+    def get_export_rows(self, ip_list, county, sub_county, ward, from_date, to_date):
         cursor = self.get_connection().cursor()
 
         multiple_ip_county_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND county_of_residence_id = %s AND implementing_partner_id IN %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        multiple_ip_county_query = self.get_query_string_with_date_filters(multiple_ip_county_query, from_date, to_date)
+
         multiple_ip_sub_county_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND implementing_partner_id IN %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        multiple_ip_sub_county_query = self.get_query_string_with_date_filters(multiple_ip_sub_county_query, from_date, to_date)
+
         multiple_ip_ward_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND implementing_partner_id IN %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        multiple_ip_ward_query = self.get_query_string_with_date_filters(multiple_ip_ward_query, from_date, to_date)
+
         multiple_ip_default_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id IN %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        multiple_ip_default_query = self.get_query_string_with_date_filters(multiple_ip_default_query, from_date, to_date)
 
         single_ip_county_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND county_of_residence_id = %s AND implementing_partner_id = %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        single_ip_county_query = self.get_query_string_with_date_filters(single_ip_county_query, from_date, to_date)
+
         single_ip_sub_county_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND sub_county_code = %s AND implementing_partner_id = %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        single_ip_sub_county_query = self.get_query_string_with_date_filters(single_ip_sub_county_query, from_date, to_date)
+
         single_ip_ward_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND ward_id = %s AND implementing_partner_id = %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        single_ip_ward_query = self.get_query_string_with_date_filters(single_ip_ward_query, from_date, to_date)
+
         single_ip_default_query = "SELECT {} FROM flat_dreams_enrollment WHERE voided=0 AND implementing_partner_id = %s ".format(RAW_ENROLMENT_EXPORT_COLUMNS)
+        single_ip_default_query = self.get_query_string_with_date_filters(single_ip_default_query, from_date, to_date)
 
         try:
             county = int(county) if county else None
@@ -158,9 +172,9 @@ class DreamsRawExportTemplateRenderer(object):
         except Exception as e:
             raise e
 
-    def prepare_enrolment_export_doc(self, response, ip_list_str, county, sub_county, ward, show_PHI):
+    def prepare_enrolment_export_doc(self, response, ip_list_str, county, sub_county, ward, show_PHI, from_date, to_date):
         try:
-            cursor_data = self.get_export_rows(ip_list_str, county, sub_county, ward)
+            cursor_data = self.get_export_rows(ip_list_str, county, sub_county, ward, from_date, to_date)
             col_names = [x[0] for x in cursor_data.description]
 
             if not show_PHI:
@@ -259,3 +273,14 @@ class DreamsRawExportTemplateRenderer(object):
 
         except Exception as e:
             raise e
+
+
+    def get_query_string_with_date_filters(self, query_string, start_date, end_date):
+        if start_date and end_date:
+            query_string += 'AND date_of_enrollment BETWEEN "{}" AND "{}"'.format(start_date, end_date)
+        elif start_date and not end_date:
+            query_string += 'AND date_of_enrollment > "{}"'.format(start_date)
+        elif not start_date and end_date:
+            query_string += 'AND date_of_enrollment < "{}"'.format(end_date)
+        return query_string
+
