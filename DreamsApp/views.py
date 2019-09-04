@@ -2619,19 +2619,39 @@ def download_raw_intervention_export(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
+        from_date = request.POST.get('from_date')
+        to_date = request.POST.get('to_date')
+
+        from_date = datetime.strptime(from_date, '%Y-%m-%d').date() if from_date else None
+        to_date = datetime.strptime(to_date, '%Y-%m-%d').date() if to_date else None
+
+        params = request.POST
+        validation_errors = {}
+
+        from .form_validations import validate_from_date, validate_to_date
+        validate_to_date(params, validation_errors)
+        validate_from_date(params, validation_errors)
+
+        if len(validation_errors) > 0:
+            raise ValidationError(validation_errors)
+
         export_file_name = urllib.parse.quote(
-            ("/tmp/raw_intervention_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            "/tmp/raw_intervention_export-{}.csv".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+
         export_doc = DreamsRawExportTemplateRenderer()
 
         show_PHI = request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
-                   or Permission.objects.filter(group__user=request.user).filter(
+                  or Permission.objects.filter(group__user=request.user).filter(
             codename='DreamsApp.can_view_phi_data').exists()
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_intervention_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
+
+        export_doc.get_intervention_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, from_date, to_date)
 
         return response
+    except ValidationError as e:
+        print(e)
     except Exception as e:
         traceback.format_exc()
         return
