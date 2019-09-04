@@ -2135,8 +2135,8 @@ $(document).ready(function () {
     createDatePicker("#from_intervention_date", '0y 0m 0d', (new Date(2015, 9, 1)));
     createDatePicker("#doe_end_filter", '0y 0m 0d', (new Date(2015, 9, 1)));
     createDatePicker("#filter_date", '-24y', '-10y');
-    createDatePicker("#from_enrollment_date", '0y 0m 0d', (new Date(2015, 9, 1)));
-    createDatePicker("#to_enrollment_date", '0y 0m 0d', (new Date(2015, 9, 1)));
+    createDatePicker("#from_date", '0y 0m 0d', (new Date(2015, 9, 1)));
+    createDatePicker("#to_date", '0y 0m 0d', (new Date(2015, 9, 1)));
 
     $('#grievance-modal').on('show.bs.modal', function (event) {
         var viewMode = $('#grievance-modal').data('view_mode');

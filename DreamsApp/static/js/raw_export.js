@@ -8,8 +8,26 @@ $(document).ready(function () {
                 .trigger('madeVisible')
             return;
         }
+        var from_date = $('#from_date').val()
+        var to_date = $('#to_date').val()
+        if (from_date > new Date()) {
+            $('#ip_selection_alert').removeClass('hidden').addClass('alert-danger')
+                .text("From date cannot be in the future")
+                .trigger('madeVisible')
+            return;
+        }
+        if (to_date > new Date()) {
+            $('#ip_selection_alert').removeClass('hidden').addClass('alert-danger')
+                .text("To date cannot be in the future")
+                .trigger('madeVisible')
+            return;
+        }
+        if(from_date > to_date) {
+            $('#ip_selection_alert').removeClass('hidden').addClass('alert-danger')
+                .text("From date cannot be after the to date")
+                .trigger('madeVisible')
+            return;
+        }
         frm.submit();
     });
-}); 
-
-
+});

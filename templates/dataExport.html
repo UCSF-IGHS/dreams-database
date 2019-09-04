@@ -33,9 +33,9 @@
                 {% csrf_token %}
                 <div class="form-inline">
                         <div class="form-group has-feedback">
-                            <label for="from_enrollment_date" class="control-label">From enrollment date:</label>
-                            <input type="text" class="form-control clear_value" id="from_enrollment_date"
-                                   name="from_enrollment_date" style="cursor: pointer;"><span class="add-on"><i
+                            <label for="from_date" class="control-label">From enrollment date:</label>
+                            <input type="text" class="form-control clear_value" id="from_date"
+                                   name="from_date" style="cursor: pointer;"><span class="add-on"><i
                                 class="icon-th"></i></span></p>
                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                             <span id="spn_date_of_birth" class="clear_span"></span>
@@ -43,14 +43,14 @@
     
     
                         <div class="form-group has-feedback">
-                            <label for="to_enrollment_date" class="control-label">To Enrollment date:</label>
-                            <input type="text" class="form-control clear_value" id="to_enrollment_date"
-                                   name="to_enrollment_date" style="cursor: pointer;"><span class="add-on"><i
+                            <label for="to_date" class="control-label">To Enrollment date:</label>
+                            <input type="text" class="form-control clear_value" id="to_date"
+                                   name="to_date" style="cursor: pointer;"><span class="add-on"><i
                                 class="icon-th"></i></span></p>
                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
                             <span id="spn_date_of_birth" class="clear_span"></span>
                         </div>
-                    </div>xp<br/><br/>
+                    </div><br/><br/>
                 <div class="form-group">
                     <label>Select Implementing Partner</label>
                     <select id="i_p" name="ips" {% if ips.count >  1 %}multiple {% endif %} class="form-control" size="{{ ips.count }}">

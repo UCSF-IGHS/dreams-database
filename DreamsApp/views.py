@@ -2566,8 +2566,8 @@ def download_raw_enrollment_export(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        start_date = request.POST.get('from_enrollment_date')
-        end_date = request.POST.get('to_enrollment_date')
+        start_date = request.POST.get('from_date')
+        end_date = request.POST.get('to_date')
 
         # The code below validates the from date and the to date
         # This code should be refactored into a method in form_validations.py
