@@ -2566,31 +2566,18 @@ def download_raw_enrollment_export(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
-        start_date = request.POST.get('from_date')
+        from_date = request.POST.get('from_date')
         end_date = request.POST.get('to_date')
 
-        # The code below validates the from date and the to date
-        # This code should be refactored into a method in form_validations.py
+        params = request.POST
+        validation_errors = {}
 
-        if start_date and end_date:
-            start_date = datetime.strptime(start_date, '%Y-%m-%d')
-            end_date = datetime.strptime(end_date, '%Y-%m-%d')
-            if start_date > end_date:
-                raise ValidationError('Start date cannot more than end date')
-            if start_date > datetime.today():
-                raise ValidationError('Start date cannot in the future')
-            if end_date > datetime.today():
-                raise ValidationError('End date cannot in the future')
-        elif start_date and not end_date:
-            start_date = datetime.strptime(start_date, '%Y-%m-%d')
-            end_date = None
-            if start_date > datetime.today():
-                raise ValidationError('Start date cannot in the future')
-        elif not start_date and end_date:
-            start_date = None
-            end_date = datetime.strptime(end_date, '%Y-%m-%d')
-            if end_date > datetime.today():
-                raise ValidationError('End date cannot in the future')
+        from .form_validations import validate_from_date, validate_to_date
+        validate_to_date(params, validation_errors)
+        validate_from_date(params, validation_errors)
+
+        if len(validation_errors) > 0:
+            raise ValidationError(validation_errors)
 
         export_file_name = urllib.parse.quote(("/tmp/raw_enrolment_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
@@ -2604,7 +2591,7 @@ def download_raw_enrollment_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.prepare_enrolment_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, start_date, end_date)
+        export_doc.prepare_enrolment_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, from_date, end_date)
 
         return response
 
@@ -2692,6 +2679,19 @@ def download_services_received_export(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
+        from_date = request.POST.get('from_date')
+        to_date = request.POST.get('to_date')
+
+        from_date = datetime.strptime(from_date, '%Y-%m-%d').date() if from_date else None
+        to_date = datetime.strptime(to_date, '%Y-%m-%d').date() if to_date else None
+
+        params = request.POST
+        validation_errors = {}
+
+        from .form_validations import validate_from_date, validate_to_date
+        validate_to_date(params, validation_errors)
+        validate_from_date(params, validation_errors)
+
         export_file_name = urllib.parse.quote(
             ("/tmp/services_received_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
@@ -2705,7 +2705,7 @@ def download_services_received_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_individual_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
+        export_doc.get_individual_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, from_date, to_date)
         return response
 
     except Exception as e:

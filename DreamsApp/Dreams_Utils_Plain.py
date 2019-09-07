@@ -140,18 +140,32 @@ class DreamsRawExportTemplateRenderer(object):
         except Exception as e:
             raise e
 
-    def extract_service_layering_for_all_girls(self, ip_list, county, sub_county, ward):
+    def extract_service_layering_for_all_girls(self, ip_list, county, sub_county, ward, from_date, to_date):
 
         cursor = self.get_connection().cursor()
-        multiple_ip_county_query = "SELECT {} FROM stag_individual_client_service_layering WHERE county_of_residence_id = %s AND  implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
-        multiple_ip_sub_county_query = "SELECT {} FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND  implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
-        multiple_ip_ward_query = "SELECT {} FROM stag_individual_client_service_layering WHERE ward_id = %s AND  implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
-        multiple_ip_default_query = "SELECT {} FROM stag_individual_client_service_layering WHERE implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        multiple_ip_county_query = "SELECT {} FROM stag_individual_client_service_layering_intervention_date WHERE county_of_residence_id = %s AND  implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        multiple_ip_county_query = self.get_query_string_with_intervention_date_filters(multiple_ip_county_query, from_date, to_date)
 
-        single_ip_county_query = "SELECT {} FROM stag_individual_client_service_layering WHERE county_of_residence_id = %s AND implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
-        single_ip_sub_county_query = "SELECT {} FROM stag_individual_client_service_layering WHERE sub_county_id = %s AND implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
-        single_ip_ward_query = "SELECT {} FROM stag_individual_client_service_layering WHERE ward_id = %s AND implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
-        single_ip_default_query = "SELECT {} FROM stag_individual_client_service_layering WHERE implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        multiple_ip_sub_county_query = "SELECT {} FROM stag_individual_client_service_layering_intervention_date WHERE sub_county_id = %s AND  implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        multiple_ip_sub_county_query = self.get_query_string_with_intervention_date_filters(multiple_ip_sub_county_query, from_date, to_date)
+
+        multiple_ip_ward_query = "SELECT {} FROM stag_individual_client_service_layering_intervention_date WHERE ward_id = %s AND  implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        multiple_ip_ward_query = self.get_query_string_with_intervention_date_filters(multiple_ip_ward_query, from_date, to_date)
+
+        multiple_ip_default_query = "SELECT {} FROM stag_individual_client_service_layering_intervention_date WHERE implementing_partner_id IN %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        multiple_ip_default_query = self.get_query_string_with_intervention_date_filters(multiple_ip_default_query, from_date, to_date)
+
+        single_ip_county_query = "SELECT {} FROM stag_individual_client_service_layering_intervention_date WHERE county_of_residence_id = %s AND implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        single_ip_county_query = self.get_query_string_with_intervention_date_filters(single_ip_county_query, from_date, to_date)
+
+        single_ip_sub_county_query = "SELECT {} FROM stag_individual_client_service_layering_intervention_date WHERE sub_county_id = %s AND implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        single_ip_sub_county_query = self.get_query_string_with_intervention_date_filters(single_ip_sub_county_query, from_date, to_date)
+
+        single_ip_ward_query = "SELECT {} FROM stag_individual_client_service_layering_intervention_date WHERE ward_id = %s AND implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        single_ip_ward_query = self.get_query_string_with_intervention_date_filters(single_ip_ward_query, from_date, to_date)
+
+        single_ip_default_query = "SELECT {} FROM stag_individual_client_service_layering_intervention_date WHERE implementing_partner_id = %s ".format(INDIVIDUAL_CLIENT_SERVICE_LAYERING_COLUMNS)
+        single_ip_default_query = self.get_query_string_with_intervention_date_filters(single_ip_default_query, from_date, to_date)
 
         try:
             county = int(county) if county else None
@@ -226,10 +240,10 @@ class DreamsRawExportTemplateRenderer(object):
             raise e
         return
 
-    def get_individual_export_doc(self, response, ip_list_str, county, sub_county, ward, show_PHI):
+    def get_individual_export_doc(self, response, ip_list_str, county, sub_county, ward, show_PHI, from_date, to_date):
 
         try:
-            cursor_data = self.extract_service_layering_for_all_girls(ip_list_str, county, sub_county, ward)
+            cursor_data = self.extract_service_layering_for_all_girls(ip_list_str, county, sub_county, ward, from_date, to_date)
             col_names = [x[0] for x in cursor_data.description]
 
             if not show_PHI:
