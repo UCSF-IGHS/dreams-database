@@ -2578,6 +2578,8 @@ def download_raw_enrollment_export(request):
 
         if len(validation_errors) > 0:
             raise ValidationError(validation_errors)
+            return render(request, 'idataExport.html', {form: params, errors: validation_errors})
+
 
         export_file_name = urllib.parse.quote(("/tmp/raw_enrolment_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
@@ -2621,6 +2623,7 @@ def download_raw_intervention_export(request):
 
         if len(validation_errors) > 0:
             raise ValidationError(validation_errors)
+            return render(request, 'interventionDataExport.html', {form: params, errors: validation_errors})
 
         export_file_name = urllib.parse.quote(
             "/tmp/raw_intervention_export-{}.csv".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
@@ -2691,6 +2694,10 @@ def download_services_received_export(request):
         from .form_validations import validate_from_date, validate_to_date
         validate_to_date(params, validation_errors)
         validate_from_date(params, validation_errors)
+
+        if len(validation_errors) > 0:
+            raise ValidationError(validation_errors)
+            return render(request, 'individualServiceLayeringDataExport.html', {form: params, errors: validation_errors})
 
         export_file_name = urllib.parse.quote(
             ("/tmp/services_received_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
