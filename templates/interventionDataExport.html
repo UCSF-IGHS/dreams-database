@@ -30,9 +30,32 @@
              style="margin-bottom: 10px;"></div>
 
         <div class="fit-item report-export-form-div">
+            {% block filter_form %}
+
+            {% endblock %}
             <form id="frm_download-report" method="post" class="" action="/download-intervention-export/"
                   target="_blank">
                 {% csrf_token %}
+                <div class="form-inline">
+                        <div class="form-group has-feedback">
+                            <label for="from_date" class="control-label">From intervention date:</label>
+                            <input type="text" class="form-control clear_value" id="from_date"
+                                   name="from_date" style="cursor: pointer;"><span class="add-on"><i
+                                class="icon-th"></i></span></p>
+                            <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                            <span id="spn_date_of_birth" class="clear_span"></span>
+                        </div>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    
+    
+                        <div class="form-group has-feedback">
+                            <label for="to_date" class="control-label">To intervention date:</label>
+                            <input type="text" class="form-control clear_value" id="to_date"
+                                   name="to_date" style="cursor: pointer;"><span class="add-on"><i
+                                class="icon-th"></i></span></p>
+                            <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                            <span id="spn_date_of_birth" class="clear_span"></span>
+                        </div>
+                    </div><br/><br/>
                 <div class="form-group">
                     <label>Select Implementing Partner</label>
                     <select id="i_p" name="ips" {% if ips.count >  1 %}multiple {% endif %} class="form-control"
