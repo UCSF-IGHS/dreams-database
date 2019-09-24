@@ -401,7 +401,8 @@ def client_profile(request):
                                                                'is_editable_by_ip': is_editable_by_ip,
                                                                'can_add_intervention': can_add_intervention,
                                                                'client_status': client_status,
-                                                               '60_days_from_now': dt.now() + + timedelta(days=60)
+                                                               '60_days_from_now': dt.now() + + timedelta(days=60),
+                                                               'intervention_categories': InterventionCategory.objects.all()
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
@@ -416,7 +417,8 @@ def client_profile(request):
                                'is_editable_by_ip': is_editable_by_ip,
                                'can_add_intervention': can_add_intervention,
                                'client_status': client_status,
-                               '60_days_from_now': dt.now() + + timedelta(days=60)
+                               '60_days_from_now': dt.now() + + timedelta(days=60),
+                               'intervention_categories': InterventionCategory.objects.all()
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -1224,7 +1226,7 @@ def initiate_referral(request):
             OTHER_EXTERNAL_ORGANISATION_ID = ExternalOrganisation.objects.get(name='Other').pk
             client = Client.objects.filter(id__exact=int(request.POST.get('referral-client-id'))).first()
             source_implementing_partner = ImplementingPartner.objects.filter(id__exact=client.implementing_partner.id).first()
-            intervention_type = InterventionType.objects.filter(id__exact=int(request.POST.get('referral-interventions-select'))).first()
+            intervention_type = InterventionType.objects.filter(code__exact=int(request.POST.get('referral-interventions-select'))).first()
             referral_date = request.POST.get('referral-date')
             expiry_date = request.POST.get('expiry-date')
             comment = request.POST.get('comment')
@@ -1910,7 +1912,7 @@ def user_help(request):
             raise PermissionDenied
     except Exception as e:
         tb = traceback.format_exc(e)
-        return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
+        return HttpResponseServerError(tb)
 
 
 def user_help_download(request):
@@ -1919,20 +1921,17 @@ def user_help_download(request):
             manual_filename = request.POST.get('manual') if request.method == 'POST' else request.GET.get('manual')
             manual_friendly_name = request.POST.get(
                 'manual_friendly_name') if request.method == 'POST' else request.GET.get('manual_friendly_name')
-            fs = FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'templates', 'manuals'))
-            com_path = fs.location
+            fs = FileSystemStorage(location=os.path.join(settings.BASE_DIR, '../templates', 'manuals'))
             filename = manual_filename + '.pdf'
             if fs.exists(filename):
-                with fs.open(filename) as pdf:
+                with fs.open(filename, 'rb') as pdf:
                     response = HttpResponse(pdf, content_type='application/pdf')
                     response['Content-Disposition'] = 'attachment; filename="' + manual_friendly_name + '"'
                     return response
             else:
-                traceback.format_exc()
-            return
+                raise "The manual for " + manual_friendly_name + " is not found"
         except Exception as e:
-            traceback.format_exc()
-            return
+            raise e
     else:
         raise PermissionDenied
 
@@ -2249,11 +2248,11 @@ def change_cred(request):
 def bad_request(request):
     context = {'user': request.user, 'error_code': 400, 'error_title': 'Bad Request (Error 400)',
                'error_message':
-                   'Your browser sent a request that this server could not understand<br>. '}
+                   'Your browser sent a request that this server could not understand. '}
     return render(request, 'error_page.html', context)
 
 
-def permission_denied(request):  # PermissionDenied('Operation not allowed. [Missing Permission]')
+def permission_denied(request):
     context = {'user': request.user, 'error_code': 403, 'error_title': 'Permission Denied (Error 403)',
                'error_message':
                    'You do not have permission to view this page [Missing Permission]. '
@@ -2271,7 +2270,7 @@ def server_error(request):
     context = {'user': request.user, 'error_code': 500, 'error_title': 'Server Error (Error 500)',
                'error_message':
                    'A server error occurred while processing your request. Please try again or contact your '
-                   'administrator if the error persists.<br>. '}
+                   'administrator if the error persists. '}
     return render(request, 'error_page.html', context)
 
 
@@ -2567,6 +2566,21 @@ def download_raw_enrollment_export(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
+        from_date = request.POST.get('from_date')
+        end_date = request.POST.get('to_date')
+
+        params = request.POST
+        validation_errors = {}
+
+        from .form_validations import validate_from_date, validate_to_date
+        validate_to_date(params, validation_errors)
+        validate_from_date(params, validation_errors)
+
+        if len(validation_errors) > 0:
+            raise ValidationError(validation_errors)
+            return render(request, 'idataExport.html', {form: params, errors: validation_errors})
+
+
         export_file_name = urllib.parse.quote(("/tmp/raw_enrolment_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
@@ -2579,7 +2593,7 @@ def download_raw_enrollment_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.prepare_enrolment_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
+        export_doc.prepare_enrolment_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, from_date, end_date)
 
         return response
 
@@ -2594,19 +2608,40 @@ def download_raw_intervention_export(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
+        from_date = request.POST.get('from_date')
+        to_date = request.POST.get('to_date')
+
+        from_date = datetime.strptime(from_date, '%Y-%m-%d').date() if from_date else None
+        to_date = datetime.strptime(to_date, '%Y-%m-%d').date() if to_date else None
+
+        params = request.POST
+        validation_errors = {}
+
+        from .form_validations import validate_from_date, validate_to_date
+        validate_to_date(params, validation_errors)
+        validate_from_date(params, validation_errors)
+
+        if len(validation_errors) > 0:
+            raise ValidationError(validation_errors)
+            return render(request, 'interventionDataExport.html', {form: params, errors: validation_errors})
+
         export_file_name = urllib.parse.quote(
-            ("/tmp/raw_intervention_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            "/tmp/raw_intervention_export-{}.csv".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+
         export_doc = DreamsRawExportTemplateRenderer()
 
         show_PHI = request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
-                   or Permission.objects.filter(group__user=request.user).filter(
+                  or Permission.objects.filter(group__user=request.user).filter(
             codename='DreamsApp.can_view_phi_data').exists()
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_intervention_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
+
+        export_doc.get_intervention_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, from_date, to_date)
 
         return response
+    except ValidationError as e:
+        print(e)
     except Exception as e:
         traceback.format_exc()
         return
@@ -2647,6 +2682,23 @@ def download_services_received_export(request):
         sub_county = request.POST.get('sub_county')
         ward = request.POST.get('ward')
         county = request.POST.get('county_of_residence')
+        from_date = request.POST.get('from_date')
+        to_date = request.POST.get('to_date')
+
+        from_date = datetime.strptime(from_date, '%Y-%m-%d').date() if from_date else None
+        to_date = datetime.strptime(to_date, '%Y-%m-%d').date() if to_date else None
+
+        params = request.POST
+        validation_errors = {}
+
+        from .form_validations import validate_from_date, validate_to_date
+        validate_to_date(params, validation_errors)
+        validate_from_date(params, validation_errors)
+
+        if len(validation_errors) > 0:
+            raise ValidationError(validation_errors)
+            return render(request, 'individualServiceLayeringDataExport.html', {form: params, errors: validation_errors})
+
         export_file_name = urllib.parse.quote(
             ("/tmp/services_received_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
@@ -2660,19 +2712,12 @@ def download_services_received_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_individual_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI)
+        export_doc.get_individual_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, from_date, to_date)
         return response
 
     except Exception as e:
         traceback.format_exc()
         return
-
-
-def error_404(request):
-    context = {'user': request.user, 'error_code': 404, 'page_title': 'DREAMS Application Error',
-               'error_title': 'Page Not Found (Error 404)',
-               'error_message': 'The page you are looking for does not exist. Go back to previous page or Home page'}
-    return render(request, 'error_page.html', context)
 
 
 def viewBaselineData(request):
@@ -3149,22 +3194,32 @@ def client_transfers(request, *args, **kwargs):
 def client_referrals(request, *args, **kwargs):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         referred_in = bool(int(kwargs.pop('referred_in', 1)))
-
         referral_perm = ReferralServiceLayer(request.user)
         can_accept_or_reject = referral_perm.can_accept_or_reject_referral()
 
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if referred_in:
-                c_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
+                client_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
+                Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False)))).order_by(
+                    'referral_status', '-referral_date')
             else:
-                c_referrals = Referral.objects.filter(referring_ip=ip).order_by('referral_status', '-referral_date')
+                client_referrals = Referral.objects.filter(Q(referring_ip=ip)).exclude((Q(referring_ip=ip) and (
+                    Q(external_organisation__isnull=False) | Q(
+                        external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
+
+            for client_referral in client_referrals:
+                intervention = Intervention.objects.filter(referral_id=client_referral.pk)
+                if intervention:
+                    client_referral.receiving_ip_comment = intervention.first().comment
+                else:
+                    client_referral.receiving_ip_comment = ""
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             return render(request, 'login.html')
 
         page = request.GET.get('page', 1)
-        paginator = Paginator(c_referrals, 20)
+        paginator = Paginator(client_referrals, 20)
 
         try:
             referrals = paginator.page(page)
@@ -3173,9 +3228,15 @@ def client_referrals(request, *args, **kwargs):
         except EmptyPage:
             referrals = paginator.page(paginator.num_pages)
 
-        return render(request, "client_referrals.html",
-                      {'client_referrals': referrals, 'can_accept_or_reject': can_accept_or_reject,
-                       'referred_in': referred_in, 'page': 'referrals'})
+        return render(request,
+                      "client_referrals.html",
+                      {
+                          'client_referrals': referrals,
+                          'can_accept_or_reject': can_accept_or_reject,
+                          'referred_in': referred_in,
+                          'page': 'referrals',
+                          'now': datetime.now().date()
+                      })
     else:
         return redirect('login')
 
@@ -3327,34 +3388,78 @@ def reject_client_referral(request):
     return redirect(reverse("client_referrals", kwargs={'referred_in': 1}))
 
 
-def get_client_transfers_count(request):
-    client_transfers_count = 0
+def get_pending_client_transfers_total_count(request):
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        client_transfers_total_count = 0
 
+        initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            client_transfers_total_count = ClientTransfer.objects.filter(
+                Q(destination_implementing_partner=ip) | Q(source_implementing_partner=ip),
+                transfer_status=initiated_client_transfer_status).count()
+
+        except Exception:
+            client_transfers_total_count = 0
+    return HttpResponse(client_transfers_total_count)
+
+
+def get_pending_client_transfers_in_out_count(request):
+    client_transfers_count_array = [0, 0]
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
-            client_transfers_count = ClientTransfer.objects.filter(
+            client_transfers_in_count = ClientTransfer.objects.filter(
                 destination_implementing_partner=ip,
                 transfer_status=initiated_client_transfer_status).count()
-        except Exception:
-            client_transfers_count = 0
+            client_transfers_out_count = ClientTransfer.objects.filter(
+                source_implementing_partner=ip,
+                transfer_status=initiated_client_transfer_status).count()
 
-    return HttpResponse(client_transfers_count)
+            client_transfers_count_array = [client_transfers_in_count, client_transfers_out_count]
+        except:
+            client_transfers_count_array = [0, 0]
+    return HttpResponse(json.dumps(client_transfers_count_array))
 
 
-def get_client_referrals_count(request):
-    client_referrals_count = 0
+def get_pending_client_referrals_total_count(request):
+    client_referrals_total_count = 0
+    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
+        try:
+            ip = request.user.implementingpartneruser.implementing_partner
+            client_referrals_total_count = Referral.objects.filter(
+                referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip)))).filter(
+                client__exited=False).filter(referral_expiration_date__gte=datetime.now().date()).count()
+        except:
+            client_referrals_total_count = 0
+    return HttpResponse(client_referrals_total_count)
+
+
+def get_pending_client_referrals_in_out_count(request):
+    client_referrals_count_array = [0, 0]
 
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
-            client_referrals_count = Referral.objects.filter(referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
-                        Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False))))).filter(client__exited=False).count()
+            client_referrals_in_count = Referral.objects.filter(
+                referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
+                    Q(external_organisation__isnull=False) | Q(
+                        external_organisation_other__isnull=False))))).filter(client__exited=False).filter(
+                referral_expiration_date__gte=datetime.now().date()).count()
+            client_referrals_out_count = Referral.objects.filter(
+                referral_status=pending_client_referral_status and (Q(referring_ip=ip))).exclude(
+                Q(referring_ip=ip) and (
+                    Q(external_organisation__isnull=False) | Q(
+                        external_organisation_other__isnull=False))).filter(client__exited=False).filter(
+                referral_expiration_date__gte=datetime.now().date()).count()
+
+            client_referrals_count_array = [client_referrals_in_count, client_referrals_out_count]
         except Exception:
-            client_referrals_count = 0
-    return HttpResponse(client_referrals_count)
+            client_referrals_count_array = [0, 0]
+    return HttpResponse(json.dumps(client_referrals_count_array))
 
 
 def intervention_export_transferred_in_page(request):

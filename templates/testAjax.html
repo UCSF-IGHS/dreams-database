@@ -16,7 +16,6 @@
 
             $('#btn_download_excel').click(function(){
                 download_excel();
-                // alert('Here');
             });
 
         });
@@ -50,7 +49,6 @@ function fetchListOfInterventionsFromCategory() {
                 client_id: client_id
             },
             success : function(data) {
-                alert(data.interventions);
                 console.log(data);
 
             },
@@ -78,7 +76,6 @@ function fetchListOfInterventionsFromCategory() {
                 intervention_id : iv_id
             },
             success : function(data) {
-                alert(data);
                 console.log(data);
 
             },

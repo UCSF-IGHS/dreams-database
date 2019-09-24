@@ -5,7 +5,10 @@
         <div class="modal fade " id="client-make-referral-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
          xmlns="http://www.w3.org/1999/html">
         <form id="client-make-referral-form" class="form-horizontal" method="POST" action="/initiateReferral">
-        <input id="referral-client-id" type="hidden" name="referral-client-id" value="{{ client.id }}">
+            <input id="referral-client-id" type="hidden" name="referral-client-id" value="{{ client.id }}">
+            <input id="current_client_age" class="hidden" type="text" name="client_age"
+               value="{{ client.get_current_age }}">
+
         {% csrf_token %}
           <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -15,9 +18,23 @@
                 </div>
                 <div class="modal-body">
                         <div style="margin: auto 15px;">
+                            <div class="form-group">
+                                 <label id="referral_intervention_label" for="referral_intervention" class="control-label">Category:</label>
+                                 <select class="form-control" id="referral-category-interventions-select" name="referral-category-interventions-select">
+                                    <option value class="selected disabled hidden">Select Intervention Category</option>
+                                     {% for intervention_category in intervention_categories %}
+                                        <option value="{{ intervention_category.id }}">{{ intervention_category.name }}</option>
+                                     {% endfor %}
+                                 </select>
+                                 <span id="referral_intervention_category_error" class="label error-space" style="color: red; font-size: 12px"></span>
+                             </div>
                              <div class="form-group">
                                  <label id="referral_intervention_label" for="referral_intervention" class="control-label">Intervention:</label>
                                  <select class="form-control" id="referral-interventions-select" name="referral-interventions-select"></select>
+                                  <div id="div_referral_out_of_age_bracket_warning" class="custom-has-error hide">
+                                      <label class="control-label">Warning!, the client's age is outside the selected
+                                          intervention type's age bracket </label>
+                                  </div>
                                  <span id="referral_intervention_error" class="label error-space" style="color: red; font-size: 12px"></span>
                              </div>
                             <div class="form-group has-feedback">

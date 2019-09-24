@@ -38,12 +38,19 @@
                style="margin: 0px;border-radius: 5px;border: #efc636 solid 1px;">
             <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
             <th>Dreams ID</th>
-            <th>Referring IP</th>
+            <th>
+                {% if referred_in %}
+                    Referring IP
+                {% else %}
+                     Referred TO IP
+                {% endif %}
+            </th>
             <th>External Organisation</th>
-            <th>External Organisation Other</th>
             <th>Intervention</th>
             <th>Referral Date</th>
-            <th>Referral Expiration Date</th>
+            <th>Expiration Date</th>
+            <th>Referring Comment</th>
+            <th>Completing Comment</th>
 
             {% if can_accept_or_reject and referred_in %}
                 <th>Action</th>
@@ -56,87 +63,85 @@
                 {% for client_referral in client_referrals %}
                     <tr>
                         <td>{{ client_referral.client.dreams_id }}</td>
-                        <td>{{ client_referral.referring_ip.name }}</td>
-                        <td>{{ client_referral.external_organisation.name }}</td>
-                        <td>{{ client_referral.external_organisation_other }}</td>
+                        <td>
+                            {% if referred_in %}
+                                {{ client_referral.referring_ip.name }}
+                            {% else %}
+                                {% if client_referral.receiving_ip %}
+                                    {{ client_referral.receiving_ip.name }}
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if client_referral.external_organisation %}
+                                {{ client_referral.external_organisation.name }}
+                            {% else %}
+                                {% if client_referral.external_organisation_other %}
+                                    {{ client_referral.external_organisation_other }} (Other)
+                                {% endif %}
+                            {% endif %}
+                        </td>
                         <td>{{ client_referral.intervention_type.name }}</td>
                         <td>{{ client_referral.referral_date }}</td>
                         <td>{{ client_referral.referral_expiration_date }}</td>
-
+                        <td>
+                            {% if client_referral.comments %}
+                                {{ client_referral.comments }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if client_referral.receiving_ip_comment %}
+                                {{ client_referral.receiving_ip_comment }}
+                            {% endif %}
+                        </td>
                         {% if can_accept_or_reject and referred_in and client_referral.referral_status.id == 1 %}
                             <td>
-                                 {% if client_referral.client.exited %}
-                                    <a id="accept-{{ client_referral.id }}" name="complete-referral-modal"
-                                       class='glyphicon glyphicon-ok badge btn btn-success exit_unexit_toggle'
-                                       arial-label='Arial-Hidden'
-                                       style="padding-bottom: 8px; display: none" data-toggle="modal"
-                                       data-target="#referral-intervention-modal"
-                                       data-referral-id="{{ client_referral.id }}"
-                                       data-client-name="{{ client_referral.client.get_full_name }}"
-                                       data-client-id="{{ client_referral.client.id }}"
-                                       data-client-dreams-id="{{ client_referral.client.dreams_id }}"
-                                       data-referral-intervention-type-id="{{ client_referral.intervention_type.id }}"
-                                       data-referral-intervention-type-code="{{ client_referral.intervention_type.code }}"
-                                       data-referral-intervention-type-name="{{ client_referral.intervention_type.name }}"
-                                       data-referral-external-organisation-id="{{ client_referral.external_organisation.id }}"
-                                       data-referral-external-organisation-other="{{ client_referral.external_organisation_other }}"
-                                       data-referral-intervention-type-is_specified="{{ client_referral.intervention_type.is_specified }}"
-                                       data-referral-intervention-type-has_hts_result="{{ client_referral.intervention_type.has_hts_result }}"
-                                       data-referral-intervention-type-has_ccc_number="{{ client_referral.intervention_type.has_ccc_number }}"
-                                       data-referral-intervention-type-has_pregnancy_result="{{ client_referral.intervention_type.has_pregnancy_result }}"
-                                       data-referral-intervention-type-has_no_of_sessions="{{ client_referral.intervention_type.has_no_of_sessions }}">
-                                        Complete
-                                    </a> &nbsp;&nbsp;
-                                    <a id="reject-{{ client_referral.id }}" name="reject-referral-modal"
-                                       class='glyphicon glyphicon-remove badge btn btn-danger exit_unexit_toggle'
-                                       arial-label='Arial-Hidden' style="padding-bottom: 8px; display: none" data-toggle="modal"
-                                       data-target="#reject-referral-modal"
-                                       data-id="{{ client_referral.id }}"
-                                       data-client-name="{{ client_referral.client.get_full_name }}"
-                                       data-client-dreams-id="{{ client_referral.client.dreams_id }}"
-                                       data-client-date-of-birth="{{ client_referral.client.date_of_birth }}"
-                                       data-client-intervention-id="{{ client_referral.intervention_type.id }}"
-                                       data-client-intervention-name="{{ client_referral.intervention_type.name }}"
-                                       data-client-referral-date="{{ client_referral.referral_date }}"
-                                       data-client-referral-expiration-date="{{ client_referral.referral_expiration_date }}">
-                                        Reject
-                                    </a>
-                                 {% else %}
-                                     <a id="accept-{{ client_referral.id }}" name="complete-referral-modal"
-                                       class='glyphicon glyphicon-ok badge btn btn-success exit_unexit_toggle'
-                                       arial-label='Arial-Hidden'
-                                       style="padding-bottom: 8px;" data-toggle="modal"
-                                       data-target="#referral-intervention-modal"
-                                       data-referral-id="{{ client_referral.id }}"
-                                       data-client-name="{{ client_referral.client.get_full_name }}"
-                                       data-client-id="{{ client_referral.client.id }}"
-                                       data-client-dreams-id="{{ client_referral.client.dreams_id }}"
-                                       data-referral-intervention-type-id="{{ client_referral.intervention_type.id }}"
-                                       data-referral-intervention-type-code="{{ client_referral.intervention_type.code }}"
-                                       data-referral-intervention-type-name="{{ client_referral.intervention_type.name }}"
-                                       data-referral-external-organisation-id="{{ client_referral.external_organisation.id }}"
-                                       data-referral-external-organisation-other="{{ client_referral.external_organisation_other }}"
-                                       data-referral-intervention-type-is_specified="{{ client_referral.intervention_type.is_specified }}"
-                                       data-referral-intervention-type-has_hts_result="{{ client_referral.intervention_type.has_hts_result }}"
-                                       data-referral-intervention-type-has_ccc_number="{{ client_referral.intervention_type.has_ccc_number }}"
-                                       data-referral-intervention-type-has_pregnancy_result="{{ client_referral.intervention_type.has_pregnancy_result }}"
-                                       data-referral-intervention-type-has_no_of_sessions="{{ client_referral.intervention_type.has_no_of_sessions }}">
-                                        Complete
-                                    </a> &nbsp;&nbsp;
-                                    <a id="reject-{{ client_referral.id }}" name="reject-referral-modal"
-                                       class='glyphicon glyphicon-remove badge btn btn-danger exit_unexit_toggle'
-                                       arial-label='Arial-Hidden' style="padding-bottom: 8px;" data-toggle="modal"
-                                       data-target="#reject-referral-modal"
-                                       data-id="{{ client_referral.id }}"
-                                       data-client-name="{{ client_referral.client.get_full_name }}"
-                                       data-client-dreams-id="{{ client_referral.client.dreams_id }}"
-                                       data-client-date-of-birth="{{ client_referral.client.date_of_birth }}"
-                                       data-client-intervention-id="{{ client_referral.intervention_type.id }}"
-                                       data-client-intervention-name="{{ client_referral.intervention_type.name }}"
-                                       data-client-referral-date="{{ client_referral.referral_date }}"
-                                       data-client-referral-expiration-date="{{ client_referral.referral_expiration_date }}">
-                                        Reject
-                                    </a>
+                                {% if not client_referral.client.exited %}
+                                    {% if client_referral.referral_expiration_date < now %}
+                                        Expired
+                                    {% else %}
+                                        <a id="accept-{{ client_referral.id }}" name="complete-referral-modal"
+                                           class='glyphicon glyphicon-ok badge btn btn-success exit_unexit_toggle'
+                                           arial-label='Arial-Hidden'
+                                           style="padding-bottom: 8px;" data-toggle="modal"
+                                           data-target="#referral-intervention-modal"
+                                           data-referral-id="{{ client_referral.id }}"
+                                           data-client-name="{{ client_referral.client.get_full_name }}"
+                                           data-client-id="{{ client_referral.client.id }}"
+                                           data-client-dreams-id="{{ client_referral.client.dreams_id }}"
+                                           data-client-date-of-birth="{{ client_referral.client.date_of_birth }}"
+                                           data-client-age-at-enrollment="{{ client_referral.client.get_age_at_enrollment }}"
+                                           data-client-current-age="{{ client_referral.client.get_current_age }}"
+                                           data-client-referral-date="{{ client_referral.referral_date | date:"m/d/Y" }}"
+                                           data-referral-intervention-type-id="{{ client_referral.intervention_type.id }}"
+                                           data-referral-intervention-type-code="{{ client_referral.intervention_type.code }}"
+                                           data-referral-intervention-type-name="{{ client_referral.intervention_type.name }}"
+                                           data-referral-external-organisation-id="{{ client_referral.external_organisation.id }}"
+                                           data-referral-external-organisation-other="{{ client_referral.external_organisation_other }}"
+                                           data-referral-intervention-type-is_specified="{{ client_referral.intervention_type.is_specified }}"
+                                           data-referral-intervention-type-has_hts_result="{{ client_referral.intervention_type.has_hts_result }}"
+                                           data-referral-intervention-type-has_ccc_number="{{ client_referral.intervention_type.has_ccc_number }}"
+                                           data-referral-intervention-type-has_pregnancy_result="{{ client_referral.intervention_type.has_pregnancy_result }}"
+                                           data-referral-intervention-type-has_no_of_sessions="{{ client_referral.intervention_type.has_no_of_sessions }}">
+                                            Complete
+                                        </a> &nbsp;&nbsp;
+                                        <a id="reject-{{ client_referral.id }}" name="reject-referral-modal"
+                                           class='glyphicon glyphicon-remove badge btn btn-danger exit_unexit_toggle referral-button'
+                                           arial-label='Arial-Hidden' data-toggle="modal"
+                                           data-target="#reject-referral-modal"
+                                           data-id="{{ client_referral.id }}"
+                                           data-client-name="{{ client_referral.client.get_full_name }}"
+                                           data-client-dreams-id="{{ client_referral.client.dreams_id }}"
+                                           data-client-date-of-birth="{{ client_referral.client.date_of_birth }}"
+                                           data-client-age-at-enrollment="{{ client_referral.client.get_age_at_enrollment }}"
+                                           data-client-current-age="{{ client_referral.client.get_current_age }}"
+                                           data-client-intervention-id="{{ client_referral.intervention_type.id }}"
+                                           data-client-intervention-name="{{ client_referral.intervention_type.name }}"
+                                           data-client-referral-date="{{ client_referral.referral_date }}"
+                                           data-client-referral-expiration-date="{{ client_referral.referral_expiration_date }}">
+                                            Reject
+                                        </a>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                         {% else %}
@@ -182,16 +187,20 @@
                                     aria-hidden="true">&times;</span></button>
                             <h4 class="modal-title" id="exampleModalLabel">ADD INTERVENTION FOR REFERRAL</h4>
                             <h5 id="intervention_client_name"></h5>
+                            <h5 id="intervention_client_date_of_birth"></h5>
+                            <h5 id="intervention_client_age_at_enrollment"></h5>
                             <h5 id="intervention_type_name"></h5>
                         </div>
                         <div class="modal-body">
                             {% csrf_token %}
                             <!-- Permanently hidden Fields -->
+
                             <input class="hidden validate-intervention-form-field" name="client" id="client" value=""/>
                             <input class="hidden validate-intervention-form-field" name="intervention_id"
                                    id="intervention_id" value=""/>
                             <input class="hidden validate-intervention-form-field" name="intervention_type_code"
                                    id="intervention_type_code" value=""/>
+                            <input type="hidden" name="client_referral_date" id="client_referral_date" value=""/>
                             <input class="hidden validate-intervention-form-field" name="referral_id"
                                    id="referral_id" value=""/>
                             <input class="hidden validate-intervention-form-field" name="created_by" value="{{ user.id }}"/>
@@ -210,7 +219,6 @@
                                             class="form-control">
                                     </select>
                                 </div>
-
                                 <div class="form-group" id="other_external_organization">
                                     <label for="other-external-organization">Please specify</label>
                                     <input type="text" id="other-external-organization"
@@ -227,6 +235,9 @@
                                 <input type="text" class="form-control validate-intervention-form-field hidden"
                                        id="date-of-completion-formatted" name="intervention_date"/>
                                 <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                                <div id="div-date-before-referral-date" class="custom-has-error hide">
+                                    <label class="control-label">Warning! Intervention date is before referral date</label>
+                                </div>
                             </div>
 
                             <div class="form-group hidden" id="hts_result_section">
@@ -312,28 +323,34 @@
 
                             <div class="form-group form-inline">
                                 <label for="reject_client_name" class="control-label enrolment-label">Client:</label>
-                                <a id="reject_client_name" class="referral-dialogue-link"></a>
+                                <span id="reject_client_name" class="referral-dialogue-link"></span>
                             </div>
                             <div class="form-group form-inline">
                                 <label for="reject_client_dreams_id" class="control-label enrolment-label">DREAMS ID:</label>
-                                <a id="reject_client_dreams_id" class="referral-dialogue-link"></a>
+                                <span id="reject_client_dreams_id" class="referral-dialogue-link"></span>
                             </div>
                             <div class="form-group form-inline">
                                 <label for="reject_client_date_of_birth" class="control-label enrolment-label">Date of
                                     Birth:</label>
-                                <a id="reject_client_date_of_birth" class="referral-dialogue-link"></a>
+                                <span id="reject_client_date_of_birth" class="referral-dialogue-link"></span>
                             </div>
                             <div class="form-group form-inline">
+                                <label for="reject_client_age_at_enrollment" class="control-label enrolment-label">Age at
+                                    Enrollment:</label>
+                                <span id="reject_client_age_at_enrollment" class="referral-dialogue-link"></span>
+                            </div>
+
+                            <div class="form-group form-inline">
                                 <label for="reject_client_intervention" class="control-label enrolment-label">Intervention:</label>
-                                <a id="reject_client_intervention" class="referral-dialogue-link"></a>
+                                <span id="reject_client_intervention" class="referral-dialogue-link"></span>
                             </div>
                             <div class="form-group form-inline">
                                 <label for="reject_client_referral_date" class="control-label enrolment-label">Referral Date:</label>
-                                <a id="reject_client_referral_date" class="referral-dialogue-link"></a>
+                                <span id="reject_client_referral_date" class="referral-dialogue-link"></span>
                             </div>
                             <div class="form-group form-inline">
                                 <label for="reject_client_referral_expiration_date" class="control-label enrolment-label">Referral Expiration Date:</label>
-                                <a id="reject_client_referral_expiration_date" class="referral-dialogue-link"></a>
+                                <span id="reject_client_referral_expiration_date" class="referral-dialogue-link"></span>
                             </div>
                             <div class="form-group form-inline">
                                 <label for="reject_reason" class="control-label enrolment-label">Reject Reason:</label>
