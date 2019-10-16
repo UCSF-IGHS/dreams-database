@@ -631,9 +631,13 @@ $(document).ready(function () {
             var formattedCompletionDate = new Date(parseInt(completionDate.split('/')[2]), 
                                                     parseInt(completionDate.split('/')[0]) - 1, 
                                                     parseInt(completionDate.split('/')[1]));
-            var formattedReferralDate = new Date(parseInt(referralDate.split('/')[2]), 
-                                                    parseInt(referralDate.split('/')[0]) - 1, 
-                                                    parseInt(referralDate.split('/')[1]));
+            var formattedReferralDate 
+            if (referralDate)
+            {
+                formattedReferralDate = new Date(parseInt(referralDate.split('/')[2]), 
+                                                        parseInt(referralDate.split('/')[0]) - 1, 
+                                                        parseInt(referralDate.split('/')[1]));
+            }
             if (formattedCompletionDate < formattedReferralDate) {
                 $('#div-date-before-referral-date').fadeIn('fast');
                 $('#div-date-before-referral-date').removeClass('hide');
