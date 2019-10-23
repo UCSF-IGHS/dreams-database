@@ -3163,11 +3163,21 @@ def client_transfers(request, *args, **kwargs):
 
         transfer_perm = TransferServiceLayer(request.user)
         can_accept_or_reject = transfer_perm.can_accept_or_reject_transfer()
-
+        c_transfers = None
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if transferred_in:
-                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('transfer_status', '-date_created')
+                search_term = None
+                if request.POST:
+                    search_term = request.POST.get('search-transfers-term')
+                    if search_term != '':
+                        c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).select_related('client') \
+                                        .filter(Q(client__dreams_id__iexact=search_term) ) \
+                                        .exclude(client__voided=True).order_by('transfer_status', '-date_created')
+                    else:
+                        c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('transfer_status', '-date_created')
+                else:
+                    c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('transfer_status', '-date_created')
             else:
                 c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('transfer_status', '-date_created')
 

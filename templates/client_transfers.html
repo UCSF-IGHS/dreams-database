@@ -7,6 +7,19 @@
             <div>
                 <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
                     {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+                <div class="rightItem">
+                    <form id="search-transfers" class="" action="/client-transfers/{{request.user.implementingpartneruser.implementing_partner_id }}" method="post">
+                        {% csrf_token %}
+                        <div class="form-group form-inline has-feedback">
+                                <input id="search-transfers" type="text" name="search-transfers-term"
+                                    class="form-control" value="{{ search_transfers_term }}"
+                                    placeholder="Enter DREAMS ID" style="width: 400px;">
+                                <button type="submit" class="btn btn-primary btn-sm" style="margin-top: 2px;"><span
+                                        class="glyphicon glyphicon-search"></span> Search
+                                </button>
+                            </div>
+                    </form>
+                </div>
                 <div class="pull-right">
                     <a class="btn btn-primary"
                        href="{% url 'export_client_transfers' transferred_in=transferred_in|stringformat:'d' %}"
