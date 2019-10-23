@@ -7,7 +7,8 @@
             <div>
                 <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
                     {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
-                <div class="rightItem">
+                    {% if transferred_in %}
+                    <div class="rightItem">
                     <form id="search-transfers" class="" action="/client-transfers/{{request.user.implementingpartneruser.implementing_partner_id }}" method="post">
                         {% csrf_token %}
                         <div class="form-group form-inline has-feedback">
@@ -20,6 +21,7 @@
                             </div>
                     </form>
                 </div>
+                {% endif %}
                 <div class="pull-right">
                     <a class="btn btn-primary"
                        href="{% url 'export_client_transfers' transferred_in=transferred_in|stringformat:'d' %}"
