@@ -3160,14 +3160,26 @@ def transfer_client(request):
 def client_transfers(request, *args, **kwargs):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
         transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
-
+        search_transfers_term = ''
         transfer_perm = TransferServiceLayer(request.user)
         can_accept_or_reject = transfer_perm.can_accept_or_reject_transfer()
-
+        c_transfers = None
         try:
             ip = request.user.implementingpartneruser.implementing_partner
             if transferred_in:
-                c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('transfer_status', '-date_created')
+                search_term = None
+                if request.POST:
+                    search_term = request.POST.get('search-transfers-term')
+                    if search_term != '':
+                        search_transfers_term = search_term
+                        c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).select_related('client') \
+                                        .filter(Q(client__dreams_id__iexact=search_term) ) \
+                                        .exclude(client__voided=True).order_by('transfer_status', '-date_created')
+                    else:
+                        search_transfers_term = ''
+                        c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('transfer_status', '-date_created')
+                else:
+                    c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('transfer_status', '-date_created')
             else:
                 c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('transfer_status', '-date_created')
 
@@ -3186,7 +3198,7 @@ def client_transfers(request, *args, **kwargs):
 
         return render(request, "client_transfers.html",
                       {'client_transfers': transfers, 'can_accept_or_reject': can_accept_or_reject,
-                       'transferred_in': transferred_in, 'page': 'transfers'})
+                       'transferred_in': transferred_in, 'page': 'transfers', 'search_transfers_term': search_transfers_term})
     else:
         return redirect('login')
 
