@@ -14,6 +14,14 @@ html, body{
     margin-bottom: 9em;
 }
 
+.referral-button {
+    padding-bottom: 8px;
+    width: 7.5em;
+}
+
+.referral-button-hide {
+    display: none;
+}
 /* Start nav-bar */
 
 #dreams-navbar{
@@ -565,6 +573,13 @@ fieldset#ltfu div.form-group:not(:last-child) {
 }
 
 .transfer-dialogue-link {
+    pointer-events: none;
+    cursor: default;
+    color: black;
+    font-weight: bold;
+}
+
+.referral-dialogue-link {
     pointer-events: none;
     cursor: default;
     color: black;

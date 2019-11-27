@@ -14,15 +14,10 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, handler400, handler403, handler404, handler500
+
+from django.conf.urls import url
 from django.contrib import admin
 from DreamsApp import views
-
-# handler400 = 'DreamsApp.views.bad_request'
-handler403 = 'DreamsApp.views.permission_denied'
-handler404 = 'DreamsApp.views.page_not_found'
-# handler500 = 'DreamsApp.views.server_error'
-
 
 urlpatterns = [
     url(r'^$', views.user_login, name='login'),
@@ -34,8 +29,12 @@ urlpatterns = [
     url(r'^follow_ups$', views.follow_ups, name='follow_ups'),
     url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^ivgetTypes$', views.get_intervention_types),
+    url(r'^ivgetType$', views.get_intervention_type),
     url(r'^getExternalOrganisations$', views.get_external_organisation),
     url(r'^getExitReasons', views.get_exit_reasons),
+    url(r'^getInterventionTypes$', views.get_all_intervention_types),
+    url(r'^getImplementingPartners$', views.get_implementing_partners),
+    url(r'^initiateReferral$', views.initiate_referral),
     url(r'^getMinMaxDateOfBirth', views.get_min_max_date_of_birth),
     url(r'^getUnsuccessfulFollowUpAttempts$', views.get_unsuccessful_followup_attempts),
     url(r'^ivSave$', views.save_intervention),
@@ -86,8 +85,13 @@ urlpatterns = [
     url(r'^client-referrals/(?P<referred_in>[0-1])$', views.client_referrals, name='client_referrals'),
     url(r'^accept-client-transfer$', views.accept_client_transfer, name='accept_client_transfer'),
     url(r'^reject-client-transfer$', views.reject_client_transfer, name='reject_client_transfer'),
-    url(r'^get-client-transfers-count$', views.get_client_transfers_count, name='get_client_transfers_count'),
-    url(r'^get-client-referrals-count$', views.get_client_referrals_count, name='get_client_referrals_count'),
+    url(r'^reject-client-referral$', views.reject_client_referral, name='reject_client_referral'),
+    url(r'^get-pending-client-transfers-total-count$', views.get_pending_client_transfers_total_count, name='get_pending_client_transfers_total_count'),
+    url(r'^get-pending-client-transfers-in-out-count$', views.get_pending_client_transfers_in_out_count,
+        name='get_pending_client_transfers_in_out_count'),
+    url(r'^get-pending-client-referrals-total-count$', views.get_pending_client_referrals_total_count, name='get_pending_client_referrals_total_count'),
+    url(r'^get-pending-client-referrals-in-out-count$', views.get_pending_client_referrals_in_out_count,
+        name='get_pending_client_referrals_in_out_count'),
     url(r'^intervention-export-transferred-in-page', views.intervention_export_transferred_in_page,
         name='intervention_export_transferred_in_page'),
     url(r'^download-intervention-transferred-in-report/$', views.download_raw_intervention_transferred_in_export,
@@ -95,9 +99,13 @@ urlpatterns = [
     url(r'^client/void$', views.void_client, name='void_client'),
     url(r'^export-client-transfers/(?P<transferred_in>[0-1])$', views.export_client_transfers,
         name='export_client_transfers'),
+    url(r'^export-client-referrals/(?P<referred_in>[0-1])$', views.export_client_referrals,
+        name='export_client_referrals'),
     url(r'^download-audit-logs', views.download_audit_logs, name='download_audit_logs'),
     url(r'^addFollowUp$', views.add_follow_up),
-
-    # url(r'^$', views.user_login, name='login'),
-    url(r'^', views.error_404, name='error_404'),
 ]
+
+handler404 = views.page_not_found
+handler400 = views.bad_request
+handler403 = views.permission_denied
+handler500 = views.server_error
