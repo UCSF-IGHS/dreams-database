@@ -82,30 +82,31 @@ class DreamsRawExportTemplateRenderer(object):
             raise e
 
     def fetch_intervention_rows(self, ip_list, county, sub_county, ward, from_date, to_date):
+        
         cursor = self.get_connection().cursor()
 
-        multiple_ip_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.county_of_residence_id = %s AND i.implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        multiple_ip_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.county_of_residence_id = %s AND i.current_implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
         multiple_ip_county_query = self.get_query_string_with_intervention_date_filters(multiple_ip_county_query, from_date, to_date)
 
-        multiple_ip_sub_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        multiple_ip_sub_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.current_implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
         multiple_ip_sub_county_query = self.get_query_string_with_intervention_date_filters(multiple_ip_sub_county_query, from_date, to_date)
 
-        multiple_ip_ward_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        multiple_ip_ward_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.current_implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
         multiple_ip_ward_query = self.get_query_string_with_intervention_date_filters(multiple_ip_ward_query, from_date, to_date)
 
-        multiple_ip_default_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        multiple_ip_default_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.stag_implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
         multiple_ip_default_query = self.get_query_string_with_intervention_date_filters(multiple_ip_default_query, from_date, to_date)
 
-        single_ip_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.county_of_residence_id = %s AND i.implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        single_ip_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.county_of_residence_id = %s AND i.current_implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
         single_ip_county_query = self.get_query_string_with_intervention_date_filters(single_ip_county_query, from_date, to_date)
 
-        single_ip_sub_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        single_ip_sub_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.sub_county_id = %s AND i.current_implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
         single_ip_sub_county_query = self.get_query_string_with_intervention_date_filters(single_ip_sub_county_query, from_date, to_date)
 
-        single_ip_ward_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        single_ip_ward_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.current_implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
         single_ip_ward_query = self.get_query_string_with_intervention_date_filters(single_ip_ward_query, from_date, to_date)
 
-        single_ip_default_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        single_ip_default_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.current_implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
         single_ip_default_query = self.get_query_string_with_intervention_date_filters(single_ip_default_query, from_date, to_date)
 
         try:
