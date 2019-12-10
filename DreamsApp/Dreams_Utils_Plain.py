@@ -94,7 +94,7 @@ class DreamsRawExportTemplateRenderer(object):
         multiple_ip_ward_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.ward_id = %s AND i.current_implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
         multiple_ip_ward_query = self.get_query_string_with_intervention_date_filters(multiple_ip_ward_query, from_date, to_date)
 
-        multiple_ip_default_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.stag_implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
+        multiple_ip_default_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.current_implementing_partner_id IN %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
         multiple_ip_default_query = self.get_query_string_with_intervention_date_filters(multiple_ip_default_query, from_date, to_date)
 
         single_ip_county_query = "SELECT {} FROM stag_client_intervention i WHERE voided=0 AND i.county_of_residence_id = %s AND i.current_implementing_partner_id = %s ".format(RAW_INTERVENTION_EXPORT_COLUMNS)
