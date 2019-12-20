@@ -1091,7 +1091,7 @@ def save_intervention(request):
                         intervention = Intervention()
                         intervention.client = client
                         intervention.intervention_type = intervention_type
-                        intervention.name_specified = intervention_type.name if intervention_type.is_specified else request.POST.get(
+                        intervention.name_specified = intervention_type.name if not intervention_type.is_specified else request.POST.get(
                             'other_specify', '')
                         intervention.intervention_date = request.POST.get('intervention_date')
                         created_by = User.objects.get(id__exact=int(request.POST.get('created_by')))
