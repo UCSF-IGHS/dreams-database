@@ -2232,12 +2232,10 @@ $(document).ready(function () {
 
     $.validator.addMethod('under18WithID', function (value) {
         var date_of_birth = $('#id_date_of_birth').val();
-        var currDOB = new Date(date_of_birth.split("/")[2],
-                                date_of_birth.split("/")[1],
-                                date_of_birth.split("/")[0]);
+        var currDOB = new Date(date_of_birth);
+        
         var age = getAge(currDOB);
         var verificationDoc = $('#id_verification_document').val() || 0;
-
         if (age < 18 && verificationDoc == 2)
             return false;
         return true;
