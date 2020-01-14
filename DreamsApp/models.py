@@ -301,7 +301,7 @@ class Client(models.Model):
                                                TRANSFER_ACCEPTED_STATUS)
         except:
             return False
-
+    
     def is_editable_by_ip(self, user_ip):
         editable = False
         try:
@@ -319,6 +319,9 @@ class Client(models.Model):
         except:
             return False
 
+    def current_user_belongs_to_same_ip_as_client(self, current_user_implementing_partner_id):
+        return self.implementing_partner.id == current_user_implementing_partner_id
+        
     def can_add_intervention(self, user_ip):
         can_add_intervention = False
         try:
