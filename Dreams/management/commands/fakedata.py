@@ -11,9 +11,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             fake = Faker()
-            first_name = fake.first_name()
-            last_name = fake.last_name()
-            middle_name = fake.phone_number()
             from django.conf import settings
             if settings.GENERATE_FAKE_DATA and settings.GENERATE_FAKE_DATA == True:
                 clients = Client.objects.all()
@@ -30,7 +27,7 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS('Client name after update {} {} {}'.format(c.id, c.first_name, c.last_name)))
                 self.stdout.write(self.style.SUCCESS('Successfully updated the client with fake name'))
             else:
-                self.stdout.write(self.style.SUCCESS('Successfully ran command but client name not updated as GENERATE_FAKE_DATA setting must be true'))
+                self.stdout.write(self.style.SUCCESS('Successfully ran command but client name not updated as GENERATE_FAKE_DATA setting must be True'))
 
 
         except Client.DoesNotExist:
