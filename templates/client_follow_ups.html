@@ -73,8 +73,9 @@
                   </div>
                   <div class="modal-footer">
                       <button id="btn_cancel_follow_up" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
-                      <button id="btn_save_follow_up" type="submit" class="btn btn-sm btn-primary" > Save Follow Up </button>
-
+                      {% if perms.DreamsApp.can_exit_client and current_user_belongs_to_same_ip_as_client %}
+                        <button id="btn_save_follow_up" type="submit" class="btn btn-sm btn-primary" > Save Follow Up </button>
+                      {% endif %}
                       <span class="processing-indicator hidden">
                           <br/><br/>
                           <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving follow up... </span>
@@ -151,8 +152,9 @@
                   </div>
                   <div class="modal-footer">
                       <button id="btn_cancel_follow_up" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
-                      <button id="btn_edit_follow_up" type="submit" class="btn btn-sm btn-primary" > Edit Follow Up </button>
-
+                      {% if perms.DreamsApp.can_exit_client and current_user_belongs_to_same_ip_as_client %}
+                        <button id="btn_edit_follow_up" type="submit" class="btn btn-sm btn-primary" > Edit Follow Up </button>
+                      {% endif %}
                       <span class="processing-indicator hidden">
                           <br/><br/>
                           <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving follow up... </span>
@@ -309,17 +311,19 @@
                 </th>
                 {% if perms.DreamsApp.add_clientfollowup %}
                     <th width="130">
-                        {% if client.exited %}
-                            <button class="btn btn-sm btn-primary exit_unexit_toggle" data-toggle="modal" data-target="#follow-up-modal"
-                                data-whatever="1001" style="height: 35px; margin-top: -15px; display: none"><i
-                                class="glyphicon glyphicon-plus"></i> Add Follow Up
-                            </button>
-                        {% else %}
-                             <button class="btn btn-sm btn-primary exit_unexit_toggle" data-toggle="modal" data-target="#follow-up-modal"
-                                data-whatever="1001" style="height: 35px; margin-top: -15px;"><i
-                                class="glyphicon glyphicon-plus"></i> Add Follow Up
-                             </button>
-                        {% endif %}
+                        {% if perms.DreamsApp.can_exit_client and current_user_belongs_to_same_ip_as_client %}
+                            {% if client.exited %}
+                                <button class="btn btn-sm btn-primary exit_unexit_toggle" data-toggle="modal" data-target="#follow-up-modal"
+                                    data-whatever="1001" style="height: 35px; margin-top: -15px; display: none"><i
+                                    class="glyphicon glyphicon-plus"></i> Add Follow Up
+                                </button>
+                            {% else %}
+                                <button class="btn btn-sm btn-primary exit_unexit_toggle" data-toggle="modal" data-target="#follow-up-modal"
+                                    data-whatever="1001" style="height: 35px; margin-top: -15px;"><i
+                                    class="glyphicon glyphicon-plus"></i> Add Follow Up
+                                </button>
+                            {% endif %}
+                    {% endif %}
                     </th>
                 {% endif %}
             </tr>

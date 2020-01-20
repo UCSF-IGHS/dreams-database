@@ -1483,6 +1483,15 @@ def add_follow_up(request):
                     'message': 'There is no client found or the client has been exited.'
                 }
                 return JsonResponse(response_data)
+            current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
+
+            if not current_user_belongs_to_same_ip_as_client:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Current user must belong to the same IP as the client.'
+                }
+                return JsonResponse(response_data)
+
 
             if dt.strptime(str(follow_up_date), '%Y-%m-%d').date() > dt.now().date():
                 response_data = {
@@ -1556,7 +1565,15 @@ def update_follow_up(request):
                         'message': 'There is no client found or the client has been exited.'
                     }
                     return JsonResponse(response_data)
+                current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
 
+                if not current_user_belongs_to_same_ip_as_client:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Current user must belong to the same IP as the client.'
+                    }
+                    return JsonResponse(response_data)
+                    
                 edit_follow_up_perm = FollowUpsServiceLayer(request.user)
                 if not edit_follow_up_perm.can_edit_followup():
                     response_data = {
