@@ -395,6 +395,7 @@
 
                                         {% endif %}
                                         {% if perms.DreamsApp.delete_clientfollowup %}
+                                          {% if current_user_belongs_to_same_ip_as_client %}
                                             {% if client.exited %}
                                                 <button name="confirm-follow-up-delete"
                                                     class='glyphicon glyphicon-remove badge btn btn-danger user-action confirm-follow-up-delete exit_unexit_toggle'
@@ -419,6 +420,7 @@
                                                     data-confirm-follow-up-delete="Are you sure that you want to delete this follow up?">
                                                     Delete
                                                 </button> &nbsp;
+                                                {% endif %}
                                             {% endif %}
                                         {% endif %}
                                     </td>
