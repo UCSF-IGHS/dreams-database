@@ -42,9 +42,11 @@
                     <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" aria-hidden="true">
                         Cancel
                     </button>
-                    <button type="submit" id="btn_submit_transfer_client_form" class="btn btn-sm btn-primary"> Transfer
-                        Client
-                    </button>
+                    {% if current_user_belongs_to_same_ip_as_client %}
+                        <button type="submit" id="btn_submit_transfer_client_form" class="btn btn-sm btn-primary"> Transfer
+                            Client
+                        </button>
+                    {% endif %}
                 </div>
             </div>
         </div>
