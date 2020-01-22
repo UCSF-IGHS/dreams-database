@@ -73,8 +73,9 @@
                   </div>
                   <div class="modal-footer">
                       <button id="btn_cancel_follow_up" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
-                      <button id="btn_save_follow_up" type="submit" class="btn btn-sm btn-primary" > Save Follow Up </button>
-
+                      {% if perms.DreamsApp.can_exit_client and current_user_belongs_to_same_ip_as_client %}
+                        <button id="btn_save_follow_up" type="submit" class="btn btn-sm btn-primary" > Save Follow Up </button>
+                      {% endif %}
                       <span class="processing-indicator hidden">
                           <br/><br/>
                           <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving follow up... </span>
@@ -151,8 +152,9 @@
                   </div>
                   <div class="modal-footer">
                       <button id="btn_cancel_follow_up" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
-                      <button id="btn_edit_follow_up" type="submit" class="btn btn-sm btn-primary" > Edit Follow Up </button>
-
+                      {% if perms.DreamsApp.can_exit_client and current_user_belongs_to_same_ip_as_client %}
+                        <button id="btn_edit_follow_up" type="submit" class="btn btn-sm btn-primary" > Edit Follow Up </button>
+                      {% endif %}
                       <span class="processing-indicator hidden">
                           <br/><br/>
                           <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving follow up... </span>
@@ -220,7 +222,7 @@
                        data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-folder-close"></span>
                         Service Uptake
                     </p>
-                    {% if perms.DreamsApp.can_exit_client %}
+                    {% if perms.DreamsApp.can_exit_client and current_user_belongs_to_same_ip_as_client %}
                             {% if client.exited %}
                                 <p class="underline_hover" id="p_exit_client" data-client_id='{{ client.id }}'
                                    data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
@@ -237,7 +239,7 @@
                                 </p>
                             {% endif %}
                         {% endif %}
-                        {% if perms.DreamsApp.add_clienttransfer %}
+                        {% if perms.DreamsApp.add_clienttransfer and current_user_belongs_to_same_ip_as_client %}
                             {% if client.can_be_transferred and not client.voided %}
                                 {% if client.exited %}
                                     <p class="underline_hover exit_unexit_toggle" id="p_transfer_client" data-client_id='{{ client.id }}'
@@ -258,7 +260,7 @@
                                 </p>
                             {% endif %}
                         {% endif %}
-                        {% if perms.DreamsApp.can_void_client and not client.voided %}
+                        {% if perms.DreamsApp.can_void_client and not client.voided and current_user_belongs_to_same_ip_as_client %}
                              {% if client.exited %}
                                 <p class="underline_hover exit_unexit_toggle" id="p_void_client" data-client_id='{{ client.id }}'
                                    style="cursor:pointer; display: none" data-toggle="modal" data-target="#client-void-modal"
@@ -309,17 +311,19 @@
                 </th>
                 {% if perms.DreamsApp.add_clientfollowup %}
                     <th width="130">
-                        {% if client.exited %}
-                            <button class="btn btn-sm btn-primary exit_unexit_toggle" data-toggle="modal" data-target="#follow-up-modal"
-                                data-whatever="1001" style="height: 35px; margin-top: -15px; display: none"><i
-                                class="glyphicon glyphicon-plus"></i> Add Follow Up
-                            </button>
-                        {% else %}
-                             <button class="btn btn-sm btn-primary exit_unexit_toggle" data-toggle="modal" data-target="#follow-up-modal"
-                                data-whatever="1001" style="height: 35px; margin-top: -15px;"><i
-                                class="glyphicon glyphicon-plus"></i> Add Follow Up
-                             </button>
-                        {% endif %}
+                        {% if perms.DreamsApp.can_exit_client and current_user_belongs_to_same_ip_as_client %}
+                            {% if client.exited %}
+                                <button class="btn btn-sm btn-primary exit_unexit_toggle" data-toggle="modal" data-target="#follow-up-modal"
+                                    data-whatever="1001" style="height: 35px; margin-top: -15px; display: none"><i
+                                    class="glyphicon glyphicon-plus"></i> Add Follow Up
+                                </button>
+                            {% else %}
+                                <button class="btn btn-sm btn-primary exit_unexit_toggle" data-toggle="modal" data-target="#follow-up-modal"
+                                    data-whatever="1001" style="height: 35px; margin-top: -15px;"><i
+                                    class="glyphicon glyphicon-plus"></i> Add Follow Up
+                                </button>
+                            {% endif %}
+                    {% endif %}
                     </th>
                 {% endif %}
             </tr>
@@ -339,7 +343,9 @@
                             <th>Follow Up Result</th>
                             <th>Comment/Notes</th>
                             {% if perms.DreamsApp.edit_clientfollowup or perms.DreamsApp.delete_clientfollowup %}
-                                <th class="actions-col">Actions</th>
+                                {% if current_user_belongs_to_same_ip_as_client %}
+                                    <th class="actions-col">Actions</th>
+                                {% endif %}
                             {% endif %}
                         </tr>
                         </thead>
@@ -352,39 +358,44 @@
                                     <td>{{ follow_up.result_of_followup }}</td>
                                     <td>{{ follow_up.comment | slice:":30" }}</td>
                                     <td>
+
                                         {% if perms.DreamsApp.edit_clientfollowup %}
-                                            {% if client.exited %}
-                                                <button name="edit-follow-up"
-                                                    class='glyphicon glyphicon-ok badge btn btn-success user-action edit-follow-up exit_unexit_toggle'
-                                                    arial-label='Arial-Hidden'
-                                                    style="padding-bottom: 8px; display: none"
-                                                    data-toggle="modal"
-                                                    data-target="#edit-follow-up-modal"
-                                                    data-follow_up_id="{{ follow_up.id }}"
-                                                    data-follow-up-name="{{ follow_up.type_of_followup }}"
-                                                    data-follow-up-result="{{ follow_up.result_of_followup }}"
-                                                    data-follow-up-date="{{ follow_up.date_of_followup  | date:"Y-m-d" }}"
-                                                    data-follow-up-comments="{{ follow_up.comment }}">
-                                                        Edit
-                                                </button> &nbsp;&nbsp;
-                                            {% else %}
-                                                <button name="edit-follow-up"
-                                                    class='glyphicon glyphicon-ok badge btn btn-success user-action edit-follow-up exit_unexit_toggle'
-                                                    arial-label='Arial-Hidden'
-                                                    style="padding-bottom: 8px;"
-                                                    data-toggle="modal"
-                                                    data-target="#edit-follow-up-modal"
-                                                    data-follow_up_id="{{ follow_up.id }}"
-                                                    data-follow-up-name="{{ follow_up.type_of_followup }}"
-                                                    data-follow-up-result="{{ follow_up.result_of_followup }}"
-                                                    data-follow-up-date="{{ follow_up.date_of_followup  | date:"Y-m-d" }}"
-                                                    data-follow-up-comments="{{ follow_up.comment }}">
-                                                        Edit
-                                                </button> &nbsp;&nbsp;
+                                            {% if current_user_belongs_to_same_ip_as_client %}
+
+                                                {% if client.exited %}
+                                                    <button name="edit-follow-up"
+                                                        class='glyphicon glyphicon-ok badge btn btn-success user-action edit-follow-up exit_unexit_toggle'
+                                                        arial-label='Arial-Hidden'
+                                                        style="padding-bottom: 8px; display: none"
+                                                        data-toggle="modal"
+                                                        data-target="#edit-follow-up-modal"
+                                                        data-follow_up_id="{{ follow_up.id }}"
+                                                        data-follow-up-name="{{ follow_up.type_of_followup }}"
+                                                        data-follow-up-result="{{ follow_up.result_of_followup }}"
+                                                        data-follow-up-date="{{ follow_up.date_of_followup  | date:"Y-m-d" }}"
+                                                        data-follow-up-comments="{{ follow_up.comment }}">
+                                                            Edit
+                                                    </button> &nbsp;&nbsp;
+                                                {% else %}
+                                                    <button name="edit-follow-up"
+                                                        class='glyphicon glyphicon-ok badge btn btn-success user-action edit-follow-up exit_unexit_toggle'
+                                                        arial-label='Arial-Hidden'
+                                                        style="padding-bottom: 8px;"
+                                                        data-toggle="modal"
+                                                        data-target="#edit-follow-up-modal"
+                                                        data-follow_up_id="{{ follow_up.id }}"
+                                                        data-follow-up-name="{{ follow_up.type_of_followup }}"
+                                                        data-follow-up-result="{{ follow_up.result_of_followup }}"
+                                                        data-follow-up-date="{{ follow_up.date_of_followup  | date:"Y-m-d" }}"
+                                                        data-follow-up-comments="{{ follow_up.comment }}">
+                                                            Edit
+                                                    </button> &nbsp;&nbsp;
+                                                {% endif %}
                                              {% endif %}
 
                                         {% endif %}
                                         {% if perms.DreamsApp.delete_clientfollowup %}
+                                          {% if current_user_belongs_to_same_ip_as_client %}
                                             {% if client.exited %}
                                                 <button name="confirm-follow-up-delete"
                                                     class='glyphicon glyphicon-remove badge btn btn-danger user-action confirm-follow-up-delete exit_unexit_toggle'
@@ -409,6 +420,7 @@
                                                     data-confirm-follow-up-delete="Are you sure that you want to delete this follow up?">
                                                     Delete
                                                 </button> &nbsp;
+                                                {% endif %}
                                             {% endif %}
                                         {% endif %}
                                     </td>

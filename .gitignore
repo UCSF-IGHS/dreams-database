@@ -116,3 +116,7 @@ settings.py
 
 # mac temp files
 .DS_Store
+
+
+#Ignore local settings
+Dreams/Settings/local.py

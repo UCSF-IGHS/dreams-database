@@ -13,3 +13,6 @@ DATABASES = {
         'PORT':'3306',
     }
 }
+
+# Enable and disalbe running if fakedata through manage.py
+GENERATE_FAKE_DATA = True
