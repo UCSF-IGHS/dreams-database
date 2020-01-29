@@ -3149,8 +3149,8 @@ def transfer_client(request):
                         }
                         return JsonResponse(response_data)
                     current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser
-                    initiate_transfer_perm = TransferServiceLayer(request.user) and current_user_belongs_to_same_ip_as_client
-                    if not initiate_transfer_perm.can_initiate_transfer():
+                    initiate_transfer_perm = TransferServiceLayer(request.user)
+                    if not initiate_transfer_perm.can_initiate_transfer() and current_user_belongs_to_same_ip_as_client:
                         response_data = {
                             'status': 'fail',
                             'message': 'You do not have permission to initiate a tranfer.'
