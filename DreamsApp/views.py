@@ -327,7 +327,7 @@ def follow_ups(request):
                     displayed_follow_ups = paginator.page(1)
                 except EmptyPage:
                     displayed_follow_ups = paginator.page(paginator.num_pages)
-
+                current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
                 return render(request, 'client_follow_ups.html', {
                     'page': 'Follow Ups',
                     'page_title': 'Client Follow Ups Page',
@@ -336,7 +336,8 @@ def follow_ups(request):
                     'follow_up_perms': follow_up_perms,
                     'follow_ups': displayed_follow_ups,
                     'follow_up_types': follow_up_types,
-                    'follow_up_result_types': follow_up_result_types
+                    'follow_up_result_types': follow_up_result_types,
+                    'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser
                 })
             except Client.DoesNotExist:
                 response_data = {
@@ -386,7 +387,8 @@ def client_profile(request):
                     cash_transfer_details_form = ClientCashTransferDetailsForm(instance=cash_transfer_details,
                                                                                current_AGYW=client_found)
                     cash_transfer_details_form.save(commit=False)
-
+                current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
+                import ipdb; ipdb.set_trace()
                 return render(request, 'client_profile.html', {'page': 'clients',
                                                                'page_title': 'DREAMS Client Service Uptake',
                                                                'client': client_found,
@@ -402,10 +404,12 @@ def client_profile(request):
                                                                'can_add_intervention': can_add_intervention,
                                                                'client_status': client_status,
                                                                '60_days_from_now': dt.now() + + timedelta(days=60),
-                                                               'intervention_categories': InterventionCategory.objects.all()
+                                                               'intervention_categories': InterventionCategory.objects.all(),
+                                                               'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
+                current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
                 return render(request, 'client_profile.html',
                               {'page': 'clients',
                                'page_title': 'DREAMS Client Service Uptake',
@@ -418,7 +422,8 @@ def client_profile(request):
                                'can_add_intervention': can_add_intervention,
                                'client_status': client_status,
                                '60_days_from_now': dt.now() + + timedelta(days=60),
-                               'intervention_categories': InterventionCategory.objects.all()
+                               'intervention_categories': InterventionCategory.objects.all(),
+                               'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -721,6 +726,15 @@ def unexit_client(request):
             reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
             date_of_exit = request.POST.get('date_of_unexit', datetime.now())
             client = Client.objects.filter(id=client_id).first()
+            try:
+                if not (client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser):
+                    raise PermissionDenied
+            except:
+                response_data = {
+                    'status': 'failed',
+                    'message': 'Permission denied. You must belong to the same IP as the client to be able to update it.'
+                }
+                return JsonResponse(response_data, status=500)
 
             if dt.strptime(str(date_of_exit), '%Y-%m-%d').date() > dt.now().date():
                 response_data = {
@@ -780,6 +794,17 @@ def exit_client(request):
                     'message': 'There is no client found.'
                 }
                 return JsonResponse(response_data, status=500)
+
+            try:
+                if not (client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser):
+                    raise PermissionDenied
+            except:
+                response_data = {
+                    'status': 'failed',
+                    'message': 'Permission denied. You must belong to the same IP as the client to be able to update it.'
+                }
+                return JsonResponse(response_data, status=500)
+            
 
             last_intervention_offered = get_last_intervention_offered(client)
 
@@ -1458,6 +1483,15 @@ def add_follow_up(request):
                     'message': 'There is no client found or the client has been exited.'
                 }
                 return JsonResponse(response_data)
+            current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
+
+            if not current_user_belongs_to_same_ip_as_client:
+                response_data = {
+                    'status': 'fail',
+                    'message': 'Current user must belong to the same IP as the client.'
+                }
+                return JsonResponse(response_data)
+
 
             if dt.strptime(str(follow_up_date), '%Y-%m-%d').date() > dt.now().date():
                 response_data = {
@@ -1531,7 +1565,15 @@ def update_follow_up(request):
                         'message': 'There is no client found or the client has been exited.'
                     }
                     return JsonResponse(response_data)
+                current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
 
+                if not current_user_belongs_to_same_ip_as_client:
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Current user must belong to the same IP as the client.'
+                    }
+                    return JsonResponse(response_data)
+                    
                 edit_follow_up_perm = FollowUpsServiceLayer(request.user)
                 if not edit_follow_up_perm.can_edit_followup():
                     response_data = {
@@ -2784,7 +2826,7 @@ def viewBaselineData(request):
                         client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
                     max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
                     min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
-
+                    current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
                                                                          'client': client_found,
@@ -2805,7 +2847,8 @@ def viewBaselineData(request):
                                                                          'is_editable_by_ip': is_editable_by_ip,
                                                                          'client_status': client_status,
                                                                          'max_dob': max_dob,
-                                                                         'min_dob': min_dob
+                                                                         'min_dob': min_dob,
+                                                                         'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser
                                                                          })
             except Client.DoesNotExist:
                 traceback.format_exc()
@@ -3105,9 +3148,9 @@ def transfer_client(request):
                             'message': 'There is no client found or the client has been exited.'
                         }
                         return JsonResponse(response_data)
-
+                    current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser
                     initiate_transfer_perm = TransferServiceLayer(request.user)
-                    if not initiate_transfer_perm.can_initiate_transfer():
+                    if not initiate_transfer_perm.can_initiate_transfer() and current_user_belongs_to_same_ip_as_client:
                         response_data = {
                             'status': 'fail',
                             'message': 'You do not have permission to initiate a tranfer.'
@@ -3618,6 +3661,15 @@ def void_client(request):
                     return get_response_data(0, 'Voiding Failed. You do not have permission to void a client')
 
                 client_id = request.POST.get("id", "")
+                client = Client.objects.get(id=client_id)
+                current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
+                if not (current_user_belongs_to_same_ip_as_client or request.user.is_superuser):
+                    response_data = {
+                    'status': 'fail',
+                    'errors': "Void failed. You must belong to the same IP as the client inorder to update"
+                    }
+                    return JsonResponse(response_data, status=500)
+
                 void_reason = request.POST.get("void_reason", "")
                 if void_reason is None or void_reason == "" or void_reason.isspace():
                     return get_response_data(0, {'void_reason': ['Reason for voiding is required.']})
