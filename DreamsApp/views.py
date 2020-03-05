@@ -1416,13 +1416,12 @@ def get_intervention_list(request):
             list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
             iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
             # check for see_other_ip_data persmission
-            cache_key = '{}-{}'.format(client_id, iv_category)
+            cache_key = '{}-{}'.format(client_id, intervention_category_code)
             list_of_interventions = get_list_of_interventions(client_id, iv_type_ids, cache_key)
             
             client_key = 'client-{}'.format(client_id)
             client_found = get_client_found(client_id, client_key)
             client_is_transferred_out = client_found.transferred_out(request.user.implementingpartneruser.implementing_partner)
-            
             if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 if client_is_transferred_out:
                     list_of_interventions = list_of_interventions.filter(
@@ -1467,7 +1466,6 @@ def get_intervention_list(request):
 
 def get_list_of_interventions(client_id, iv_type_ids, cache_key):
     list_of_interventions = cache.get(cache_key)
-    print('#############################', list_of_interventions)
     if not list_of_interventions:
         list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date',
                                                         'date_created').filter(client__exact=client_id,
