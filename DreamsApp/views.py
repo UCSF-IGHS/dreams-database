@@ -1416,16 +1416,13 @@ def get_intervention_list(request):
             list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
             iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
             # check for see_other_ip_data persmission
-
-            list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date',
-                                                               'date_created').filter(client__exact=client_id,
-                                                                                      intervention_type__in=iv_type_ids,
-                                                                                      voided=False) \
-                .order_by('-intervention_date', '-date_created', '-date_changed')
-
-            client_found = Client.objects.get(id=client_id)
+            cache_key = '{}-{}'.format(client_id, iv_category)
+            list_of_interventions = get_list_of_interventions(client_id, iv_type_ids, cache_key)
+            
+            client_key = 'client-{}'.format(client_id)
+            client_found = get_client_found(client_id, client_key)
             client_is_transferred_out = client_found.transferred_out(request.user.implementingpartneruser.implementing_partner)
-
+            
             if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 if client_is_transferred_out:
                     list_of_interventions = list_of_interventions.filter(
@@ -1467,6 +1464,25 @@ def get_intervention_list(request):
 
 # Gets an intervention. Takes intervention_id and returns Intervention object
 # use /ivGet/ to access this method
+
+def get_list_of_interventions(client_id, iv_type_ids, cache_key):
+    list_of_interventions = cache.get(cache_key)
+    print('#############################', list_of_interventions)
+    if not list_of_interventions:
+        list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date',
+                                                        'date_created').filter(client__exact=client_id,
+                                                                                intervention_type__in=iv_type_ids,
+                                                                                voided=False) \
+        .order_by('-intervention_date', '-date_created', '-date_changed')
+    cache_value(cache_key, list_of_interventions)
+    return list_of_interventions
+
+def get_client_found(client_id, client_key):
+    client_found = cache.get(client_key)
+    if not client_found:
+        client_found = Client.objects.get(id=client_id)
+    cache_value(client_key, client_found)
+    return client_found
 
 
 def get_intervention(request):
@@ -3845,3 +3861,7 @@ def get_min_max_date_of_birth(request):
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
+
+def cache_value(key, value):
+    cache_time = 86400 # time in seconds for cache to be valid
+    cache.set(key, value, cache_time)
