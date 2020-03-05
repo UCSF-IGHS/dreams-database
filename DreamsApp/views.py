@@ -16,6 +16,7 @@ from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
+from django.core.cache import cache
 from django.db import connection as db_conn_2, transaction
 from django.utils.timezone import make_aware
 import urllib.parse
@@ -145,51 +146,72 @@ def filter_clients(search_client_term, is_advanced_search, request):
     search_client_term_parts = search_client_term.split()
     # check number of parts
     parts_count = len(search_client_term_parts)
+    cache_key = '-'.join(search_client_term_parts) # needs to be unique
+    cache_time = 86400 # time in seconds for cache to be valid
+    search_result  = None
+
     if parts_count == 1:
-        filter_text = search_client_term_parts[0]
-        search_result = Client.objects.filter(Q(dreams_id__iexact=filter_text) |
-                                              Q(first_name__iexact=filter_text) |
-                                              Q(middle_name__iexact=filter_text) |
-                                              Q(last_name__iexact=filter_text)) \
-            .exclude(voided=True).order_by('first_name').order_by('middle_name').order_by('last_name')
+        search_result = client_filter_with_one_search_part(search_client_term_parts[0])
     elif parts_count > 1:
+        search_result = client_filter_with_multiple_search_parts(search_client_term_parts, parts_count)
+    if is_advanced_search == 'True':
+        data = client_advanced_search(search_result, is_advanced_search, request)
+        return data
+    
+    cache.set(cache_key, search_result, cache_time)
+    return [search_result, is_advanced_search, '', '', '', '', '']
+
+def client_filter_with_one_search_part(search_client_part):
+    data = cache.get(search_client_part) # returns None if no key-value pair
+    if not data:
+        search_result = Client.objects.filter(Q(dreams_id__iexact=search_client_part) |
+                                            Q(first_name__iexact=search_client_part) |
+                                            Q(middle_name__iexact=search_client_part) |
+                                            Q(last_name__iexact=search_client_part)) \
+            .exclude(voided=True).order_by('first_name').order_by('middle_name').order_by('last_name')
+        data = search_result
+    return data
+
+def client_filter_with_multiple_search_parts(search_client_term_parts, parts_count):
+    data = cache.get('-'.join(search_client_term_parts))
+    if not data:
         # this is not a dreams id search but a name search
         filter_text_1 = search_client_term_parts[0]
         filter_text_2 = search_client_term_parts[1]
         filter_text_3 = '' if parts_count == 2 else search_client_term_parts[2]
         # first name and middle name
-        search_result = build_filter_client_queryset((filter_text_1, filter_text_2, filter_text_3),
-                                                     (filter_text_2, filter_text_1, filter_text_3),
-                                                     (filter_text_2, filter_text_3, filter_text_1),
-                                                     (filter_text_3, filter_text_2, filter_text_1),
-                                                     (filter_text_3, filter_text_1, filter_text_2),
-                                                     (filter_text_1, filter_text_3, filter_text_2))
-    if is_advanced_search == 'True':
-        county_filter = str(
+        data = build_filter_client_queryset((filter_text_1, filter_text_2, filter_text_3),
+                                                    (filter_text_2, filter_text_1, filter_text_3),
+                                                    (filter_text_2, filter_text_3, filter_text_1),
+                                                    (filter_text_3, filter_text_2, filter_text_1),
+                                                    (filter_text_3, filter_text_1, filter_text_2),
+                                                    (filter_text_1, filter_text_3, filter_text_2))
+    return data
+
+def client_advanced_search(search_result, is_advanced_search, request):
+    county_filter = str(
             request.GET.get('county', '') if request.method == 'GET' else request.POST.get('county', ''))
-        if county_filter != '':
-            search_result = search_result.filter(county_of_residence_id=int(county_filter))
-        sub_county_filter = str(
-            request.GET.get('sub_county', '') if request.method == 'GET' else request.POST.get('sub_county', ''))
-        if sub_county_filter != '':
-            search_result = search_result.filter(sub_county_id=int(sub_county_filter))
-        ward_filter = str(request.GET.get('ward', '') if request.method == 'GET' else request.POST.get('ward', ''))
-        if ward_filter != '':
-            search_result = search_result.filter(ward_id=int(ward_filter))
-        start_date_filter_original = request.GET.get('doe_start_filter',
-                                                     '') if request.method == 'GET' else request.POST.get(
-            'doe_start_filter', '')
-        start_date_filter = '2015-10-01' if start_date_filter_original == '' else start_date_filter_original
-        end_date_filter_original = request.GET.get('doe_end_filter',
-                                                   dt.today()) if request.method == 'GET' else request.POST.get(
-            'doe_end_filter', dt.today())
-        end_date_filter = dt.today() if end_date_filter_original == '' else end_date_filter_original
-        search_result = search_result.filter(date_of_enrollment__range=[start_date_filter, end_date_filter])  #
-        return [search_result, is_advanced_search, county_filter, sub_county_filter, ward_filter,
+    if county_filter != '':
+        search_result = search_result.filter(county_of_residence_id=int(county_filter))
+    sub_county_filter = str(
+        request.GET.get('sub_county', '') if request.method == 'GET' else request.POST.get('sub_county', ''))
+    if sub_county_filter != '':
+        search_result = search_result.filter(sub_county_id=int(sub_county_filter))
+    ward_filter = str(request.GET.get('ward', '') if request.method == 'GET' else request.POST.get('ward', ''))
+    if ward_filter != '':
+        search_result = search_result.filter(ward_id=int(ward_filter))
+    start_date_filter_original = request.GET.get('doe_start_filter',
+                                                    '') if request.method == 'GET' else request.POST.get(
+        'doe_start_filter', '')
+    start_date_filter = '2015-10-01' if start_date_filter_original == '' else start_date_filter_original
+    end_date_filter_original = request.GET.get('doe_end_filter',
+                                                dt.today()) if request.method == 'GET' else request.POST.get(
+        'doe_end_filter', dt.today())
+    end_date_filter = dt.today() if end_date_filter_original == '' else end_date_filter_original
+    search_result = search_result.filter(date_of_enrollment__range=[start_date_filter, end_date_filter])  #
+    return [search_result, is_advanced_search, county_filter, sub_county_filter, ward_filter,
                 start_date_filter_original,
                 end_date_filter_original]
-    return [search_result, is_advanced_search, '', '', '', '', '']
-
 
 def clients(request):
     try:
@@ -388,7 +410,6 @@ def client_profile(request):
                                                                                current_AGYW=client_found)
                     cash_transfer_details_form.save(commit=False)
                 current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
-                import ipdb; ipdb.set_trace()
                 return render(request, 'client_profile.html', {'page': 'clients',
                                                                'page_title': 'DREAMS Client Service Uptake',
                                                                'client': client_found,
