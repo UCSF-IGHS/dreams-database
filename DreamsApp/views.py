@@ -1025,7 +1025,13 @@ def save_intervention(request):
     try:
         if is_valid_post_request(request) and request.user.has_perm('DreamsApp.add_intervention'):
             try:
-                client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                client_id = request.POST.get('client')
+                client_key = 'client-{}'.format(client_id)
+                client = cache.get(client_key)
+                if not client:
+                    client = Client.objects.get(id__exact=int(client_id))
+                cache_value(client_key, client)
+
                 status = True
                 if client.voided:
                     message = 'Error: You cannot Add Sevices to a voided Client. ' \
@@ -1052,13 +1058,26 @@ def save_intervention(request):
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_type_code = int(request.POST.get('intervention_type_code'))
-                intervention_type = InterventionType.objects.get(code__exact=intervention_type_code)
+                intervention_type_key = 'intervention-type-{}'.format(intervention_type_code)
+                
+                intervention_type = cache.get(intervention_type_key)
+                if not intervention_type:
+                    intervention_type = InterventionType.objects.get(code__exact=intervention_type_code)
+                cache_value(intervention_type_key, intervention_type)
+
                 """Check that this is not a one time intervention that has already been given to the client"""
                 try:
                     """Get client intervention filtered by intervention types"""
-                    client_interventions = Intervention.objects.filter(intervention_type=intervention_type,
-                                                                       client=client).exclude(voided=True)
+                    intervention_key = '{}-{}'.format(client.id, intervention_type_code)
+                    client_interventions = cache.get(intervention_key)
+                    
+                    if not client_interventions:
+                        client_interventions = Intervention.objects.filter(intervention_type=intervention_type,
+                                                                        client=client).exclude(voided=True)
+                    
+                    cache_value(intervention_key, client_interventions)
                     client_interventions_count = client_interventions.count()
+
                     if intervention_type.is_given_once and client_interventions.count() > 0:
                         response_data = {
                             'status': 'fail',
@@ -1862,7 +1881,11 @@ def delete_intervention(request):
                 if intervention_id is not None and type(intervention_id) is int:
                     # get intervention
                     # Check if intervention belongs to IP
-                    intervention = Intervention.objects.filter(pk=intervention_id).first()
+                    intervention_key = 'intervention-id-{}'.format(intervention_id)
+                    intervention = cache.get(intervention_key)
+                    if not intervention:
+                        intervention = Intervention.objects.filter(pk=intervention_id).first()
+                    cache_value(intervention_key, intervention)
 
                     if not intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner) or intervention.client.exited:
                         response_data = {
@@ -1924,8 +1947,17 @@ def get_sub_counties(request):
         if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
             response_data = {}
             county_id = request.GET['county_id']
-            county = County.objects.get(id__exact=county_id)
-            sub_counties = SubCounty.objects.filter(county__exact=county.id)
+            county_key = 'county-id-{}'.format(county_id)
+            county = cache.get(county_key)
+            if not county:
+                county = County.objects.get(id__exact=county_id)
+            cache_value(county_key, county)
+
+            sub_county_key = 'county-id-{}-sub_counties'
+            sub_counties = cache.get(sub_county_key)
+            if not sub_counties:
+                sub_counties = SubCounty.objects.filter(county__exact=county.id)
+            cache_value(sub_county_key, sub_counties)
             sub_counties = serializers.serialize('json', sub_counties)
             response_data["sub_counties"] = sub_counties
             return JsonResponse(response_data)
@@ -1940,8 +1972,16 @@ def get_wards(request):
     if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
         response_data = {}
         sub_county_id = request.GET['sub_county_id']
-        sub_county = SubCounty.objects.get(id__exact=sub_county_id)
-        wards = Ward.objects.filter(sub_county__exact=sub_county.id)
+        sub_county_key = 'sub-county-id-{0}'.format(sub_county_id)
+        sub_county = cache.get(sub_county_key)
+        if not sub_county:
+            sub_county = SubCounty.objects.get(id__exact=sub_county_id)
+        cache_value(sub_county_key, sub_county)
+        ward_key = 'sub-county-id-{}-wards'.format(sub_county_id)
+        wards = cache.get(ward_key)
+        if not wards:
+            wards = Ward.objects.filter(sub_county__exact=sub_county.id)
+        cache_value(ward_key, wards)
         wards = serializers.serialize('json', wards)
         response_data["wards"] = wards
         return JsonResponse(response_data)
