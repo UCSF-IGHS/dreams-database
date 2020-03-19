@@ -132,7 +132,7 @@ class ImplementingPartnerFunder(models.Model):
 # Give initial default value for service_provider_type
 class ImplementingPartner(models.Model):
     code = models.IntegerField(name='code', verbose_name='Implementing Partner Code')
-    name = models.CharField(max_length=150, verbose_name='Implementing Partner Name')
+    name = models.CharField(max_length=150, verbose_name='Implementing Partner Name', db_index=True)
     parent_implementing_partner = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, unique=False, verbose_name='Parent Implementing Partner')
     implementing_partner_funder = models.ForeignKey(ImplementingPartnerFunder, on_delete=models.PROTECT, null=True, blank=True, verbose_name='Funder')
 
@@ -175,27 +175,27 @@ class ExitReason(models.Model):
 
 
 class Client(models.Model):
-    first_name = models.CharField(verbose_name='First Name', max_length=100, null=True, blank=True)
-    middle_name = models.CharField(verbose_name='Middle Name', max_length=100, null=True, blank=True)
-    last_name = models.CharField(verbose_name='Last Name', max_length=100, null=True, blank=True)
-    date_of_birth = models.DateField(verbose_name='Date of Birth', null=True, blank=True)
+    first_name = models.CharField(verbose_name='First Name', max_length=100, null=True, blank=True, db_index=True)
+    middle_name = models.CharField(verbose_name='Middle Name', max_length=100, null=True, blank=True, db_index=True)
+    last_name = models.CharField(verbose_name='Last Name', max_length=100, null=True, blank=True, db_index=True)
+    date_of_birth = models.DateField(verbose_name='Date of Birth', null=True, blank=True, db_index=True)
     is_date_of_birth_estimated = models.NullBooleanField(verbose_name='Date of Birth Estimated', default=False, blank=True)
     verification_document = models.ForeignKey(VerificationDocument, null=True, blank=True, verbose_name='Verification Document')
     verification_document_other = models.CharField(max_length=50, verbose_name="Verification Document(Other)", blank=True, null=True)
     verification_doc_no = models.CharField(verbose_name='Verification Doc No', max_length=50, null=True, blank=True)
-    date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True, blank=True)
+    date_of_enrollment = models.DateField(verbose_name='Date of Enrollment', default=datetime.now, null=True, blank=True, db_index=True)
     age_at_enrollment = models.IntegerField(verbose_name='Age at Enrollment', default=MINIMUM_ENROLMENT_AGE, null=True, blank=True)
     marital_status = models.ForeignKey(MaritalStatus, verbose_name='Marital Status', null=True, blank=True)
-    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True, verbose_name='Implementing Partner')
+    implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True, verbose_name='Implementing Partner', db_index=True)
     phone_number = models.CharField(verbose_name='Phone Number', max_length=13, null=True, blank=True)
     dss_id_number = models.CharField(verbose_name='DSS ID Number', max_length=50, null=True, blank=True)
     county_of_residence = models.ForeignKey(County, verbose_name='County of Residence', null=True, blank=True)
     sub_county = models.ForeignKey(SubCounty, verbose_name='Sub County', null=True, blank=True)
-    ward = models.ForeignKey(Ward, verbose_name='Ward', null=True, blank=True)
+    ward = models.ForeignKey(Ward, verbose_name='Ward', null=True, blank=True, db_index=True)
     informal_settlement = models.CharField(verbose_name='Informal Settlement', max_length=250, null=True, blank=True)
     village = models.CharField(verbose_name='Village', max_length=250, null=True, blank=True)
     landmark = models.CharField(verbose_name='Land Mark near Residence', max_length=250, null=True, blank=True)
-    dreams_id = models.CharField(verbose_name='DREAMS ID', max_length=50, null=True, blank=True)
+    dreams_id = models.CharField(verbose_name='DREAMS ID', max_length=50, null=True, blank=True, db_index=True)
     guardian_name = models.CharField(verbose_name='Primary Care Giver/Guardian\' Name', max_length=250, null=True, blank=True)
     relationship_with_guardian = models.CharField(verbose_name='Relationship with Guardian', max_length=50, null=True, blank=True)
     guardian_phone_number = models.CharField(verbose_name='Phone Number(Care giver/Guardian)', max_length=13, null=True, blank=True)
@@ -203,21 +203,21 @@ class Client(models.Model):
 
     enrolled_by = models.ForeignKey(User, null=True, blank=True)
     odk_enrollment_uuid = models.CharField(max_length=50, null=True, blank=True)
-    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True, db_index=True)
     date_changed = models.DateTimeField(auto_now=True, blank=True, null=True)
 
-    voided = models.BooleanField(default=False)
+    voided = models.BooleanField(default=False, db_index=True)
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='+')
     date_voided = models.DateTimeField(null=True, blank=True)
 
-    exited = models.BooleanField(default=False)
+    exited = models.BooleanField(default=False, db_index=True)
     exit_reason = models.ForeignKey(ExitReason, null=True, blank=True)
     reason_exited = models.CharField(blank=True, null=True, max_length=100)
     exited_by = models.ForeignKey(User, null=True, blank=True, related_name='exited_by_user')
     date_exited = models.DateTimeField(null=True, blank=True)
 
-    ovc_id = models.CharField(blank=True, null=True, max_length=20)
+    ovc_id = models.CharField(blank=True, null=True, max_length=20, db_index=True)
     external_organisation = models.ForeignKey(ExternalOrganisation, null=True, blank=True)
 
     def save(self, user_id=None, action=None, *args, **kwargs):  # pass audit to args as the first object
@@ -368,7 +368,7 @@ class Client(models.Model):
 
 
 class InterventionCategory(models.Model):
-    code = models.IntegerField(verbose_name='Intervention Category Code', default=0)
+    code = models.IntegerField(verbose_name='Intervention Category Code', default=0, db_index=True)
     name = models.CharField(max_length=30)
 
     def __str__(self):
@@ -380,7 +380,7 @@ class InterventionCategory(models.Model):
 
 
 class InterventionType(models.Model):
-    code = models.IntegerField(verbose_name='Intervention Type Code', default=0, null=False, blank=False)
+    code = models.IntegerField(verbose_name='Intervention Type Code', default=0, null=False, blank=False, db_index=True)
     name = models.CharField(max_length=100, null=False)
     intervention_category = models.ForeignKey(InterventionCategory, null=False, blank=False)
     has_hts_result = models.BooleanField(default=False, verbose_name='Intervention collects HTS Result')
@@ -474,8 +474,8 @@ class Referral(models.Model):
 
 
 class Intervention(models.Model):
-    intervention_date = models.DateField()
-    client = models.ForeignKey(Client)
+    intervention_date = models.DateField(db_index=True)
+    client = models.ForeignKey(Client, db_index=True)
     intervention_type = models.ForeignKey(InterventionType, null=True, blank=True)
     name_specified = models.CharField(max_length=250, null=True, blank=True)
     hts_result = models.ForeignKey(HTSResult, null=True, blank=True)
@@ -489,7 +489,7 @@ class Intervention(models.Model):
     date_changed = models.DateTimeField(auto_now=True, null=True, blank=True)
     changed_by = models.ForeignKey(User, null=True, blank=True, related_name='changed_by')
     implementing_partner = models.ForeignKey(ImplementingPartner, null=True, blank=True,
-                                             related_name='implementing_partner')
+                                             related_name='implementing_partner', db_index=True)
     external_organisation = models.ForeignKey(ExternalOrganisation, null=True, blank=True,
                                              related_name='external_organisation')
     external_organisation_other = models.CharField(null=True, blank=True, max_length=255)

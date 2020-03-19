@@ -16,6 +16,7 @@ from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
+from django.core.cache import cache
 from django.db import connection as db_conn_2, transaction
 from django.utils.timezone import make_aware
 import urllib.parse
@@ -145,51 +146,72 @@ def filter_clients(search_client_term, is_advanced_search, request):
     search_client_term_parts = search_client_term.split()
     # check number of parts
     parts_count = len(search_client_term_parts)
+    cache_key = '-'.join(search_client_term_parts) # needs to be unique
+    cache_time = 86400 # time in seconds for cache to be valid
+    search_result  = None
+
     if parts_count == 1:
-        filter_text = search_client_term_parts[0]
-        search_result = Client.objects.filter(Q(dreams_id__iexact=filter_text) |
-                                              Q(first_name__iexact=filter_text) |
-                                              Q(middle_name__iexact=filter_text) |
-                                              Q(last_name__iexact=filter_text)) \
-            .exclude(voided=True).order_by('first_name').order_by('middle_name').order_by('last_name')
+        search_result = client_filter_with_one_search_part(search_client_term_parts[0])
     elif parts_count > 1:
+        search_result = client_filter_with_multiple_search_parts(search_client_term_parts, parts_count)
+    if is_advanced_search == 'True':
+        data = client_advanced_search(search_result, is_advanced_search, request)
+        return data
+    
+    cache.set(cache_key, search_result, cache_time)
+    return [search_result, is_advanced_search, '', '', '', '', '']
+
+def client_filter_with_one_search_part(search_client_part):
+    data = cache.get(search_client_part) # returns None if no key-value pair
+    if not data:
+        search_result = Client.objects.filter(Q(dreams_id__iexact=search_client_part) |
+                                            Q(first_name__iexact=search_client_part) |
+                                            Q(middle_name__iexact=search_client_part) |
+                                            Q(last_name__iexact=search_client_part)) \
+            .exclude(voided=True).order_by('first_name').order_by('middle_name').order_by('last_name')
+        data = search_result
+    return data
+
+def client_filter_with_multiple_search_parts(search_client_term_parts, parts_count):
+    data = cache.get('-'.join(search_client_term_parts))
+    if not data:
         # this is not a dreams id search but a name search
         filter_text_1 = search_client_term_parts[0]
         filter_text_2 = search_client_term_parts[1]
         filter_text_3 = '' if parts_count == 2 else search_client_term_parts[2]
         # first name and middle name
-        search_result = build_filter_client_queryset((filter_text_1, filter_text_2, filter_text_3),
-                                                     (filter_text_2, filter_text_1, filter_text_3),
-                                                     (filter_text_2, filter_text_3, filter_text_1),
-                                                     (filter_text_3, filter_text_2, filter_text_1),
-                                                     (filter_text_3, filter_text_1, filter_text_2),
-                                                     (filter_text_1, filter_text_3, filter_text_2))
-    if is_advanced_search == 'True':
-        county_filter = str(
+        data = build_filter_client_queryset((filter_text_1, filter_text_2, filter_text_3),
+                                                    (filter_text_2, filter_text_1, filter_text_3),
+                                                    (filter_text_2, filter_text_3, filter_text_1),
+                                                    (filter_text_3, filter_text_2, filter_text_1),
+                                                    (filter_text_3, filter_text_1, filter_text_2),
+                                                    (filter_text_1, filter_text_3, filter_text_2))
+    return data
+
+def client_advanced_search(search_result, is_advanced_search, request):
+    county_filter = str(
             request.GET.get('county', '') if request.method == 'GET' else request.POST.get('county', ''))
-        if county_filter != '':
-            search_result = search_result.filter(county_of_residence_id=int(county_filter))
-        sub_county_filter = str(
-            request.GET.get('sub_county', '') if request.method == 'GET' else request.POST.get('sub_county', ''))
-        if sub_county_filter != '':
-            search_result = search_result.filter(sub_county_id=int(sub_county_filter))
-        ward_filter = str(request.GET.get('ward', '') if request.method == 'GET' else request.POST.get('ward', ''))
-        if ward_filter != '':
-            search_result = search_result.filter(ward_id=int(ward_filter))
-        start_date_filter_original = request.GET.get('doe_start_filter',
-                                                     '') if request.method == 'GET' else request.POST.get(
-            'doe_start_filter', '')
-        start_date_filter = '2015-10-01' if start_date_filter_original == '' else start_date_filter_original
-        end_date_filter_original = request.GET.get('doe_end_filter',
-                                                   dt.today()) if request.method == 'GET' else request.POST.get(
-            'doe_end_filter', dt.today())
-        end_date_filter = dt.today() if end_date_filter_original == '' else end_date_filter_original
-        search_result = search_result.filter(date_of_enrollment__range=[start_date_filter, end_date_filter])  #
-        return [search_result, is_advanced_search, county_filter, sub_county_filter, ward_filter,
+    if county_filter != '':
+        search_result = search_result.filter(county_of_residence_id=int(county_filter))
+    sub_county_filter = str(
+        request.GET.get('sub_county', '') if request.method == 'GET' else request.POST.get('sub_county', ''))
+    if sub_county_filter != '':
+        search_result = search_result.filter(sub_county_id=int(sub_county_filter))
+    ward_filter = str(request.GET.get('ward', '') if request.method == 'GET' else request.POST.get('ward', ''))
+    if ward_filter != '':
+        search_result = search_result.filter(ward_id=int(ward_filter))
+    start_date_filter_original = request.GET.get('doe_start_filter',
+                                                    '') if request.method == 'GET' else request.POST.get(
+        'doe_start_filter', '')
+    start_date_filter = '2015-10-01' if start_date_filter_original == '' else start_date_filter_original
+    end_date_filter_original = request.GET.get('doe_end_filter',
+                                                dt.today()) if request.method == 'GET' else request.POST.get(
+        'doe_end_filter', dt.today())
+    end_date_filter = dt.today() if end_date_filter_original == '' else end_date_filter_original
+    search_result = search_result.filter(date_of_enrollment__range=[start_date_filter, end_date_filter])  #
+    return [search_result, is_advanced_search, county_filter, sub_county_filter, ward_filter,
                 start_date_filter_original,
                 end_date_filter_original]
-    return [search_result, is_advanced_search, '', '', '', '', '']
-
 
 def clients(request):
     try:
@@ -388,7 +410,6 @@ def client_profile(request):
                                                                                current_AGYW=client_found)
                     cash_transfer_details_form.save(commit=False)
                 current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
-                import ipdb; ipdb.set_trace()
                 return render(request, 'client_profile.html', {'page': 'clients',
                                                                'page_title': 'DREAMS Client Service Uptake',
                                                                'client': client_found,
@@ -483,10 +504,12 @@ def save_client(request):
                                 """
                                 SELECT (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1)
                                 from DreamsApp_client WHERE dreams_id is not null and ward_id is not null
-                                AND DreamsApp_client.implementing_partner_id=%s
-                                AND DreamsApp_client.ward_id=%s AND DreamsApp_client.voided=0 group by implementing_partner_id, ward_id;""",
+                                AND dreams_id REGEXP CONCAT('^', CAST(%s as decimal(4, 0)), '/', CAST(%s as decimal(4, 0)),'/')
+                                ;""",
                                 (ip_code, client.ward.id))
                             next_serial = cursor.fetchone()[0]
+                            if next_serial is None:
+                                next_serial = 1 
                             client.dreams_id = str(ip_code) + '/' + str(client.ward.code if client.ward != None else '') \
                                                + '/' + str(next_serial)
                         except Exception as e:
@@ -1002,7 +1025,13 @@ def save_intervention(request):
     try:
         if is_valid_post_request(request) and request.user.has_perm('DreamsApp.add_intervention'):
             try:
-                client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                client_id = request.POST.get('client')
+                client_key = 'client-{}'.format(client_id)
+                client = cache.get(client_key)
+                if not client:
+                    client = Client.objects.get(id__exact=int(client_id))
+                cache_value(client_key, client)
+
                 status = True
                 if client.voided:
                     message = 'Error: You cannot Add Sevices to a voided Client. ' \
@@ -1029,13 +1058,26 @@ def save_intervention(request):
             # Check if user belongs to an Ip
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_type_code = int(request.POST.get('intervention_type_code'))
-                intervention_type = InterventionType.objects.get(code__exact=intervention_type_code)
+                intervention_type_key = 'intervention-type-{}'.format(intervention_type_code)
+                
+                intervention_type = cache.get(intervention_type_key)
+                if not intervention_type:
+                    intervention_type = InterventionType.objects.get(code__exact=intervention_type_code)
+                cache_value(intervention_type_key, intervention_type)
+
                 """Check that this is not a one time intervention that has already been given to the client"""
                 try:
                     """Get client intervention filtered by intervention types"""
-                    client_interventions = Intervention.objects.filter(intervention_type=intervention_type,
-                                                                       client=client).exclude(voided=True)
+                    intervention_key = '{}-{}'.format(client.id, intervention_type_code)
+                    client_interventions = cache.get(intervention_key)
+                    
+                    if not client_interventions:
+                        client_interventions = Intervention.objects.filter(intervention_type=intervention_type,
+                                                                        client=client).exclude(voided=True)
+                    
+                    cache_value(intervention_key, client_interventions)
                     client_interventions_count = client_interventions.count()
+
                     if intervention_type.is_given_once and client_interventions.count() > 0:
                         response_data = {
                             'status': 'fail',
@@ -1393,16 +1435,12 @@ def get_intervention_list(request):
             list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
             iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
             # check for see_other_ip_data persmission
-
-            list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date',
-                                                               'date_created').filter(client__exact=client_id,
-                                                                                      intervention_type__in=iv_type_ids,
-                                                                                      voided=False) \
-                .order_by('-intervention_date', '-date_created', '-date_changed')
-
-            client_found = Client.objects.get(id=client_id)
+            cache_key = '{}-{}'.format(client_id, intervention_category_code)
+            list_of_interventions = get_list_of_interventions(client_id, iv_type_ids, cache_key)
+            
+            client_key = 'client-{}'.format(client_id)
+            client_found = get_client_found(client_id, client_key)
             client_is_transferred_out = client_found.transferred_out(request.user.implementingpartneruser.implementing_partner)
-
             if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 if client_is_transferred_out:
                     list_of_interventions = list_of_interventions.filter(
@@ -1444,6 +1482,24 @@ def get_intervention_list(request):
 
 # Gets an intervention. Takes intervention_id and returns Intervention object
 # use /ivGet/ to access this method
+
+def get_list_of_interventions(client_id, iv_type_ids, cache_key):
+    list_of_interventions = cache.get(cache_key)
+    if not list_of_interventions:
+        list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date',
+                                                        'date_created').filter(client__exact=client_id,
+                                                                                intervention_type__in=iv_type_ids,
+                                                                                voided=False) \
+        .order_by('-intervention_date', '-date_created', '-date_changed')
+    cache_value(cache_key, list_of_interventions)
+    return list_of_interventions
+
+def get_client_found(client_id, client_key):
+    client_found = cache.get(client_key)
+    if not client_found:
+        client_found = Client.objects.get(id=client_id)
+    cache_value(client_key, client_found)
+    return client_found
 
 
 def get_intervention(request):
@@ -1825,7 +1881,11 @@ def delete_intervention(request):
                 if intervention_id is not None and type(intervention_id) is int:
                     # get intervention
                     # Check if intervention belongs to IP
-                    intervention = Intervention.objects.filter(pk=intervention_id).first()
+                    intervention_key = 'intervention-id-{}'.format(intervention_id)
+                    intervention = cache.get(intervention_key)
+                    if not intervention:
+                        intervention = Intervention.objects.filter(pk=intervention_id).first()
+                    cache_value(intervention_key, intervention)
 
                     if not intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner) or intervention.client.exited:
                         response_data = {
@@ -1887,8 +1947,17 @@ def get_sub_counties(request):
         if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
             response_data = {}
             county_id = request.GET['county_id']
-            county = County.objects.get(id__exact=county_id)
-            sub_counties = SubCounty.objects.filter(county__exact=county.id)
+            county_key = 'county-id-{}'.format(county_id)
+            county = cache.get(county_key)
+            if not county:
+                county = County.objects.get(id__exact=county_id)
+            cache_value(county_key, county)
+
+            sub_county_key = 'county-id-{}-sub_counties'
+            sub_counties = cache.get(sub_county_key)
+            if not sub_counties:
+                sub_counties = SubCounty.objects.filter(county__exact=county.id)
+            cache_value(sub_county_key, sub_counties)
             sub_counties = serializers.serialize('json', sub_counties)
             response_data["sub_counties"] = sub_counties
             return JsonResponse(response_data)
@@ -1903,8 +1972,16 @@ def get_wards(request):
     if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
         response_data = {}
         sub_county_id = request.GET['sub_county_id']
-        sub_county = SubCounty.objects.get(id__exact=sub_county_id)
-        wards = Ward.objects.filter(sub_county__exact=sub_county.id)
+        sub_county_key = 'sub-county-id-{0}'.format(sub_county_id)
+        sub_county = cache.get(sub_county_key)
+        if not sub_county:
+            sub_county = SubCounty.objects.get(id__exact=sub_county_id)
+        cache_value(sub_county_key, sub_county)
+        ward_key = 'sub-county-id-{}-wards'.format(sub_county_id)
+        wards = cache.get(ward_key)
+        if not wards:
+            wards = Ward.objects.filter(sub_county__exact=sub_county.id)
+        cache_value(ward_key, wards)
         wards = serializers.serialize('json', wards)
         response_data["wards"] = wards
         return JsonResponse(response_data)
@@ -3822,3 +3899,7 @@ def get_min_max_date_of_birth(request):
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
+
+def cache_value(key, value):
+    cache_time = 86400 # time in seconds for cache to be valid
+    cache.set(key, value, cache_time)
