@@ -1953,7 +1953,7 @@ def get_sub_counties(request):
                 county = County.objects.get(id__exact=county_id)
             cache_value(county_key, county)
 
-            sub_county_key = 'county-id-{}-sub_counties'
+            sub_county_key = 'county-id-{}-sub_counties'.format(county_id)
             sub_counties = cache.get(sub_county_key)
             if not sub_counties:
                 sub_counties = SubCounty.objects.filter(county__exact=county.id)
