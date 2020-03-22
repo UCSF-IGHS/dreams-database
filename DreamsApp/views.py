@@ -1207,7 +1207,10 @@ def save_intervention(request):
                             intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
                         intervention.save(user_id=request.user.id, action="INSERT")  # Logging
-
+                        
+                        intervention_type_category_cache_key = 'client-{}-intervention-type-category-{}'.format(intervention.client.id, intervention.intervention_type.intervention_category.code)
+                        cache.delete(intervention_type_category_cache_key)
+                        
                         if intervention_by_referral == INTERVENTION_BY_REFERRAL:
                             response_data = {
                                 'status': 'success',
@@ -1435,9 +1438,8 @@ def get_intervention_list(request):
             list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
             iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
             # check for see_other_ip_data persmission
-            cache_key = '{}-{}'.format(client_id, intervention_category_code)
-            list_of_interventions = get_list_of_interventions(client_id, iv_type_ids, cache_key)
-            
+            intervention_type_category_cache_key = 'client-{}-intervention-type-category-{}'.format(client_id, intervention_category_code)
+            list_of_interventions = get_list_of_interventions(client_id, iv_type_ids, intervention_type_category_cache_key)
             client_key = 'client-{}'.format(client_id)
             client_found = get_client_found(client_id, client_key)
             client_is_transferred_out = client_found.transferred_out(request.user.implementingpartneruser.implementing_partner)
@@ -1769,6 +1771,9 @@ def update_intervention(request):
                                 intervention.external_organisation_other = None
 
                         intervention.save(user_id=request.user.id, action="UPDATE")  # Logging
+
+                        intervention_type_category_cache_key = ('client-{}-intervention-type-category-{}'.format(intervention.client.id, intervention.intervention_type.intervention_category.code))
+                        cache.delete(intervention_type_category_cache_key)
                         # using defer() miraculously solved serialization problem of datetime properties.
                         intervention = Intervention.objects.defer('date_changed', 'intervention_date',
                                                                   'date_created').get(id__exact=intervention.id)
@@ -1899,6 +1904,8 @@ def delete_intervention(request):
                         intervention.voided_by = request.user
                         intervention.date_voided = datetime.now()
                         intervention.save(user_id=request.user.id, action="UPDATE")  # Updating logs
+                        intervention_type_category_cache_key = 'client-{}-intervention-type-category-{}'.format(intervention.client.id, intervention.intervention_type.intervention_category.code)
+                        cache.delete(intervention_type_category_cache_key)
                         # intervention.delete() # No deletion whatsoever
                         log_custom_actions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", None)
                         response_data = {
