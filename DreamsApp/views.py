@@ -506,7 +506,7 @@ def save_client(request):
                                 from DreamsApp_client WHERE dreams_id is not null and ward_id is not null
                                 AND dreams_id REGEXP CONCAT('^', CAST(%s as decimal(4, 0)), '/', CAST(%s as decimal(4, 0)),'/')
                                 ;""",
-                                (ip_code, client.ward.id))
+                                (ip_code, client.ward.code))
                             next_serial = cursor.fetchone()[0]
                             if next_serial is None:
                                 next_serial = 1 
