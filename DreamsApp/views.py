@@ -1028,8 +1028,13 @@ def save_intervention(request):
                 client_id = request.POST.get('client')
                 client_key = 'client-{}'.format(client_id)
                 client = cache.get(client_key)
+
                 if not client:
                     client = Client.objects.get(id__exact=int(client_id))
+                
+                if client.exited or client.voided:
+                    client = Client.objects.get(id__exact=int(client_id))
+                    import ipdb; ipdb.set_trace()
                 cache_value(client_key, client)
 
                 status = True
