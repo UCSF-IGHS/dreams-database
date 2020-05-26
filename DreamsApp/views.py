@@ -1034,7 +1034,7 @@ def save_intervention(request):
                 
                 if client.exited or client.voided:
                     client = Client.objects.get(id__exact=int(client_id))
-                    import ipdb; ipdb.set_trace()
+                    
                 cache_value(client_key, client)
 
                 status = True
