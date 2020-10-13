@@ -53,6 +53,7 @@ PROJECT_APPS = [
     #'this_dashboard',
     'Dreams',
     'DreamsApp',
+    'rest_framework'
 ]
 
 INSTALLED_APPS = PREREQ_APPS + PROJECT_APPS
@@ -206,4 +207,11 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': '127.0.0.1:11211',
     }
+}
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [],
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
