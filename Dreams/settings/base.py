@@ -36,13 +36,14 @@ PREREQ_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'debug_toolbar',
+    # 'debug_toolbar',
     'ckeditor',
     'ckeditor_uploader',
     'widget_tweaks'
 ]
 
 PROJECT_APPS = [
+    'rest_framework',
     'xf.xf_crud',
     'xf.xf_system',
     'xf.uc_dashboards',
@@ -50,10 +51,8 @@ PROJECT_APPS = [
     'xf.uc_dashboards.templatetags.getattribute',
     'xf.uc_dashboards.templatetags.dashgent_filters',
     'xf.uc_dashboards.templatetags.iif',
-    #'this_dashboard',
     'Dreams',
     'DreamsApp',
-    'rest_framework'
 ]
 
 INSTALLED_APPS = PREREQ_APPS + PROJECT_APPS

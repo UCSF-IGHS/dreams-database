@@ -15,9 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.contrib import admin
 from DreamsApp import views
+from DreamsApp.api_views import interventions
 
 urlpatterns = [
     url(r'^$', views.user_login, name='login'),
@@ -27,6 +28,10 @@ urlpatterns = [
     url(r'^clientDelete$', views.delete_client, name='delete_client'),
     url(r'^client$', views.client_profile),
     url(r'^follow_ups$', views.follow_ups, name='follow_ups'),
+    url(
+        r'^api-auth/',
+        include('rest_framework.urls', namespace='rest_framework')
+    ),
     url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^ivgetTypes$', views.get_intervention_types),
     url(r'^ivgetType$', views.get_intervention_type),
@@ -101,8 +106,14 @@ urlpatterns = [
         name='export_client_transfers'),
     url(r'^export-client-referrals/(?P<referred_in>[0-1])$', views.export_client_referrals,
         name='export_client_referrals'),
-    url(r'^download-audit-logs', views.download_audit_logs, name='download_audit_logs'),
+    url(r'^download-audit-logs', views.download_audit_logs,
+        name='download_audit_logs'),
     url(r'^addFollowUp$', views.add_follow_up),
+    url(
+        r'^api/v1/interventions/$',
+        interventions.get_post_interventions,
+        name='get_post_interventions'
+    )
 ]
 
 handler404 = views.page_not_found
