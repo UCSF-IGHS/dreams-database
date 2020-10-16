@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from django.contrib.auth.models import User
 from DreamsApp.models import Intervention, Client, InterventionType, HTSResult, ExternalOrganisation, ImplementingPartner, PregnancyTestResult
-from DreamsApp.serializers import InterventionSerializer
+from DreamsApp.api.serializers import InterventionSerializer
 
 
 class InterventionCreateView(CreateAPIView):

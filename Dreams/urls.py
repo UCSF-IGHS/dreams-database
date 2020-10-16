@@ -17,10 +17,8 @@ Including another URLconf
 
 from django.conf.urls import url, include
 from django.contrib import admin
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework_simplejwt import views as jwt_views
 from DreamsApp import views
-from DreamsApp.api_views import interventions
+from DreamsApp.api import urls
 
 urlpatterns = [
     url(r'^$', views.user_login, name='login'),
@@ -30,10 +28,6 @@ urlpatterns = [
     url(r'^clientDelete$', views.delete_client, name='delete_client'),
     url(r'^client$', views.client_profile),
     url(r'^follow_ups$', views.follow_ups, name='follow_ups'),
-    url(
-        r'^api-auth/',
-        include('rest_framework.urls', namespace='rest_framework')
-    ),
     url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^ivgetTypes$', views.get_intervention_types),
     url(r'^ivgetType$', views.get_intervention_type),
@@ -111,10 +105,9 @@ urlpatterns = [
     url(r'^download-audit-logs', views.download_audit_logs,
         name='download_audit_logs'),
     url(r'^addFollowUp$', views.add_follow_up),
-
-    url(r'^api/v1/interventions/$',
-        csrf_exempt(interventions.InterventionCreateView.as_view()), name='interventions_api'),
 ]
+
+urlpatterns += urls.urlpatterns
 
 handler404 = views.page_not_found
 handler400 = views.bad_request
