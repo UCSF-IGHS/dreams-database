@@ -39,6 +39,7 @@ class InterventionCreateView(CreateAPIView):
             serializer.save(intervention_type=intervention_type, client = client, created_by=created_by, hts_result=hts_result, external_organisation=external_organisation, pregnancy_test_result=pregnancy_test_result, implementing_partner=implementing_partner)
             
         except User.DoesNotExist:
+            # do a 405 bad request 
             return Response('The supplied user {} does not exist'.formart(intervention_request['created_by']))
 
         except HTSResult.DoesNotExist:
