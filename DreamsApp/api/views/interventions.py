@@ -30,8 +30,7 @@ class InterventionCreateView(CreateAPIView):
         intervention_request = self.request.data
         try:
             client = Client.objects.get(pk=int(intervention_request["client"]))
-            created_by = User.objects.get(
-                username=intervention_request["created_by"])
+            created_by = User.objects.get(username=intervention_request["created_by"])
             hts_result = HTSResult.objects.get(
                 code=intervention_request.get("hts_result")
             )
@@ -128,23 +127,30 @@ class InterventionMultipleCreateView(CreateAPIView):
 
         try:
             interventions = self.request.data
+            if not self.request.data:
+                return Response(
+                    status=400, data={"message": "The request body was empty"}
+                )
             for intervention in interventions:
                 try:
                     client = Client.objects.get(pk=int(intervention["client"]))
                     intervention["client"] = client.id
-
-                    created_by = User.objects.get(
-                        username=intervention["created_by"])
+                    created_by = User.objects.get(username=intervention["created_by"])
                     intervention["created_by"] = created_by.id
 
-                    hts_result = HTSResult.objects.get(
-                        code=intervention["hts_result"])
-                    intervention["hts_result"] = hts_result.id
+                    hts_result = intervention["hts_result"]
+                    if hts_result:
+                        hts_result = HTSResult.objects.get(
+                            code=intervention["hts_result"]
+                        )
+                        intervention["hts_result"] = hts_result.id
 
-                    intervention_type = InterventionType.objects.get(
-                        code=intervention["intervention_type"]
-                    )
-                    intervention["intervention_type"] = intervention_type.id
+                    intervention_type = intervention["intervention_type"]
+                    if intervention_type:
+                        intervention_type = InterventionType.objects.get(
+                            code=intervention["intervention_type"]
+                        )
+                        intervention["intervention_type"] = intervention_type.id
 
                     external_organisation = intervention["external_organisation"]
                     if external_organisation:
@@ -160,10 +166,12 @@ class InterventionMultipleCreateView(CreateAPIView):
                         )
                         intervention["pregnancy_test_result"] = pregnancy_test_result.id
 
-                    implementing_partner = ImplementingPartner.objects.get(
-                        code=intervention["implementing_partner"]
-                    )
-                    intervention["implementing_partner"] = implementing_partner.id
+                    implementing_partner = intervention["implementing_partner"]
+                    if implementing_partner:
+                        implementing_partner = ImplementingPartner.objects.get(
+                            code=intervention["implementing_partner"]
+                        )
+                        intervention["implementing_partner"] = implementing_partner.id
 
                 except User.DoesNotExist:
                     return Response(
@@ -171,6 +179,16 @@ class InterventionMultipleCreateView(CreateAPIView):
                         data={
                             "message": "The supplied user {} does not exist".format(
                                 intervention["created_by"]
+                            )
+                        },
+                    )
+
+                except Client.DoesNotExist:
+                    return Response(
+                        status=404,
+                        data={
+                            "message": "The supplied client {} does not exist".format(
+                                intervention["client"]
                             )
                         },
                     )
@@ -214,9 +232,7 @@ class InterventionMultipleCreateView(CreateAPIView):
                             )
                         },
                     )
-
-            serializer = InterventionListSerializer(
-                data=interventions, many=True)
+            serializer = InterventionListSerializer(data=interventions, many=True)
             if serializer.is_valid():
                 serializer.save()
 
