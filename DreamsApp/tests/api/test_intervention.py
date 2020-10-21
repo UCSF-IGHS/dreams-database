@@ -46,7 +46,7 @@ class InterventionAPITestCase(TestCase):
 
     def test_with_no_authentication_is_unauthorised(self):
         factory = APIRequestFactory()
-        request = factory.post("api/v1/interventions-multiple")
+        request = factory.post("api/v1/interventions")
         view = InterventionMultipleCreateView.as_view()
         response = view(request)
         assert response.status_code == 401
@@ -55,7 +55,7 @@ class InterventionAPITestCase(TestCase):
     def test_authenticated_request_with_empty_body_responds_with_bad_request(self):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         factory = APIRequestFactory()
-        request = factory.post("api/v1/interventions-multiple")
+        request = factory.post("api/v1/interventions")
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
         response = view(request)
@@ -68,7 +68,7 @@ class InterventionAPITestCase(TestCase):
     ):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         factory = APIRequestFactory()
-        request = factory.post("api/v1/interventions-multiple", [])
+        request = factory.post("api/v1/interventions", [])
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
         response = view(request)
@@ -80,7 +80,7 @@ class InterventionAPITestCase(TestCase):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         factory = APIRequestFactory()
         request = factory.post(
-            "api/v1/interventions-multiple", self.interventions, format="json"
+            "api/v1/interventions", self.interventions, format="json"
         )
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
@@ -95,7 +95,7 @@ class InterventionAPITestCase(TestCase):
         self.interventions[0]["client"] = client.id
         factory = APIRequestFactory()
         request = factory.post(
-            "api/v1/interventions-multiple", self.interventions, format="json"
+            "api/v1/interventions", self.interventions, format="json"
         )
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
@@ -115,7 +115,7 @@ class InterventionAPITestCase(TestCase):
         self.interventions[0]["intervention_type"] = intervention_type.id
         factory = APIRequestFactory()
         request = factory.post(
-            "api/v1/interventions-multiple", self.interventions, format="json"
+            "api/v1/interventions", self.interventions, format="json"
         )
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
@@ -140,7 +140,7 @@ class InterventionAPITestCase(TestCase):
         self.interventions[0]["external_organisation"] = external_organisation.id
         factory = APIRequestFactory()
         request = factory.post(
-            "api/v1/interventions-multiple", self.interventions, format="json"
+            "api/v1/interventions", self.interventions, format="json"
         )
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
@@ -167,7 +167,7 @@ class InterventionAPITestCase(TestCase):
         self.interventions[0]["hts_result"] = hts_result.id
         factory = APIRequestFactory()
         request = factory.post(
-            "api/v1/interventions-multiple", self.interventions, format="json"
+            "api/v1/interventions", self.interventions, format="json"
         )
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
@@ -199,7 +199,7 @@ class InterventionAPITestCase(TestCase):
         self.interventions[0]["created_by"] = user.username
         factory = APIRequestFactory()
         request = factory.post(
-            "api/v1/interventions-multiple", self.interventions, format="json"
+            "api/v1/interventions", self.interventions, format="json"
         )
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
@@ -231,7 +231,7 @@ class InterventionAPITestCase(TestCase):
         self.interventions[0]["implementing_partner"] = implementing_partner.code
         factory = APIRequestFactory()
         request = factory.post(
-            "api/v1/interventions-multiple", self.interventions, format="json"
+            "api/v1/interventions", self.interventions, format="json"
         )
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
@@ -266,7 +266,7 @@ class InterventionAPITestCase(TestCase):
         self.interventions[0]["implementing_partner"] = implementing_partner.code
         factory = APIRequestFactory()
         request = factory.post(
-            "api/v1/interventions-multiple", self.interventions, format="json"
+            "api/v1/interventions", self.interventions, format="json"
         )
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
@@ -297,11 +297,12 @@ class InterventionAPITestCase(TestCase):
         del self.interventions[0]["client"]
         factory = APIRequestFactory()
         request = factory.post(
-            "api/v1/interventions-multiple", self.interventions, format="json"
+            "api/v1/interventions", self.interventions, format="json"
         )
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
         response = view(request)
         assert response.status_code == 400
         assert response.status_text == "Bad Request"
-        assert response.data["message"] == [{"client": ["This field is required."]}]
+        assert response.data["message"] == [
+            {"client": ["This field is required."]}]
