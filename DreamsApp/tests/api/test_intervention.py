@@ -76,7 +76,7 @@ class InterventionAPITestCase(TestCase):
         assert response.status_text == "Bad Request"
         assert response.data["message"] == "The request body was empty"
 
-    def test_authenticated_request_with_missing_client_returns_404(self):
+    def test_authenticated_request_with_wrong_client_returns_400(self):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         factory = APIRequestFactory()
         request = factory.post(
@@ -85,10 +85,10 @@ class InterventionAPITestCase(TestCase):
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
         response = view(request)
-        assert response.status_code == 404
-        assert response.status_text == "Not Found"
+        assert response.status_code == 400
+        assert response.status_text == "Bad Request"
 
-    def test_authenticated_request_with_missing_intervention_type_returns_404(self):
+    def test_authenticated_request_with_wrong_intervention_type_returns_400(self):
 
         client = Client.objects.create(first_name="Lady", last_name="Bird")
         user = User.objects.create(username="adventure", password="No1Knows!t")
@@ -100,10 +100,10 @@ class InterventionAPITestCase(TestCase):
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
         response = view(request)
-        assert response.status_code == 404
-        assert response.status_text == "Not Found"
+        assert response.status_code == 400
+        assert response.status_text == "Bad Request"
 
-    def test_authenticated_request_with_missing_external_organization_returns_404(self):
+    def test_authenticated_request_with_wrong_external_organization_returns_400(self):
 
         client = Client.objects.create(first_name="Lady", last_name="Bird")
         user = User.objects.create(username="adventure", password="No1Knows!t")
@@ -120,10 +120,10 @@ class InterventionAPITestCase(TestCase):
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
         response = view(request)
-        assert response.status_code == 404
-        assert response.status_text == "Not Found"
+        assert response.status_code == 400
+        assert response.status_text == "Bad Request"
 
-    def test_authenticated_request_with_missing_hts_returns_404(self):
+    def test_authenticated_request_with_wrong_hts_result_returns_400(self):
 
         client = Client.objects.create(first_name="Lady", last_name="Bird")
         intervention_category = InterventionCategoryFactory()
@@ -145,10 +145,10 @@ class InterventionAPITestCase(TestCase):
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
         response = view(request)
-        assert response.status_code == 404
-        assert response.status_text == "Not Found"
+        assert response.status_code == 400
+        assert response.status_text == "Bad Request"
 
-    def test_authenticated_request_with_missing_pregnancy_test_returns_404(self):
+    def test_authenticated_request_with_missing_pregnancy_test_returns_400(self):
 
         client = Client.objects.create(first_name="Lady", last_name="Bird")
         intervention_category = InterventionCategoryFactory()
@@ -172,10 +172,10 @@ class InterventionAPITestCase(TestCase):
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
         response = view(request)
-        assert response.status_code == 404
-        assert response.status_text == "Not Found"
+        assert response.status_code == 400
+        assert response.status_text == "Bad Request"
 
-    def test_authenticated_request_with_missing_implementing_partner_test_returns_404(
+    def test_authenticated_request_with_wrong_implementing_partner_test_returns_404(
         self,
     ):
 
@@ -204,10 +204,10 @@ class InterventionAPITestCase(TestCase):
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
         response = view(request)
-        assert response.status_code == 404
-        assert response.status_text == "Not Found"
+        assert response.status_code == 400
+        assert response.status_text == "Bad Request"
 
-    def test_authenticated_request_with_missing_user_returns_404(self):
+    def test_authenticated_request_with_wrong_user_returns_404(self):
 
         client = Client.objects.create(first_name="Lady", last_name="Bird")
         intervention_category = InterventionCategoryFactory()
@@ -236,8 +236,8 @@ class InterventionAPITestCase(TestCase):
         force_authenticate(request, user)
         view = InterventionMultipleCreateView.as_view()
         response = view(request)
-        assert response.status_code == 404
-        assert response.status_text == "Not Found"
+        assert response.status_code == 400
+        assert response.status_text == "Bad Request"
 
     def test_authenticated_request_with_valid_request_data_creates_record(self):
 
@@ -274,3 +274,34 @@ class InterventionAPITestCase(TestCase):
         assert response.status_code == 201
         assert response.status_text == "Created"
         assert response.data["message"] == "Success! Records successfully created"
+
+    def test_authenticated_request_with_no_client_id_supplied_returns_400(self):
+
+        intervention_category = InterventionCategoryFactory()
+        intervention_type = InterventionTypeFactory(
+            intervention_category_id=intervention_category.id
+        )
+        user = User.objects.create(username="adventure", password="No1Knows!t")
+        external_organisation_type = ExternalOrganisationTypeFactory()
+        external_organisation = ExternalOrganisationFactory(
+            type_id=external_organisation_type.id
+        )
+        pregnancy_test_result = PregnancyTestResultFactory()
+        implementing_partner = ImplementingPartnerFactory()
+        self.interventions[0]["intervention_type"] = intervention_type.code
+        self.interventions[0]["hts_result"] = None
+        self.interventions[0]["external_organisation"] = external_organisation.code
+        self.interventions[0]["pregnancy_test_result"] = pregnancy_test_result.code
+        self.interventions[0]["created_by"] = user.username
+        self.interventions[0]["implementing_partner"] = implementing_partner.code
+        del self.interventions[0]["client"]
+        factory = APIRequestFactory()
+        request = factory.post(
+            "api/v1/interventions-multiple", self.interventions, format="json"
+        )
+        force_authenticate(request, user)
+        view = InterventionMultipleCreateView.as_view()
+        response = view(request)
+        assert response.status_code == 400
+        assert response.status_text == "Bad Request"
+        assert response.data["message"] == [{"client": ["This field is required."]}]

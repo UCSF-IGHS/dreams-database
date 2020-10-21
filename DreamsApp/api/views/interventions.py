@@ -64,10 +64,7 @@ class InterventionCreateView(CreateAPIView):
                 implementing_partner=implementing_partner,
             )
 
-            # respond wit
-
         except User.DoesNotExist:
-            # do a 405 bad request
             return Response(
                 status=404,
                 data={
@@ -133,8 +130,10 @@ class InterventionMultipleCreateView(CreateAPIView):
                 )
             for intervention in interventions:
                 try:
-                    client = Client.objects.get(pk=int(intervention["client"]))
-                    intervention["client"] = client.id
+                    client = None
+                    if "client" in intervention:
+                        client = Client.objects.get(pk=int(intervention["client"]))
+                        intervention["client"] = client.id
                     created_by = User.objects.get(username=intervention["created_by"])
                     intervention["created_by"] = created_by.id
 
@@ -175,7 +174,7 @@ class InterventionMultipleCreateView(CreateAPIView):
 
                 except User.DoesNotExist:
                     return Response(
-                        status=404,
+                        status=400,
                         data={
                             "message": "The supplied user {} does not exist".format(
                                 intervention["created_by"]
@@ -185,7 +184,7 @@ class InterventionMultipleCreateView(CreateAPIView):
 
                 except Client.DoesNotExist:
                     return Response(
-                        status=404,
+                        status=400,
                         data={
                             "message": "The supplied client {} does not exist".format(
                                 intervention["client"]
@@ -195,7 +194,7 @@ class InterventionMultipleCreateView(CreateAPIView):
 
                 except HTSResult.DoesNotExist:
                     return Response(
-                        status=404,
+                        status=400,
                         data={
                             "message": "The supplied HTSResult {} does not exist".format(
                                 intervention["hts_result"]
@@ -205,7 +204,7 @@ class InterventionMultipleCreateView(CreateAPIView):
 
                 except ExternalOrganisation.DoesNotExist:
                     return Response(
-                        status=404,
+                        status=400,
                         data={
                             "message": "The supplied ExternalOrganization {} does not exist".format(
                                 intervention["external_organisation"]
@@ -215,7 +214,7 @@ class InterventionMultipleCreateView(CreateAPIView):
 
                 except PregnancyTestResult.DoesNotExist:
                     return Response(
-                        status=404,
+                        status=400,
                         data={
                             "message": "The supplied PregnancyTestResult {} does not exist".format(
                                 intervention["pregnancy_test_result"]
@@ -225,7 +224,7 @@ class InterventionMultipleCreateView(CreateAPIView):
 
                 except ImplementingPartner.DoesNotExist:
                     return Response(
-                        status=404,
+                        status=400,
                         data={
                             "message": "The supplied ImplementingPartner {} does not exist".format(
                                 intervention["implementing_partner"]
@@ -235,10 +234,11 @@ class InterventionMultipleCreateView(CreateAPIView):
             serializer = InterventionListSerializer(data=interventions, many=True)
             if serializer.is_valid():
                 serializer.save()
-
-            return Response(
-                status=201, data={"message": "Success! Records successfully created"}
-            )
-
+                return Response(
+                    status=201,
+                    data={"message": "Success! Records successfully created"},
+                )
+            else:
+                return Response(status=400, data={"message": serializer.errors})
         except Exception:
             return Response(status=500, data={"message": "Internal Server Error"})
