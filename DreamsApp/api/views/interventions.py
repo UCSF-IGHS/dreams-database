@@ -131,7 +131,7 @@ class InterventionMultipleCreateView(CreateAPIView):
             for intervention in interventions:
                 try:
                     client = None
-                    if "client" in intervention:
+                    if "client" in intervention and intervention["client"]:
                         client = Client.objects.get(pk=int(intervention["client"]))
                         intervention["client"] = client.id
                     created_by = User.objects.get(username=intervention["created_by"])
@@ -240,5 +240,5 @@ class InterventionMultipleCreateView(CreateAPIView):
                 )
             else:
                 return Response(status=400, data={"message": serializer.errors})
-        except Exception:
-            return Response(status=500, data={"message": "Internal Server Error"})
+        except Exception as e:
+            return Response(status=500, data={"message": str(e)})

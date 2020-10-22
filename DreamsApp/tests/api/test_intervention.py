@@ -304,5 +304,35 @@ class InterventionAPITestCase(TestCase):
         response = view(request)
         assert response.status_code == 400
         assert response.status_text == "Bad Request"
-        assert response.data["message"] == [
-            {"client": ["This field is required."]}]
+        assert response.data["message"] == [{"client": ["This field is required."]}]
+
+    def test_authenticated_request_with_null_client_id_supplied_returns_400(self):
+
+        intervention_category = InterventionCategoryFactory()
+        intervention_type = InterventionTypeFactory(
+            intervention_category_id=intervention_category.id
+        )
+        user = User.objects.create(username="adventure", password="No1Knows!t")
+        external_organisation_type = ExternalOrganisationTypeFactory()
+        external_organisation = ExternalOrganisationFactory(
+            type_id=external_organisation_type.id
+        )
+        pregnancy_test_result = PregnancyTestResultFactory()
+        implementing_partner = ImplementingPartnerFactory()
+        self.interventions[0]["intervention_type"] = intervention_type.code
+        self.interventions[0]["hts_result"] = None
+        self.interventions[0]["external_organisation"] = external_organisation.code
+        self.interventions[0]["pregnancy_test_result"] = pregnancy_test_result.code
+        self.interventions[0]["created_by"] = user.username
+        self.interventions[0]["implementing_partner"] = implementing_partner.code
+        self.interventions[0]["client"] = None
+        factory = APIRequestFactory()
+        request = factory.post(
+            "api/v1/interventions", self.interventions, format="json"
+        )
+        force_authenticate(request, user)
+        view = InterventionMultipleCreateView.as_view()
+        response = view(request)
+        assert response.status_code == 400
+        assert response.status_text == "Bad Request"
+        assert response.data["message"] == [{"client": ["This field may not be null."]}]
