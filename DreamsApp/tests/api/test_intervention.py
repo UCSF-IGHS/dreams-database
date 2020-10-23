@@ -244,29 +244,9 @@ class InterventionAPITestCase(TestCase):
 
     def test_authenticated_request_with_valid_request_data_creates_record(self):
 
-        client = Client.objects.create(
-            first_name="Lady",
-            last_name="Bird",
-            date_of_enrollment=date.today() - timedelta(5),
-        )
-        intervention_category = InterventionCategoryFactory()
-        intervention_type = InterventionTypeFactory(
-            intervention_category_id=intervention_category.id
-        )
         user = User.objects.create(username="adventure", password="No1Knows!t")
-        external_organisation_type = ExternalOrganisationTypeFactory()
-        external_organisation = ExternalOrganisationFactory(
-            type_id=external_organisation_type.id
-        )
-        pregnancy_test_result = PregnancyTestResultFactory()
-        implementing_partner = ImplementingPartnerFactory()
-        self.interventions[0]["intervention_type"] = intervention_type.code
-        self.interventions[0]["client"] = client.id
+        self._setup_intervention(user)
         self.interventions[0]["hts_result"] = None
-        self.interventions[0]["external_organisation"] = external_organisation.code
-        self.interventions[0]["pregnancy_test_result"] = pregnancy_test_result.code
-        self.interventions[0]["created_by"] = user.username
-        self.interventions[0]["implementing_partner"] = implementing_partner.code
         factory = APIRequestFactory()
         request = factory.post(
             "api/v1/interventions", self.interventions, format="json"
@@ -311,7 +291,11 @@ class InterventionAPITestCase(TestCase):
 
     def _setup_intervention(self, user):
 
-        client = Client.objects.create(first_name="Lady", last_name="Bird")
+        client = Client.objects.create(
+            first_name="Lady",
+            last_name="Bird",
+            date_of_enrollment=date.today() - timedelta(5),
+        )
         intervention_category = InterventionCategoryFactory()
         intervention_type = InterventionTypeFactory(
             intervention_category_id=intervention_category.id
@@ -329,4 +313,3 @@ class InterventionAPITestCase(TestCase):
         self.interventions[0]["pregnancy_test_result"] = pregnancy_test_result.code
         self.interventions[0]["created_by"] = user.username
         self.interventions[0]["implementing_partner"] = implementing_partner.code
-        self.interventions[0]["client"] = None
