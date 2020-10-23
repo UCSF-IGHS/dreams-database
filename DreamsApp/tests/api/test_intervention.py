@@ -280,23 +280,8 @@ class InterventionAPITestCase(TestCase):
 
     def test_authenticated_request_with_no_client_id_supplied_returns_400(self):
 
-        intervention_category = InterventionCategoryFactory()
-        intervention_type = InterventionTypeFactory(
-            intervention_category_id=intervention_category.id
-        )
         user = User.objects.create(username="adventure", password="No1Knows!t")
-        external_organisation_type = ExternalOrganisationTypeFactory()
-        external_organisation = ExternalOrganisationFactory(
-            type_id=external_organisation_type.id
-        )
-        pregnancy_test_result = PregnancyTestResultFactory()
-        implementing_partner = ImplementingPartnerFactory()
-        self.interventions[0]["intervention_type"] = intervention_type.code
-        self.interventions[0]["hts_result"] = None
-        self.interventions[0]["external_organisation"] = external_organisation.code
-        self.interventions[0]["pregnancy_test_result"] = pregnancy_test_result.code
-        self.interventions[0]["created_by"] = user.username
-        self.interventions[0]["implementing_partner"] = implementing_partner.code
+        self._setup_intervention(user)
         del self.interventions[0]["client"]
         factory = APIRequestFactory()
         request = factory.post(
