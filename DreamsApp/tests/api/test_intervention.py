@@ -84,13 +84,7 @@ class InterventionAPITestCase(TestCase):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         self._setup_intervention(user)
         self.interventions[0]["client"] = WRONG_CLIENT_ID
-        factory = APIRequestFactory()
-        request = factory.post(
-            "api/v1/interventions", self.interventions, format="json"
-        )
-        force_authenticate(request, user)
-        view = InterventionMultipleCreateView.as_view()
-        response = view(request)
+        response = self._send_request(user)
         assert response.status_code == 400
         assert response.status_text == "Bad Request"
         assert response.data[
@@ -103,13 +97,7 @@ class InterventionAPITestCase(TestCase):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         self._setup_intervention(user)
         self.interventions[0]["intervention_type"] = WRONG_INTERVENTION_TYPE
-        factory = APIRequestFactory()
-        request = factory.post(
-            "api/v1/interventions", self.interventions, format="json"
-        )
-        force_authenticate(request, user)
-        view = InterventionMultipleCreateView.as_view()
-        response = view(request)
+        response = self._send_request(user)
         assert response.status_code == 400
         assert response.status_text == "Bad Request"
         assert response.data[
@@ -124,13 +112,7 @@ class InterventionAPITestCase(TestCase):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         self._setup_intervention(user)
         self.interventions[0]["external_organisation"] = WRONG_EXTERNAL_ORGANISATION
-        factory = APIRequestFactory()
-        request = factory.post(
-            "api/v1/interventions", self.interventions, format="json"
-        )
-        force_authenticate(request, user)
-        view = InterventionMultipleCreateView.as_view()
-        response = view(request)
+        response = self._send_request(user)
         assert response.status_code == 400
         assert response.status_text == "Bad Request"
         assert response.data[
@@ -144,13 +126,7 @@ class InterventionAPITestCase(TestCase):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         self._setup_intervention(user)
         self.interventions[0]["hts_result"] = WRONG_HTS_RESULT
-        factory = APIRequestFactory()
-        request = factory.post(
-            "api/v1/interventions", self.interventions, format="json"
-        )
-        force_authenticate(request, user)
-        view = InterventionMultipleCreateView.as_view()
-        response = view(request)
+        response = self._send_request(user)
         assert response.status_code == 400
         assert response.status_text == "Bad Request"
         assert response.data[
@@ -162,13 +138,7 @@ class InterventionAPITestCase(TestCase):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         self._setup_intervention(user)
         self.interventions[0]["pregnancy_test_result"] = MISSING_PREGNANCY_TEST
-        factory = APIRequestFactory()
-        request = factory.post(
-            "api/v1/interventions", self.interventions, format="json"
-        )
-        force_authenticate(request, user)
-        view = InterventionMultipleCreateView.as_view()
-        response = view(request)
+        response = self._send_request(user)
         assert response.status_code == 400
         assert response.status_text == "Bad Request"
         assert response.data[
@@ -186,13 +156,7 @@ class InterventionAPITestCase(TestCase):
         self.interventions[0][
             "implementing_partner"
         ] = IMPLENTING_PARTNER_NOT_IN_DATABASE
-        factory = APIRequestFactory()
-        request = factory.post(
-            "api/v1/interventions", self.interventions, format="json"
-        )
-        force_authenticate(request, user)
-        view = InterventionMultipleCreateView.as_view()
-        response = view(request)
+        response = self._send_request(user)
         assert response.status_code == 400
         assert response.status_text == "Bad Request"
         assert response.data[
@@ -206,13 +170,7 @@ class InterventionAPITestCase(TestCase):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         self._setup_intervention(user)
         self.interventions[0]["created_by"] = "user_who_did_not_create_the_intervention"
-        factory = APIRequestFactory()
-        request = factory.post(
-            "api/v1/interventions", self.interventions, format="json"
-        )
-        force_authenticate(request, user)
-        view = InterventionMultipleCreateView.as_view()
-        response = view(request)
+        response = self._send_request(user)
         assert response.status_code == 400
         assert response.status_text == "Bad Request"
 
@@ -221,13 +179,7 @@ class InterventionAPITestCase(TestCase):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         self._setup_intervention(user)
         self.interventions[0]["hts_result"] = None
-        factory = APIRequestFactory()
-        request = factory.post(
-            "api/v1/interventions", self.interventions, format="json"
-        )
-        force_authenticate(request, user)
-        view = InterventionMultipleCreateView.as_view()
-        response = view(request)
+        response = self._send_request(user)
         assert response.status_code == 201
         assert response.status_text == "Created"
         assert response.data["message"] == "Success! Records successfully created"
@@ -237,13 +189,7 @@ class InterventionAPITestCase(TestCase):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         self._setup_intervention(user)
         del self.interventions[0]["client"]
-        factory = APIRequestFactory()
-        request = factory.post(
-            "api/v1/interventions", self.interventions, format="json"
-        )
-        force_authenticate(request, user)
-        view = InterventionMultipleCreateView.as_view()
-        response = view(request)
+        response = self._send_request(user)
         assert response.status_code == 400
         assert response.status_text == "Bad Request"
         assert response.data["message"] == [{"client": ["This field is required."]}]
@@ -252,13 +198,7 @@ class InterventionAPITestCase(TestCase):
         user = User.objects.create(username="adventure", password="No1Knows!t")
         self._setup_intervention(user)
         self.interventions[0]["client"] = None
-        factory = APIRequestFactory()
-        request = factory.post(
-            "api/v1/interventions", self.interventions, format="json"
-        )
-        force_authenticate(request, user)
-        view = InterventionMultipleCreateView.as_view()
-        response = view(request)
+        response = self._send_request(user)
         assert response.status_code == 400
         assert response.status_text == "Bad Request"
         assert response.data["message"] == [{"client": ["This field may not be null."]}]
@@ -287,3 +227,14 @@ class InterventionAPITestCase(TestCase):
         self.interventions[0]["pregnancy_test_result"] = pregnancy_test_result.code
         self.interventions[0]["created_by"] = user.username
         self.interventions[0]["implementing_partner"] = implementing_partner.code
+
+    def _send_request(self, user):
+
+        factory = APIRequestFactory()
+        request = factory.post(
+            "api/v1/interventions", self.interventions, format="json"
+        )
+        force_authenticate(request, user)
+        view = InterventionMultipleCreateView.as_view()
+        response = view(request)
+        return response
