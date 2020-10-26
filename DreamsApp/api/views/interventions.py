@@ -150,7 +150,9 @@ class InterventionMultipleCreateView(CreateAPIView):
                             code=intervention["intervention_type"]
                         )
                         intervention["intervention_type"] = intervention_type.id
+                    import ipdb
 
+                    ipdb.set_trace()
                     external_organisation = intervention["external_organisation"]
                     if external_organisation:
                         external_organisation = ExternalOrganisation.objects.get(
@@ -222,6 +224,15 @@ class InterventionMultipleCreateView(CreateAPIView):
                         },
                     )
 
+                except InterventionType.DoesNotExist:
+                    return Response(
+                        status=400,
+                        data={
+                            "message": "The supplied PregnancyTestResult {} does not exist".format(
+                                intervention["intervention_type"]
+                            )
+                        },
+                    )
                 except ImplementingPartner.DoesNotExist:
                     return Response(
                         status=400,
