@@ -70,11 +70,8 @@ class InterventionAPITestCase(TestCase):
         self,
     ):
         user = User.objects.create(username="adventure", password="No1Knows!t")
-        factory = APIRequestFactory()
-        request = factory.post("api/v1/interventions", [])
-        force_authenticate(request, user)
-        view = InterventionMultipleCreateView.as_view()
-        response = view(request)
+        self.interventions = []
+        response = self._send_request(user)
         assert response.status_code == 400
         assert response.status_text == "Bad Request"
         assert response.data["message"] == "The request body was empty"
@@ -203,6 +200,20 @@ class InterventionAPITestCase(TestCase):
         assert response.status_text == "Bad Request"
         assert response.data["message"] == [{"client": ["This field may not be null."]}]
 
+    def test_authenticated_user_with_duplicate_intervention_submission_returns_200(self):
+        
+        user = User.objects.create(username="adventure", password="No1Knows!t")
+        self._setup_intervention(user)
+        self.interventions[0]["hts_result"] = None
+        response = self._send_request(user)
+        assert response.status_code == 201
+        assert response.status_text == "Created"
+        assert response.data["message"] == "Success! Records successfully created"
+        new_response = self._send_request(user)
+        assert new_response.status_code == 200
+        assert new_response.status_text == "OK"
+        assert new_response.data["message"] == "Duplicate Record! Record not created since its a duplicate."
+
     def _setup_intervention(self, user):
 
         client = Client.objects.create(
@@ -229,7 +240,7 @@ class InterventionAPITestCase(TestCase):
         self.interventions[0]["implementing_partner"] = implementing_partner.code
 
     def _send_request(self, user):
-
+        
         factory = APIRequestFactory()
         request = factory.post(
             "api/v1/interventions", self.interventions, format="json"
