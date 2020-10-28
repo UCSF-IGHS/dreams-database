@@ -1,13 +1,11 @@
-from datetime import datetime
-from rest_framework.decorators import api_view
-from rest_framework.views import APIView
+from django.db import DataError
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
-from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from django.contrib.auth.models import User
+
 from DreamsApp.models import (
     Intervention,
     Client,
@@ -248,5 +246,9 @@ class InterventionMultipleCreateView(CreateAPIView):
                 )
             else:
                 return Response(status=400, data={"message": serializer.errors})
+
+        except DataError as e:
+            return Response(status=200, data={"message": str(e)})
+
         except Exception as e:
-            return Response(status=500, data={"message": str(e)})
+            return Response(status=400, data={"message": str(e)})
