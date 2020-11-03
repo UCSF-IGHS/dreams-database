@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from rest_framework.test import APIRequestFactory, force_authenticate
 from django.contrib.auth.models import User
 from datetime import date, timedelta
-from DreamsApp.api.views.interventions import InterventionMultipleCreateView
+from DreamsApp.api.views.interventions_view import InterventionMultipleCreateView
 from DreamsApp.tests.factories.factories import (
     ExternalOrganisationFactory,
     ExternalOrganisationTypeFactory,
