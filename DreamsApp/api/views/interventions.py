@@ -122,6 +122,8 @@ class InterventionMultipleCreateView(CreateAPIView):
 
         try:
             interventions = self.request.data
+            import logging
+            logging.info(interventions)
             if not self.request.data:
                 return Response(
                     status=400, data={"message": "The request body was empty"}
