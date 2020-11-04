@@ -208,6 +208,22 @@ class InterventionAPITestCase(TestCase):
         assert new_response.status_text == "OK"
         assert new_response.data["message"] == "Duplicate Record! Record not created since its a duplicate."
 
+    def test_authenticated_user_with_duplicate_intervention_data_submission_returns_200(self):
+        user = User.objects.create(username="adventure", password="No1Knows!t")
+        self._setup_intervention(user)
+        self.interventions[0]["hts_result"] = None
+        self.interventions.append(self.interventions[0])
+        self.interventions.append(self.interventions[0])
+        import ipdb; ipdb.set_trace()
+        response = self._send_request(user)
+        assert response.status_code == 201
+        assert response.status_text == "Created"
+        assert response.data["message"] == "Success! Records successfully created"
+        new_response = self._send_request(user)
+        assert new_response.status_code == 200
+        assert new_response.status_text == "OK"
+        assert new_response.data["message"] == "Duplicate Record! Record not created since its a duplicate."
+
     def _setup_intervention(self, user):
         client = Client.objects.create(
             first_name="Lady",
