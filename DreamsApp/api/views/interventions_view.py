@@ -33,34 +33,3 @@ class InterventionCreateView(CreateAPIView):
             return Response(status=200, data={"message": str(e)})
         except Exception as e:
             return Response(status=400, data={"message": str(e)})
-
-#
-# class InterventionMultipleCreateView(CreateAPIView):
-#     serializer_class = InterventionListSerializer
-# 
-#     def post(self, request):
-#         authentication_classes = [SessionAuthentication, BasicAuthentication]
-#         permission_classes = [IsAuthenticated]
-# 
-#         try:
-#             interventions = self.request.data
-#             if not self.request.data:
-#                 return Response(
-#                     status=400, data={"message": "The request body was empty"}
-#                 )
-# 
-#             serializer = InterventionListSerializer(data=interventions, many=True)
-#             if serializer.is_valid():
-#                 serializer.save()
-#                 return Response(
-#                     status=201,
-#                     data={"message": "Success! Records successfully created"},
-#                 )
-#             else:
-#                 return Response(status=400, data={"message": serializer.errors})
-# 
-#         except DataError as e:
-#             return Response(status=200, data={"message": str(e)})
-# 
-#         except Exception as e:
-#             return Response(status=400, data={"message": str(e)})
