@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory, force_authenticate
 
-from DreamsApp.api.views.interventions_view import InterventionMultipleCreateView
+from DreamsApp.api.views.interventions_view import InterventionCreateView
 from DreamsApp.models import Client
 
 
@@ -21,12 +21,12 @@ class APITestCase(TestCase):
         )
         if user is not None:
             force_authenticate(request, user)
-        view = InterventionMultipleCreateView.as_view()
+        view = InterventionCreateView.as_view()
         response = view(request)
         return response
 
 
-    def _generate_duplicates_test_data(self):
+    def _generate_test_data(self):
         test_data = {}
         test_data['user'] = User.objects.create(username="adventure", password="No1Knows!t")
         test_data['client'] = Client.objects.first()
@@ -42,7 +42,7 @@ class APITestCase(TestCase):
                 "date_linked_to_ccc": None,
                 "number_of_sessions_attended": None,
                 "comment": None,
-                "created_by": "api_user",
+                "created_by": "admin",
                 "implementing_partner": 3,
                 "external_organisation": None,
                 "external_organization_other": None,
