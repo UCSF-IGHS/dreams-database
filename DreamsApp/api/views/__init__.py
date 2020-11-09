@@ -1,1 +1,1 @@
-from . import interventions
+from . import interventions_view

@@ -15,7 +15,7 @@ from DreamsApp.models import (
     ImplementingPartner,
     PregnancyTestResult,
 )
-from DreamsApp.api.serializers import InterventionSerializer, InterventionListSerializer
+from DreamsApp.api.serializers import InterventionSerializer
 
 
 class InterventionCreateView(CreateAPIView):
