@@ -8,9 +8,9 @@ from DreamsApp.tests.api.api_test_case import APITestCase
 class InterventionAPITestCase(APITestCase):
 
     def test_request_with_no_authentication_returns_unauthorised(self):
-        test_data = self._generate_test_data()
-        response = self._send_request(None, test_data['request_body'])
-        self.assertEquals(response.status_code, 403, "Expected response status code of 403 for unauthorized")
+        response = self._send_request_without_data()
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN,
+                          "Expected response status code of 403 for forbidden")
 
     def test_with_wrong_username_returns_a_user_field_validation_error(self):
         test_data = self._generate_test_data()
@@ -18,7 +18,7 @@ class InterventionAPITestCase(APITestCase):
 
         response = self._send_request(test_data['user'], test_data['request_body'])
 
-        self.assertEquals(response.status_code, 200, "Expected response status code of 200")
+        self.assertEquals(response.status_code, status.HTTP_200_OK, "Expected response status code of 200")
         self.assertEquals(response.data["status"], ResponseStatusMixin.ERROR_VALIDATION_ERROR,
                           'Expected ERROR_VALIDATION_ERROR status code.')
 
@@ -32,7 +32,7 @@ class InterventionAPITestCase(APITestCase):
 
         response = self._send_request(test_data['user'], test_data['request_body'])
 
-        self.assertEquals(response.status_code, 200, "Expected response status code of 200")
+        self.assertEquals(response.status_code, status.HTTP_200_OK, "Expected response status code of 200")
         self.assertEquals(Intervention.objects.all().count(), 0,
                           "Expected no record from the database after the api request")
         self.assertEquals(response.data["status"], ResponseStatusMixin.ERROR_VALIDATION_ERROR,
@@ -111,7 +111,6 @@ class InterventionAPITestCase(APITestCase):
         self.assertIn(implementing_partner_field_error, response.data["errors"],
                       'Expected client field amongst the returned error fields')
 
-
     def test_request_with_wrong_external_organisation_returns_external_organisation_field_validation_error(self):
         wrong_external_organisation = 9999
         test_data = self._generate_test_data()
@@ -123,7 +122,6 @@ class InterventionAPITestCase(APITestCase):
                           "Expected no record from the database after the api request")
         self.assertEquals(response.data['status'], ResponseStatusMixin.ERROR_VALIDATION_ERROR,
                           'Expected ERROR_VALIDATION_ERROR status code.')
-
 
         external_organisation_field_error = {
             'external_organisation': ResponseStatusMixin.ERROR_VALIDATION_EXTERNAL_ORGANISATION_NOT_FOUND}

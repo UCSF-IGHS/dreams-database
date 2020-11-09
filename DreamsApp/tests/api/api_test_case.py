@@ -25,6 +25,13 @@ class APITestCase(TestCase):
         response = view(request)
         return response
 
+    def _send_request_without_data(self):
+        factory = APIRequestFactory()
+        request = factory.post("api/v1/interventions", data=None)
+        view = InterventionCreateView.as_view()
+        response = view(request)
+        return response
+
 
     def _generate_test_data(self):
         test_data = {}

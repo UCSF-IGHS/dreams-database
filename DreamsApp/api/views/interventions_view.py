@@ -7,37 +7,39 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
-from DreamsApp.api.serializers import InterventionSerializer
 from DreamsApp.api.response_status_mixin import ResponseStatusMixin
+from DreamsApp.api.serializers import InterventionSerializer
 
 
 class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
-    serializer_class = InterventionSerializer
-    renderer_classes = [JSONRenderer]
     authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated]
+    serializer_class = InterventionSerializer
+    renderer_classes = [JSONRenderer]
 
     def create(self, request, *args, **kwargs):
 
         serializer = self.get_serializer(data=request.data)
+        response_status = None
+        errors = []
+        http_response_code = status.HTTP_200_OK
 
         try:
             self.perform_create(serializer)
+            http_response_code = status.HTTP_201_CREATED
+            response_status = ResponseStatusMixin.SUCCESS_CREATED
+
         except (UnsupportedMediaType, ParseError) as e:
-            response_body = {'status': self.ERROR_SERIALIZATION_ERROR}
-            return Response(status=200, data=response_body)
+            response_status = ResponseStatusMixin.ERROR_SERIALIZATION_ERROR
 
         except ValidationError as e:
+            response_status = ResponseStatusMixin.ERROR_VALIDATION_ERROR
             errors = self.extract_response_errors(e.get_codes())
-            response_body = {'status': self.ERROR_VALIDATION_ERROR, "errors": errors}
-            return Response(status=200, data=response_body)
 
         except DataError as e:
-            response_body = {'status': self.SUCCESS_DUPLICATE_IGNORED, 'message': 'Success'}
-            return Response(status=status.HTTP_200_OK, data=response_body)
+            response_status = ResponseStatusMixin.SUCCESS_DUPLICATE_IGNORED
 
-        response_body = {'status': self.SUCCESS_CREATED}
-        return Response(status=status.HTTP_201_CREATED, data=response_body)
+        return Response(status=http_response_code, data={'status': response_status, "errors": errors})
 
     def perform_create(self, serializer):
         if serializer.is_valid(raise_exception=True):
