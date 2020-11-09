@@ -1,1 +1,1 @@
-from .interventions import InterventionSerializer, InterventionListSerializer
+from .interventions import InterventionSerializer

@@ -135,9 +135,9 @@ class InterventionAPITestCase(APITestCase):
         self.assertEquals(Intervention.objects.all().count(), 0,
                           "Expected no record from the database before the api request")
         response = self._send_request(test_data['user'], test_data['request_body'])
-        self.assertEquals(response.status_code, 200,
+        self.assertEquals(response.status_code, 201,
                           "Expected response status code of 201 but instead received {}".format(response.status_code))
-        self.assertEquals(response.body.status, StatusCodesMixin.SUCCESS_CREATED,
+        self.assertEquals(response.data.status, StatusCodesMixin.SUCCESS_CREATED,
                           'Expected SUCCESS_CREATED status code.')
         self.assertEquals(Intervention.objects.all().count(), 1,
                           "Expected one record from the database after the api request")
