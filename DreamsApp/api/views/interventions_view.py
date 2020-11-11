@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from DreamsApp.api.response_status_mixin import ResponseStatusMixin
 from DreamsApp.api.serializers import InterventionSerializer
+from DreamsApp.cache_helpers.intervention_cache_helper import InterventionCacheHelper
 
 
 class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
@@ -26,6 +27,7 @@ class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
 
         try:
             self.perform_create(serializer)
+            InterventionCacheHelper.delete_intervention_in_cache(serializer.data['client'], serializer.data['intervention_type'])
             http_response_code = status.HTTP_201_CREATED
             response_status = ResponseStatusMixin.SUCCESS_CREATED
 
