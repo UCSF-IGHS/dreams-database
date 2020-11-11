@@ -396,10 +396,6 @@ class InterventionType(models.Model):
     def __str__(self):
         return '{}'.format(self.name)
 
-    @property
-    def intervention_category_code(self):
-        return self.intervention_category.code
-
     class Meta(object):
         verbose_name = 'Intervention Type'
         verbose_name_plural = 'Intervention Types'
