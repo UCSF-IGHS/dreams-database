@@ -36,13 +36,14 @@ PREREQ_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'debug_toolbar',
+    # 'debug_toolbar',
     'ckeditor',
     'ckeditor_uploader',
     'widget_tweaks'
 ]
 
 PROJECT_APPS = [
+    'rest_framework',
     'xf.xf_crud',
     'xf.xf_system',
     'xf.uc_dashboards',
@@ -50,7 +51,6 @@ PROJECT_APPS = [
     'xf.uc_dashboards.templatetags.getattribute',
     'xf.uc_dashboards.templatetags.dashgent_filters',
     'xf.uc_dashboards.templatetags.iif',
-    #'this_dashboard',
     'Dreams',
     'DreamsApp',
 ]
@@ -206,4 +206,17 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': '127.0.0.1:11211',
     }
+}
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    "DATE_INPUT_FORMATS": ["%d-%m-%Y", "%Y-%m-%d"],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
 }
