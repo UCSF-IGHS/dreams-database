@@ -27,7 +27,8 @@ class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
 
         try:
             self.perform_create(serializer)
-            InterventionCacheHelper.delete_intervention_in_cache(serializer.data['client'], serializer.data['intervention_type'])
+            InterventionCacheHelper.delete_intervention_category_key_from_cache(serializer.data['client'],
+                                                                                serializer.data['intervention_type'])
             http_response_code = status.HTTP_201_CREATED
             response_status = ResponseStatusMixin.SUCCESS_CREATED
 
