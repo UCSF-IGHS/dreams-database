@@ -14,3 +14,8 @@ class InterventionCacheHelper:
             cache.delete(intervention_type_category_cache_key)
         except Exception as e:
             return {'error': str(e)}
+
+    @classmethod
+    def refresh_cache(cls, client_id: int, intervention_type_code: int):
+        cls.delete_intervention_category_key_from_cache(client_id, intervention_type_code)
+

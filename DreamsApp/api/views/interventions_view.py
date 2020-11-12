@@ -13,7 +13,7 @@ from DreamsApp.cache_helpers.intervention_cache_helper import InterventionCacheH
 
 
 class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = InterventionSerializer
     renderer_classes = [JSONRenderer]
@@ -27,8 +27,7 @@ class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
 
         try:
             self.perform_create(serializer)
-            InterventionCacheHelper.delete_intervention_category_key_from_cache(serializer.data['client'],
-                                                                                serializer.data['intervention_type'])
+            InterventionCacheHelper.refresh_cache(serializer.data['client'], serializer.data['intervention_type'])
             http_response_code = status.HTTP_201_CREATED
             response_status = ResponseStatusMixin.SUCCESS_CREATED
 

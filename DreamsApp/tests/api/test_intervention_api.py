@@ -9,8 +9,8 @@ class InterventionAPITestCase(APITestCase):
 
     def test_request_with_no_authentication_returns_unauthorised(self):
         response = self._send_request_without_data()
-        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN,
-                          "Expected response status code of 403 for forbidden")
+        self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED,
+                          "Expected response status code of 401 for forbidden")
 
     def test_with_wrong_username_returns_a_user_field_validation_error(self):
         test_data = self._generate_test_data()
