@@ -5,7 +5,7 @@ from DreamsApp.models import InterventionType
 
 class InterventionCacheHelper:
     @staticmethod
-    def delete_intervention_category_key_from_cache(client_id: int, intervention_type_code: int):
+    def _delete_intervention_category_key_from_cache(client_id: int, intervention_type_code: int):
         try:
             intervention_type = InterventionType.objects.get(code=intervention_type_code)
             intervention_category_code = intervention_type.intervention_category.code
@@ -17,5 +17,5 @@ class InterventionCacheHelper:
 
     @classmethod
     def refresh_cache(cls, client_id: int, intervention_type_code: int):
-        cls.delete_intervention_category_key_from_cache(client_id, intervention_type_code)
+        cls._delete_intervention_category_key_from_cache(client_id, intervention_type_code)
 
