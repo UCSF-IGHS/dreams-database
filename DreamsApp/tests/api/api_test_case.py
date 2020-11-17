@@ -53,6 +53,7 @@ class APITestCase(TestCase):
                 "implementing_partner": 3,
                 "external_organisation": None,
                 "external_organization_other": None,
+                "odk_uuid": '12343sfsdfr3453'
             }
         return test_data
 
