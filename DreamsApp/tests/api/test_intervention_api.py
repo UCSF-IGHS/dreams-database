@@ -105,7 +105,7 @@ class InterventionAPITestCase(APITestCase):
                           'Expected ERROR_VALIDATION_ERROR status code.')
 
         odk_uuid_field_error = {
-            'odk_uuid': ResponseStatusMixin.ERROR_VALIDATION_ODK_UUID_NOT_FOUND}
+            'odk_uuid': ResponseStatusMixin.ERROR_VALIDATION_ODK_UUID_MISSING}
         self.assertIn(odk_uuid_field_error, response.data["errors"],
                       'Expected odk uuid field amongst the returned error fields')
 
