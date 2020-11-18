@@ -94,21 +94,6 @@ class InterventionAPITestCase(APITestCase):
         self.assertIn(intervention_type_field_error, response.data["errors"],
                       'Expected intervention type field amongst the returned error fields')
 
-    def test_request_with_no_odk_uuid_returns_odk_uuid_validation_error(self):
-        test_data = self._generate_test_data()
-        del test_data['request_body']['odk_uuid']
-        response = self._send_request(test_data['user'], test_data['request_body'])
-        self.assertEquals(response.status_code, status.HTTP_200_OK, "Expected response status code of 200")
-        self.assertEquals(Intervention.objects.all().count(), 0,
-                          "Expected no record from the database after the api request")
-        self.assertEquals(response.data['status'], ResponseStatusMixin.ERROR_VALIDATION_ERROR,
-                          'Expected ERROR_VALIDATION_ERROR status code.')
-
-        odk_uuid_field_error = {
-            'odk_uuid': ResponseStatusMixin.ERROR_VALIDATION_ODK_UUID_MISSING}
-        self.assertIn(odk_uuid_field_error, response.data["errors"],
-                      'Expected odk uuid field amongst the returned error fields')
-
     def test_intervention_request_with_null_odk_uuid_creates_a_record(self):
         test_data = self._generate_test_data()
         test_data['request_body']['odk_uuid'] = None

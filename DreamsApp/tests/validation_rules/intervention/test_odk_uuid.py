@@ -11,5 +11,5 @@ class TestODKUUID(XFTestCase):
     def tearDown(self):
         pass
 
-    def test_external_organisation_other_is_optional(self):
+    def test_odk_uuid_is_optional(self):
         self.assertFieldOptional(Intervention, 'odk_uuid', 'odk uuid is optional')

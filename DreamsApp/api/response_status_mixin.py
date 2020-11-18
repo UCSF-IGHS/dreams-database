@@ -14,7 +14,6 @@ class ResponseStatusMixin:
     ERROR_VALIDATION_EXTERNAL_ORGANISATION_NOT_FOUND = 'ERROR_VALIDATION_EXTERNAL_ORGANISATION_NOT_FOUND'
     ERROR_VALIDATION_PREGNANCY_TEST_RESULT_NOT_FOUND = 'ERROR_VALIDATION_PREGNANCY_TEST_RESULT_NOT_FOUND'
     ERROR_VALIDATION_USER_NOT_FOUND = 'ERROR_VALIDATION_USER_NOT_FOUND'
-    ERROR_VALIDATION_ODK_UUID_MISSING = 'ERROR_VALIDATION_ODK_UUID_MISSING'
     ERROR_ACCESS_DENIED = 'ERROR_ACCESS_DENIED'
 
     def extract_response_errors(self, error_codes):
@@ -37,8 +36,6 @@ class ResponseStatusMixin:
                 response_errors.append({field: ResponseStatusMixin.ERROR_VALIDATION_CLIENT_NOT_FOUND})
             elif field == 'created_by':
                 response_errors.append({field: ResponseStatusMixin.ERROR_VALIDATION_USER_NOT_FOUND})
-            elif field == 'odk_uuid':
-                response_errors.append({field: ResponseStatusMixin.ERROR_VALIDATION_ODK_UUID_MISSING})
             else:
                 response_errors.append({field: ResponseStatusMixin.ERROR_VALIDATION_ERROR})
 
