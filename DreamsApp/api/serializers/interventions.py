@@ -19,11 +19,12 @@ class InterventionSerializer(serializers.ModelSerializer):
     client = serializers.SlugRelatedField(many=False, queryset=Client.objects.all(), slug_field='id', read_only=False)
     created_by = serializers.SlugRelatedField(many=False, queryset=User.objects.all(), slug_field='username',
                                               read_only=False)
-    odk_uuid = serializers.CharField(allow_null=True )
+    odk_uuid = serializers.CharField(allow_null=True)
+    number_of_sessions_attended = serializers.CharField(allow_null=True, source="no_of_sessions_attended")
 
     class Meta:
         model = Intervention
-        fields =(
+        fields = (
             "intervention_date",
             "name_specified",
             "client_ccc_number",
@@ -37,6 +38,7 @@ class InterventionSerializer(serializers.ModelSerializer):
             "pregnancy_test_result",
             "intervention_type",
             "implementing_partner",
-            'odk_uuid'
+            "odk_uuid",
+            "number_of_sessions_attended",
+            "comment"
         )
-
