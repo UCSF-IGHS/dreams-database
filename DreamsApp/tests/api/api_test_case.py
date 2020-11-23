@@ -53,6 +53,9 @@ class APITestCase(TestCase):
                 "implementing_partner": 3,
                 "external_organisation": None,
                 "external_organization_other": None,
+                "odk_uuid": "12343sfsdfr3453",
+                "number_of_sessions_attended": 3,
+                "comment": "She just received an intervention"
             }
         return test_data
 

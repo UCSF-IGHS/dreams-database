@@ -499,6 +499,7 @@ class Intervention(models.Model):
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='voided_by')
     date_voided = models.DateTimeField(null=True, blank=True)
+    odk_uuid = models.CharField(blank=True, null=True, max_length=100, default=None)
 
     def get_name_specified(self):
         return self.name_specified if self.name_specified else ''

@@ -1,6 +1,6 @@
 from django.db import DataError
 from rest_framework import status
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.authentication import BasicAuthentication
 from rest_framework.exceptions import ValidationError, ParseError, UnsupportedMediaType
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
