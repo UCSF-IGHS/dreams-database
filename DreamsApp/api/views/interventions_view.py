@@ -1,9 +1,11 @@
 import logging
 
 from django.db import DataError
+from  django.core import exceptions
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.exceptions import ValidationError, ParseError, UnsupportedMediaType
+
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
@@ -46,6 +48,10 @@ class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
         except DataError as e:
             response_status = ResponseStatusMixin.SUCCESS_DUPLICATE_IGNORED if 'DUPLICATE' in e.args \
                 else ResponseStatusMixin.ERROR_VALIDATION_ERROR
+            logging.error(e)
+
+        except exceptions.ValidationError as e:
+            response_status = ResponseStatusMixin.ERROR_VALIDATION_ERROR
             logging.error(e)
 
         except Exception as e:
