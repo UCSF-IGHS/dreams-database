@@ -47,9 +47,11 @@ class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
             response_status = ResponseStatusMixin.SUCCESS_DUPLICATE_IGNORED if 'DUPLICATE' in e.args \
                 else ResponseStatusMixin.ERROR_VALIDATION_ERROR
             logging.error(e)
+
         except Exception as e:
+            response_status = ResponseStatusMixin.ERROR
+            errors = str(e.args)
             logging.error(e)
-            raise e
 
         logging.info(response_status)
         logging.info(errors)
