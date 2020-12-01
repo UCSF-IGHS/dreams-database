@@ -607,7 +607,7 @@ class Intervention(models.Model):
         if self.pk is None:
             existing_intervention = Intervention.objects.filter(intervention_type_id=self.intervention_type_id, intervention_date=self.intervention_date, client_id=self.client_id, name_specified=self.name_specified, implementing_partner_id=self.implementing_partner_id)
             if existing_intervention.exists():
-                raise DataError("Duplicate Record! Record not created since its a duplicate.")
+                raise DataError("DUPLICATE")
 
 
 class Audit(models.Model):
