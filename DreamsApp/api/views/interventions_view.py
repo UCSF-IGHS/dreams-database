@@ -1,9 +1,11 @@
 import logging
 
 from django.db import DataError
+from  django.core import exceptions
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.exceptions import ValidationError, ParseError, UnsupportedMediaType
+
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
@@ -48,9 +50,14 @@ class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
                 else ResponseStatusMixin.ERROR_VALIDATION_ERROR
             logging.error(e)
 
+        except exceptions.ValidationError as e:
+            response_status = ResponseStatusMixin.ERROR_VALIDATION_ERROR
+            errors = self.extract_response_errors(e.message_dict)
+            logging.error(e)
+
         except Exception as e:
             response_status = ResponseStatusMixin.ERROR
-            errors = str(e.args)
+            errors.append(str(e.args))
             logging.error(e)
 
         logging.info(response_status)
