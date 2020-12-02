@@ -57,7 +57,7 @@ class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
 
         except Exception as e:
             response_status = ResponseStatusMixin.ERROR
-            errors.append({'unknown_errors': str(e.args)})
+            errors.append(str(e.args))
             logging.error(e)
 
         logging.info(response_status)
