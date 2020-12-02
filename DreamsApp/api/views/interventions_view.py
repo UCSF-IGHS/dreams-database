@@ -1,7 +1,11 @@
+import logging
+
 from django.db import DataError
+from  django.core import exceptions
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.exceptions import ValidationError, ParseError, UnsupportedMediaType
+
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
@@ -20,6 +24,7 @@ class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
 
     def create(self, request, *args, **kwargs):
 
+        logging.info(request.data)
         serializer = self.get_serializer(data=request.data)
         response_status = None
         errors = []
@@ -33,14 +38,30 @@ class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
 
         except (UnsupportedMediaType, ParseError) as e:
             response_status = ResponseStatusMixin.ERROR_SERIALIZATION_ERROR
+            logging.error(e)
 
         except ValidationError as e:
             response_status = ResponseStatusMixin.ERROR_VALIDATION_ERROR
             errors = self.extract_response_errors(e.get_codes())
+            logging.error(e)
 
         except DataError as e:
-            response_status = ResponseStatusMixin.SUCCESS_DUPLICATE_IGNORED
+            response_status = ResponseStatusMixin.SUCCESS_DUPLICATE_IGNORED if 'DUPLICATE' in e.args \
+                else ResponseStatusMixin.ERROR_VALIDATION_ERROR
+            logging.error(e)
 
+        except exceptions.ValidationError as e:
+            response_status = ResponseStatusMixin.ERROR_VALIDATION_ERROR
+            errors = self.extract_response_errors(e.message_dict)
+            logging.error(e)
+
+        except Exception as e:
+            response_status = ResponseStatusMixin.ERROR
+            errors.append(str(e.args))
+            logging.error(e)
+
+        logging.info(response_status)
+        logging.info(errors)
         return Response(status=http_response_code, data={'status': response_status, "errors": errors})
 
     def perform_create(self, serializer):
