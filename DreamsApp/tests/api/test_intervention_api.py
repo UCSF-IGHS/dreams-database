@@ -1,4 +1,5 @@
 from rest_framework import status
+from datetime import date, timedelta
 
 from DreamsApp.api.response_status_mixin import ResponseStatusMixin
 from DreamsApp.models import Intervention
@@ -175,3 +176,21 @@ class InterventionAPITestCase(APITestCase):
 
         self.assertEquals(response.data["status"], ResponseStatusMixin.SUCCESS_DUPLICATE_IGNORED,
                           'Expected SUCCESS_CREATED status code.')
+
+
+    def test_intervention_does_not_create_two_records_with_same_uuid(self):
+        test_data = self._generate_test_data()
+        self.assertEquals(Intervention.objects.all().count(), 0,
+                          'Expected 0 interventions in the database before calling the api')
+        self._send_request(test_data['user'], test_data['request_body'])
+        self.assertEquals(Intervention.objects.all().count(), 1,
+                          "Expected one record from the database after the first api request")
+        test_data['request_body']['intervention_date'] = date.today() - timedelta(days=9)
+
+        response = self._send_request(test_data['user'], test_data['request_body'])
+        self.assertEquals(response.status_code, status.HTTP_200_OK, "Expected response status code of 200")
+        self.assertEquals(Intervention.objects.all().count(), 1,
+                          "Expected one record from the database after second api call")
+
+        self.assertEquals(response.data["status"], ResponseStatusMixin.ERROR_VALIDATION_ERROR,
+                          'Expected ERROR_VALIDATION_ERROR status code.')
