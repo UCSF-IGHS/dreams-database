@@ -52,11 +52,12 @@ class InterventionCreateView(CreateAPIView, ResponseStatusMixin):
 
         except exceptions.ValidationError as e:
             response_status = ResponseStatusMixin.ERROR_VALIDATION_ERROR
+            errors = self.extract_response_errors(e.message_dict)
             logging.error(e)
 
         except Exception as e:
             response_status = ResponseStatusMixin.ERROR
-            errors = str(e.args)
+            errors.append({'unknown_errors': str(e.args)})
             logging.error(e)
 
         logging.info(response_status)

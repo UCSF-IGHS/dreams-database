@@ -37,6 +37,8 @@ class ResponseStatusMixin:
                 response_errors.append({field: ResponseStatusMixin.ERROR_VALIDATION_CLIENT_NOT_FOUND})
             elif field == 'created_by':
                 response_errors.append({field: ResponseStatusMixin.ERROR_VALIDATION_USER_NOT_FOUND})
+            elif field == 'odk_uuid':
+                response_errors.append({field: ResponseStatusMixin.ERROR_VALIDATION_ERROR})
             else:
                 response_errors.append({field: ResponseStatusMixin.ERROR_VALIDATION_ERROR})
 
