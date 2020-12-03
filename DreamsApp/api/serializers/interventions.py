@@ -35,6 +35,7 @@ class InterventionSerializer(serializers.ModelSerializer):
             "hts_result",
             "client",
             "external_organisation",
+            "external_organisation_other",
             "pregnancy_test_result",
             "intervention_type",
             "implementing_partner",
