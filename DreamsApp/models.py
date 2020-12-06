@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, DataError
 from django.contrib.auth.models import User
 from datetime import datetime
 from django.utils import timezone
@@ -499,6 +499,7 @@ class Intervention(models.Model):
     reason_voided = models.CharField(blank=True, null=True, max_length=100)
     voided_by = models.ForeignKey(User, null=True, blank=True, related_name='voided_by')
     date_voided = models.DateTimeField(null=True, blank=True)
+    odk_uuid = models.CharField(blank=True, null=True, max_length=100, default=None, unique=True)
 
     def get_name_specified(self):
         return self.name_specified if self.name_specified else ''
@@ -584,6 +585,7 @@ class Intervention(models.Model):
 
         self.validate_model_external_organisation_other(validation_errors)
         self.validate_model_intervention_date(validation_errors)
+        self.validate_duplicate_submission(validation_errors)
 
         if validation_errors:
             raise ValidationError(validation_errors)
@@ -600,6 +602,12 @@ class Intervention(models.Model):
             if self.intervention_date < self.client.date_of_enrollment:
                 validation_errors[
                     'intervention_date'] = 'Intervention date cannot be later than client enrolment date for implementing partner.'
+    
+    def validate_duplicate_submission(self, validation_errors):
+        if self.pk is None:
+            existing_intervention = Intervention.objects.filter(intervention_type_id=self.intervention_type_id, intervention_date=self.intervention_date, client_id=self.client_id, name_specified=self.name_specified, implementing_partner_id=self.implementing_partner_id)
+            if existing_intervention.exists():
+                raise DataError("DUPLICATE")
 
 
 class Audit(models.Model):
