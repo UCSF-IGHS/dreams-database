@@ -199,7 +199,7 @@ class Client(models.Model):
     guardian_name = models.CharField(verbose_name='Primary Care Giver/Guardian\' Name', max_length=250, null=True, blank=True)
     relationship_with_guardian = models.CharField(verbose_name='Relationship with Guardian', max_length=50, null=True, blank=True)
     guardian_phone_number = models.CharField(verbose_name='Phone Number(Care giver/Guardian)', max_length=13, null=True, blank=True)
-    guardian_national_id = models.CharField(verbose_name='National ID (Care giver/Guardian)', max_length=10, null=True, blank=True)
+    guardian_national_id = models.CharField(verbose_name='National ID (Care giver/Guardian)', max_length=250, null=True, blank=True)
 
     enrolled_by = models.ForeignKey(User, null=True, blank=True)
     odk_enrollment_uuid = models.CharField(max_length=50, null=True, blank=True)
