@@ -12,3 +12,6 @@ class TestDelegatedImplementingPartnerTestCase(XFTestCase):
 
     def test_main_implementing_partner_is_required(self):
         self.assertFieldRequired(ServiceDelegation, 'delegated_implementing_partner', 'delegated implementing partner is required')
+
+    def test_delegated_implementing_partner_is_required(self):
+        self.assertFieldRequired(ServiceDelegation, 'delegated_implementing_partner', 'delegated implementing partner is required')
