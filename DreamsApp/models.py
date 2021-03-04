@@ -1,8 +1,6 @@
 
 from __future__ import unicode_literals
 
-import uuid
-
 from django.core.exceptions import ValidationError
 from django.db import models, DataError
 from django.contrib.auth.models import User
@@ -1597,8 +1595,9 @@ class ConfigurableParameter(models.Model):
 
 
 class ServiceDelegationManager(models.Manager):
-    def get_by_natural_key(self, delegation_uuid):
-        return self.get(delegation_uuid=delegation_uuid)
+    def get_by_natural_key(self, main_implementing_partner, delegated_implementing_partner, start_date, end_date, intervention_type):
+        return self.get(main_implementing_partner = main_implementing_partner, delegated_implementing_partner = delegated_implementing_partner, 
+                          start_date=start_date, end_date=end_date, intervention_type=intervention_type)
 
 class ServiceDelegation(models.Model):
     main_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False, related_name='main_implementing_partner')
@@ -1611,3 +1610,6 @@ class ServiceDelegation(models.Model):
     created_by = models.ForeignKey(User,blank=False, null=False, related_name='service_delegation_date_created')
     date_updated = models.DateField(blank=False, null=False)
     updated_by = models.ForeignKey(User,blank=False, null=False, related_name='service_delegation_date_updated')
+
+    class Meta:
+        unique_together = ('main_implementing_partner', 'delegated_implementing_partner', 'start_date', 'end_date', 'intervention_type')
