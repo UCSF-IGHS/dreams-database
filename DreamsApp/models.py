@@ -1611,4 +1611,3 @@ class ServiceDelegation(models.Model):
     created_by = models.ForeignKey(User,blank=False, null=False, related_name='service_delegation_date_created')
     date_updated = models.DateField(blank=False, null=False)
     updated_by = models.ForeignKey(User,blank=False, null=False, related_name='service_delegation_date_updated')
-    delegation_uuid = models.UUIDField(default=uuid.uuid4(), blank=False, null=False)
