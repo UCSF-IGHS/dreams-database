@@ -1592,3 +1592,24 @@ class ConfigurableParameter(models.Model):
     class Meta:
         verbose_name_plural = 'Configurable Parameters'
         verbose_name = 'Configurable Parameter'
+
+
+class ServiceDelegationManager(models.Manager):
+    def get_by_natural_key(self, main_implementing_partner, delegated_implementing_partner, start_date, end_date, intervention_type):
+        return self.get(main_implementing_partner = main_implementing_partner, delegated_implementing_partner = delegated_implementing_partner, 
+                          start_date=start_date, end_date=end_date, intervention_type=intervention_type)
+
+class ServiceDelegation(models.Model):
+    main_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False, related_name='main_implementing_partner')
+    delegated_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False, related_name='delegated_implementing_partner')
+    start_date = models.DateField(verbose_name='Delegation start date', blank=False, null=False)
+    end_date = models.DateField(verbose_name='Delegation end date', blank=False, null=False)
+    intervention_type = models.ForeignKey(InterventionType, null=False, blank=False, related_name='delegation_intervention_type')
+    financial_year = models.CharField(max_length=250 ,verbose_name='Financial year',null=False, blank=False)
+    date_created = models.DateField(blank=False, null=False)
+    created_by = models.ForeignKey(User,blank=False, null=False, related_name='service_delegation_date_created')
+    date_updated = models.DateField(blank=False, null=False)
+    updated_by = models.ForeignKey(User,blank=False, null=False, related_name='service_delegation_date_updated')
+
+    class Meta:
+        unique_together = ('main_implementing_partner', 'delegated_implementing_partner', 'start_date', 'end_date', 'intervention_type')
