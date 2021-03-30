@@ -13,12 +13,14 @@ class InterventionSecurityService:
             if vI003 is None:
                 vI004 = InterventionSecurityServiceChecks.check_ip_has_active_delegation(
                     intervention.client.implementing_partner, user.implementing_partner)
-                if vI004 is None:
-                    raise InterventionNotWithinUserRealmBusinessRuleException
-                else:
+                if vI004 is not None:
                     checks_passed.append(vI004)
             else:
                 checks_passed.append(vI003)
         else:
             checks_passed.append(vI002)
-        return checks_passed
+
+        if checks_passed:
+            return checks_passed
+        else:
+            raise InterventionNotWithinUserRealmBusinessRuleException
