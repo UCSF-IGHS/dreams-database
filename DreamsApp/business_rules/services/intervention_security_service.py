@@ -38,3 +38,14 @@ class InterventionSecurityService:
         else:
             checks_passed.append(vI002)
         return checks_passed
+
+    @classmethod
+    def rule_try_can_edit_intervention(self, user, intervention):
+        checks_passed = []
+        vI003 = InterventionSecurityServiceChecks.check_intervention_belongs_to_ip(
+            user, intervention)
+        if vI003 is None:
+            raise InterventionNotWithinUserRealmBusinessRuleException
+        else:
+            checks_passed.append(vI003)
+        return checks_passed
