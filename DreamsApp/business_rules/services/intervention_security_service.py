@@ -20,5 +20,5 @@ class InterventionSecurityService:
             else:
                 checks_passed.append(vI003)
         else:
-            checks_passed.append("VI002")
+            checks_passed.append(vI002)
         return checks_passed
