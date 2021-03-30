@@ -87,7 +87,7 @@ class InterventionDelegationTestCase(TestCase):
         return InterventionType.objects.get(code=1003)
 
     @classmethod
-    def delegate_intervention_1003(cls, delegating_implementing_partner, delegated_implementing_partner):
+    def create_active_delegation(cls, delegating_implementing_partner, delegated_implementing_partner):
         delegating_implementing_partner.save()
         delegated_implementing_partner.save()
         delegation = ServiceDelegation.objects.create(main_implementing_partner=delegating_implementing_partner,
