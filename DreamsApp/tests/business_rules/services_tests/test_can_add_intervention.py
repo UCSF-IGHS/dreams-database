@@ -19,7 +19,7 @@ class RuleCanAddInterventionTestCase(InterventionDelegationTestCase):
         client_ip_user = self.ip_a_user
         checks_passed = InterventionSecurityService.rule_try_can_add_intervention(client_ip_user,
                                                                                   intervention_by_client_ip)
-        self.assertIn('VI002', checks_passed, 'Expected check v002_client_belongs_to_ip to have passed')
+        self.assertIn('VI002', checks_passed, 'Expected check vi002_client_belongs_to_ip to have passed')
 
     def test_when_user_ip_has_active_delegation_from_client_ip(self):
         intervention_by_client_ip = self.test_data['intervention_by_ip_a_to_ip_a_client']
