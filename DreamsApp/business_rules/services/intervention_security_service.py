@@ -25,7 +25,7 @@ class InterventionSecurityService:
         return checks_passed
 
     @classmethod
-    def rule_try_can_add_intervention(self, user, intervention):
+    def rule_try_can_add_intervention(cls, user, intervention):
         checks_passed = []
         vI002 = InterventionSecurityServiceChecks.check_client_belongs_to_ip(user, intervention.client)
         if vI002 is None:
@@ -40,7 +40,7 @@ class InterventionSecurityService:
         return checks_passed
 
     @classmethod
-    def rule_try_can_edit_intervention(self, user, intervention):
+    def rule_try_can_edit_intervention(cls, user, intervention):
         checks_passed = []
         vI003 = InterventionSecurityServiceChecks.check_intervention_belongs_to_ip(
             user, intervention)
@@ -51,12 +51,6 @@ class InterventionSecurityService:
         return checks_passed
 
     @classmethod
-    def rule_try_can_delete_intervention(self, user, intervention):
-        checks_passed = []
-        vI003 = InterventionSecurityServiceChecks.check_intervention_belongs_to_ip(
-            user, intervention)
-        if vI003 is None:
-            raise InterventionNotWithinUserRealmBusinessRuleException
-        else:
-            checks_passed.append(vI003)
+    def rule_try_can_delete_intervention(cls, user, intervention):
+        checks_passed = cls.rule_try_can_edit_intervention( user, intervention)
         return checks_passed
