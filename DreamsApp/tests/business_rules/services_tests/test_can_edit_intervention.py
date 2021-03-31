@@ -4,13 +4,13 @@ from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_
     InterventionDelegationTestCase
 
 
-class RuleCanViewInterventionTestCase(InterventionDelegationTestCase):
+class RuleCanEditInterventionTestCase(InterventionDelegationTestCase):
 
     def test_when_intervention_belongs_to_user_ip(self):
-        intervention = self.test_data['intervention_by_ip_a_to_ip_a_client']
+        intervention_by_client_ip = self.test_data['intervention_by_ip_a_to_ip_a_client']
         client_ip_user = self.ip_a_user
         checks_passed = InterventionSecurityService.rule_try_can_edit_intervention(client_ip_user,
-                                                                                   intervention)
+                                                                                   intervention_by_client_ip)
         self.assertIn('VI003', checks_passed, 'Expected check VI003_intervention_belongs_to_user_ip to have passed')
 
     def test_when_intervention_does_not_belongs_to_user_ip(self):
@@ -18,5 +18,5 @@ class RuleCanViewInterventionTestCase(InterventionDelegationTestCase):
         another_ip_user = self.ip_b_user
 
         with self.assertRaises(InterventionNotWithinUserRealmBusinessRuleException):
-            checks_passed = InterventionSecurityService.rule_try_can_edit_intervention(another_ip_user,
-                                                                                   intervention_by_client_ip)
+            InterventionSecurityService.rule_try_can_edit_intervention(another_ip_user,
+                                                                                       intervention_by_client_ip)
