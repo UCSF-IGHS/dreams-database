@@ -19,4 +19,4 @@ class RuleCanEditInterventionTestCase(InterventionDelegationTestCase):
 
         with self.assertRaises(InterventionNotWithinUserRealmBusinessRuleException):
             checks_passed = InterventionSecurityService.rule_try_can_edit_intervention(another_ip_user,
-                                                                                   intervention_by_client_ip)
+                                                                                       intervention_by_client_ip)
