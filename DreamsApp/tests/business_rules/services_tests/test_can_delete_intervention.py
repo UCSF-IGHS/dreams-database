@@ -7,21 +7,16 @@ from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_
 class RuleCanDeleteInterventionTestCase(InterventionDelegationTestCase):
 
     def test_default_not_allowed(self):
-        intervention_by_client_ip = self.test_data['intervention_by_ip_a_to_ip_a_client']
-        another_ip_user = self.ip_b_user
-
         with self.assertRaises(InterventionNotWithinUserRealmBusinessRuleException):
-            InterventionSecurityService.rule_try_can_delete_intervention(another_ip_user,
-                                                                         intervention_by_client_ip)
-
-        with self.assertRaises(InterventionNotWithinUserRealmBusinessRuleException):
-            InterventionSecurityService.rule_try_can_delete_intervention(self.ip_c_user,
+            intervention_by_client_ip = self.test_data['intervention_by_ip_a_to_ip_a_client']
+            other_ip_user = self.ip_b_user
+            InterventionSecurityService.rule_try_can_delete_intervention(other_ip_user,
                                                                          intervention_by_client_ip)
 
         with self.assertRaises(InterventionNotWithinUserRealmBusinessRuleException):
             intervention_by_second_random_ip = self.test_data['random_intervention']
-            random_ip_user = self.test_data['random_ip_user']
-            InterventionSecurityService.rule_try_can_delete_intervention(random_ip_user,
+            first_random_ip_user = self.test_data['random_ip_user']
+            InterventionSecurityService.rule_try_can_delete_intervention(first_random_ip_user,
                                                                          intervention_by_second_random_ip)
 
     def test_when_intervention_belongs_to_user_ip(self):
