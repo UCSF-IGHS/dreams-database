@@ -19,3 +19,15 @@ class EnrolmentSecurityService:
             return checks_passed
         else:
             raise EnrolmentNotWithinUserRealmBusinessRuleException
+
+    @classmethod
+    def rule_try_can_edit_enrolment(cls, user, enrolment):
+        checks_passed = []
+        c001 = EnrolmentSecurityServiceChecks.check_client_belongs_to_ip(enrolment, user.implementing_partner)
+        if c001 is not None:
+            checks_passed.append(c001)
+
+        if checks_passed:
+            return checks_passed
+        else:
+            raise EnrolmentNotWithinUserRealmBusinessRuleException
