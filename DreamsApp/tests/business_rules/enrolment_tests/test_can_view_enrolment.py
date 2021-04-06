@@ -7,13 +7,20 @@ from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_
 class RuleCanViewEnrolmentTestCase(InterventionDelegationTestCase):
 
     def test_default_not_allowed(self):
-        random_client = self.test_data['ip_b_client']
-        current_user = self.ip_a_user
+
 
         with self.assertRaises(EnrolmentNotWithinUserRealmBusinessRuleException):
-            EnrolmentSecurityService.rule_try_can_view_enrolment(current_user,
-                                                                 random_client)
+            enrolment_by_client_ip = self.test_data['ip_b_client']
+            non_delegated_ip_user = self.ip_a_user
+            EnrolmentSecurityService.rule_try_can_view_enrolment(non_delegated_ip_user,
+                                                                 enrolment_by_client_ip)
 
+        with self.assertRaises(EnrolmentNotWithinUserRealmBusinessRuleException):
+            random_ip_user = self.test_data['random_ip_user']
+            random_ip_enrolment = self.test_data['second_random_ip_client']
+            EnrolmentSecurityService.rule_try_can_view_enrolment(random_ip_user,
+                                                                 random_ip_enrolment)
+            
     def test_when_client_belongs_to_user_ip(self):
         enrolment_by_client_ip = self.test_data['ip_a_client']
         client_ip_user = self.ip_a_user
