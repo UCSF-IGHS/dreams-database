@@ -1,3 +1,4 @@
+import random
 import uuid
 from datetime import datetime, timedelta
 
@@ -20,9 +21,11 @@ class InterventionDelegationTestCase(TestCase):
         cls.test_data = cls.generate_test_data()
         cls.ip_a = cls.test_data['ip_a']
         cls.ip_b = cls.test_data['ip_b']
+        cls.random_ip = cls.test_data['random_ip']
         cls.ip_a_user = cls.test_data['ip_a_user']
         cls.ip_b_user = cls.test_data['ip_b_user']
         cls.ip_c_user = cls.test_data['ip_c_user']
+        cls.random_ip_user = cls.test_data['random_ip_user']
 
     @classmethod
     def generate_test_data(cls):
@@ -30,12 +33,18 @@ class InterventionDelegationTestCase(TestCase):
         test_data['ip_a'] = cls.get_ip_by_code(code=1)
         test_data['ip_b'] = cls.get_ip_by_code(code=2)
         test_data['ip_c'] = cls.get_ip_by_code(code=3)
+        test_data['random_ip'] = cls.get_ip_by_code(random.randint(100, 140))
+        test_data['second_random_ip'] = cls.get_ip_by_code(random.randint(500, 600))
         test_data['ip_a_user'] = cls.get_implementing_partner_user(implementing_partner=test_data['ip_a'])
         test_data['ip_b_user'] = cls.get_implementing_partner_user(implementing_partner=cls.get_ip_by_code(code=2))
         test_data['ip_c_user'] = cls.get_implementing_partner_user(implementing_partner=test_data['ip_c'])
+        test_data['random_ip_user'] = cls.get_implementing_partner_user(implementing_partner=test_data['random_ip'])
+        test_data['second_random_ip_user'] = cls.get_implementing_partner_user(
+            implementing_partner=test_data['second_random_ip'])
         test_data['ip_a_client'] = cls.create_client_for_implementing_partner(test_data['ip_a'])
         test_data['ip_b_client'] = cls.create_client_for_implementing_partner(test_data['ip_b'])
         test_data['ip_c_client'] = cls.create_client_for_implementing_partner(test_data['ip_c'])
+        test_data['second_random_ip_client'] = cls.create_client_for_implementing_partner(test_data['second_random_ip'])
         test_data[
             'intervention_by_ip_a_to_ip_a_client'] = cls.get_intervention_by_ip_to_ip_client(test_data['ip_a_user'],
                                                                                              test_data['ip_a_client'])
@@ -63,6 +72,8 @@ class InterventionDelegationTestCase(TestCase):
         test_data[
             'intervention_by_ip_c_to_ip_c_client'] = cls.get_intervention_by_ip_to_ip_client(test_data['ip_c_user'],
                                                                                              test_data['ip_c_client'])
+        test_data['random_intervention'] = cls.get_intervention_by_ip_to_ip_client(test_data['second_random_ip_user'],
+                                                                                   test_data['second_random_ip_client'])
         return test_data
 
     @classmethod

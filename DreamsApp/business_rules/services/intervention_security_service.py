@@ -52,3 +52,8 @@ class InterventionSecurityService:
         else:
             checks_passed.append(vI003)
         return checks_passed
+
+    @classmethod
+    def rule_try_can_delete_intervention(cls, user, intervention):
+        checks_passed = cls.rule_try_can_edit_intervention(user, intervention)
+        return checks_passed
