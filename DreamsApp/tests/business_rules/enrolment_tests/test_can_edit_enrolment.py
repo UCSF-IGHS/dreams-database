@@ -9,8 +9,8 @@ class RuleCanEditEnrolmentTestCase(InterventionDelegationTestCase):
     def test_default_not_allowed(self):
         with self.assertRaises(EnrolmentNotWithinUserRealmBusinessRuleException):
             enrolment_by_client_ip = self.test_data['ip_b_client']
-            non_delegated_ip_user = self.ip_a_user
-            EnrolmentSecurityService.rule_try_can_edit_enrolment(non_delegated_ip_user,
+            non_client_ip_user = self.ip_a_user
+            EnrolmentSecurityService.rule_try_can_edit_enrolment(non_client_ip_user,
                                                                  enrolment_by_client_ip)
 
         with self.assertRaises(EnrolmentNotWithinUserRealmBusinessRuleException):
