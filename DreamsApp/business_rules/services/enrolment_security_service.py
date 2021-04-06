@@ -4,12 +4,12 @@ from DreamsApp.exceptions import EnrolmentNotWithinUserRealmBusinessRuleExceptio
 class EnrolmentSecurityService:
 
     @classmethod
-    def rule_try_can_view_enrolment(cls, user , enrolment):
+    def rule_try_can_view_enrolment(cls, user , client_enrolment):
         checks_passed = []
-        c001 = EnrolmentSecurityServiceChecks.check_client_belongs_to_ip(enrolment, user.implementing_partner)
+        c001 = EnrolmentSecurityServiceChecks.check_client_belongs_to_ip(client_enrolment, user.implementing_partner)
         if c001 is None:
             c002 = EnrolmentSecurityServiceChecks.check_ip_has_active_delegation(
-                    enrolment.implementing_partner, user.implementing_partner)
+                    client_enrolment.implementing_partner, user.implementing_partner)
             if c002 is not None:
                 checks_passed.append(c002)
         else:
