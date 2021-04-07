@@ -180,11 +180,6 @@ class InterventionDelegationTestCase(TestCase):
         return Intervention.objects.filter(client=client)
 
     @classmethod
-    def create_interventions_for_multiple_ip_clients(cls, clients, implementing_partner_user):
-        for client in clients:
-            cls.get_intervention_by_ip_to_ip_client(implementing_partner_user, client, save=True)
-
-    @classmethod
     def create_test_data_for_ip_clients(cls):
         test_data_for_ip_clients = {}
 
