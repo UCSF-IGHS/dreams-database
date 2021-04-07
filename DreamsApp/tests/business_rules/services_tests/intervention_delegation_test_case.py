@@ -140,12 +140,14 @@ class InterventionDelegationTestCase(TestCase):
         return delegation
 
     @classmethod
-    def get_ip_by_code(cls, code):
+    def get_ip_by_code(cls, code, save=False):
         implementing_partner = None
         try:
             implementing_partner = get_object_or_404(ImplementingPartner, code=code)
         except:
             implementing_partner = ImplementingPartner(name=f"IP of CODE {code}", code=code)
+            if save:
+                implementing_partner.save()
         return implementing_partner
 
     @classmethod
@@ -162,9 +164,11 @@ class InterventionDelegationTestCase(TestCase):
         return user
 
     @classmethod
-    def create_client_for_implementing_partner(cls, implementing_partner):
+    def create_client_for_implementing_partner(cls, implementing_partner, save=False):
         client = Client(first_name="Jane", last_name="Doe", implementing_partner=implementing_partner,
                         date_of_enrollment=(datetime.now() - timedelta(weeks=56)).date())
+        if save:
+            client.save()
         return client
 
     @classmethod
@@ -174,3 +178,52 @@ class InterventionDelegationTestCase(TestCase):
     @classmethod
     def get_client_interventions(cls, client):
         return Intervention.objects.filter(client=client)
+
+    @classmethod
+    def create_interventions_for_multiple_ip_clients(cls, clients, implementing_partner_user):
+        for client in clients:
+            cls.get_intervention_by_ip_to_ip_client(implementing_partner_user, client, save=True)
+
+    @classmethod
+    def create_test_data_for_ip_clients(cls):
+        test_data_for_ip_clients = {}
+
+        test_data_for_ip_clients['ip_x'] = cls.get_ip_by_code(code=100)
+        test_data_for_ip_clients['ip_y'] = cls.get_ip_by_code(code=101)
+        test_data_for_ip_clients['ip_z'] = cls.get_ip_by_code(code=102)
+        test_data_for_ip_clients['ip_x_user'] = cls.get_implementing_partner_user(
+            implementing_partner=test_data_for_ip_clients['ip_x'])
+        test_data_for_ip_clients['ip_y_user'] = cls.get_implementing_partner_user(
+            implementing_partner=test_data_for_ip_clients['ip_y'])
+        test_data_for_ip_clients['ip_z_user'] = cls.get_implementing_partner_user(
+            implementing_partner=test_data_for_ip_clients['ip_z'])
+        test_data_for_ip_clients['client_x_1'] = cls.create_client_for_implementing_partner(
+            test_data_for_ip_clients['ip_x'])
+        test_data_for_ip_clients['client_x_2'] = cls.create_client_for_implementing_partner(
+            test_data_for_ip_clients['ip_x'])
+        test_data_for_ip_clients['client_x_3'] = cls.create_client_for_implementing_partner(
+            test_data_for_ip_clients['ip_x'])
+        test_data_for_ip_clients['client_y_1'] = cls.create_client_for_implementing_partner(
+            test_data_for_ip_clients['ip_y'])
+        test_data_for_ip_clients['client_y_2'] = cls.create_client_for_implementing_partner(
+            test_data_for_ip_clients['ip_y'])
+        test_data_for_ip_clients['client_z_1'] = cls.create_client_for_implementing_partner(
+            test_data_for_ip_clients['ip_z'])
+        test_data_for_ip_clients['client_z_2'] = cls.create_client_for_implementing_partner(
+            test_data_for_ip_clients['ip_z'])
+        test_data_for_ip_clients['client_z_3'] = cls.create_client_for_implementing_partner(
+            test_data_for_ip_clients['ip_z'])
+
+        test_data_for_ip_clients[
+            'intervention_by_ip_z_to_ip_y_client_1'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_y_user'],
+            test_data_for_ip_clients['client_z_1'],
+            save=True
+        )
+        test_data_for_ip_clients[
+            'intervention_by_ip_z_to_ip_y_client_2'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_y_user'],
+            test_data_for_ip_clients['client_z_2'],
+            save=True
+        )
+        return test_data_for_ip_clients
