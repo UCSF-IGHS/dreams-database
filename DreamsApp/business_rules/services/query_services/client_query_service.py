@@ -5,4 +5,3 @@ class ClientQueryService:
 
     def get_clients(self, search_string=None, implementing_partner=None):
         pass
-    

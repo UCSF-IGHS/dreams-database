@@ -5,30 +5,28 @@ from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_
 
 class GetClientsTestCase(InterventionDelegationTestCase):
 
-    def test_returns_all_clients_who_belong_to_ip(self):
+    def test_when_clients_belong_to_ip(self):
         test_data = self.create_test_data_for_ip_clients()
-        ip_user = test_data['ip_x_user']
-        query_service = ClientQueryService(user=ip_user)
+        user = test_data['ip_x_user']
+        query_service = ClientQueryService(user=user)
         clients = query_service.get_clients()
         self.assertEquals(clients.count(), 3, 'Expected 3 clients that belong to the IP')
 
-    def test_returns_all_clients_who_belong_to_user_and_delegating_ips(self):
+    def test_when_user_ip_has_active_delegation(self):
         test_data = self.create_test_data_for_ip_clients()
-        ip_user = test_data['ip_x_user']
-        main_implementing_partner = self.test_data['ip_x']
-        delegated_implementing_partner = self.test_data['ip_y']
+        user = test_data['ip_y_user']
 
-        self.create_active_delegation(delegating_implementing_partner=main_implementing_partner,
-                                      delegated_implementing_partner=delegated_implementing_partner)
-        query_service = ClientQueryService(user=ip_user)
+        self.create_active_delegation(delegating_implementing_partner=test_data['ip_x'],
+                                      delegated_implementing_partner=test_data['ip_y'])
+        query_service = ClientQueryService(user=user)
 
-        clients = query_service.get_clients(implementing_partner=ip_user)
-        self.assertEquals(clients.count(), 5)
+        clients = query_service.get_clients()
+        self.assertEquals(clients.count(), 6, 'Expected 6 clients that belong to user ip and delegating ip')
 
-    def test_when_clients_from_other_ips_have_intervention_from_user_ip(self):
+    def test_when_client_has_at_least_one_intervention(self):
         test_data = self.create_test_data_for_ip_clients()
-        ip_user = test_data['ip_y_user']
-        query_service = ClientQueryService(user=ip_user)
+        user = test_data['ip_z_user']
+        query_service = ClientQueryService(user=user)
 
-        clients = query_service.get_clients(implementing_partner=ip_user)
-        self.assertEquals(clients.count(), 4)
+        clients = query_service.get_clients()
+        self.assertEquals(clients.count(), 5, 'Expected 5 clients: 3 from user ip, 2 from other ip with interventions')

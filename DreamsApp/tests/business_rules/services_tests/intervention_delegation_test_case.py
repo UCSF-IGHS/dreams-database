@@ -181,17 +181,39 @@ class InterventionDelegationTestCase(TestCase):
 
     @classmethod
     def create_test_data_for_ip_clients(cls):
-        test_data_for_ip_clients = {}
+        '''
+            ip_x
+                ip_user_x
+                client_x_1
+                client_x_2
+                client_x_3
+            ip_y
+                ip_user_y
+                client_y_1
+                    intervention_by_ip_z_to_ip_y_client_1
+                client_y_2
+                    intervention_by_ip_z_to_ip_y_client_2
+                client_y_3
+            ip_z
+                ip_user_z
+                client_z_1
+                client_z_2
+                client_z_3
 
+        '''
+        test_data_for_ip_clients = {}
+        #  ips
         test_data_for_ip_clients['ip_x'] = cls.get_ip_by_code(code=100)
         test_data_for_ip_clients['ip_y'] = cls.get_ip_by_code(code=101)
         test_data_for_ip_clients['ip_z'] = cls.get_ip_by_code(code=102)
+        # ip users
         test_data_for_ip_clients['ip_x_user'] = cls.get_implementing_partner_user(
             implementing_partner=test_data_for_ip_clients['ip_x'])
         test_data_for_ip_clients['ip_y_user'] = cls.get_implementing_partner_user(
             implementing_partner=test_data_for_ip_clients['ip_y'])
         test_data_for_ip_clients['ip_z_user'] = cls.get_implementing_partner_user(
             implementing_partner=test_data_for_ip_clients['ip_z'])
+        # ip clients
         test_data_for_ip_clients['client_x_1'] = cls.create_client_for_implementing_partner(
             test_data_for_ip_clients['ip_x'])
         test_data_for_ip_clients['client_x_2'] = cls.create_client_for_implementing_partner(
@@ -202,6 +224,8 @@ class InterventionDelegationTestCase(TestCase):
             test_data_for_ip_clients['ip_y'])
         test_data_for_ip_clients['client_y_2'] = cls.create_client_for_implementing_partner(
             test_data_for_ip_clients['ip_y'])
+        test_data_for_ip_clients['client_y_3'] = cls.create_client_for_implementing_partner(
+            test_data_for_ip_clients['ip_y'])
         test_data_for_ip_clients['client_z_1'] = cls.create_client_for_implementing_partner(
             test_data_for_ip_clients['ip_z'])
         test_data_for_ip_clients['client_z_2'] = cls.create_client_for_implementing_partner(
@@ -209,6 +233,7 @@ class InterventionDelegationTestCase(TestCase):
         test_data_for_ip_clients['client_z_3'] = cls.create_client_for_implementing_partner(
             test_data_for_ip_clients['ip_z'])
 
+        # ip client interventions
         test_data_for_ip_clients[
             'intervention_by_ip_z_to_ip_y_client_1'] = cls.get_intervention_by_ip_to_ip_client(
             test_data_for_ip_clients['ip_y_user'],
