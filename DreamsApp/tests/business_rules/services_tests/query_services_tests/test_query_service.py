@@ -12,6 +12,9 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         clients = query_service.get_clients()
         self.assertEquals(clients.count(), 3, 'Expected 3 clients that belong to the IP')
 
+        for client in clients:
+            self.assertEquals(client.implementing_partner, test_data['ip_x'], 'Expected the client ip to be ip_x')
+
     def test_when_user_ip_has_active_delegation(self):
         test_data = self.create_test_data_for_ip_clients()
         user = test_data['ip_y_user']
@@ -23,7 +26,8 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         clients = query_service.get_clients()
         self.assertEquals(clients.count(), 6, 'Expected 6 clients that belong to user ip and delegating ip')
         for client in clients:
-            self.assertIn(client.implementing_partner, [test_data['ip_x'], test_data['ip_y']])
+            self.assertIn(client.implementing_partner, [test_data['ip_x'], test_data['ip_y']],
+                          'Expected the client ip to be either ip x or ip y')
 
     def test_when_client_has_at_least_one_intervention(self):
         test_data = self.create_test_data_for_ip_clients()
@@ -34,4 +38,5 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         self.assertEquals(clients.count(), 5, 'Expected 5 clients: 3 from user ip, 2 from other ip with interventions')
 
         for client in clients:
-            self.assertIn(client.implementing_partner, [test_data['ip_z'], test_data['ip_y']])
+            self.assertIn(client.implementing_partner, [test_data['ip_z'], test_data['ip_y']],
+                          'Expected the client ip to be either ip y or ip z')
