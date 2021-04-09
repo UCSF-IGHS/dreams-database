@@ -27,7 +27,7 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         self.assertEquals(clients.count(), 6, 'Expected 6 clients that belong to user ip and delegating ip')
         for client in clients:
             self.assertIn(client.implementing_partner, [test_data['ip_x'], test_data['ip_y']],
-                          'Expected the client ip to be either ip x or ip y')
+                          'Expected the client ip to be either ip_x or ip_y')
 
     def test_when_client_has_at_least_one_intervention(self):
         test_data = self.create_test_data_for_ip_clients()
@@ -39,4 +39,4 @@ class GetClientsTestCase(InterventionDelegationTestCase):
 
         for client in clients:
             self.assertIn(client.implementing_partner, [test_data['ip_z'], test_data['ip_y']],
-                          'Expected the client ip to be either ip y or ip z')
+                          'Expected the client ip to be either ip_y or ip_z')
