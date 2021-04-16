@@ -24,7 +24,7 @@ class ClientQueryService:
         return delegating_ips
 
     def _get_intervention_clients(self):
-        intervention_queryset = Intervention.objects.select_related('client')
-        intervention_queryset = intervention_queryset.filter(implementing_partner=self.user.implementing_partner).filter(
+        interventions = Intervention.objects.select_related('client')
+        intervention_queryset = interventions.filter(implementing_partner=self.user.implementing_partner).filter(
             ~Q(client__implementing_partner=self.user.implementing_partner)).only('client').distinct()
         return [intervention.client.id for intervention in intervention_queryset]
