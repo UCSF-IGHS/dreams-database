@@ -11,8 +11,8 @@ class ClientQueryService:
     def get_clients(self):
         if self.user:
             clients = Client.objects.select_related('implementing_partner', )
-            delegating_ips = self._get_delegating_ips(self.user.implementing_partner)
-            intervention_clients = self._get_intervention_clients(implementing_partner=self.user.implementing_partner)
+            delegating_ips = self._get_delegating_ips()
+            intervention_clients = self._get_intervention_clients()
             clients = clients.filter(
                 Q(implementing_partner__in=delegating_ips) | Q(implementing_partner=self.user.implementing_partner) | Q(
                     id__in=intervention_clients))
