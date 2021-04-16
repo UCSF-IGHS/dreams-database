@@ -41,4 +41,5 @@ class GetClientsTestCase(InterventionDelegationTestCase):
             self.assertIn(client.implementing_partner, [test_data['ip_z'], test_data['ip_y']],
                           'Expected the client ip to be either ip_y or ip_z')
             if client.implementing_partner == test_data['ip_y']:
-                self.assertIn(client, [test_data['client_y_1'], test_data['client_y_2']], "Expected only clients who have intervention from IP Z")
+                self.assertIn(client, [test_data['client_y_1'], test_data['client_y_2']],
+                              "Expected only clients who have intervention from IP Z")

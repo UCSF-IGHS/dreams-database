@@ -247,14 +247,14 @@ class InterventionDelegationTestCase(TestCase):
         # ip client interventions
         test_data_for_ip_clients[
             'intervention_by_ip_z_to_ip_y_client_1'] = cls.get_intervention_by_ip_to_ip_client(
-            test_data_for_ip_clients['ip_y_user'],
-            test_data_for_ip_clients['client_z_1'],
+            test_data_for_ip_clients['ip_z_user'],
+            test_data_for_ip_clients['client_y_1'],
             save=True
         )
         test_data_for_ip_clients[
             'intervention_by_ip_z_to_ip_y_client_2'] = cls.get_intervention_by_ip_to_ip_client(
-            test_data_for_ip_clients['ip_y_user'],
-            test_data_for_ip_clients['client_z_2'],
+            test_data_for_ip_clients['ip_z_user'],
+            test_data_for_ip_clients['client_y_2'],
             save=True
         )
         return test_data_for_ip_clients
