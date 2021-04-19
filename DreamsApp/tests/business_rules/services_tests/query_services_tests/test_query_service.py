@@ -37,8 +37,8 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         clients = query_service.get_clients()
         self.assertEquals(clients.count(), 5, 'Expected 5 clients: 3 from user IP Z, 2 from IP Y')
 
-        ip_y_clients = clients.filter(implementing_partner=test_data['ip_y']).distinct()
-        self.assertEquals(ip_y_clients.count(), 2, 'Expected only 2 IP Y clients who have an intervention from IP Z')
+        ip_y_clients = [client for client in clients if client.implementing_partner.id == test_data["ip_y"].id]
+        self.assertEquals(len(ip_y_clients), 2, 'Expected only 2 IP Y clients who have an intervention from IP Z')
 
         for client in ip_y_clients:
             self.assertIn(client, [test_data['client_y_1'], test_data['client_y_2']],

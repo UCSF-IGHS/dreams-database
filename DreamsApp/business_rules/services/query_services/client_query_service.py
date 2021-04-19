@@ -14,8 +14,8 @@ class ClientQueryService:
             delegating_ips = self._get_delegating_ips()
             intervention_clients = self._get_intervention_clients()
             clients = clients.filter(
-                Q(implementing_partner__in=delegating_ips) | Q(implementing_partner=self.user.implementing_partner) | Q(
-                    id__in=intervention_clients))
+                Q(implementing_partner__in=delegating_ips) | Q(implementing_partner=self.user.implementing_partner))
+            clients = clients.union(intervention_clients)
             return clients
 
     def _get_delegating_ips(self):
@@ -25,6 +25,7 @@ class ClientQueryService:
 
     def _get_intervention_clients(self):
         interventions = Intervention.objects.select_related('client')
-        intervention_queryset = interventions.filter(implementing_partner=self.user.implementing_partner).filter(
-            ~Q(client__implementing_partner=self.user.implementing_partner)).only('client').distinct()
-        return [intervention.client.id for intervention in intervention_queryset]
+        client_ids = interventions.filter(implementing_partner=self.user.implementing_partner).filter(
+            ~Q(client__implementing_partner=self.user.implementing_partner)).values('client_id').distinct()
+        clients = Client.objects.filter(id__in=client_ids).select_related('implementing_partner')
+        return clients
