@@ -37,9 +37,33 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         clients = query_service.get_clients()
         self.assertEquals(clients.count(), 5, 'Expected 5 clients: 3 from user IP Z, 2 from IP Y')
 
+        clients.order_by('pk')
+        self.assertEquals(clients[0].first_name, 'Client Y')
+        self.assertEquals(clients[0].last_name, '1')
+        self.assertEquals(clients[0].implementing_partner, test_data["ip_y"])
+
+
+        self.assertEquals(clients[1].first_name, 'Client Y')
+        self.assertEquals(clients[1].last_name, '2')
+        self.assertEquals(clients[1].implementing_partner, test_data["ip_y"])
+
+        self.assertEquals(clients[2].first_name, 'Client Z')
+        self.assertEquals(clients[2].last_name, '1')
+        self.assertEquals(clients[2].implementing_partner, test_data["ip_z"])
+
+        self.assertEquals(clients[3].first_name, 'Client Z')
+        self.assertEquals(clients[3].last_name, '2')
+        self.assertEquals(clients[3].implementing_partner, test_data["ip_z"])
+
+        self.assertEquals(clients[4].first_name, 'Client Z')
+        self.assertEquals(clients[4].last_name, '3')
+        self.assertEquals(clients[4].implementing_partner, test_data["ip_z"])
+
         ip_y_clients = [client for client in clients if client.implementing_partner.id == test_data["ip_y"].id]
         self.assertEquals(len(ip_y_clients), 2, 'Expected only 2 IP Y clients who have an intervention from IP Z')
 
         for client in ip_y_clients:
             self.assertIn(client, [test_data['client_y_1'], test_data['client_y_2']],
                           "Expected only client_y_1 and client_y_2 who have an intervention from IP Z")
+
+

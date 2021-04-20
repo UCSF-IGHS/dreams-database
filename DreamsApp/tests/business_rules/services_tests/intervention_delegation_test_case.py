@@ -175,8 +175,9 @@ class InterventionDelegationTestCase(TestCase):
         return user
 
     @classmethod
-    def create_client_for_implementing_partner(cls, implementing_partner, save=False):
-        client = Client(first_name="Jane", last_name="Doe", implementing_partner=implementing_partner,
+    def create_client_for_implementing_partner(cls, implementing_partner, first_name="Jane", last_name="Doe",
+                                               save=False):
+        client = Client(first_name=first_name, last_name=last_name, implementing_partner=implementing_partner,
                         date_of_enrollment=(datetime.now() - timedelta(weeks=56)).date())
         if save:
             client.save()
@@ -226,23 +227,23 @@ class InterventionDelegationTestCase(TestCase):
             implementing_partner=test_data_for_ip_clients['ip_z'])
         # ip clients
         test_data_for_ip_clients['client_x_1'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_x'], save=True)
+            test_data_for_ip_clients['ip_x'],first_name='Client X', last_name='1', save=True)
         test_data_for_ip_clients['client_x_2'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_x'], save=True)
+            test_data_for_ip_clients['ip_x'], first_name='Client X', last_name='2',save=True)
         test_data_for_ip_clients['client_x_3'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_x'], save=True)
+            test_data_for_ip_clients['ip_x'], first_name='Client X', last_name='3',save=True)
         test_data_for_ip_clients['client_y_1'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_y'], save=True)
+            test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='1',save=True)
         test_data_for_ip_clients['client_y_2'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_y'], save=True)
+            test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='2',save=True)
         test_data_for_ip_clients['client_y_3'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_y'], save=True)
+            test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='2',save=True)
         test_data_for_ip_clients['client_z_1'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_z'], save=True)
+            test_data_for_ip_clients['ip_z'], first_name='Client Z', last_name='1',save=True)
         test_data_for_ip_clients['client_z_2'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_z'], save=True)
+            test_data_for_ip_clients['ip_z'], first_name='Client Z', last_name='2',save=True)
         test_data_for_ip_clients['client_z_3'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_z'], save=True)
+            test_data_for_ip_clients['ip_z'], first_name='Client Z', last_name='3',save=True)
 
         # ip client interventions
         test_data_for_ip_clients[
