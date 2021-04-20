@@ -40,24 +40,24 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         ip_y, ip_z = test_data["ip_y"], test_data["ip_z"]
 
         for client in clients:
-            self.assertTrue(client.implementing_partner == ip_z or (client.get_full_name() == 'Client Y   1' or client.get_full_name() == 'Client Y   2'))
-
-        clients.order_by('first_name', 'last_name')
+            self.assertTrue(client.implementing_partner == ip_z or (
+                    client.get_full_name() == 'Client Y   1' or client.get_full_name() == 'Client Y   2'))
 
         for client in clients:
-            if client.first_name == 'Client Y' and client.last_name == '1':
+
+            if client.get_full_name() == 'Client Y   1':
                 self.assertEquals(client.implementing_partner, test_data["ip_y"])
 
-            elif client.first_name == 'Client Y' and client.last_name == '2':
+            elif client.get_full_name() == 'Client Y   2':
                 self.assertEquals(client.implementing_partner, test_data["ip_y"])
 
-            elif client.first_name == 'Client Z' and client.last_name == '1':
+            elif client.get_full_name() == 'Client Z   1':
                 self.assertEquals(client.implementing_partner, test_data["ip_z"])
 
-            elif client.first_name == 'Client Z' and client.last_name == '2':
+            elif client.get_full_name() == 'Client Z   2':
                 self.assertEquals(client.implementing_partner, test_data["ip_z"])
 
-            elif client.first_name == 'Client Z' and client.last_name == '3':
+            elif client.get_full_name() == 'Client Z   3':
                 self.assertEquals(client.implementing_partner, test_data["ip_z"])
 
             else:
