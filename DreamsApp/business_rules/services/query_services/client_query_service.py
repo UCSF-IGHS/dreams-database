@@ -1,4 +1,6 @@
-from DreamsApp.models import Client
+from django.db.models import Q
+
+from DreamsApp.models import Client, ServiceDelegation, Intervention
 
 
 class ClientQueryService:
@@ -7,5 +9,23 @@ class ClientQueryService:
         self.user = user
 
     def get_clients(self):
-       return Client.objects.none()
+        if self.user:
+            clients = Client.objects.select_related('implementing_partner', )
+            delegating_ips = self._get_delegating_ips()
+            intervention_clients = self._get_intervention_clients()
+            clients = clients.filter(
+                Q(implementing_partner__in=delegating_ips) | Q(implementing_partner=self.user.implementing_partner))
+            clients = clients.union(intervention_clients)
+            return clients
 
+    def _get_delegating_ips(self):
+        delegations = ServiceDelegation.objects.filter(delegated_implementing_partner=self.user.implementing_partner)
+        delegating_ips = [delegation.main_implementing_partner for delegation in delegations]
+        return delegating_ips
+
+    def _get_intervention_clients(self):
+        interventions = Intervention.objects.select_related('client')
+        client_ids = interventions.filter(implementing_partner=self.user.implementing_partner).filter(
+            ~Q(client__implementing_partner=self.user.implementing_partner)).values('client_id').distinct()
+        clients = Client.objects.filter(id__in=client_ids).select_related('implementing_partner')
+        return clients

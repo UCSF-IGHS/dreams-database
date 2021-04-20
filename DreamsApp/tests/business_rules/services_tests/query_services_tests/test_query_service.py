@@ -37,9 +37,28 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         clients = query_service.get_clients()
         self.assertEquals(clients.count(), 5, 'Expected 5 clients: 3 from user IP Z, 2 from IP Y')
 
-        ip_y_clients = clients.filter(implementing_partner=test_data['ip_y']).distinct()
-        self.assertEquals(ip_y_clients.count(), 2, 'Expected only 2 IP Y clients who have an intervention from IP Z')
+        ip_y, ip_z = test_data["ip_y"], test_data["ip_z"]
 
-        for client in ip_y_clients:
-            self.assertIn(client, [test_data['client_y_1'], test_data['client_y_2']],
-                          "Expected only client_y_1 and client_y_2 who have an intervention from IP Z")
+        for client in clients:
+            self.assertTrue(client.implementing_partner == ip_z or (
+                    client.get_full_name() == 'Client Y   1' or client.get_full_name() == 'Client Y   2'))
+
+        for client in clients:
+
+            if client.get_full_name() == 'Client Y   1':
+                self.assertEquals(client.implementing_partner, test_data["ip_y"])
+
+            elif client.get_full_name() == 'Client Y   2':
+                self.assertEquals(client.implementing_partner, test_data["ip_y"])
+
+            elif client.get_full_name() == 'Client Z   1':
+                self.assertEquals(client.implementing_partner, test_data["ip_z"])
+
+            elif client.get_full_name() == 'Client Z   2':
+                self.assertEquals(client.implementing_partner, test_data["ip_z"])
+
+            elif client.get_full_name() == 'Client Z   3':
+                self.assertEquals(client.implementing_partner, test_data["ip_z"])
+
+            else:
+                raise AssertionError('Client not expected in the list')
