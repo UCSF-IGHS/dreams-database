@@ -54,3 +54,6 @@ class GetClientsTestCase(InterventionDelegationTestCase):
 
             elif client.first_name == 'Client Z' and client.last_name == '3':
                 self.assertEquals(client.implementing_partner, test_data["ip_z"])
+
+            else:
+                raise AssertionError("This client was not expected in the result set")
