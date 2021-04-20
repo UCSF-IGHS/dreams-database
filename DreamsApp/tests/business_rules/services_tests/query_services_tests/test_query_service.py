@@ -37,7 +37,6 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         clients = query_service.get_clients()
         self.assertEquals(clients.count(), 5, 'Expected 5 clients: 3 from user IP Z, 2 from IP Y')
 
-        clients.order_by('first_name', 'last_name')
         ip_y, ip_z = test_data["ip_y"], test_data["ip_z"]
 
         for client in clients:
