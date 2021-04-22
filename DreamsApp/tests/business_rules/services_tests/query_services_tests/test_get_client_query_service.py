@@ -1,4 +1,5 @@
 from DreamsApp.business_rules.services.query_services.client_query_service import ClientQueryService
+from DreamsApp.models import Client
 from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_case import \
     InterventionDelegationTestCase
 
@@ -10,8 +11,9 @@ class GetClientTestCase(InterventionDelegationTestCase):
         user = test_data['ip_x_user']
         query_service = ClientQueryService(user=user)
         dreams_id = '101/1232/1'
-        client = query_service.get_client(dreams_id)
-        self.assertIsNone(client, 'Expected no client to be returned')
+
+        with self.assertRaises(Client.DoesNotExist):
+            query_service.get_client(dreams_id)
 
     def test_when_clients_belong_to_ip(self):
         test_data = self.create_test_data_for_ip_clients()

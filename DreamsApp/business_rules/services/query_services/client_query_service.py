@@ -15,11 +15,14 @@ class ClientQueryService:
             intervention_clients = self._get_intervention_clients()
             clients = clients.filter(
                 Q(implementing_partner__in=delegating_ips) | Q(implementing_partner=self.user.implementing_partner))
-            clients = clients.union(intervention_clients)
+            clients = clients | intervention_clients
             return clients
 
     def get_client(self, dreams_id):
-        pass
+        clients = self.get_clients()
+        return clients.get(dreams_id=dreams_id)
+
+
 
     def _get_delegating_ips(self):
         delegations = ServiceDelegation.objects.filter(delegated_implementing_partner=self.user.implementing_partner)
