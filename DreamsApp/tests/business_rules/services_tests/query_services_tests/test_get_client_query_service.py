@@ -27,8 +27,8 @@ class GetClientTestCase(InterventionDelegationTestCase):
         test_data = self.create_test_data_for_ip_clients()
         user = test_data['ip_y_user']
 
-        self.create_active_delegation(delegating_implementing_partner=test_data['ip_x'],
-                                      delegated_implementing_partner=test_data['ip_y'])
+        self.create_delegation(delegating_implementing_partner=test_data['ip_x'],
+                               delegated_implementing_partner=test_data['ip_y'])
         query_service = ClientQueryService(user=user)
 
         client = query_service.get_client(dreams_id='100/1232/1')

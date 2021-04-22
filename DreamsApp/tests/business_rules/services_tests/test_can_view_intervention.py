@@ -32,8 +32,8 @@ class RuleCanViewInterventionTestCase(InterventionDelegationTestCase):
     def test_when_user_ip_has_active_delegation_from_client_ip(self):
         intervention_by_client_ip = self.test_data['intervention_by_ip_a_to_ip_a_client']
         delegated_ip_user = self.ip_b_user
-        self.create_active_delegation(delegating_implementing_partner=self.ip_a,
-                                      delegated_implementing_partner=self.ip_b)
+        self.create_delegation(delegating_implementing_partner=self.ip_a,
+                               delegated_implementing_partner=self.ip_b)
         checks_passed = InterventionSecurityService.rule_try_can_view_intervention(delegated_ip_user,
                                                                                    intervention_by_client_ip)
         self.assertIn('VI004', checks_passed, 'Expected check VI004_ip_has_active_delegation to have passed')

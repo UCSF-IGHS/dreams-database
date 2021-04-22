@@ -19,12 +19,14 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         test_data = self.create_test_data_for_ip_clients()
         user = test_data['ip_y_user']
 
-        self.create_active_delegation(delegating_implementing_partner=test_data['ip_x'],
-                                      delegated_implementing_partner=test_data['ip_y'])
+        self.create_delegation(delegating_implementing_partner=test_data['ip_x'],
+                               delegated_implementing_partner=test_data['ip_y'])
+        self.create_delegation(delegating_implementing_partner=test_data['ip_z'],
+                               delegated_implementing_partner=test_data['ip_y'], active=False)
         query_service = ClientQueryService(user=user)
 
         clients = query_service.get_clients()
-        self.assertEquals(clients.count(), 6, 'Expected 6 clients that belong to user ip and delegating ip')
+        self.assertEquals(clients.count(), 7, 'Expected 7 clients that belong to user ip(4) and IP with active delegation(3)')
         for client in clients:
             self.assertIn(client.implementing_partner, [test_data['ip_x'], test_data['ip_y']],
                           'Expected the client ip to be either ip_x or ip_y')
