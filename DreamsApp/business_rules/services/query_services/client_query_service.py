@@ -22,8 +22,6 @@ class ClientQueryService:
         clients = self.get_clients()
         return clients.get(dreams_id=dreams_id)
 
-
-
     def _get_delegating_ips(self):
         delegations = ServiceDelegation.objects.filter(delegated_implementing_partner=self.user.implementing_partner)
         delegating_ips = [delegation.main_implementing_partner for delegation in delegations]
@@ -33,5 +31,6 @@ class ClientQueryService:
         interventions = Intervention.objects.select_related('client')
         client_ids = interventions.filter(implementing_partner=self.user.implementing_partner).filter(
             ~Q(client__implementing_partner=self.user.implementing_partner)).values('client_id').distinct()
+
         clients = Client.objects.filter(id__in=client_ids).select_related('implementing_partner')
         return clients
