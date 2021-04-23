@@ -14,6 +14,7 @@ class GetClientsTestCase(InterventionDelegationTestCase):
 
         for client in clients:
             self.assertEquals(client.implementing_partner, test_data['ip_x'], 'Expected the client ip to be ip_x')
+            self.assertFalse(client.voided)
 
     def test_when_user_ip_has_active_delegation(self):
         test_data = self.create_test_data_for_ip_clients()
@@ -30,6 +31,7 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         for client in clients:
             self.assertIn(client.implementing_partner, [test_data['ip_x'], test_data['ip_y']],
                           'Expected the client ip to be either ip_x or ip_y')
+            self.assertFalse(client.voided)
 
     def test_when_client_has_at_least_one_intervention(self):
         test_data = self.create_test_data_for_ip_clients()
@@ -44,6 +46,7 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         for client in clients:
             self.assertTrue(client.implementing_partner == ip_z or (
                     client.get_full_name() == 'Client Y   1' or client.get_full_name() == 'Client Y   2'))
+            self.assertFalse(client.voided)
 
         for client in clients:
 
