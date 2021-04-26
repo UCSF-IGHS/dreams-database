@@ -208,8 +208,11 @@ class InterventionDelegationTestCase(TestCase):
             ip_x
                 ip_user_x
                 client_x_1
+                    voided_intervention_by_ip_x_to_ip_x_client_1
                 client_x_2
+                    intervention_by_ip_x_to_ip_x_client_2
                 client_x_3
+                    intervention_by_ip_x_to_ip_x_client_3
                 client_x_4 (voided)
             ip_y
                 ip_user_y
@@ -218,6 +221,7 @@ class InterventionDelegationTestCase(TestCase):
                 client_y_2
                     intervention_by_ip_z_to_ip_y_client_2
                 client_y_3
+                    intervention_by_ip_y_to_ip_y_client_3
                 client_y_4 (voided)
                 client_y_5
                     intervention_by_ip_z_to_ip_y_client_5 (voided)
@@ -226,9 +230,13 @@ class InterventionDelegationTestCase(TestCase):
             ip_z
                 ip_user_z
                 client_z_1
+                    intervention_1_by_ip_z_to_ip_z_client_1
                 client_z_2
+                    intervention_1_by_ip_z_to_ip_z_client_2
                 client_z_3
+                    intervention_1_by_ip_z_to_ip_z_client_3
                 client_z_4 (voided)
+                    voided_intervention_1_by_ip_z_to_ip_z_client_4
 
         '''
         test_data_for_ip_clients = {}
@@ -294,4 +302,55 @@ class InterventionDelegationTestCase(TestCase):
             voided=True,
             save=True
         )
+
+        test_data_for_ip_clients[
+            'voided_intervention_by_ip_x_to_ip_x_client_1'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_x_user'],
+            test_data_for_ip_clients['client_x_1'],
+            voided=True
+        )
+
+        test_data_for_ip_clients[
+            'voided_intervention_by_ip_x_to_ip_x_client_2'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_x_user'],
+            test_data_for_ip_clients['client_x_2']
+        )
+
+        test_data_for_ip_clients[
+            'voided_intervention_by_ip_x_to_ip_x_client_3'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_x_user'],
+            test_data_for_ip_clients['client_x_3']
+        )
+
+        test_data_for_ip_clients[
+            'intervention_by_ip_z_to_ip_z_client_1'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_z_user'],
+            test_data_for_ip_clients['client_z_1']
+        )
+        test_data_for_ip_clients[
+            'intervention_by_ip_z_to_ip_z_client_2'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_z_user'],
+            test_data_for_ip_clients['client_z_2']
+        )
+
+        test_data_for_ip_clients[
+            'intervention_by_ip_z_to_ip_z_client_3'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_z_user'],
+            test_data_for_ip_clients['client_z_3']
+        )
+
+        test_data_for_ip_clients[
+            'intervention_by_ip_z_to_ip_z_client_4'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_z_user'],
+            test_data_for_ip_clients['client_z_4'],
+            voided=True
+        )
+
+        test_data_for_ip_clients[
+            'intervention_by_ip_y_to_ip_y_client_3'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_y_user'],
+            test_data_for_ip_clients['client_y_3'],
+        )
+
+
         return test_data_for_ip_clients
