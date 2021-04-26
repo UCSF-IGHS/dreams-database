@@ -29,8 +29,8 @@ class RuleCanViewEnrolmentTestCase(InterventionDelegationTestCase):
     def test_when_user_ip_has_active_delegation_from_client_ip(self):
         enrolment_by_client_ip = self.test_data['ip_a_client']
         delegated_ip_user = self.ip_b_user
-        self.create_active_delegation(delegating_implementing_partner=self.ip_a,
-                                      delegated_implementing_partner=self.ip_b)
+        self.create_delegation(delegating_implementing_partner=self.ip_a,
+                               delegated_implementing_partner=self.ip_b)
         checks_passed = EnrolmentSecurityService.rule_try_can_view_enrolment(delegated_ip_user,
                                                                              enrolment_by_client_ip)
         self.assertIn('C002', checks_passed, 'Expected check COO2_ip_has_active_delegation to have passed')
