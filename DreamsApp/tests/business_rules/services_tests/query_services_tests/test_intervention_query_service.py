@@ -41,10 +41,10 @@ class InterventionQueryServiceTestCase(InterventionDelegationTestCase):
         self.assertEquals(interventions.count(), 5,
                           'Expected interventions: that belong to user ip(3) and IP with active delegation(2)')
 
-        ipx_interventions = interventions.filter(implementing_patner=test_data['ip_x'])
+        ipx_interventions = interventions.filter(client__implementing_partner=test_data['ip_x'])
         self.assertEquals(ipx_interventions.count(), 2, 'Expected 2 interventions from ip_x')
 
-        ipy_interventions = interventions.filter(implementing_patner=test_data['ip_y'])
+        ipy_interventions = interventions.filter(client__implementing_partner=test_data['ip_y'])
         self.assertEquals(ipy_interventions.count(), 3, 'Expected 3 interventions from ip_y')
 
         for intervention in interventions:

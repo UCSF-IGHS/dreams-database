@@ -139,6 +139,13 @@ class ImplementingPartner(models.Model):
     def __str__(self):
         return '{}'.format(self.name)
 
+    @property
+    def get_delegating_implementing_partners(self):
+        delegations = ServiceDelegation.objects.filter(delegated_implementing_partner=self,
+                                                       start_date__lte=datetime.now().date(),
+                                                       end_date__gte=datetime.now().date())
+        return [delegation.main_implementing_partner for delegation in delegations]
+
     class Meta(object):
         verbose_name = 'Implementing Partner'
         verbose_name_plural = 'Implementing Partners'
