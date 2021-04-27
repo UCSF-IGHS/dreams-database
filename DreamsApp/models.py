@@ -140,7 +140,7 @@ class ImplementingPartner(models.Model):
         return '{}'.format(self.name)
 
     @property
-    def get_delegating_implementing_partners(self):
+    def get_active_delegating_implementing_partners(self):
         delegations = ServiceDelegation.objects.filter(delegated_implementing_partner=self,
                                                        start_date__lte=datetime.now().date(),
                                                        end_date__gte=datetime.now().date())
