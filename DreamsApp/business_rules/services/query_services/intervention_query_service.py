@@ -17,3 +17,6 @@ class InterventionQueryService:
                 client__implementing_partner__in=self.user.implementing_partner.get_active_delegating_implementing_partners))
 
             return interventions
+
+    def get_intervention_for_client(self, client = None):
+        return Intervention.objects.none()
