@@ -33,13 +33,25 @@ class GetInterventionsForClientQueryServiceTestCase(InterventionDelegationTestCa
 
         self.create_delegation(delegating_implementing_partner=test_data['ip_y'],
                                delegated_implementing_partner=test_data['ip_x'])
-        self.create_delegation(delegating_implementing_partner=test_data['ip_z'],
-                               delegated_implementing_partner=test_data['ip_y'], active=False)
         client = test_data['client_y_1']
         user = test_data['ip_x_user']
         query_service = InterventionQueryService(user=user)
         interventions = query_service.get_interventions_for_client(client)
         self.assertEquals(interventions.count(), 3, 'Expected 3 inteventions, 1 from ip_x, 1 from ip_y, 1 from ip_z')
+
+        for intervention in interventions:
+            self.assertEquals(intervention.client, client,
+                              'Expected the intervention to belong to client {}'.format((client)))
+            self.assertFalse(intervention.voided, 'Expected an unvoided intervention')
+
+
+    def test_when_user_ip_has_intervention_to_client_ip(self):
+        test_data = self.create_test_data_for_ip_clients()
+        client = test_data['client_y_1']
+        user = test_data['ip_x_user']
+        query_service = InterventionQueryService(user=user)
+        interventions = query_service.get_interventions_for_client(client)
+        self.assertEquals(interventions.count(), 1, 'Expected 1 intevention, only interventions received from ip_x')
 
         for intervention in interventions:
             self.assertEquals(intervention.client, client,
