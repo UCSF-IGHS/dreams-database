@@ -220,6 +220,7 @@ class InterventionDelegationTestCase(TestCase):
                     intervention_by_ip_z_to_ip_y_client_1
                     voided_intervention_by_ip_y_to_ip_y_client_1
                     intervention_1_by_ip_y_to_ip_y_client_1
+                    intervention_1_by_ip_x_to_ip_y_client_1
                 client_y_2
                     intervention_by_ip_z_to_ip_y_client_2
                 client_y_3
@@ -375,6 +376,13 @@ class InterventionDelegationTestCase(TestCase):
             test_data_for_ip_clients['ip_y_user'],
             test_data_for_ip_clients['client_y_1'],
             intervention_date = datetime.now().date() - timedelta(days=4),
+            save=True
+        )
+
+        test_data_for_ip_clients[
+            'intervention_1_by_ip_x_to_ip_y_client_1'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_x_user'],
+            test_data_for_ip_clients['client_y_1'],
             save=True
         )
 
