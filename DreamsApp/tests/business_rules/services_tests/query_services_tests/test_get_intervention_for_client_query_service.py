@@ -45,7 +45,7 @@ class GetInterventionsForClientQueryServiceTestCase(InterventionDelegationTestCa
             self.assertFalse(intervention.voided, 'Expected an unvoided intervention')
 
 
-    def test_when_user_ip_has_intervention_to_client_ip(self):
+    def test_when_user_ip_has_intervention_for_client(self):
         test_data = self.create_test_data_for_ip_clients()
         client = test_data['client_y_1']
         user = test_data['ip_x_user']
