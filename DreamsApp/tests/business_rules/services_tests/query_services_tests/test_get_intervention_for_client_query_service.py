@@ -13,14 +13,14 @@ class GetInterventionForClientQueryServiceTestCase(InterventionDelegationTestCas
         query_service = InterventionQueryService(user=user)
 
         with self.assertRaises(Intervention.DoesNotExist):
-            query_service.get_intervention_for_client(client=client)
+            query_service.get_interventions_for_client(client=client)
 
     def test_when_client_belongs_to_user_ip(self):
         test_data = self.create_test_data_for_ip_clients()
         user = test_data['ip_y_user']
         client = test_data['client_y_1']
         query_service = InterventionQueryService(user=user)
-        interventions = query_service.get_intervention_for_client(client = client)
+        interventions = query_service.get_interventions_for_client(client = client)
         self.assertEquals(interventions.count(), 2, 'Expected 2 inteventions that belong to the IP')
 
         for intervention in interventions:
@@ -37,7 +37,7 @@ class GetInterventionForClientQueryServiceTestCase(InterventionDelegationTestCas
                                delegated_implementing_partner=test_data['ip_y'], active=False)
         client = test_data['client_y_1']
         query_service = InterventionQueryService(user=user)
-        interventions = query_service.get_intervention_for_client(client=client)
+        interventions = query_service.get_interventions_for_client(client=client)
         self.assertEquals(interventions.count(), 2, 'Expected 2 inteventions that belong to the IP')
 
         for intervention in interventions:

@@ -18,5 +18,5 @@ class InterventionQueryService:
 
             return interventions
 
-    def get_intervention_for_client(self, client = None):
+    def get_interventions_for_client(self, client = None):
         return Intervention.objects.none()
