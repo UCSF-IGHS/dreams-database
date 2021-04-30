@@ -121,19 +121,19 @@ class InterventionDelegationTestCase(TestCase):
         return delegation
 
     @classmethod
-    def get_intervention_by_ip_to_ip_client(cls, implementing_partner_user, client, voided=False, save=None):
+    def get_intervention_by_ip_to_ip_client(cls, implementing_partner_user, client, voided=False, intervention_date = datetime.now(), save=None):
         intervention = None
         if save is None:
             intervention = Intervention(client=client,
                                         intervention_type=cls.get_intervention_type_1003(),
-                                        intervention_date=datetime.now(), voided=voided,
+                                        intervention_date=intervention_date, voided=voided,
                                         created_by=implementing_partner_user.user, date_created=datetime.now(),
                                         implementing_partner=implementing_partner_user.implementing_partner)
         elif save and save is True:
             client.save()
             intervention = Intervention(client=client,
                                         intervention_type=cls.get_intervention_type_1003(),
-                                        intervention_date=datetime.now(), voided=voided,
+                                        intervention_date=intervention_date, voided=voided,
                                         created_by=implementing_partner_user.user, date_created=datetime.now(),
                                         implementing_partner=implementing_partner_user.implementing_partner)
             intervention.save()
@@ -218,6 +218,9 @@ class InterventionDelegationTestCase(TestCase):
                 ip_user_y
                 client_y_1
                     intervention_by_ip_z_to_ip_y_client_1
+                    voided_intervention_by_ip_y_to_ip_y_client_1
+                    intervention_1_by_ip_y_to_ip_y_client_1
+                    intervention_1_by_ip_x_to_ip_y_client_1
                 client_y_2
                     intervention_by_ip_z_to_ip_y_client_2
                 client_y_3
@@ -231,6 +234,7 @@ class InterventionDelegationTestCase(TestCase):
                 ip_user_z
                 client_z_1
                     intervention_1_by_ip_z_to_ip_z_client_1
+                    voided_intervention_1_by_ip_z_to_ip_z_client_1
                 client_z_2
                     intervention_1_by_ip_z_to_ip_z_client_2
                 client_z_3
@@ -357,6 +361,28 @@ class InterventionDelegationTestCase(TestCase):
             'intervention_by_ip_y_to_ip_y_client_3'] = cls.get_intervention_by_ip_to_ip_client(
             test_data_for_ip_clients['ip_y_user'],
             test_data_for_ip_clients['client_y_3'],
+            save=True
+        )
+
+        test_data_for_ip_clients[
+            'intervention_by_ip_y_to_ip_y_client_1'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_y_user'],
+            test_data_for_ip_clients['client_y_1'],
+            save=True
+        )
+
+        test_data_for_ip_clients[
+            'intervention_2_by_ip_y_to_ip_y_client_1'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_y_user'],
+            test_data_for_ip_clients['client_y_1'],
+            intervention_date = datetime.now().date() - timedelta(days=4),
+            save=True
+        )
+
+        test_data_for_ip_clients[
+            'intervention_1_by_ip_x_to_ip_y_client_1'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_x_user'],
+            test_data_for_ip_clients['client_y_1'],
             save=True
         )
 
