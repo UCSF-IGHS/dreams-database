@@ -24,3 +24,6 @@ class InterventionQueryService:
         if not client_interventions.exists():
             raise Intervention.DoesNotExist
         return client_interventions
+
+    def get_intervention(self, intervention_id):
+        return Intervention.objects.none()
