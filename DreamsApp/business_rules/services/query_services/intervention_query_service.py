@@ -21,6 +21,6 @@ class InterventionQueryService:
     def get_interventions_for_client(self, client):
         interventions = self.get_interventions()
         client_interventions = interventions.filter(client=client)
-        if client_interventions.count() == 0:
+        if not client_interventions.exists():
             raise Intervention.DoesNotExist
         return client_interventions
