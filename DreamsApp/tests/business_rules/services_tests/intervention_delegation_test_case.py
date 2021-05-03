@@ -121,7 +121,8 @@ class InterventionDelegationTestCase(TestCase):
         return delegation
 
     @classmethod
-    def get_intervention_by_ip_to_ip_client(cls, implementing_partner_user, client, voided=False, intervention_date = datetime.now(), save=None):
+    def get_intervention_by_ip_to_ip_client(cls, implementing_partner_user, client, voided=False,
+                                            intervention_date=datetime.now(), save=None):
         intervention = None
         if save is None:
             intervention = Intervention(client=client,
@@ -220,6 +221,7 @@ class InterventionDelegationTestCase(TestCase):
                     intervention_by_ip_z_to_ip_y_client_1
                     voided_intervention_by_ip_y_to_ip_y_client_1
                     intervention_1_by_ip_y_to_ip_y_client_1
+                    intervention_2_by_ip_y_to_ip_y_client_1
                     intervention_1_by_ip_x_to_ip_y_client_1
                 client_y_2
                     intervention_by_ip_z_to_ip_y_client_2
@@ -375,7 +377,16 @@ class InterventionDelegationTestCase(TestCase):
             'intervention_2_by_ip_y_to_ip_y_client_1'] = cls.get_intervention_by_ip_to_ip_client(
             test_data_for_ip_clients['ip_y_user'],
             test_data_for_ip_clients['client_y_1'],
-            intervention_date = datetime.now().date() - timedelta(days=4),
+            intervention_date=datetime.now().date() - timedelta(days=4),
+            save=True
+        )
+
+        test_data_for_ip_clients[
+            'voided_intervention_by_ip_y_to_ip_y_client_1'] = cls.get_intervention_by_ip_to_ip_client(
+            test_data_for_ip_clients['ip_y_user'],
+            test_data_for_ip_clients['client_y_1'],
+            intervention_date=datetime.now().date() - timedelta(days=7),
+            voided=True,
             save=True
         )
 
@@ -385,6 +396,5 @@ class InterventionDelegationTestCase(TestCase):
             test_data_for_ip_clients['client_y_1'],
             save=True
         )
-
 
         return test_data_for_ip_clients
