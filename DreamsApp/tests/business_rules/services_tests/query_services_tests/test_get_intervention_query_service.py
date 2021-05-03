@@ -15,6 +15,15 @@ class GetInterventionQueryServiceTestCase(InterventionDelegationTestCase):
         with self.assertRaises(Intervention.DoesNotExist, msg='Expected not to find the intervention'):
             query_service.get_intervention(intervention.id)
 
+    def test_when_intervention_is_voided(self):
+        test_data = self.create_test_data_for_ip_clients()
+        user = test_data['ip_y_user']
+        intervention = test_data['voided_intervention_by_ip_y_to_ip_y_client_1']
+        query_service = InterventionQueryService(user=user)
+
+        with self.assertRaises(Intervention.DoesNotExist, msg='Expected not to find the intervention'):
+            query_service.get_intervention(intervention.id)
+
     def test_when_intervention_belongs_to_user_ip(self):
         test_data = self.create_test_data_for_ip_clients()
         user = test_data['ip_z_user']
