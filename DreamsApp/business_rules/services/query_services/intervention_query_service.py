@@ -26,4 +26,8 @@ class InterventionQueryService:
         return client_interventions
 
     def get_intervention(self, intervention_id):
-        return Intervention.objects.none()
+        interventions = self.get_interventions()
+        intervention = interventions.get(pk=intervention_id)
+        if intervention is not None:
+            return intervention
+        raise Intervention.DoesNotExist
