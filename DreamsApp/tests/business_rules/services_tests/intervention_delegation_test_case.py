@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.test import TestCase
 
 from DreamsApp.models import User, Client, Intervention, InterventionType, ServiceDelegation, ImplementingPartner, \
-    ImplementingPartnerUser
+    ImplementingPartnerUser, County, SubCounty, Ward
 
 
 class InterventionDelegationTestCase(TestCase):
@@ -184,13 +184,18 @@ class InterventionDelegationTestCase(TestCase):
     @classmethod
     def create_client_for_implementing_partner(cls, implementing_partner, first_name="Jane", last_name="Doe",
                                                dreams_id=None, voided=False,
-                                               save=False):
+                                               save=False, enrolled_weeks_ago=56, ward=None):
         voided_by = None
         if voided:
             voided_by = User.objects.first()
+
         client = Client(first_name=first_name, last_name=last_name, implementing_partner=implementing_partner,
-                        date_of_enrollment=(datetime.now() - timedelta(weeks=56)).date(), dreams_id=dreams_id,
+                        date_of_enrollment=(datetime.now() - timedelta(weeks=enrolled_weeks_ago)).date(),
+                        dreams_id=dreams_id,
                         voided=voided, voided_by=voided_by)
+        if ward is not None:
+            client.ward = ward
+
         if save:
             client.save()
         return client
@@ -202,6 +207,27 @@ class InterventionDelegationTestCase(TestCase):
     @classmethod
     def get_client_interventions(cls, client):
         return Intervention.objects.filter(client=client)
+
+    @classmethod
+    def create_county(cls, code='199', save=False):
+        county = County.objects.create(code=code)
+        if save:
+            county.save()
+        return county
+
+    @classmethod
+    def create_sub_county(cls, county, code='299', save=False):
+        sub_county = SubCounty.objects.create(code=code, county=county)
+        if save:
+            sub_county.save()
+        return sub_county
+
+    @classmethod
+    def create_ward(cls, sub_county, code='399', save=False):
+        ward = Ward.objects.create(code=code, sub_county=sub_county)
+        if save:
+            ward.save()
+        return ward
 
     @classmethod
     def create_test_data_for_ip_clients(cls):
@@ -244,8 +270,78 @@ class InterventionDelegationTestCase(TestCase):
                 client_z_4 (voided)
                     voided_intervention_1_by_ip_z_to_ip_z_client_4
 
+
+            Wards
+
+            County X
+                sub_county_x_1
+                    sub_county_x_1_ward_1
+                    sub_county_x_1_ward_2
+                sub_county_x_2
+                    sub_county_x_2_ward_1
+                    sub_county_x_2_ward_2
+            County Y
+                sub_county_y_1
+                    sub_county_y_1_ward_1
+                    sub_county_y_1_ward_2
+                sub_county_y_2
+                    sub_county_y_2_ward_1
+                    sub_county_y_2_ward_2
         '''
         test_data_for_ip_clients = {}
+        # counties
+        test_data_for_ip_clients['county_x'] = cls.create_county(code=200, save=True)
+        test_data_for_ip_clients['county_y'] = cls.create_county(code=201, save=True)
+        # sub counties
+        test_data_for_ip_clients['sub_county_x_1'] = cls.create_sub_county(code=300,
+                                                                           county=test_data_for_ip_clients['county_x'],
+                                                                           save=True)
+        test_data_for_ip_clients['sub_county_x_2'] = cls.create_sub_county(code=301,
+                                                                           county=test_data_for_ip_clients['county_x'],
+                                                                           save=True)
+
+        test_data_for_ip_clients['sub_county_y_1'] = cls.create_sub_county(code=305,
+                                                                           county=test_data_for_ip_clients['county_y'],
+                                                                           save=True)
+        test_data_for_ip_clients['sub_county_y_2'] = cls.create_sub_county(code=306,
+                                                                           county=test_data_for_ip_clients['county_y'],
+                                                                           save=True)
+
+        # wards
+        test_data_for_ip_clients['sub_county_x_1_ward_1'] = cls.create_ward(code=400,
+                                                                            sub_county=test_data_for_ip_clients[
+                                                                                'sub_county_x_1'],
+                                                                            save=True)
+        test_data_for_ip_clients['sub_county_x_1_ward_2'] = cls.create_ward(code=401,
+                                                                            sub_county=test_data_for_ip_clients[
+                                                                                'sub_county_x_1'],
+                                                                            save=True)
+        test_data_for_ip_clients['sub_county_x_2_ward_2'] = cls.create_ward(code=402,
+                                                                            sub_county=test_data_for_ip_clients[
+                                                                                'sub_county_x_2'],
+                                                                            save=True)
+        test_data_for_ip_clients['sub_county_x_2_ward_2'] = cls.create_ward(code=403,
+                                                                            sub_county=test_data_for_ip_clients[
+                                                                                'sub_county_x_2'],
+                                                                            save=True)
+
+        test_data_for_ip_clients['sub_county_y_1_ward_1'] = cls.create_ward(code=404,
+                                                                            sub_county=test_data_for_ip_clients[
+                                                                                'sub_county_y_1'],
+                                                                            save=True)
+        test_data_for_ip_clients['sub_county_y_1_ward_2'] = cls.create_ward(code=405,
+                                                                            sub_county=test_data_for_ip_clients[
+                                                                                'sub_county_y_1'],
+                                                                            save=True)
+        test_data_for_ip_clients['sub_county_y_2_ward_1'] = cls.create_ward(code=406,
+                                                                            sub_county=test_data_for_ip_clients[
+                                                                                'sub_county_y_2'],
+                                                                            save=True)
+        test_data_for_ip_clients['sub_county_y_2_ward_2'] = cls.create_ward(code=407,
+                                                                            sub_county=test_data_for_ip_clients[
+                                                                                'sub_county_y_2'],
+                                                                            save=True)
+
         #  ips
         test_data_for_ip_clients['ip_x'] = cls.get_ip_by_code(code=100, save=True)
         test_data_for_ip_clients['ip_y'] = cls.get_ip_by_code(code=101, save=True)
@@ -259,23 +355,29 @@ class InterventionDelegationTestCase(TestCase):
             implementing_partner=test_data_for_ip_clients['ip_z'])
         # ip clients
         test_data_for_ip_clients['client_x_1'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_x'], first_name='Client X', last_name='1', dreams_id='100/1232/1', save=True)
+            test_data_for_ip_clients['ip_x'], first_name='Client X', last_name='1', dreams_id='100/1232/1', save=True,
+            enrolled_weeks_ago=60, ward=test_data_for_ip_clients['sub_county_x_1_ward_1'])
         test_data_for_ip_clients['client_x_2'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_x'], first_name='Client X', last_name='2', dreams_id='100/1232/2', save=True)
+            test_data_for_ip_clients['ip_x'], first_name='Client X', last_name='2', dreams_id='100/1232/2', save=True,
+            ward=test_data_for_ip_clients['sub_county_x_1_ward_1'])
         test_data_for_ip_clients['client_x_3'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_x'], first_name='Client X', last_name='3', dreams_id='100/1232/3', save=True)
+            test_data_for_ip_clients['ip_x'], first_name='Client X', last_name='3', dreams_id='100/1232/3', save=True,
+            ward=test_data_for_ip_clients['sub_county_x_1_ward_2'])
         test_data_for_ip_clients['client_x_4'] = cls.create_client_for_implementing_partner(
             test_data_for_ip_clients['ip_x'], first_name='Client X', last_name='4', dreams_id='100/1232/4', voided=True,
-            save=True)
+            save=True, ward=test_data_for_ip_clients['sub_county_x_1_ward_1'])
         test_data_for_ip_clients['client_y_1'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='1', dreams_id='101/1232/1', save=True)
+            test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='1', dreams_id='101/1232/1', save=True,
+            ward=test_data_for_ip_clients['sub_county_y_2_ward_1'])
         test_data_for_ip_clients['client_y_2'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='2', dreams_id='101/1232/2', save=True)
+            test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='2', dreams_id='101/1232/2', save=True,
+            ward=test_data_for_ip_clients['sub_county_y_2_ward_1'])
         test_data_for_ip_clients['client_y_3'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='3', dreams_id='101/1232/3', save=True)
+            test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='3', dreams_id='101/1232/3', save=True,
+            ward=test_data_for_ip_clients['sub_county_y_2_ward_2'])
         test_data_for_ip_clients['client_y_4'] = cls.create_client_for_implementing_partner(
             test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='4', dreams_id='101/1232/4', voided=True,
-            save=True)
+            save=True, ward=test_data_for_ip_clients['sub_county_y_2_ward_1'])
         test_data_for_ip_clients['client_y_5'] = cls.create_client_for_implementing_partner(
             test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='5', dreams_id='101/1232/5', save=True)
         test_data_for_ip_clients['client_z_1'] = cls.create_client_for_implementing_partner(
