@@ -13,7 +13,7 @@ class SearchClientTestCase(InterventionDelegationTestCase):
         query_service = ClientQueryService(user=user)
         search_criteria = {'enrolment_start_date': datetime.now() - timedelta(weeks=59),
                            'enrolment_end_date': datetime.now()}
-        clients = query_service.search_clients(search_criteria=search_criteria)
+        clients = query_service.search_clients(search_criteria)
         self.assertEquals(clients.count(), 2, 'Expected 2 client created within the specified date range')
 
         for client in clients:
@@ -23,7 +23,7 @@ class SearchClientTestCase(InterventionDelegationTestCase):
                             msg='Expected first name if client to be Client X')
             self.assertFalse(client.voided, 'Expected a client who is not voided')
 
-    def test_search_by_search_text(self):
+    def test_search_by_search_text_for_name(self):
         test_data = self.create_test_data_for_ip_clients()
         user = test_data['ip_y_user']
         self.create_delegation(delegating_implementing_partner=test_data['ip_x'],
@@ -34,21 +34,34 @@ class SearchClientTestCase(InterventionDelegationTestCase):
         clients = query_service.search_clients(search_criteria)
         self.assertEquals(clients.count(), 3, 'Expected 3 client whose first names are Client X')
 
+        for client in clients:
+            self.assertEquals(clients.first_name, 'Client X',
+                              msg='Expected client first name to be Client X')
+            self.assertFalse(client.voided, 'Expected a client who is not voided')
+
         search_criteria = {'search_text': '1'}
         clients = query_service.search_clients(search_criteria)
-        self.assertEquals(clients.count(search_criteria), 2, 'Expected 2 client whose last names are 1')
+        self.assertEquals(clients.count(), 2, 'Expected 2 client whose last names are 1')
 
-        search_criteria = {'search_text': 'Client X'}
-        clients = query_service.search_clients(search_criteria)
-        self.assertEquals(clients.count(search_criteria), 2, 'Expected 2 client whose last names are 1')
+        for client in clients:
+            self.assertEquals(clients.lastname, '1',
+                              msg='Expected client last name to be 1')
+            self.assertFalse(client.voided, 'Expected a client who is not voided')
+
+    def test_search_by_search_text_for_dreams_id(self):
+        test_data = self.create_test_data_for_ip_clients()
+        user = test_data['ip_y_user']
+        self.create_delegation(delegating_implementing_partner=test_data['ip_x'],
+                               delegated_implementing_partner=test_data['ip_y'])
+        query_service = ClientQueryService(user=user)
 
         search_criteria = {'search_text': '100/1232/1'}
         clients = query_service.search_clients(search_criteria)
-        self.assertEquals(clients.count(search_criteria), 1, 'Expected 2 client whose last names are 1')
+        self.assertEquals(clients.count(), 1, 'Expected 1 client whose dreams ID is 100/1232/1')
 
         for client in clients:
-            self.assertEquals(clients.dreams_id == search_criteria['search_text'],
-                              msg='Expected client dreams ID to be {}'.format(search_criteria['search_text']))
+            self.assertEquals(clients.dreams_id, '100/1232/1',
+                              msg='Expected client dreams ID to be 100/1232/1')
             self.assertFalse(client.voided, 'Expected a client who is not voided')
 
     def test_search_by_ward(self):
@@ -57,8 +70,8 @@ class SearchClientTestCase(InterventionDelegationTestCase):
         query_service = ClientQueryService(user=user)
         ward = test_data['sub_county_x_1_ward_1']
         search_criteria = {'ward': ward}
-        clients = query_service.search_clients(search_criteria=search_criteria)
-        self.assertEquals(clients.count(), 2, 'Expected 2 clients enrolled in ward {}'.format(ward))
+        clients = query_service.search_clients(search_criteria)
+        self.assertEquals(clients.count(), 2, 'Expected 2 clients enrolled in ward sub_county_x_1_ward_1')
 
         for client in clients:
             self.assertTrue(clients.ward == ward, msg='Expected client ward to be {}'.format(ward))
@@ -70,12 +83,12 @@ class SearchClientTestCase(InterventionDelegationTestCase):
         query_service = ClientQueryService(user=user)
         sub_county = test_data['sub_county_x_1']
         search_criteria = {'ward': sub_county}
-        clients = query_service.search_clients(search_criteria=search_criteria)
-        self.assertEquals(clients.count(), 3, 'Expected 3 clients enrolled in sub county {}'.format(sub_county))
+        clients = query_service.search_clients(search_criteria)
+        self.assertEquals(clients.count(), 3, 'Expected 3 clients enrolled in sub county sub_county_x_1'.format(sub_county))
 
         for client in clients:
             self.assertTrue(clients.ward.sub_county == sub_county,
-                            msg='Expected client ward to be {}'.format(sub_county))
+                            msg='Expected client sub-county to be sub_county_x_1')
             self.assertFalse(client.voided, 'Expected a client who is not voided')
 
     def test_search_by_county(self):
@@ -86,10 +99,10 @@ class SearchClientTestCase(InterventionDelegationTestCase):
         query_service = ClientQueryService(user=user)
         county = test_data['county_y']
         search_criteria = {'ward': county}
-        clients = query_service.search_clients(search_criteria=search_criteria)
-        self.assertEquals(clients.count(), 3, 'Expected 3 clients enrolled in sub county {}'.format(county))
+        clients = query_service.search_clients(search_criteria)
+        self.assertEquals(clients.count(), 3, 'Expected 3 clients enrolled in county county_y')
 
         for client in clients:
             self.assertTrue(clients.ward.sub_county.county == county,
-                            msg='Expected client ward to be {}'.format(county))
+                            msg='Expected client county to be county_y')
             self.assertFalse(client.voided, 'Expected a client who is not voided')
