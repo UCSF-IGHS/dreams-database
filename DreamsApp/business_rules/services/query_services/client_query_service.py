@@ -25,6 +25,9 @@ class ClientQueryService:
         clients = self.get_clients()
         return clients.get(dreams_id=dreams_id)
 
+    def search_clients(self, search_criteria):
+        return Client.objects.none()
+
     def _get_delegating_ips(self):
         delegations = ServiceDelegation.objects.filter(delegated_implementing_partner=self.user.implementing_partner,
                                                        start_date__lte=datetime.now().date(),
