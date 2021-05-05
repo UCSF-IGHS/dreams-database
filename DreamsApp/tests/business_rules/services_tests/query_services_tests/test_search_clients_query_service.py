@@ -48,6 +48,15 @@ class SearchClientTestCase(InterventionDelegationTestCase):
                               msg='Expected client last name to be 1')
             self.assertFalse(client.voided, 'Expected a client who is not voided')
 
+        search_criteria = {'search_text': 'Doe'}
+        clients = query_service.search_clients(search_criteria)
+        self.assertEquals(clients.count(), 3, 'Expected 3 client whose middle names are Doe')
+
+        for client in clients:
+            self.assertEquals(clients.middle_name, 'Doe',
+                              msg='Expected client middlename name to be Doe')
+            self.assertFalse(client.voided, 'Expected a client who is not voided')
+
     def test_search_by_search_text_for_dreams_id(self):
         test_data = self.create_test_data_for_ip_clients()
         user = test_data['ip_y_user']
