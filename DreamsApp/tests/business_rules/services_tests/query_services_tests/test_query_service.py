@@ -27,7 +27,8 @@ class GetClientsTestCase(InterventionDelegationTestCase):
         query_service = ClientQueryService(user=user)
 
         clients = query_service.get_clients()
-        self.assertEquals(clients.count(), 7, 'Expected 7 clients that belong to user ip(4) and IP with active delegation(3)')
+        self.assertEquals(clients.count(), 7,
+                          'Expected 7 clients that belong to user ip(4) and IP with active delegation(3)')
         for client in clients:
             self.assertIn(client.implementing_partner, [test_data['ip_x'], test_data['ip_y']],
                           'Expected the client ip to be either ip_x or ip_y')
@@ -45,18 +46,17 @@ class GetClientsTestCase(InterventionDelegationTestCase):
 
         for client in clients:
             self.assertTrue(client.implementing_partner == ip_z or (
-                    client.get_full_name() == 'Client Y   1' or client.get_full_name() == 'Client Y Doe 2'))
+                    client.get_full_name() == 'Client Y   One' or client.get_full_name() == 'Client Y Doe 2'))
             self.assertFalse(client.voided, 'Expected a client who is not voided')
 
         for client in clients:
-
-            if client.get_full_name() == 'Client Y   1':
+            if client.get_full_name() == 'Client Y   One':
                 self.assertEquals(client.implementing_partner, test_data["ip_y"])
 
             elif client.get_full_name() == 'Client Y Doe 2':
                 self.assertEquals(client.implementing_partner, test_data["ip_y"])
 
-            elif client.get_full_name() == 'Client Z   1':
+            elif client.get_full_name() == 'ClientZ   One':
                 self.assertEquals(client.implementing_partner, test_data["ip_z"])
 
             elif client.get_full_name() == 'Client Z   2':

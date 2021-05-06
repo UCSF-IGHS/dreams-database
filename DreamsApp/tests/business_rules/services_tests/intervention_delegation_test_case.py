@@ -182,7 +182,7 @@ class InterventionDelegationTestCase(TestCase):
         return user
 
     @classmethod
-    def create_client_for_implementing_partner(cls, implementing_partner, middle_name = None, first_name="Jane",
+    def create_client_for_implementing_partner(cls, implementing_partner, middle_name=None, first_name="Jane",
                                                last_name="Doe",
                                                dreams_id=None, voided=False,
                                                save=False, enrolled_weeks_ago=56, ward=None):
@@ -360,7 +360,7 @@ class InterventionDelegationTestCase(TestCase):
             implementing_partner=test_data_for_ip_clients['ip_z'])
         # ip clients
         test_data_for_ip_clients['client_x_1'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_x'], first_name='Client X', middle_name='Doe', last_name='1',
+            test_data_for_ip_clients['ip_x'], first_name='Client X', middle_name='Doe', last_name='One',
             dreams_id='100/1232/1', save=True,
             enrolled_weeks_ago=60, ward=test_data_for_ip_clients['sub_county_x_1_ward_1'])
         test_data_for_ip_clients['client_x_2'] = cls.create_client_for_implementing_partner(
@@ -374,7 +374,7 @@ class InterventionDelegationTestCase(TestCase):
             test_data_for_ip_clients['ip_x'], first_name='Client X', last_name='4', dreams_id='100/1232/4', voided=True,
             save=True, ward=test_data_for_ip_clients['sub_county_x_1_ward_1'])
         test_data_for_ip_clients['client_y_1'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='1', dreams_id='101/1232/1', save=True,
+            test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='One', dreams_id='101/1232/1', save=True,
             ward=test_data_for_ip_clients['sub_county_y_2_ward_1'])
         test_data_for_ip_clients['client_y_2'] = cls.create_client_for_implementing_partner(
             test_data_for_ip_clients['ip_y'], first_name='Client Y', middle_name='Doe', last_name='2',
@@ -389,7 +389,7 @@ class InterventionDelegationTestCase(TestCase):
         test_data_for_ip_clients['client_y_5'] = cls.create_client_for_implementing_partner(
             test_data_for_ip_clients['ip_y'], first_name='Client Y', last_name='5', dreams_id='101/1232/5', save=True)
         test_data_for_ip_clients['client_z_1'] = cls.create_client_for_implementing_partner(
-            test_data_for_ip_clients['ip_z'], first_name='Client Z', last_name='1', dreams_id='102/1232/1', save=True)
+            test_data_for_ip_clients['ip_z'], first_name='ClientZ', last_name='One', dreams_id='102/1232/1', save=True)
         test_data_for_ip_clients['client_z_2'] = cls.create_client_for_implementing_partner(
             test_data_for_ip_clients['ip_z'], first_name='Client Z', last_name='2', dreams_id='102/1232/2', save=True)
         test_data_for_ip_clients['client_z_3'] = cls.create_client_for_implementing_partner(

@@ -12,7 +12,8 @@ class ClientQueryService:
 
     def get_clients(self):
         if self.user:
-            clients = Client.objects.select_related('implementing_partner', )
+            clients = Client.objects.select_related('implementing_partner', 'ward', 'ward__sub_county',
+                                                    'ward__sub_county__county')
             delegating_ips = self._get_delegating_ips()
             intervention_clients = self._get_intervention_clients()
             clients = clients.filter(
@@ -26,7 +27,20 @@ class ClientQueryService:
         return clients.get(dreams_id=dreams_id)
 
     def search_clients(self, search_criteria):
-        return Client.objects.none()
+        clients = self.get_clients()
+        if 'search_text' in search_criteria:
+            clients = self._filter_clients_by_search_term(clients, search_criteria['search_text'])
+        if 'enrolment_start_date' in search_criteria:
+            clients = clients.filter(date_of_enrollment__gte=search_criteria['enrolment_start_date'])
+        if 'enrolment_end_date' in search_criteria:
+            clients = clients.filter(date_of_enrollment__lte=search_criteria['enrolment_end_date'])
+        if 'ward' in search_criteria:
+            clients = clients.filter(ward=search_criteria['ward'])
+        elif 'sub_county' in search_criteria:
+            clients = clients.filter(ward__sub_county=search_criteria['sub_county'])
+        if 'county' in search_criteria:
+            clients = clients.filter(ward__sub_county__county=search_criteria['county'])
+        return clients
 
     def _get_delegating_ips(self):
         delegations = ServiceDelegation.objects.filter(delegated_implementing_partner=self.user.implementing_partner,
@@ -44,3 +58,42 @@ class ClientQueryService:
 
         clients = Client.objects.filter(id__in=client_ids).select_related('implementing_partner')
         return clients
+
+    def _filter_clients_by_search_term(self, clients, search_text):
+        search_terms = search_text.split()
+        search_terms_len = len(search_terms)
+
+        if search_terms_len > 1:
+            if search_terms_len == 2:
+                search_terms.append("")
+            clients = self._build_filter_client_queryset(clients, search_terms)
+        else:
+            clients = self._build_filter_client_queryset_for_one_word_search_text(clients, search_terms)
+        return clients
+
+    def _build_filter_client_queryset(self, clients, search_terms):
+        try:
+            clients = clients.filter(
+                Q(first_name__icontains=str(search_terms[0])) | Q(first_name__icontains=str(search_terms[1])) | Q(
+                    first_name__icontains=str(search_terms[2])) | Q(middle_name__icontains=str(search_terms[0])) | Q(
+                    middle_name__icontains=str(search_terms[1])) | Q(middle_name__icontains=str(search_terms[2])) | Q(
+                    last_name__icontains=str(search_terms[0])) | Q(
+                    last_name__icontains=str(search_terms[1])) | Q(last_name__icontains=str(search_terms[2])))
+
+            return clients
+
+        except Exception as e:
+            return Client.objects.none()
+
+    def _build_filter_client_queryset_for_one_word_search_text(self, clients, search_terms):
+        try:
+            clients = clients.filter(
+                Q(first_name__icontains=str(search_terms[0])) | Q(first_name=str(search_terms[0])) | Q(
+                    middle_name__icontains=str(search_terms[0])) | Q(middle_name=str(search_terms[0])) | Q(
+                    last_name__icontains=str(search_terms[0])) | Q(last_name=str(search_terms[0])) | Q(
+                    dreams_id__icontains=str(search_terms[0])) | Q(dreams_id=str(search_terms[0])))
+
+            return clients
+
+        except Exception as e:
+            return Client.objects.none()
