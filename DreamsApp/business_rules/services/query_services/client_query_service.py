@@ -61,11 +61,8 @@ class ClientQueryService:
 
     def _filter_clients_by_search_term(self, clients, search_text):
         search_terms = search_text.split()
-        search_terms_len = len(search_terms)
 
-        if search_terms_len > 1:
-            if search_terms_len == 2:
-                search_terms.append("")
+        if len(search_terms) > 1:
             clients = self._build_filter_client_queryset(clients, search_terms)
         else:
             clients = self._build_filter_client_queryset_for_one_word_search_text(clients, search_terms)
@@ -73,13 +70,21 @@ class ClientQueryService:
 
     def _build_filter_client_queryset(self, clients, search_terms):
         try:
-            clients = clients.filter(
-                Q(first_name__icontains=str(search_terms[0])) | Q(first_name__icontains=str(search_terms[1])) | Q(
-                    first_name__icontains=str(search_terms[2])) | Q(middle_name__icontains=str(search_terms[0])) | Q(
-                    middle_name__icontains=str(search_terms[1])) | Q(middle_name__icontains=str(search_terms[2])) | Q(
-                    last_name__icontains=str(search_terms[0])) | Q(
-                    last_name__icontains=str(search_terms[1])) | Q(last_name__icontains=str(search_terms[2])))
-
+            if len(search_terms) == 2:
+                clients = clients.filter(
+                    Q(first_name__icontains=str(search_terms[0])) | Q(first_name__icontains=str(search_terms[1])) | Q(
+                        middle_name__icontains=str(search_terms[0])) | Q(
+                        middle_name__icontains=str(search_terms[1])) | Q(last_name__icontains=str(search_terms[0])) | Q(
+                        last_name__icontains=str(search_terms[1])))
+            else:
+                clients = clients.filter(
+                    Q(first_name__icontains=str(search_terms[0])) | Q(first_name__icontains=str(search_terms[1])) | Q(
+                        first_name__icontains=str(search_terms[2])) | Q(
+                        middle_name__icontains=str(search_terms[0])) | Q(
+                        middle_name__icontains=str(search_terms[1])) | Q(
+                        middle_name__icontains=str(search_terms[2])) | Q(
+                        last_name__icontains=str(search_terms[0])) | Q(
+                        last_name__icontains=str(search_terms[1])) | Q(last_name__icontains=str(search_terms[2])))
             return clients
 
         except Exception as e:
