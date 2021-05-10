@@ -91,7 +91,9 @@ class ClientQueryService:
             return clients
 
         except Exception as e:
-            raise ClientSearchException(message= str(e.message) if hasattr(e, 'message') else str(e))
+            message = e.message if hasattr(e, 'message') else ''
+            raise ClientSearchException(
+                message='Error encountered when searching for client with the provided search terms. {}'.format(message))
 
     def _build_filter_client_queryset_for_one_word_search_text(self, clients, search_terms):
         try:
@@ -104,5 +106,6 @@ class ClientQueryService:
             return clients
 
         except Exception as e:
-            raise ClientSearchException(message= str(e.message) if hasattr(e, 'message') else str(e))
-
+            message = e.message if hasattr(e, 'message') else ''
+            raise ClientSearchException(
+                message='Error encountered when searching for client with the provided search terms. {}'.format(message))
