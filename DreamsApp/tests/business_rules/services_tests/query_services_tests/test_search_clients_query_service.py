@@ -1,11 +1,24 @@
 from datetime import datetime, timedelta
 
 from DreamsApp.business_rules.services.query_services.client_query_service import ClientQueryService
+from DreamsApp.models import Client
 from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_case import \
     InterventionDelegationTestCase
 
 
 class SearchClientTestCase(InterventionDelegationTestCase):
+    def test_no_result_raises_not_found(self):
+        test_data = self.create_test_data_for_ip_clients()
+        user = test_data['ip_x_user']
+        query_service = ClientQueryService(user=user)
+        search_criteria = {'enrolment_start_date': datetime.now().date() - timedelta(days=1),
+                           'enrolment_end_date': datetime.now().date()}
+        with self.assertRaises(Client.DoesNotExist):
+            query_service.search_clients(search_criteria)
+
+        search_criteria = {'search_text': 'Missing Name'}
+        with self.assertRaises(Client.DoesNotExist):
+            query_service.search_clients(search_criteria)
 
     def test_search_by_enrolment_date(self):
         test_data = self.create_test_data_for_ip_clients()

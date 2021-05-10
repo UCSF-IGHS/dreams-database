@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.db.models import Q
 
+from DreamsApp.exceptions import ClientSearchException
 from DreamsApp.models import Client, ServiceDelegation, Intervention
 
 
@@ -40,7 +41,9 @@ class ClientQueryService:
             clients = clients.filter(ward__sub_county=search_criteria['sub_county'])
         if 'county' in search_criteria:
             clients = clients.filter(ward__sub_county__county=search_criteria['county'])
-        return clients
+        if clients.exists():
+            return clients
+        raise Client.DoesNotExist
 
     def _get_delegating_ips(self):
         delegations = ServiceDelegation.objects.filter(delegated_implementing_partner=self.user.implementing_partner,
@@ -88,7 +91,7 @@ class ClientQueryService:
             return clients
 
         except Exception as e:
-            return Client.objects.none()
+            raise ClientSearchException(message= str(e.message) if hasattr(e, 'message') else str(e))
 
     def _build_filter_client_queryset_for_one_word_search_text(self, clients, search_terms):
         try:
@@ -101,4 +104,5 @@ class ClientQueryService:
             return clients
 
         except Exception as e:
-            return Client.objects.none()
+            raise ClientSearchException(message= str(e.message) if hasattr(e, 'message') else str(e))
+
