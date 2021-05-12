@@ -12,3 +12,6 @@ class EnrolmentNotWithinUserRealmBusinessRuleException(XFBusinessRuleViolationEx
 
 class ClientSearchException(DatabaseError):
     pass
+
+class DreamsBusinessRuleViolationException(XFBusinessRuleViolationException):
+    pass
