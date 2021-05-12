@@ -36,7 +36,6 @@ class SaveService(XFSaveService):
     @staticmethod
     @receiver(pre_save, sender=Intervention)
     def intervention_pre_save(sender, instance, *args, **kwargs):
-        import ipdb; ipdb.set_trace()
         user = SaveService.get_user()
         checks_passed = InterventionSecurityService.rule_try_can_add_intervention(instance,
                                                                                   user) or \
