@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -40,10 +41,14 @@ class SaveService(XFSaveService):
     def intervention_pre_save(sender, instance, *args, **kwargs):
         logging.debug('-'*80)
         user = SaveService.get_user()
-        ip_users = ImplementingPartnerUser.objects.all()
+
         if user is not None:
             user = ImplementingPartnerUser.objects.get(user__id=user.id)
-        checks_passed = InterventionSecurityService.rule_try_save_intervention(user, instance)
-        if not checks_passed:
-            raise DreamsBusinessRuleViolationException
+
+        if user is None and settings.TESTING:
+            pass
+        else:
+            checks_passed = InterventionSecurityService.rule_try_save_intervention(user, instance)
+            if not checks_passed:
+                raise DreamsBusinessRuleViolationException
 
