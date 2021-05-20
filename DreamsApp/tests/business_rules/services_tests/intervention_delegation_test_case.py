@@ -2,8 +2,10 @@ import random
 import uuid
 from datetime import datetime, timedelta
 
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.shortcuts import get_object_or_404
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 
 from DreamsApp.models import User, Client, Intervention, InterventionType, ServiceDelegation, ImplementingPartner, \
     ImplementingPartnerUser, County, SubCounty, Ward
@@ -88,9 +90,11 @@ class InterventionDelegationTestCase(TestCase):
         return user
 
     @classmethod
-    def get_implementing_partner_user(cls, implementing_partner):
+    def get_implementing_partner_user(cls, implementing_partner, save=False):
         user = cls.register_user()
         implementing_partner_user = ImplementingPartnerUser(user=user, implementing_partner=implementing_partner)
+        if save:
+            implementing_partner_user.save()
         return implementing_partner_user
 
     @classmethod
@@ -353,11 +357,11 @@ class InterventionDelegationTestCase(TestCase):
         test_data_for_ip_clients['ip_z'] = cls.get_ip_by_code(code=102, save=True)
         # ip users
         test_data_for_ip_clients['ip_x_user'] = cls.get_implementing_partner_user(
-            implementing_partner=test_data_for_ip_clients['ip_x'])
+            implementing_partner=test_data_for_ip_clients['ip_x'], save=True)
         test_data_for_ip_clients['ip_y_user'] = cls.get_implementing_partner_user(
-            implementing_partner=test_data_for_ip_clients['ip_y'])
+            implementing_partner=test_data_for_ip_clients['ip_y'], save=True)
         test_data_for_ip_clients['ip_z_user'] = cls.get_implementing_partner_user(
-            implementing_partner=test_data_for_ip_clients['ip_z'])
+            implementing_partner=test_data_for_ip_clients['ip_z'], save=True)
         # ip clients
         test_data_for_ip_clients['client_x_1'] = cls.create_client_for_implementing_partner(
             test_data_for_ip_clients['ip_x'], first_name='Client X', middle_name='Doe', last_name='One',
@@ -508,3 +512,25 @@ class InterventionDelegationTestCase(TestCase):
         )
 
         return test_data_for_ip_clients
+
+    def _generate_dummy_request(self, user=None):
+        factory = RequestFactory()
+        request = factory.get('/')
+        if user:
+            request.user = user
+        return request
+
+    def setup_request(self, request, user):
+
+        request.user = user
+
+        """Annotate a request object with a session"""
+        middleware = SessionMiddleware()
+        middleware.process_request(request)
+        request.session.save()
+
+        """Annotate a request object with a messages"""
+        middleware = MessageMiddleware()
+        middleware.process_request(request)
+        request.session.save()
+        return request

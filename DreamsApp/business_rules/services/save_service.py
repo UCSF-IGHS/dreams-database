@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth.models import User
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -5,7 +7,7 @@ from django.http import HttpRequest
 
 from DreamsApp.business_rules.services.intervention_security_service import InterventionSecurityService
 from DreamsApp.exceptions import DreamsBusinessRuleViolationException
-from DreamsApp.models import Intervention
+from DreamsApp.models import Intervention, ImplementingPartnerUser
 from xf.xf_services import XFSaveService
 
 
@@ -36,11 +38,12 @@ class SaveService(XFSaveService):
     @staticmethod
     @receiver(pre_save, sender=Intervention)
     def intervention_pre_save(sender, instance, *args, **kwargs):
+        logging.debug('-'*80)
         user = SaveService.get_user()
-        checks_passed = InterventionSecurityService.rule_try_can_add_intervention(instance,
-                                                                                  user) or \
-                        InterventionSecurityService.rule_try_can_edit_intervention(
-            instance, user)
+        ip_users = ImplementingPartnerUser.objects.all()
+        if user is not None:
+            user = ImplementingPartnerUser.objects.get(user__id=user.id)
+        checks_passed = InterventionSecurityService.rule_try_save_intervention(user, instance)
         if not checks_passed:
             raise DreamsBusinessRuleViolationException
 
