@@ -39,7 +39,6 @@ class SaveService(XFSaveService):
     @staticmethod
     @receiver(pre_save, sender=Intervention)
     def intervention_pre_save(sender, instance, *args, **kwargs):
-        logging.debug('-'*80)
         user = SaveService.get_user()
 
         if user is not None:
