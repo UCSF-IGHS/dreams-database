@@ -44,9 +44,7 @@ class SaveService(XFSaveService):
         if user is not None:
             user = ImplementingPartnerUser.objects.get(user__id=user.id)
 
-        if user is None and settings.TESTING:
-            pass
-        else:
+        if not(user is None and settings.TESTING):
             checks_passed = InterventionSecurityService.rule_try_save_intervention(user, instance)
             if not checks_passed:
                 raise DreamsBusinessRuleViolationException
