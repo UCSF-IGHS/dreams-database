@@ -33,16 +33,16 @@ class SaveService(XFSaveService):
                     if request is None:
                         return frame_record[0].f_locals['user'] if 'user' in frame_record[0].f_locals else None
                     break
+        ip_user = None
 
-        return request.user if request is not None else None
+        if request.user is not None:
+            ip_user = ImplementingPartnerUser.objects.get(user__id=request.user.id)
+        return ip_user
 
     @staticmethod
     @receiver(pre_save, sender=Intervention)
     def intervention_pre_save(sender, instance, *args, **kwargs):
         user = SaveService.get_user()
-
-        if user is not None:
-            user = ImplementingPartnerUser.objects.get(user__id=user.id)
 
         if not(user is None and settings.TESTING):
             checks_passed = InterventionSecurityService.rule_try_save_intervention(user, instance)
