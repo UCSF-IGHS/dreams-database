@@ -1,5 +1,3 @@
-import logging
-
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.signals import pre_save
@@ -25,18 +23,24 @@ class SaveService(XFSaveService):
                 request = frame_record[0].f_locals['request']
                 break
 
+        user = None
         # for unit tests
         if request is None:
             for frame_record in inspect.stack():
                 if frame_record[3].startswith('test_'):
                     request = frame_record[0].f_locals['request'] if 'request' in frame_record[0].f_locals else None
                     if request is None:
-                        return frame_record[0].f_locals['user'] if 'user' in frame_record[0].f_locals else None
+                        user = frame_record[0].f_locals['user'] if 'user' in frame_record[0].f_locals else None
                     break
+
         ip_user = None
 
-        if request.user is not None:
+        if request and request.user is not None:
+            user = request.user
+
+        if user is not None:
             ip_user = ImplementingPartnerUser.objects.get(user__id=request.user.id)
+
         return ip_user
 
     @staticmethod
@@ -44,8 +48,9 @@ class SaveService(XFSaveService):
     def intervention_pre_save(sender, instance, *args, **kwargs):
         user = SaveService.get_user()
 
-        if not(user is None and settings.TESTING):
+        if settings.TESTING and user is None:
+            pass
+        else:
             checks_passed = InterventionSecurityService.rule_try_save_intervention(user, instance)
             if not checks_passed:
                 raise DreamsBusinessRuleViolationException
-
