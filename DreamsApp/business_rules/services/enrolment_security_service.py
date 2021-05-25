@@ -32,3 +32,19 @@ class EnrolmentSecurityService:
             return checks_passed
         else:
             raise EnrolmentNotWithinUserRealmBusinessRuleException
+
+    @classmethod
+    def rule_try_save_enrolment(cls, user, client_enrolment):
+        checks_passed = []
+        new_instance = client_enrolment.pk is None
+
+        try:
+            if not new_instance:
+                rule_edit_enrolment_codes = cls.rule_try_can_edit_enrolment(user, client_enrolment)
+                if not rule_edit_enrolment_codes:
+                    return []
+                checks_passed.extend(rule_edit_enrolment_codes)
+        except Exception:
+            return []
+
+        return checks_passed
