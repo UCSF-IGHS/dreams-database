@@ -4,9 +4,10 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.http import HttpRequest
 
+from DreamsApp.business_rules.services.enrolment_security_service import EnrolmentSecurityService
 from DreamsApp.business_rules.services.intervention_security_service import InterventionSecurityService
 from DreamsApp.exceptions import DreamsBusinessRuleViolationException
-from DreamsApp.models import Intervention, ImplementingPartnerUser
+from DreamsApp.models import Intervention, ImplementingPartnerUser, Client
 from xf.xf_services import XFSaveService
 
 
@@ -52,5 +53,14 @@ class SaveService(XFSaveService):
             pass
         else:
             checks_passed = InterventionSecurityService.rule_try_save_intervention(user, instance)
+            if not checks_passed:
+                raise DreamsBusinessRuleViolationException
+
+    @staticmethod
+    @receiver(pre_save, sender=Client)
+    def enrolment_pre_save(sender, instance, *args, **kwargs):
+        ip_user = SaveService.get_user()
+        if ip_user and ip_user.user.pk:
+            checks_passed = EnrolmentSecurityService.rule_try_save_enrolment(ip_user, instance)
             if not checks_passed:
                 raise DreamsBusinessRuleViolationException
