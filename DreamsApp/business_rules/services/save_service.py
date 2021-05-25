@@ -60,7 +60,7 @@ class SaveService(XFSaveService):
     @receiver(pre_save, sender=Client)
     def enrolment_pre_save(sender, instance, *args, **kwargs):
         ip_user = SaveService.get_user()
-        if ip_user and ip_user.user.pk:
+        if ip_user:
             checks_passed = EnrolmentSecurityService.rule_try_save_enrolment(ip_user, instance)
-            if not checks_passed:
+            if instance.pk and not checks_passed:
                 raise DreamsBusinessRuleViolationException

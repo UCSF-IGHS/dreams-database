@@ -34,7 +34,7 @@ class SaveTestCase(InterventionDelegationTestCase):
         with self.assertRaises(DreamsBusinessRuleViolationException):
             client.save()
 
-    def test_intervention_pre_save_updates_intervention_when_checks_passed(self):
+    def test_enrolment_pre_save_updates_client_when_checks_passed(self):
         test_data = self.create_test_data_for_ip_clients()
         ip_user = test_data['ip_x_user']
         request = self.setup_request(self._generate_dummy_request(ip_user.user), ip_user.user)
@@ -42,3 +42,12 @@ class SaveTestCase(InterventionDelegationTestCase):
         client.voided = True
         client.save()
         self.assertTrue(client.voided)
+
+    def test_enrolment_pre_save_creates_client_when_enrolment_is_new(self):
+        test_data = self.create_test_data_for_ip_clients()
+        ip_user = test_data['ip_x_user']
+        request = self.setup_request(self._generate_dummy_request(ip_user.user), ip_user.user)
+        client = self.create_client_for_implementing_partner(test_data['ip_x'])
+        self.assertTrue(client.pk is None)
+        client.save()
+        self.assertEquals(client.implementing_partner, test_data['ip_x'])
