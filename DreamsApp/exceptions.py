@@ -1,3 +1,4 @@
+from django.core.exceptions import PermissionDenied
 from django.db import DatabaseError
 
 from xf.xf_services import XFBusinessRuleViolationException
@@ -11,4 +12,10 @@ class EnrolmentNotWithinUserRealmBusinessRuleException(XFBusinessRuleViolationEx
     pass
 
 class ClientSearchException(DatabaseError):
+    pass
+
+class DreamsBusinessRuleViolationException(XFBusinessRuleViolationException):
+    pass
+
+class DreamsPermissionDeniedException(PermissionDenied):
     pass

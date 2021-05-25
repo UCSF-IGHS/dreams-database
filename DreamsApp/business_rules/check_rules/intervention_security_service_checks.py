@@ -1,4 +1,6 @@
 from datetime import datetime
+
+from DreamsApp.exceptions import DreamsPermissionDeniedException
 from DreamsApp.models import ServiceDelegation
 
 
