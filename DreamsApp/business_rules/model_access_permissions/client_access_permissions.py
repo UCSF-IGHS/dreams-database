@@ -1,17 +1,23 @@
 from DreamsApp.business_rules.services.enrolment_security_service import EnrolmentSecurityService
-from DreamsApp.exceptions import EnrolmentNotWithinUserRealmBusinessRuleException
 from DreamsApp.models import ImplementingPartnerUser
+from xf.xf_services import XFModelPermissionBase
 
 
-class ClientAccessActions:
-    def __init__(self, user, enrolment):
+class ClientActionPermissions(XFModelPermissionBase):
+
+    def __init__(self, user, enrolment, *args, **kwargs):
         self.user = user
         self.implementing_partner_user = ImplementingPartnerUser.get(user=user)
         self.enrolment = enrolment
 
     def can_perform_new(self):
         if self.implementing_partner_user:
-            return True
+            return super().can_perform_new()
+        return False
+
+    def can_perform_list(self):
+        if self.implementing_partner_user:
+            return super().can_perform_list()
         return False
 
     def can_perform_view(self):
@@ -19,11 +25,12 @@ class ClientAccessActions:
         try:
             checks = EnrolmentSecurityService.rule_try_can_view_enrolment(self.implementing_partner_user,
                                                                           self.enrolment)
-        except EnrolmentNotWithinUserRealmBusinessRuleException as e:
-            can_view = False
-        else:
             if checks:
-                can_view = True
+                can_view = super().can_perform_details()
+
+        except Exception as e:
+            can_view = False
+
         return can_view
 
     def can_perform_edit(self):
@@ -31,21 +38,13 @@ class ClientAccessActions:
         try:
             checks = EnrolmentSecurityService.rule_try_can_edit_enrolment(self.implementing_partner_user,
                                                                           self.enrolment)
-        except EnrolmentNotWithinUserRealmBusinessRuleException as e:
-            can_edit = False
-        else:
             if checks:
-                can_edit = True
+                can_edit = super().can_perform_edit()
+
+        except Exception as e:
+            can_edit = False
+
         return can_edit
 
     def can_perform_void(self):
-        can_void = True
-        try:
-            checks = EnrolmentSecurityService.rule_try_can_edit_enrolment(self.implementing_partner_user,
-                                                                          self.enrolment)
-        except EnrolmentNotWithinUserRealmBusinessRuleException as e:
-            can_void = False
-        else:
-            if checks:
-                can_void = True
-        return can_void
+        return self.can_perform_edit()
