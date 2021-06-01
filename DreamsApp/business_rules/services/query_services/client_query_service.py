@@ -106,6 +106,6 @@ class ClientQueryService:
             return clients
 
         except Exception as e:
-            message = e.message if hasattr(e, 'message') else ''
+            message = str(e)
             raise ClientSearchException(
                 message='Error encountered when searching for client with the provided search terms. {}'.format(message))

@@ -23,6 +23,10 @@ import urllib.parse
 import json
 from datetime import date, timedelta, datetime as dt
 from DreamsApp.Dreams_Utils_Plain import DreamsRawExportTemplateRenderer, settings
+from DreamsApp.business_rules.model_access_permissions.client_access_permissions import ClientActionPermissions
+from DreamsApp.business_rules.model_access_permissions.intervention_access_permissions import \
+    InterventionActionPermissions
+from DreamsApp.business_rules.services.query_services.client_query_service import ClientQueryService
 from DreamsApp.forms import *
 from dateutil.relativedelta import relativedelta
 from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, ReferralServiceLayer, FollowUpsServiceLayer
@@ -225,9 +229,19 @@ def clients(request):
                                                  '') if request.method == 'GET' else request.POST.get(
                 'search_client_term', '')
             search_client_term = search_client_term.strip()
+
             if search_client_term != "":
+                client_query_service = ClientQueryService(request.user.implementingpartneruser)
+                search_criteria = get_search_criteria(search_client_term, is_advanced_search, request)
+                result = None
+                try:
+                    result = client_query_service.search_clients(search_criteria)
+                except Client.DoesNotExist as e:
+                    result = Client.objects.all()[:0]
+
                 search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
-                search_result = search_result_tuple[0]
+                # search_result = search_result_tuple[0]
+                search_result = result
                 # check for permissions
                 if not request.user.has_perm("DreamsApp.can_view_cross_ip_data"):
                     try:
@@ -239,22 +253,37 @@ def clients(request):
 
                         transfer_out_clients = search_result.filter(pk__in=transfer_out.values_list('client'))
 
-                        search_result = search_result.filter(implementing_partner_id=ip)
-                        search_result = search_result.union(transfer_out_clients)
+                        transfer_out = ClientTransfer.objects.filter(source_implementing_partner=ip).filter(
+                            transfer_status=ClientTransferStatus.objects.get(
+                                                      code__exact=TRANSFER_ACCEPTED_STATUS))
 
+                        # search_result = search_result.union(transfer_out_clients)
                     except Exception as e:
                         search_result = Client.objects.all()[:0]
             else:
-                search_result = Client.objects.all()[:0]
+
+                search_result = Client.objects.all().order_by('id')[:0]
                 search_result_tuple = [search_result, 'False', '', '', '', '', '']
             log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_client_term)
             try:
                 current_ip = request.user.implementingpartneruser.implementing_partner.code
             except Exception as e:
                 current_ip = 0
+
+            client_action_permissions = ClientActionPermissions(model=Client,user=request.user)
+            intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
+
+
             if request.is_ajax():
+                result_list = []
+                for res in search_result:
+                    client_action_permissions.enrolment = res
+                    client_action_permissions.can_perform_view()
+                    current_result = [client_action_permissions, res]
+                    result_list.append(current_result)
+
                 json_response = {
-                    'search_result': serializers.serialize('json', search_result),
+                    'search_result': serializers.serialize('json', result_list),
                     'search_client_term': search_client_term,
                     'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                     'can_change_client': request.user.has_perm('auth.can_change_client'),
@@ -264,20 +293,30 @@ def clients(request):
                     'marital_status': MaritalStatus.objects.all(),
                     'counties': County.objects.all(),
                     'current_ip': current_ip,
-                    'demo_form': DemographicsForm()
+                    'demo_form': DemographicsForm(),
+                    'client_action_permissions': client_action_permissions,
+                    'intervention_action_permissions': intervention_action_permissions
                 }
                 return JsonResponse(json_response, safe=False)
             else:
                 # Non ajax request.. Do a paginator
                 # do pagination
+                result_list = []
+                for res in search_result:
+                    client_action_permissions.enrolment = res
+                    current_result = [client_action_permissions, res]
+                    result_list.append(current_result)
+
                 try:
-                    paginator = Paginator(search_result, 20)
+                    paginator = Paginator(result_list, 20)
                     client_paginator = paginator.page(page)
                 except PageNotAnInteger:
                     client_paginator = paginator.page(1)  # Deliver the first page is page is not an integer
                 except EmptyPage:
                     client_paginator = paginator.page(
                         paginator.num_pages)  # Deliver the last page if page is out of scope
+
+
 
                 county_filter = search_result_tuple[2] if search_result_tuple[2] != '' else '0'
                 sub_county_filter = search_result_tuple[3] if search_result_tuple[3] != '' else '0'
@@ -311,7 +350,10 @@ def clients(request):
                     'start_date_filter': search_result_tuple[5],
                     'end_date_filter': search_result_tuple[6],
                     'max_dob': max_dob,
-                    'min_dob': min_dob
+                    'min_dob': min_dob,
+                    'result_list': result_list,
+                    'client_action_permissions': client_action_permissions,
+                    'intervention_action_permissions': intervention_action_permissions
                 }
                 # county_filter, sub_county_filter, ward_filter, start_date_filter, end_date_filter
                 return render(request, 'clients.html', response_data)
@@ -321,6 +363,49 @@ def clients(request):
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
 
+def get_search_criteria(search_client_term, is_advanced_search, request):
+    search_criteria = {}
+
+    if search_client_term != '':
+        search_criteria['search_text'] = search_client_term
+
+    county_filter = str(
+        request.GET.get('county', '') if request.method == 'GET' else request.POST.get('county', ''))
+    if county_filter != '' and is_advanced_search:
+        search_criteria['county'] = int(county_filter)
+
+    sub_county_filter = str(
+        request.GET.get('sub_county', '') if request.method == 'GET' else request.POST.get('sub_county', ''))
+
+    if sub_county_filter != '' and is_advanced_search:
+        search_criteria['sub_county'] = int(sub_county_filter)
+
+    ward_filter = str(
+        request.GET.get('ward', '') if request.method == 'GET' else request.POST.get('sub_county', ''))
+    if ward_filter != '':
+        search_criteria['ward'] = int(ward_filter)
+
+    doe_start_filter =  str(
+        request.GET.get('doe_start_filter', '') if request.method == 'GET' else request.POST.get('doe_start_filter', ''))
+
+    start_date = request.GET.get('doe_start_filter',
+                                                 '') if request.method == 'GET' else request.POST.get(
+        'doe_start_filter', '')
+
+    if doe_start_filter != '' and is_advanced_search:
+        search_criteria['enrolment_start_date'] = get_start_date(start_date)
+
+    end_date_filter_original = request.GET.get('doe_end_filter',
+                                               dt.today()) if request.method == 'GET' else request.POST.get(
+        'doe_end_filter', dt.today())
+
+    if end_date_filter_original != '' and is_advanced_search:
+        search_criteria['enrolment_end_date'] = end_date_filter_original
+
+    return search_criteria
+
+def get_start_date(start_date):
+    return '2015-10-01' if start_date == '' else start_date
 
 def follow_ups(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
@@ -2916,6 +3001,8 @@ def viewBaselineData(request):
                     max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
                     min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
                     current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
+                    client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
+                    client_action_permissions.can_perform_edit()
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
                                                                          'client': client_found,
@@ -2937,7 +3024,8 @@ def viewBaselineData(request):
                                                                          'client_status': client_status,
                                                                          'max_dob': max_dob,
                                                                          'min_dob': min_dob,
-                                                                         'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser
+                                                                         'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser,
+                                                                         'client_action_permissions': client_action_permissions
                                                                          })
             except Client.DoesNotExist:
                 traceback.format_exc()

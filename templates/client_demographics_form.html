@@ -1,4 +1,5 @@
 {% load widget_tweaks %}
+{% if client_action_permissions.can_perform_view %}
 <form method="POST" class="post-form" id="form_demographics" action="/update-demographics/">
     {% csrf_token %}
     <input id="demo_current_client_id" class="hidden" type="text" name="client"/>
@@ -208,17 +209,19 @@
             <div class="form-group form-inline">
                 {{ demo_form.as_hidden }}
             </div>
-
-            {% if is_editable_by_ip %}
-                <div class="form-group form-inline">
-                    <label class="control-label enrolment-label"></label>
-                    {% if demo_form.instance.exited %}
-                        <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle" style="display: none;"> &nbsp; &nbsp;&nbsp; &nbsp; Save &nbsp;&nbsp;&nbsp;&nbsp;</button>
-                    {% else %}
-                        <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle" style=""> &nbsp; &nbsp;&nbsp; &nbsp; Save &nbsp;&nbsp;&nbsp;&nbsp;</button>
-                    {% endif %}
-                </div>
+            {% if client_action_permissions.can_perform_edit %}
+                {% if is_editable_by_ip %}
+                    <div class="form-group form-inline">
+                        <label class="control-label enrolment-label"></label>
+                        {% if demo_form.instance.exited %}
+                            <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle" style="display: none;"> &nbsp; &nbsp;&nbsp; &nbsp; Save &nbsp;&nbsp;&nbsp;&nbsp;</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle" style=""> &nbsp; &nbsp;&nbsp; &nbsp; Save &nbsp;&nbsp;&nbsp;&nbsp;</button>
+                        {% endif %}
+                    </div>
+                {% endif %}
             {% endif %}
         </fieldset>
     </div>
 </form>
+{% endif %}
