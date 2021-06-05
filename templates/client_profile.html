@@ -194,8 +194,12 @@
     <div class="wrapper-container">
         <div class=" statusBox">
             <div>
-                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
+                <h4>{% if user.implementingpartneruser != None %}USER IMPLEMENTING PARTNER:
                     {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+            </div>
+            <div>
+                <h4>{% if client != None %}CLIENT IMPLEMENTING PARTNER:
+                    {{ client.implementing_partner.name }}{% endif %}</h4>
             </div>
             <div class="row">
                 <div class="col-xs-12 col-sm-5">
@@ -216,6 +220,7 @@
                     </p>
                     <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
                 </div><!--/col-->
+                {% if client_action_permissions.can_perform_edit %}
                 <div class="col-xs-12 col-sm-3">
                     <p><strong>Actions: </strong> <br>
                         {% if 'Transferred Out' in client_status or client.exited or not current_user_belongs_to_same_ip_as_client %}
@@ -302,7 +307,9 @@
                                 class="client_status_action_text">Make Referral</span>
                         </p>
                     {% endif %}
-                </div><!--/col-->
+                </div>
+                {% endif %}
+                <!--/col-->
                 <!--<div class="col-xs-12 col-sm-2 hidden">
                 <p><strong> </strong> <br>
                     {% if perms.DreamsApp.change_clientcashtransferdetails %}
@@ -402,6 +409,7 @@
                                 <thead class="dp-table-head-black">
                                 <tr>
                                     <th>Intervention Type</th>
+                                    <th>Implementing Partner</th>
                                     <th>Date Completed</th>
                                     <th>Comment/Notes</th>
                                     {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
@@ -465,6 +473,7 @@
                                 <thead class="dp-table-head-black">
                                 <tr>
                                     <th>Intervention Type</th>
+                                    <th>Implementing Partner</th>
                                     <th>Date Tested/ Linked to CCC</th>
                                     <th>Test Result</th>
                                     <th>CCC Number</th>
@@ -529,6 +538,7 @@
                                 <thead class="dp-table-head-black">
                                 <tr>
                                     <th>Intervention Type</th>
+                                    <th>Implementing Partner</th>
                                     <th>Date Given</th>
                                     <th>Comment/Notes</th>
                                     {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
@@ -563,6 +573,7 @@
                                            placeholder="Type to search...">
                                 </div>
                             </th>
+
                             {% if perms.DreamsApp.add_intervention and can_add_intervention == True %}
                                 <th width="130">
                                     {% if client.exited %}
@@ -592,6 +603,7 @@
                                 <thead class="dp-table-head-black">
                                 <tr>
                                     <th>Intervention Type</th>
+                                    <th>Implementing Partner</th>
                                     <th>Date Completed</th>
                                     <th>Comment/Notes</th>
                                     {% if perms.DreamsApp.change_intervention or perms.DreamsApp.delete_intervention %}
@@ -655,6 +667,7 @@
                                 <thead class="dp-table-head-black">
                                 <tr>
                                     <th>Intervention Type</th>
+                                    <th>Implementing Partner</th>
                                     <th>Date Completed</th>
                                     <th>Number of SS Sessions Attended</th>
                                     <th>Comment/Notes</th>

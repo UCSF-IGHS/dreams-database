@@ -239,3 +239,10 @@ class ServicePackageInterventionTypeAdmin(admin.ModelAdmin):
 @admin.register(InterventionTypePackage)
 class InterventionTypePackageAdmin(admin.ModelAdmin):
     list_display = ('intervention_type', 'intervention_package', 'lower_age_limit', 'upper_age_limit',)
+
+
+class ServiceDelegationAdmin(admin.ModelAdmin):
+    model = ServiceDelegation
+    list_per_page = 25
+
+admin.site.register(ServiceDelegation, ServiceDelegationAdmin)
