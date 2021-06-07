@@ -251,13 +251,8 @@ def clients(request):
                             transfer_status=ClientTransferStatus.objects.get(
                                                       code__exact=TRANSFER_ACCEPTED_STATUS))
 
-                        transfer_out_clients = search_result.filter(pk__in=transfer_out.values_list('client'))
+                        # transfer_out_clients = search_result.filter(pk__in=transfer_out.values_list('client'))
 
-                        transfer_out = ClientTransfer.objects.filter(source_implementing_partner=ip).filter(
-                            transfer_status=ClientTransferStatus.objects.get(
-                                                      code__exact=TRANSFER_ACCEPTED_STATUS))
-
-                        # search_result = search_result.union(transfer_out_clients)
                     except Exception as e:
                         search_result = Client.objects.none()
             else:
