@@ -118,18 +118,17 @@
                     <tbody id="dp-patient-list-body">
                     {% if client_paginator %}
                         {% for client in client_paginator.object_list %}
+                            {% if client.0.can_perform_view or client.0.can_perform_edit %}
                             <tr id="clients_row_{{ client.1.id }}" style="cursor: pointer;">
                                 <td>{{ client.1.dreams_id }}</td>
                                 <td>{{ client.1.get_full_name }}</td>
                                 <td>{{ client.1.implementing_partner.name }}</td>
                                 <td>{{ client.1.date_of_birth }}</td>
                                 <td id="client_" + {{ client.1.id }} class="actions-col">
-                                    {% if client.0.can_perform_view %}
                                         <button type="button" class="btn btn-sm btn-default"
                                                 onclick="window.location='/client_baseline_info?client_id={{ client.1.id }}&search_client_term={{ search_client_term }}'"
                                                 style="cursor: pointer;"> Enrollment Data
                                         </button>
-                                    {% endif %}
                                     {% if intervention_action_permissions.can_perform_list %}
                                         <button type="button" class="btn btn-sm btn-default"
                                                 onclick="window.location='/client?client_id={{ client.1.id }}&search_client_term={{ search_client_term }}'"
@@ -138,6 +137,7 @@
                                     {% endif %}
                                 </td>
                             </tr>
+                            {% endif %}
                         {% endfor %}
                     {% else %}
                         <tr>

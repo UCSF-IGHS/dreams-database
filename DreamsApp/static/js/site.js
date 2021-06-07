@@ -1042,7 +1042,6 @@ $(document).ready(function () {
 
         var postUrl = modalMode == "edit" ? "/ivUpdate" : "/ivSave";
         var csrftoken = getCookie('csrftoken');
-
         $.ajax({
             url: postUrl,
             type: "POST",
@@ -1070,9 +1069,12 @@ $(document).ready(function () {
                     var hts_results = $.parseJSON(data.hts_results);
                     var pregnancy_results = $.parseJSON(data.pregnancy_results);
                     var permissions = $.parseJSON(data.permissions);
+                    var intervention_action_permissions = data.intervention_action_permissions;
+                    var implementing_partner_name = data.implementing_partner_name;
                     var hts_result = iv_type.fields.has_hts_result ? getResultName(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result) : "";
                     var pregnancy_result = iv_type.fields.has_pregnancy_result ? getResultName(pregnancy_results, iv_type.fields.has_pregnancy_result, iv.fields.pregnancy_test_result) : "";
 
+                    console.log(intervention_action_permissions)
                     iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
                     iv.fields.no_of_sessions_attended = iv.fields.no_of_sessions_attended == null ? "" : iv.fields.no_of_sessions_attended;
                     if (modalMode == "new") {
@@ -1080,7 +1082,7 @@ $(document).ready(function () {
                             permissions = null;
                         }
 
-                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, true, permissions);
+                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, true, permissions, implementing_partner_name, intervention_action_permissions);
                         $(table_id + ' tr.zero_message_row').remove();
                         $(alert_id).removeClass('hidden').addClass('alert-success')
                             .text('Intervention has been Saved successfully!')

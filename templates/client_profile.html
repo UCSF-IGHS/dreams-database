@@ -220,7 +220,7 @@
                     </p>
                     <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
                 </div><!--/col-->
-                {% if client_action_permissions.can_perform_edit %}
+                {% if client_action_permissions.can_perform_edit or client_action_permissions.can_perform_view %}
                 <div class="col-xs-12 col-sm-3">
                     <p><strong>Actions: </strong> <br>
                         {% if 'Transferred Out' in client_status or client.exited or not current_user_belongs_to_same_ip_as_client %}
@@ -229,14 +229,16 @@
                                data-toggle="tooltip" title="Edit Enrollment"><span
                                     class="glyphicon glyphicon-pencil"></span> View Enrollment Data</p>
                         {% else %}
-                            <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
-                               onclick="window.location='/client_baseline_info?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
-                               data-toggle="tooltip" title="Edit Enrollment"><span
-                                    class="glyphicon glyphicon-pencil"></span> Edit Enrollment Data</p>
+                            {% if client_action_permissions.can_perform_edit %}
+                                <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
+                                   onclick="window.location='/client_baseline_info?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
+                                   data-toggle="tooltip" title="Edit Enrollment"><span
+                                        class="glyphicon glyphicon-pencil"></span> Edit Enrollment Data</p>
+                            {% endif %}
                         {% endif %}
 
                     {% if 'Transferred Out' not in client_status %}
-                        {% if perms.DreamsApp.can_exit_client and current_user_belongs_to_same_ip_as_client %}
+                        {% if client_action_permissions.can_perform_edit %}
                             {% if client.exited %}
                                 <p class="underline_hover" id="p_exit_client" data-client_id='{{ client.id }}'
                                    data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
@@ -244,6 +246,7 @@
                                     <span class="glyphicon glyphicon-log-out"></span> <span
                                         class="client_status_action_text">Undo Client Exit</span>
                                 </p>
+
                             {% else %}
                                 <p class="underline_hover" id="p_exit_client" data-client_id='{{ client.id }}'
                                    data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
@@ -255,7 +258,7 @@
                         {% endif %}
 
                         {% if perms.DreamsApp.add_clienttransfer %}
-                            {% if client.can_be_transferred and not client.voided and not client.exited  and current_user_belongs_to_same_ip_as_client %}
+                            {% if client.can_be_transferred and client_action_permissions.can_perform_edit %}
                                 {% if client.exited %}
                                     <p class="underline_hover exit_unexit_toggle" id="p_transfer_client" data-client_id='{{ client.id }}'
                                        data-search_client_term='{{ search_client_term }}' style="cursor:pointer; display: none"
@@ -275,7 +278,7 @@
                                 </p>
                             {% endif %}
                         {% endif %}
-                        {% if perms.DreamsApp.can_void_client and not client.voided and not client.exited and current_user_belongs_to_same_ip_as_client %}
+                        {% if perms.DreamsApp.can_void_client and client_action_permissions.can_perform_edit %}
                             {% if client.exited %}
                                 <p class="underline_hover exit_unexit_toggle" id="p_void_client" data-client_id='{{ client.id }}'
                                    style="cursor:pointer; display: none" data-toggle="modal" data-target="#client-void-modal"
@@ -299,7 +302,8 @@
                             <span class="glyphicon glyphicon-search"></span> Follow Ups
                         </p>
                     {%  endif %}
-                    {% if perms.DreamsApp.add_referral and not client.exited and not client.voided and current_user_belongs_to_same_ip_as_client %}
+
+                    {% if perms.DreamsApp.add_referral and client_action_permissions.can_perform_edit %}
                         <p class="underline_hover" id="p_unexit_client" data-client_id='{{ client.id }}'
                            data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
                            data-toggle="modal" data-target="#client-make-referral-modal" title="Make Referral">

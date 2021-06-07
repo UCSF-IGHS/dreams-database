@@ -8,7 +8,7 @@ class InterventionSecurityServiceChecks:
 
     @classmethod
     def check_client_belongs_to_ip(cls, user, client):
-        if user.implementing_partner is client.implementing_partner:
+        if user.implementing_partner == client.implementing_partner:
             return "VI002"
         return None
 

@@ -1321,6 +1321,12 @@ def save_intervention(request):
                             is_visible_by_ip[intervention.pk] = intervention.is_visible_by_ip(
                                 request.user.implementingpartneruser.implementing_partner)
 
+                            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                                                                                enrolment=client)
+                            intervention_action_permission = InterventionActionPermissions(model=Intervention,
+                                                                                            user=request.user, intervention=intervention)
+                            interventions_action_permissions = {'can_perform_edit': intervention_action_permission.can_perform_edit()}
+
                             response_data = {
                                 'status': 'success',
                                 'message': 'Intervention successfully saved',
@@ -1334,7 +1340,9 @@ def save_intervention(request):
                                 }),
                                 'is_editable_by_ip': is_editable_by_ip,
                                 'is_visible_by_ip': is_visible_by_ip,
-                                'client_is_exited': intervention.client.exited
+                                'client_is_exited': intervention.client.exited,
+                                'intervention_action_permissions': interventions_action_permissions,
+                                'implementing_partner_name': intervention.implementing_partner.name
                             }
                             return JsonResponse(response_data)
 
