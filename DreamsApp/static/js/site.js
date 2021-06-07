@@ -348,7 +348,6 @@ $(document).ready(function () {
                                 return false;
                             }
                         });
-                        console.log(iv)
                         implementing_partner_name = intervention_ip_names[iv.pk]
                         intervention_action_permission = interventions_action_permissions[iv.pk] 
                         var hts_result = iv_type.fields.has_hts_result ? getResultName(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result) : "";
@@ -1074,7 +1073,6 @@ $(document).ready(function () {
                     var hts_result = iv_type.fields.has_hts_result ? getResultName(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result) : "";
                     var pregnancy_result = iv_type.fields.has_pregnancy_result ? getResultName(pregnancy_results, iv_type.fields.has_pregnancy_result, iv.fields.pregnancy_test_result) : "";
 
-                    console.log(intervention_action_permissions)
                     iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
                     iv.fields.no_of_sessions_attended = iv.fields.no_of_sessions_attended == null ? "" : iv.fields.no_of_sessions_attended;
                     if (modalMode == "new") {
