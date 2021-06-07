@@ -237,7 +237,7 @@ def clients(request):
                 try:
                     result = client_query_service.search_clients(search_criteria)
                 except Client.DoesNotExist as e:
-                    result = Client.objects.all()[:0]
+                    result = Client.objects.none()
 
                 search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
                 # search_result = search_result_tuple[0]
@@ -259,10 +259,10 @@ def clients(request):
 
                         # search_result = search_result.union(transfer_out_clients)
                     except Exception as e:
-                        search_result = Client.objects.all()[:0]
+                        search_result = Client.objects.none()
             else:
 
-                search_result = Client.objects.all().order_by('id')[:0]
+                search_result = Client.objects.none()
                 search_result_tuple = [search_result, 'False', '', '', '', '', '']
             log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_client_term)
             try:
@@ -275,15 +275,15 @@ def clients(request):
 
 
             if request.is_ajax():
-                result_list = []
-                for res in search_result:
-                    client_action_permissions.enrolment = res
-                    client_action_permissions.can_perform_view()
-                    current_result = [client_action_permissions, res]
-                    result_list.append(current_result)
+                enrolment_results = []
+
+                for client in search_result:
+                    action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client)
+                    enrolment_result = [action_permissions, client]
+                    enrolment_results.append(enrolment_result)
 
                 json_response = {
-                    'search_result': serializers.serialize('json', result_list),
+                    'search_result': serializers.serialize('json', enrolment_results),
                     'search_client_term': search_client_term,
                     'can_manage_client': request.user.has_perm('auth.can_manage_client'),
                     'can_change_client': request.user.has_perm('auth.can_change_client'),
@@ -301,14 +301,15 @@ def clients(request):
             else:
                 # Non ajax request.. Do a paginator
                 # do pagination
-                result_list = []
-                for res in search_result:
-                    client_action_permissions.enrolment = res
-                    current_result = [client_action_permissions, res]
-                    result_list.append(current_result)
+                enrolment_results = []
+
+                for client in search_result:
+                    action_permissions = ClientActionPermissions(model=Client,user=request.user, enrolment=client)
+                    enrolment_result = [action_permissions, client]
+                    enrolment_results.append(enrolment_result)
 
                 try:
-                    paginator = Paginator(result_list, 20)
+                    paginator = Paginator(enrolment_results, 20)
                     client_paginator = paginator.page(page)
                 except PageNotAnInteger:
                     client_paginator = paginator.page(1)  # Deliver the first page is page is not an integer
@@ -351,7 +352,7 @@ def clients(request):
                     'end_date_filter': search_result_tuple[6],
                     'max_dob': max_dob,
                     'min_dob': min_dob,
-                    'result_list': result_list,
+                    'result_list': enrolment_results,
                     'client_action_permissions': client_action_permissions,
                     'intervention_action_permissions': intervention_action_permissions
                 }
