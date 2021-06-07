@@ -243,23 +243,18 @@ def clients(request):
                 # search_result = search_result_tuple[0]
                 search_result = result
                 # check for permissions
-                if not request.user.has_perm("DreamsApp.can_view_cross_ip_data"):
-                    try:
-                        ip = request.user.implementingpartneruser.implementing_partner
-
-                        transfer_out = ClientTransfer.objects.filter(source_implementing_partner=ip).filter(
-                            transfer_status=ClientTransferStatus.objects.get(
-                                                      code__exact=TRANSFER_ACCEPTED_STATUS))
-
-                        transfer_out_clients = search_result.filter(pk__in=transfer_out.values_list('client'))
-
-                        transfer_out = ClientTransfer.objects.filter(source_implementing_partner=ip).filter(
-                            transfer_status=ClientTransferStatus.objects.get(
-                                                      code__exact=TRANSFER_ACCEPTED_STATUS))
-
-                        # search_result = search_result.union(transfer_out_clients)
-                    except Exception as e:
-                        search_result = Client.objects.none()
+                # if not request.user.has_perm("DreamsApp.can_view_cross_ip_data"):
+                #     try:
+                #         ip = request.user.implementingpartneruser.implementing_partner
+                #
+                #         transfer_out = ClientTransfer.objects.filter(source_implementing_partner=ip).filter(
+                #             transfer_status=ClientTransferStatus.objects.get(
+                #                                       code__exact=TRANSFER_ACCEPTED_STATUS))
+                #
+                #         # transfer_out_clients = search_result.filter(pk__in=transfer_out.values_list('client'))
+                #
+                #     except Exception as e:
+                #         search_result = Client.objects.none()
             else:
 
                 search_result = Client.objects.none()
