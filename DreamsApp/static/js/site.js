@@ -766,29 +766,24 @@ $(document).ready(function () {
         var client_is_exited = permissions.client_is_exited;
 
         if (client_is_exited) {
-            if (intervention_action_permission.can_perform_edit) {
-
-                if (can_change_intervention && can_delete_intervention) {
+           if (intervention_action_permission.can_perform_edit && intervention_action_permission.can_perform_void) {
                     return "<td><span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Delete</span> </td>";
-                } else if (can_change_intervention) {
+                } else if (intervention_action_permission.can_perform_edit) {
                     return "<td><span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Edit</span> </td>";
-                } else if (can_delete_intervention) {
+                } else if (intervention_action_permission.can_perform_void) {
                     return "<td><span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Delete</span> </td>";
                 } else {
                     return "";
                 }
-            }
         } else {
-            if (intervention_action_permission.can_perform_edit) {
-                if (can_change_intervention && can_delete_intervention) {
-                    return "<td> <span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden'> Delete</span> </td>";
-                } else if (can_change_intervention) {
-                    return "<td> <span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' > Edit</span> </td>";
-                } else if (can_delete_intervention) {
-                    return "<td> <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden'> Delete</span> </td>";
-                } else {
-                    return "";
-                }
+            if (intervention_action_permission.can_perform_edit && intervention_action_permission.can_perform_void) {
+                return "<td> <span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden'> Delete</span> </td>";
+            } else if (intervention_action_permission.can_perform_edit) {
+                return "<td> <span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' > Edit</span> </td>";
+            } else if (intervention_action_permission.can_perform_void) {
+                return "<td> <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden'> Delete</span> </td>";
+            } else {
+                return "";
             }
         }
     }
