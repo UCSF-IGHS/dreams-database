@@ -1325,7 +1325,7 @@ def save_intervention(request):
                                                                                 enrolment=client)
                             intervention_action_permission = InterventionActionPermissions(model=Intervention,
                                                                                             user=request.user, intervention=intervention)
-                            interventions_action_permissions = {'can_perform_edit': intervention_action_permission.can_perform_edit()}
+                            interventions_action_permissions = {'can_perform_edit': intervention_action_permission.can_perform_edit(), 'can_perform_edit': intervention_action_permission.can_perform_void()}
 
                             response_data = {
                                 'status': 'success',
@@ -1563,7 +1563,10 @@ def get_intervention_list(request):
                 is_visible_by_ip[i.pk] = i.is_visible_by_ip(request.user.implementingpartneruser.implementing_partner)
                 intervention_ip_names[i.pk] = i.implementing_partner.name
                 intervention_action_permissions.intervention = i
-                current_actions_permissions = {'can_perform_edit': intervention_action_permissions.can_perform_edit()}
+                current_actions_permissions = {
+                                                'can_perform_edit': intervention_action_permissions.can_perform_edit(),
+                                                'can_perform_void': intervention_action_permissions.can_perform_void()
+                                                }
                 interventions_action_permissions[i.pk] = current_actions_permissions
 
             response_data = {
