@@ -377,7 +377,7 @@ def get_search_criteria(search_client_term, is_advanced_search, request):
         search_criteria['sub_county'] = int(sub_county_filter)
 
     ward_filter = str(
-        request.GET.get('ward', '') if request.method == 'GET' else request.POST.get('sub_county', ''))
+        request.GET.get('ward', '') if request.method == 'GET' else request.POST.get('ward', ''))
     if ward_filter != '':
         search_criteria['ward'] = int(ward_filter)
 
