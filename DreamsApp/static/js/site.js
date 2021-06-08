@@ -336,7 +336,8 @@ $(document).ready(function () {
                 var pregnancy_results = $.parseJSON(data.pregnancy_results);
                 var permissions = $.parseJSON(data.permissions);
                 interventionPermissionsGlobal = permissions;
-
+                intervention_ip_names = data.intervention_ip_names
+                interventions_action_permissions = data.interventions_action_permissions
                 $(table_id + '  tbody').empty();
                 $.each(ivs, function (index, iv) {
                     if (data.is_visible_by_ip[iv.pk] == true) {
@@ -347,6 +348,8 @@ $(document).ready(function () {
                                 return false;
                             }
                         });
+                        implementing_partner_name = intervention_ip_names[iv.pk]
+                        intervention_action_permission = interventions_action_permissions[iv.pk] 
                         var hts_result = iv_type.fields.has_hts_result ? getResultName(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result) : "";
                         var pregnancy_result = iv_type.fields.has_pregnancy_result ? getResultName(pregnancy_results, iv_type.fields.has_pregnancy_result, iv.fields.pregnancy_test_result) : "";
                         iv.fields.client_ccc_number = iv.fields.client_ccc_number == null ? "" : iv.fields.client_ccc_number;
@@ -356,7 +359,7 @@ $(document).ready(function () {
                             permissions = null;
                         }
 
-                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, false, permissions);
+                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, false, permissions, implementing_partner_name, intervention_action_permission);
                     }
                 });
 
@@ -753,7 +756,7 @@ $(document).ready(function () {
         return val != null && doCheck ? val : '';
     }
 
-    function addUserActions(permissions) {
+    function addUserActions(permissions, intervention_action_permission) {
         if (permissions == null) {
             return "<td></td>";
         }
@@ -763,63 +766,70 @@ $(document).ready(function () {
         var client_is_exited = permissions.client_is_exited;
 
         if (client_is_exited) {
-            if (can_change_intervention && can_delete_intervention) {
-                return "<td><span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Delete</span> </td>";
-            } else if (can_change_intervention) {
-                return "<td><span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Edit</span> </td>";
-            } else if (can_delete_intervention) {
-                return "<td><span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Delete</span> </td>";
-            } else {
-                return "";
+            if (intervention_action_permission.can_perform_edit) {
+
+                if (can_change_intervention && can_delete_intervention) {
+                    return "<td><span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Delete</span> </td>";
+                } else if (can_change_intervention) {
+                    return "<td><span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Edit</span> </td>";
+                } else if (can_delete_intervention) {
+                    return "<td><span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' style='display: none'> Delete</span> </td>";
+                } else {
+                    return "";
+                }
             }
         } else {
-            if (can_change_intervention && can_delete_intervention) {
-                return "<td> <span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden'> Delete</span> </td>";
-            } else if (can_change_intervention) {
-                return "<td> <span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' > Edit</span> </td>";
-            } else if (can_delete_intervention) {
-                return "<td> <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden'> Delete</span> </td>";
-            } else {
-                return "";
+            if (intervention_action_permission.can_perform_edit) {
+                if (can_change_intervention && can_delete_intervention) {
+                    return "<td> <span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' > Edit</span> &nbsp;&nbsp; <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden'> Delete</span> </td>";
+                } else if (can_change_intervention) {
+                    return "<td> <span class='glyphicon glyphicon-pencil edit_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden' > Edit</span> </td>";
+                } else if (can_delete_intervention) {
+                    return "<td> <span class='glyphicon glyphicon-trash delete_intervention_click exit_unexit_toggle' arial-label='Arial-Hidden'> Delete</span> </td>";
+                } else {
+                    return "";
+                }
             }
         }
     }
 
-    function insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, top, permissions) {
+    function insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, top, permissions, implementing_partner_name, intervention_action_permission) {
         var tabpanel_id = '#behavioural-interventions';
         switch (intervention_category_code) {
             case 1001:
-                if (!top)
-                    $(table_id).append("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='comment'> " + iv.fields.comment + "</td>" + addUserActions(permissions) + "</tr>");
-                else
-                    $(table_id).prepend("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='comment'> " + iv.fields.comment + "</td>" + addUserActions(permissions) + "</tr>");
+                if (!top){ 
+                    $(table_id).append("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='implementing_partner_name'>"+implementing_partner_name+"</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='comment'> " + (iv.fields.comment ? iv.fields.comment: '') + "</td>" + addUserActions(permissions, intervention_action_permission) + "</tr>");
+                }
+                else {
+                    $(table_id).prepend("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='implementing_partner_name'>"+implementing_partner_name+"</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='comment'> " + (iv.fields.comment ? iv.fields.comment: '') + "</td>" + addUserActions(permissions, intervention_action_permission) + "</tr>");
+                }
                 break;
             case 2001:
                 if (!top)
-                    $(table_id).append("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='test_result'> " + hts_result + pregnancy_result + "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> " + iv.fields.comment + "</td>" + addUserActions(permissions) + "</tr>");
+                    $(table_id).append("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='implementing_partner_name'>"+implementing_partner_name+"</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='test_result'> " + hts_result + pregnancy_result + "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> " + (iv.fields.comment ? iv.fields.comment: '') + "</td>" + addUserActions(permissions) + "</tr>");
                 else
-                    $(table_id).prepend("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='test_result'> " + hts_result + pregnancy_result + "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> " + iv.fields.comment + "</td>" + addUserActions(permissions) + "</tr>");
+                    $(table_id).prepend("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='implementing_partner_name'>"+implementing_partner_name+"</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='test_result'> " + hts_result + pregnancy_result + "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> " + (iv.fields.comment ? iv.fields.comment: '') + "</td>" + addUserActions(permissions) + "</tr>");
                 tabpanel_id = '#biomedical-interventions';
                 break;
             case 3001:
                 if (!top)
-                    $(table_id).append("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='comment'> " + iv.fields.comment + "</td>" + addUserActions(permissions) + "</tr>");
+                    $(table_id).append("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='implementing_partner_name'>"+implementing_partner_name+"</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='comment'> " + (iv.fields.comment ? iv.fields.comment: '') + "</td>" + addUserActions(permissions, intervention_action_permission) + "</tr>");
                 else
-                    $(table_id).prepend("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='comment'> " + iv.fields.comment + "</td>" + addUserActions(permissions) + "</tr>");
+                    $(table_id).prepend("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='implementing_partner_name'>"+implementing_partner_name+"</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='comment'> " + (iv.fields.comment ? iv.fields.comment: '') + "</td>" + addUserActions(permissions, intervention_action_permission) + "</tr>");
                 tabpanel_id = '#post-gbv-care';
                 break;
             case 4001:
                 if (!top)
-                    $(table_id).append("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='comment'> " + iv.fields.comment + "</td>" + addUserActions(permissions) + "</tr>");
+                    $(table_id).append("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='implementing_partner_name'>"+implementing_partner_name+"</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='comment'> " + (iv.fields.comment ? iv.fields.comment: '') + "</td>" + addUserActions(permissions, intervention_action_permission ) + "</tr>");
                 else
-                    $(table_id).prepend("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='comment'>" + iv.fields.comment + "</td>" + addUserActions(permissions) + "</tr>");
+                    $(table_id).prepend("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='implementing_partner_name'>"+implementing_partner_name+"</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='comment'>" + (iv.fields.comment ? iv.fields.comment: '') + "</td>" + addUserActions(permissions, intervention_action_permission) + "</tr>");
                 tabpanel_id = '#social-protection';
                 break;
             case 5001:
                 if (!top)
-                    $(table_id).append("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.get_name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='no_of_sessions_attended'> " + iv.fields.no_of_sessions_attended + "</td><td class='comment'> " + iv.fields.comment + "</td>" + addUserActions(permissions) + "</tr>");
+                    $(table_id).append("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.get_name_specified) + "</td><td class='implementing_partner_name'>"+implementing_partner_name+"</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='no_of_sessions_attended'> " + iv.fields.no_of_sessions_attended + "</td><td class='comment'> " + (iv.fields.comment ? iv.fields.comment: '') + "</td>" + addUserActions(permissions, intervention_action_permission) + "</tr>");
                 else
-                    $(table_id).prepend("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='no_of_sessions_attended'> " + iv.fields.no_of_sessions_attended + "</td><td class='comment'> " + iv.fields.comment + "</td>" + addUserActions(permissions) + "</tr>");
+                    $(table_id).prepend("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='implementing_partner_name'>"+implementing_partner_name+"</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='no_of_sessions_attended'> " + iv.fields.no_of_sessions_attended + "</td><td class='comment'> " + (iv.fields.comment ? iv.fields.comment: '') + "</td>" + addUserActions(permissions, intervention_action_permission) + "</tr>");
                 tabpanel_id = '#other-interventions';
                 break;
 
@@ -1031,7 +1041,6 @@ $(document).ready(function () {
 
         var postUrl = modalMode == "edit" ? "/ivUpdate" : "/ivSave";
         var csrftoken = getCookie('csrftoken');
-
         $.ajax({
             url: postUrl,
             type: "POST",
@@ -1059,6 +1068,8 @@ $(document).ready(function () {
                     var hts_results = $.parseJSON(data.hts_results);
                     var pregnancy_results = $.parseJSON(data.pregnancy_results);
                     var permissions = $.parseJSON(data.permissions);
+                    var intervention_action_permissions = data.intervention_action_permissions;
+                    var implementing_partner_name = data.implementing_partner_name;
                     var hts_result = iv_type.fields.has_hts_result ? getResultName(hts_results, iv_type.fields.has_hts_result, iv.fields.hts_result) : "";
                     var pregnancy_result = iv_type.fields.has_pregnancy_result ? getResultName(pregnancy_results, iv_type.fields.has_pregnancy_result, iv.fields.pregnancy_test_result) : "";
 
@@ -1069,7 +1080,7 @@ $(document).ready(function () {
                             permissions = null;
                         }
 
-                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, true, permissions);
+                        insertInterventionEntryInView(table_id, iv, iv_type, intervention_category_code, hts_result, pregnancy_result, true, permissions, implementing_partner_name, intervention_action_permissions);
                         $(table_id + ' tr.zero_message_row').remove();
                         $(alert_id).removeClass('hidden').addClass('alert-success')
                             .text('Intervention has been Saved successfully!')

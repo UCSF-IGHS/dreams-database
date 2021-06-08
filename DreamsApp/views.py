@@ -512,6 +512,8 @@ def client_profile(request):
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
                 current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
+                client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
+                intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
                 return render(request, 'client_profile.html',
                               {'page': 'clients',
                                'page_title': 'DREAMS Client Service Uptake',
@@ -525,7 +527,9 @@ def client_profile(request):
                                'client_status': client_status,
                                '60_days_from_now': dt.now() + + timedelta(days=60),
                                'intervention_categories': InterventionCategory.objects.all(),
-                               'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser
+                               'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser,
+                               'client_action_permissions': client_action_permissions,
+                               'intervention_action_permissions': intervention_action_permissions
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -1317,6 +1321,12 @@ def save_intervention(request):
                             is_visible_by_ip[intervention.pk] = intervention.is_visible_by_ip(
                                 request.user.implementingpartneruser.implementing_partner)
 
+                            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                                                                                enrolment=client)
+                            intervention_action_permission = InterventionActionPermissions(model=Intervention,
+                                                                                            user=request.user, intervention=intervention)
+                            interventions_action_permissions = {'can_perform_edit': intervention_action_permission.can_perform_edit()}
+
                             response_data = {
                                 'status': 'success',
                                 'message': 'Intervention successfully saved',
@@ -1330,7 +1340,9 @@ def save_intervention(request):
                                 }),
                                 'is_editable_by_ip': is_editable_by_ip,
                                 'is_visible_by_ip': is_visible_by_ip,
-                                'client_is_exited': intervention.client.exited
+                                'client_is_exited': intervention.client.exited,
+                                'intervention_action_permissions': interventions_action_permissions,
+                                'implementing_partner_name': intervention.implementing_partner.name
                             }
                             return JsonResponse(response_data)
 
@@ -1542,9 +1554,17 @@ def get_intervention_list(request):
 
             is_editable_by_ip = {}
             is_visible_by_ip = {}
+            intervention_ip_names = {}
+            client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
+            intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
+            interventions_action_permissions = {}
             for i in list_of_interventions:
                 is_editable_by_ip[i.pk] = i.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner)
                 is_visible_by_ip[i.pk] = i.is_visible_by_ip(request.user.implementingpartneruser.implementing_partner)
+                intervention_ip_names[i.pk] = i.implementing_partner.name
+                intervention_action_permissions.intervention = i
+                current_actions_permissions = {'can_perform_edit': intervention_action_permissions.can_perform_edit()}
+                interventions_action_permissions[i.pk] = current_actions_permissions
 
             response_data = {
                 'iv_types': serializers.serialize('json', list_of_related_iv_types),
@@ -1558,7 +1578,9 @@ def get_intervention_list(request):
                 }),
                 'is_editable_by_ip': is_editable_by_ip,
                 'is_visible_by_ip': is_visible_by_ip,
-                'client_is_exited': client_found.exited
+                'client_is_exited': client_found.exited,
+                'intervention_ip_names': intervention_ip_names,
+                'interventions_action_permissions': interventions_action_permissions
             }
             return JsonResponse(response_data)
         else:
@@ -3654,8 +3676,8 @@ def get_pending_client_transfers_in_out_count(request):
 def get_pending_client_referrals_total_count(request):
     client_referrals_total_count = 0
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
         try:
+            pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
             ip = request.user.implementingpartneruser.implementing_partner
             client_referrals_total_count = Referral.objects.filter(
                 referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip)))).filter(
