@@ -64,15 +64,17 @@
         <div class="form-group">
             {{ hiv_form.client.as_hidden }}
         </div>
-        {% if is_editable_by_ip %}
-            <div class="form-group form-inline">
-                 <label class="control-label enrolment-label"></label>
-                {% if hiv_form.instance.client.exited %}
-                    <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle" style="display: none;">Save</button>
-                {% else %}
-                     <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle">Save</button>
-                {% endif %}
-            </div>
+        {% if client_action_permissions.can_perform_edit %}
+            {% if is_editable_by_ip %}
+                <div class="form-group form-inline">
+                     <label class="control-label enrolment-label"></label>
+                    {% if hiv_form.instance.client.exited %}
+                        <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle" style="display: none;">Save</button>
+                    {% else %}
+                         <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle">Save</button>
+                    {% endif %}
+                </div>
+            {% endif %}
         {% endif %}
     </fieldset>
 </div>

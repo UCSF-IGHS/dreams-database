@@ -1,15 +1,13 @@
 from datetime import datetime
-
-from DreamsApp.exceptions import DreamsPermissionDeniedException
 from DreamsApp.models import ServiceDelegation
 
 
-class InterventionSecurityServiceChecks:
+class EnrolmentSecurityServiceChecks:
 
     @classmethod
-    def check_client_belongs_to_ip(cls, user, client):
-        if user.implementing_partner == client.implementing_partner:
-            return "VI002"
+    def check_client_belongs_to_ip(cls, client, implmenting_partner):
+        if client.implementing_partner == implmenting_partner:
+            return "C001"
         return None
 
     @classmethod
@@ -20,11 +18,5 @@ class InterventionSecurityServiceChecks:
             end_date__gte=datetime.now().date()
         )
         if active_delegation_records.count() > 0:
-            return "VI004"
-        return None
-
-    @classmethod
-    def check_intervention_belongs_to_ip(cls, user, intervention):
-        if user.implementing_partner == intervention.implementing_partner:
-            return "VI003"
+            return "C002"
         return None
