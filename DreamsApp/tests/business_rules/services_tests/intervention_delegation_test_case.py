@@ -115,7 +115,6 @@ class InterventionDelegationTestCase(TestCase):
                                                       delegated_implementing_partner=delegated_implementing_partner,
                                                       start_date=start_date,
                                                       end_date=end_date,
-                                                      financial_year='2020/2021',
                                                       intervention_type=cls.get_intervention_type_1003(),
                                                       created_by=User.objects.get(username='admin'),
                                                       date_created=datetime.now(),

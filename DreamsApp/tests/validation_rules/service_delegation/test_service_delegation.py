@@ -38,9 +38,6 @@ class TestDelegatedImplementingPartnerTestCase(XFTestCase):
     def test_end_date_is_required(self):
         self.assertFieldRequired(ServiceDelegation, 'end_date', 'delegation end_date is required')
 
-    def test_financial_year_is_required(self):
-        self.assertFieldRequired(ServiceDelegation, 'financial_year', 'financial year is required')
-
     def test_delegation_start_date_less_than_end_date(self):
         afya_jijini = ImplementingPartner.objects.get(pk=1)
         afya_ziwani = ImplementingPartner.objects.get(pk=2)
