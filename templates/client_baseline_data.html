@@ -9,10 +9,6 @@
         <!-- Start of Client profile section -->
         <div class=" statusBox">
             <div>
-                <h4>{% if user.implementingpartneruser != None %}USER IMPLEMENTING PARTNER:
-                    {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
-            </div>
-            <div>
                 <h4>{% if client != None %}CLIENT IMPLEMENTING PARTNER:
                     {{ client.implementing_partner.name }}{% endif %}</h4>
             </div>
