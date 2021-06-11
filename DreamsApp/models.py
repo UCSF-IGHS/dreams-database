@@ -1612,11 +1612,26 @@ class ServiceDelegation(models.Model):
     start_date = models.DateField(verbose_name='Delegation start date', blank=False, null=False)
     end_date = models.DateField(verbose_name='Delegation end date', blank=False, null=False)
     intervention_type = models.ForeignKey(InterventionType, null=False, blank=False, related_name='delegation_intervention_type')
-    financial_year = models.CharField(max_length=250 ,verbose_name='Financial year',null=False, blank=False)
-    date_created = models.DateField(blank=False, null=False)
+    date_created = models.DateField(blank=False, null=False, default=datetime.now())
     created_by = models.ForeignKey(User,blank=False, null=False, related_name='service_delegation_date_created')
-    date_updated = models.DateField(blank=False, null=False)
+    date_updated = models.DateField(blank=False, null=False, default=datetime.now())
     updated_by = models.ForeignKey(User,blank=False, null=False, related_name='service_delegation_date_updated')
 
+    def __str__(self):
+        return '{} service delegated frpm IP {} to IP {}'.format(self.intervention_type.name, self.main_implementing_partner.name,
+                                                        self.delegated_implementing_partner.name)
+
+    def clean(self):
+        super(ServiceDelegation, self).clean()
+        validation_errors = {}
+        self.validate_model_start_date(validation_errors)
+
+        if validation_errors:
+            raise ValidationError(validation_errors)
+
+    def validate_model_start_date(self, validation_errors):
+        if self.end_date < self.start_date:
+            validation_errors[
+                'start_date'] = 'Delegation start date cannot be later than delegation end date.'
     class Meta:
         unique_together = ('main_implementing_partner', 'delegated_implementing_partner', 'start_date', 'end_date', 'intervention_type')

@@ -244,5 +244,14 @@ class InterventionTypePackageAdmin(admin.ModelAdmin):
 class ServiceDelegationAdmin(admin.ModelAdmin):
     model = ServiceDelegation
     list_per_page = 25
+    list_display = ('main_implementing_partner', 'delegated_implementing_partner','intervention_type', 'start_date', 'end_date',)
+    exclude = ('created_by', 'date_created', 'updated_by', 'date_updated')
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            # Only set added_by during the first save.
+            obj.created_by = request.user
+        obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
 
 admin.site.register(ServiceDelegation, ServiceDelegationAdmin)
