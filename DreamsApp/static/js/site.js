@@ -800,7 +800,6 @@ $(document).ready(function () {
                 }
                 break;
             case 2001:
-                console.log(permissions)
                 if (!top)
                     $(table_id).append("<tr id='intervention_" + iv.pk + "'><td class='name'>" + iv_type.fields.name + " " + returnValorEmpty(iv_type.fields.is_specified, iv.fields.name_specified) + "</td><td class='implementing_partner_name'>"+implementing_partner_name+"</td><td class='intervention_date'>" + iv.fields.intervention_date + "</td><td class='test_result'> " + hts_result + pregnancy_result + "</td><td class='client_ccc_number'> " + iv.fields.client_ccc_number + "</td><td class='comment'> " + (iv.fields.comment ? iv.fields.comment: '') + "</td>" + addUserActions(permissions, intervention_action_permission) + "</tr>");
                 else
