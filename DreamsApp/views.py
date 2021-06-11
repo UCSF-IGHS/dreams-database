@@ -1325,7 +1325,7 @@ def save_intervention(request):
                                                                                 enrolment=client)
                             intervention_action_permission = InterventionActionPermissions(model=Intervention,
                                                                                             user=request.user, intervention=intervention)
-                            interventions_action_permissions = {'can_perform_edit': intervention_action_permission.can_perform_edit(), 'can_perform_edit': intervention_action_permission.can_perform_void()}
+                            interventions_action_permissions = {'can_perform_edit': intervention_action_permission.can_perform_edit(), 'can_perform_void': intervention_action_permission.can_perform_void()}
 
                             response_data = {
                                 'status': 'success',

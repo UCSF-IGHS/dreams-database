@@ -194,10 +194,6 @@
     <div class="wrapper-container">
         <div class=" statusBox">
             <div>
-                <h4>{% if user.implementingpartneruser != None %}USER IMPLEMENTING PARTNER:
-                    {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
-            </div>
-            <div>
                 <h4>{% if client != None %}CLIENT IMPLEMENTING PARTNER:
                     {{ client.implementing_partner.name }}{% endif %}</h4>
             </div>
@@ -220,7 +216,7 @@
                     </p>
                     <p><strong>Marital status: </strong> {{ client.marital_status }}</p>
                 </div><!--/col-->
-                {% if client_action_permissions.can_perform_edit or client_action_permissions.can_perform_view or client_action_permissions.can_perform_void%}
+                {% if client_action_permissions.can_perform_edit  or client_action_permissions.can_perform_void%}
                 <div class="col-xs-12 col-sm-3">
                     <p><strong>Actions: </strong> <br>
                         {% if 'Transferred Out' in client_status or client.exited or not current_user_belongs_to_same_ip_as_client %}
@@ -295,12 +291,14 @@
                         {% endif %}
                     {% endif %}
                     </p>
-                    {% if perms.DreamsApp.view_clientfollowup %}
-                        <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
-                           onclick="window.location='/follow_ups?client_id={{ client.id }}'" data-toggle="tooltip"
-                           title="Follow Ups">
-                            <span class="glyphicon glyphicon-search"></span> Follow Ups
-                        </p>
+                    {% if perms.DreamsApp.add_referral and client_action_permissions.can_perform_edit %}
+                        {% if perms.DreamsApp.view_clientfollowup %}
+                            <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
+                               onclick="window.location='/follow_ups?client_id={{ client.id }}'" data-toggle="tooltip"
+                               title="Follow Ups">
+                                <span class="glyphicon glyphicon-search"></span> Follow Ups
+                            </p>
+                        {%  endif %}
                     {%  endif %}
 
                     {% if perms.DreamsApp.add_referral and client_action_permissions.can_perform_edit %}
