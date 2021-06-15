@@ -1,5 +1,6 @@
 from DreamsApp.business_rules.check_rules.intervention_security_service_checks import InterventionSecurityServiceChecks
-from DreamsApp.exceptions import InterventionNotWithinUserRealmBusinessRuleException, DreamsPermissionDeniedException
+from DreamsApp.exceptions import InterventionNotWithinUserRealmBusinessRuleException, \
+    InterventionTypeNotWithinUserRealmBusinessRuleException
 
 
 class InterventionSecurityService:
@@ -52,6 +53,16 @@ class InterventionSecurityService:
         else:
             checks_passed.append(vI003)
         return checks_passed
+
+    @classmethod
+    def rule_try_can_add_intervention_type_with_warning(cls, user, client, intervention_type):
+        checks_passed = []
+        vitw001 = InterventionSecurityServiceChecks.check_intervention_type_delegated_to_user_ip_by_client_ip(user, client,
+                                                                                                              intervention_type)
+        if vitw001 is None:
+            raise InterventionTypeNotWithinUserRealmBusinessRuleException
+        return vitw001
+
 
     @classmethod
     def rule_try_can_delete_intervention(cls, user, intervention):
