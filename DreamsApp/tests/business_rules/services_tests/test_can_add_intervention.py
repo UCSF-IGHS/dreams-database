@@ -1,6 +1,5 @@
 from DreamsApp.business_rules.services.intervention_security_service import InterventionSecurityService
-from DreamsApp.exceptions import InterventionNotWithinUserRealmBusinessRuleException, \
-    InterventionTypeNotWithinUserRealmBusinessRuleException
+from DreamsApp.exceptions import InterventionNotWithinUserRealmBusinessRuleException
 from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_case import \
     InterventionDelegationTestCase
 

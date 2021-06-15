@@ -19,6 +19,3 @@ class DreamsBusinessRuleViolationException(XFBusinessRuleViolationException):
 
 class DreamsPermissionDeniedException(PermissionDenied):
     pass
-
-class InterventionTypeNotWithinUserRealmBusinessRuleException(XFBusinessRuleViolationException):
-    pass

@@ -1,6 +1,5 @@
 from DreamsApp.business_rules.services.intervention_security_service import InterventionSecurityService
-from DreamsApp.exceptions import InterventionNotWithinUserRealmBusinessRuleException, \
-    InterventionTypeNotWithinUserRealmBusinessRuleException
+from DreamsApp.exceptions import InterventionNotWithinUserRealmBusinessRuleException
 from DreamsApp.models import ImplementingPartnerUser
 from xf.xf_services import XFModelPermissionBase
 
