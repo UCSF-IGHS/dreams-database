@@ -55,14 +55,14 @@ class InterventionSecurityService:
         return checks_passed
 
     @classmethod
-    def rule_try_can_add_intervention_type_to_client(cls, user, client, intervention_type):
+    def rule_try_can_add_intervention_type_to_client(cls, delegating_ip, delegated_ip, intervention_type):
         checks_passed = []
-        vitw001 = InterventionSecurityServiceChecks.check_intervention_type_delegated_to_user_ip_by_client_ip(user, client,
-                                                                                                              intervention_type)
-        if vitw001 is None:
+        vit001 = InterventionSecurityServiceChecks.check_intervention_type_delegated_to_user_ip_by_client_ip(
+            delegating_ip, delegated_ip,
+            intervention_type)
+        if vit001 is None:
             raise InterventionTypeNotWithinUserRealmBusinessRuleException
-        return vitw001
-
+        return vit001
 
     @classmethod
     def rule_try_can_delete_intervention(cls, user, intervention):
