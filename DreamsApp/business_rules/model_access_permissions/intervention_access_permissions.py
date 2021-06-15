@@ -1,5 +1,6 @@
 from DreamsApp.business_rules.services.intervention_security_service import InterventionSecurityService
-from DreamsApp.exceptions import InterventionNotWithinUserRealmBusinessRuleException
+from DreamsApp.exceptions import InterventionNotWithinUserRealmBusinessRuleException, \
+    InterventionTypeNotWithinUserRealmBusinessRuleException
 from DreamsApp.models import ImplementingPartnerUser
 from xf.xf_services import XFModelPermissionBase
 
@@ -54,3 +55,15 @@ class InterventionActionPermissions(XFModelPermissionBase):
 
     def can_perform_void(self):
         return self.can_perform_edit()
+
+    def can_perform_non_delegated_intervention_type_warning(self, client, intervention_type):
+
+        can_warn = False
+        try:
+            checks = InterventionSecurityService.rule_try_can_add_intervention_type_to_client(self.user,
+                                                                                         client, intervention_type)
+            if checks:
+                can_warn = False
+        except InterventionTypeNotWithinUserRealmBusinessRuleException:
+            can_warn = True
+        return can_warn

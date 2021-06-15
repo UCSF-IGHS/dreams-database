@@ -55,7 +55,7 @@ class InterventionSecurityService:
         return checks_passed
 
     @classmethod
-    def rule_try_can_add_intervention_type_with_warning(cls, user, client, intervention_type):
+    def rule_try_can_add_intervention_type_to_client(cls, user, client, intervention_type):
         checks_passed = []
         vitw001 = InterventionSecurityServiceChecks.check_intervention_type_delegated_to_user_ip_by_client_ip(user, client,
                                                                                                               intervention_type)
