@@ -28,11 +28,3 @@ class InterventionSecurityServiceChecks:
             return "VI003"
         return None
 
-    @classmethod
-    def check_intervention_type_delegated_to_user_ip_by_client_ip(cls, delegating_ip, delegated_ip, intervention_type):
-        delegations_from_client_ip = ServiceDelegation.objects.filter(
-            main_implementing_partner=delegating_ip,
-            delegated_implementing_partner=delegated_ip, end_date__gte=datetime.now().date())
-        if intervention_type.id in set(delegations_from_client_ip.values_list('intervention_type_id', flat=True)):
-            return "VIT001"
-        return None

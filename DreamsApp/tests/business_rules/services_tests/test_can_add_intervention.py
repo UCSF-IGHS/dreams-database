@@ -30,22 +30,3 @@ class RuleCanAddInterventionTestCase(InterventionDelegationTestCase):
         checks_passed = InterventionSecurityService.rule_try_can_add_intervention(delegated_ip_user,
                                                                                   intervention_by_client_ip)
         self.assertIn('VI004', checks_passed, 'Expected check VI004_ip_has_active_delegation to have passed')
-
-    def test_can_add_intervention_type_to_client_with_warning(self):
-        intervention_by_client_ip = self.test_data['intervention_by_ip_a_to_ip_a_client']
-        ip_a_client = self.test_data['ip_a_client']
-        intervention_type_1003 = self.get_intervention_type(code=1003)
-        delegating_ip = ip_a_client.implementing_partner
-        delegated_ip = self.ip_b_user.implementing_partner
-        self.create_delegation(delegating_implementing_partner=self.ip_a,
-                               delegated_implementing_partner=self.ip_b)
-        checks_passed = InterventionSecurityService.rule_try_can_add_intervention_type_to_client(delegating_ip,
-                                                                                                 delegated_ip,
-                                                                                                 intervention_type_1003)
-        self.assertIn("VIT001", checks_passed,
-                      'Expected check VIT001_ip_can_add_intervention_type_to_client to have passed')
-
-        with self.assertRaises(InterventionTypeNotWithinUserRealmBusinessRuleException):
-            intervention_type_1002 = self.get_intervention_type(code=1002)
-            InterventionSecurityService.rule_try_can_add_intervention_type_to_client(delegating_ip, delegated_ip,
-                                                                                     intervention_type_1002)
