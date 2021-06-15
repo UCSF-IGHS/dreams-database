@@ -34,5 +34,5 @@ class InterventionSecurityServiceChecks:
             main_implementing_partner=client.implementing_partner,
             delegated_implementing_partner=user.implementing_partner, end_date__gte=datetime.now().date())
         if intervention_type.id in set(delegations_from_client_ip.values_list('intervention_type_id', flat=True)):
-            return "VITW001"
+            return "VIT001"
         return None

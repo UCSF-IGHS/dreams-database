@@ -40,11 +40,10 @@ class RuleCanAddInterventionTestCase(InterventionDelegationTestCase):
                                delegated_implementing_partner=self.ip_b)
         checks_passed = InterventionSecurityService.rule_try_can_add_intervention_type_to_client(delegated_ip_user, ip_a_client,
                                                                                                  intervention_type_1003)
-        self.assertIn("VITW001", checks_passed, 'Expected check VITW001_ip_ to have passed')
+        self.assertIn("VITW001", checks_passed, 'Expected check VIT001_ip_can_add_intervention_type_to_client to have passed')
 
         with self.assertRaises(InterventionTypeNotWithinUserRealmBusinessRuleException):
             intervention_type_1002 = self.get_intervention_type(code=1002)
-            import ipdb; ipdb.set_trace()
             InterventionSecurityService.rule_try_can_add_intervention_type_to_client(delegated_ip_user, ip_a_client,
                                                                                      intervention_type_1002)
 
