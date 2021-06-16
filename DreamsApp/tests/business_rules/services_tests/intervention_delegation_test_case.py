@@ -98,11 +98,11 @@ class InterventionDelegationTestCase(TestCase):
         return implementing_partner_user
 
     @classmethod
-    def get_intervention_type_1003(cls):
-        return InterventionType.objects.get(code=1003)
+    def get_intervention_type(cls, code=1003):
+        return InterventionType.objects.get(code=code)
 
     @classmethod
-    def create_delegation(cls, delegating_implementing_partner, delegated_implementing_partner, active=True):
+    def create_delegation(cls, delegating_implementing_partner, delegated_implementing_partner, intervention_type=None, active=True):
         delegating_implementing_partner.save()
         delegated_implementing_partner.save()
         start_date = datetime.now().date()
@@ -110,12 +110,13 @@ class InterventionDelegationTestCase(TestCase):
         if not active:
             start_date = datetime.now() - timedelta(weeks=26)
             end_date = datetime.now() - timedelta(days=1)
-
+        if intervention_type is None:
+            intervention_type = cls.get_intervention_type(code=1003)
         delegation = ServiceDelegation.objects.create(main_implementing_partner=delegating_implementing_partner,
                                                       delegated_implementing_partner=delegated_implementing_partner,
                                                       start_date=start_date,
                                                       end_date=end_date,
-                                                      intervention_type=cls.get_intervention_type_1003(),
+                                                      intervention_type=intervention_type,
                                                       created_by=User.objects.get(username='admin'),
                                                       date_created=datetime.now(),
                                                       updated_by=User.objects.get(username='admin'),
@@ -129,14 +130,14 @@ class InterventionDelegationTestCase(TestCase):
         intervention = None
         if save is None:
             intervention = Intervention(client=client,
-                                        intervention_type=cls.get_intervention_type_1003(),
+                                        intervention_type=cls.get_intervention_type(),
                                         intervention_date=intervention_date, voided=voided,
                                         created_by=implementing_partner_user.user, date_created=datetime.now(),
                                         implementing_partner=implementing_partner_user.implementing_partner)
         elif save and save is True:
             client.save()
             intervention = Intervention(client=client,
-                                        intervention_type=cls.get_intervention_type_1003(),
+                                        intervention_type=cls.get_intervention_type(),
                                         intervention_date=intervention_date, voided=voided,
                                         created_by=implementing_partner_user.user, date_created=datetime.now(),
                                         implementing_partner=implementing_partner_user.implementing_partner)
@@ -152,7 +153,7 @@ class InterventionDelegationTestCase(TestCase):
                                                       start_date=datetime.now() - timedelta(weeks=26),
                                                       end_date=datetime.now() - timedelta(weeks=1),
                                                       financial_year='2020/2021',
-                                                      intervention_type=cls.get_intervention_type_1003(),
+                                                      intervention_type=cls.get_intervention_type(),
                                                       created_by=User.objects.get(username='admin'),
                                                       date_created=datetime.now(),
                                                       updated_by=User.objects.get(username='admin'),

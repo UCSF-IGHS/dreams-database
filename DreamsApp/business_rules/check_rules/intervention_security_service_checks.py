@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from DreamsApp.exceptions import DreamsPermissionDeniedException
 from DreamsApp.models import ServiceDelegation
 
 
@@ -28,3 +27,4 @@ class InterventionSecurityServiceChecks:
         if user.implementing_partner == intervention.implementing_partner:
             return "VI003"
         return None
+

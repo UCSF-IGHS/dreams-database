@@ -608,6 +608,22 @@ $(document).ready(function () {
                     });
                 }
             }
+
+            var delegated_intervention_type_codes = eval($("#delegated_intervention_type_codes").val())
+            var current_intervention_type_code = eval(it.attr('value'))
+            if (delegated_intervention_type_codes.length > 0 && current_intervention_type_code && delegated_intervention_type_codes.indexOf(current_intervention_type_code) == -1) {
+                $('#div_non_delegated_intervention_warning').fadeIn('fast');
+                $('#div_non_delegated_intervention_warning').removeClass('hide');
+            }
+            else {
+                if (!$('#div_non_delegated_intervention_warning').hasClass("hide")) {
+                    $('#div_non_delegated_intervention_warning').fadeOut('fast', function () {
+                        $('#div_non_delegated_intervention_warning').addClass('hide');
+                    });
+                }
+            }
+
+
         });
     }
 

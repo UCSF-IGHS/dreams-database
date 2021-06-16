@@ -161,7 +161,7 @@ def filter_clients(search_client_term, is_advanced_search, request):
     if is_advanced_search == 'True':
         data = client_advanced_search(search_result, is_advanced_search, request)
         return data
-    
+
     cache.set(cache_key, search_result, cache_time)
     return [search_result, is_advanced_search, '', '', '', '', '']
 
@@ -514,6 +514,8 @@ def client_profile(request):
                 current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
                 client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
                 intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
+                delegated_intervention_type_codes = get_delegated_intervention_type_codes(client_found.implementing_partner, request.user.implementingpartneruser.implementing_partner)
+
                 return render(request, 'client_profile.html',
                               {'page': 'clients',
                                'page_title': 'DREAMS Client Service Uptake',
@@ -529,7 +531,8 @@ def client_profile(request):
                                'intervention_categories': InterventionCategory.objects.all(),
                                'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser,
                                'client_action_permissions': client_action_permissions,
-                               'intervention_action_permissions': intervention_action_permissions
+                               'intervention_action_permissions': intervention_action_permissions,
+                               'delegated_intervention_type_codes': delegated_intervention_type_codes
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -537,6 +540,16 @@ def client_profile(request):
                 return render(request, 'login.html')
     else:
         raise PermissionDenied
+
+def get_delegated_intervention_type_codes(delegating_ip, delegated_ip):
+    if delegated_ip == delegating_ip:
+        return []
+
+    delegations = ServiceDelegation.objects.filter(main_implementing_partner=delegating_ip,
+                                     delegated_implementing_partner=delegated_ip,
+                                     end_date__gt=datetime.now().date())
+    delegations = list(delegations.values_list('intervention_type__code', flat=True))
+    return delegations
 
 
 def save_client(request):
@@ -594,7 +607,7 @@ def save_client(request):
                                 (ip_code, client.ward.code))
                             next_serial = cursor.fetchone()[0]
                             if next_serial is None:
-                                next_serial = 1 
+                                next_serial = 1
                             client.dreams_id = str(ip_code) + '/' + str(client.ward.code if client.ward != None else '') \
                                                + '/' + str(next_serial)
                         except Exception as e:
@@ -912,7 +925,7 @@ def exit_client(request):
                     'message': 'Permission denied. You must belong to the same IP as the client to be able to update it.'
                 }
                 return JsonResponse(response_data, status=500)
-            
+
 
             last_intervention_offered = get_last_intervention_offered(client)
 
@@ -1297,10 +1310,10 @@ def save_intervention(request):
                             intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
                         intervention.save(user_id=request.user.id, action="INSERT")  # Logging
-                        
+
                         intervention_type_category_cache_key = 'client-{}-intervention-type-category-{}'.format(intervention.client.id, intervention.intervention_type.intervention_category.code)
                         cache.delete(intervention_type_category_cache_key)
-                        
+
                         if intervention_by_referral == INTERVENTION_BY_REFERRAL:
                             response_data = {
                                 'status': 'success',
@@ -1742,7 +1755,7 @@ def update_follow_up(request):
                         'message': 'Current user must belong to the same IP as the client.'
                     }
                     return JsonResponse(response_data)
-                    
+
                 edit_follow_up_perm = FollowUpsServiceLayer(request.user)
                 if not edit_follow_up_perm.can_edit_followup():
                     response_data = {

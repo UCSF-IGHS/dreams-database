@@ -54,3 +54,4 @@ class InterventionActionPermissions(XFModelPermissionBase):
 
     def can_perform_void(self):
         return self.can_perform_edit()
+
