@@ -41,6 +41,5 @@ class RuleCanAddInterventionTestCase(InterventionDelegationTestCase):
 
         checks_passed = InterventionSecurityService.rule_try_can_add_intervention(receiving_ip_user,
                                                                                   intervention_to_non_delegating_ip_client)
-        self.assertIn('VI005', checks_passed, 'Expected check VI005_check_client_has_active_referral_to_ip'
-                                              ' to have passed')
+        self.assertIn('VI005', checks_passed, 'Expected check VI005_check_client_has_active_referral_to_ip to have passed')
 

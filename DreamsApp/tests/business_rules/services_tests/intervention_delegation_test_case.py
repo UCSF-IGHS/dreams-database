@@ -29,6 +29,8 @@ class InterventionDelegationTestCase(TestCase):
         cls.ip_b_user = cls.test_data['ip_b_user']
         cls.ip_c_user = cls.test_data['ip_c_user']
         cls.random_ip_user = cls.test_data['random_ip_user']
+        cls.pending_referral_status = ReferralStatus(code=REFERRAL_PENDING_STATUS)
+        cls.pending_referral_status.save()
 
     @classmethod
     def generate_test_data(cls):
@@ -540,10 +542,8 @@ class InterventionDelegationTestCase(TestCase):
     def create_referral(cls, client, referring_ip, receiving_ip):
         intervention_type = cls.get_intervention_type()
         referral_expiration_date = datetime.now().date() + timedelta(days=30)
-        referral_status = ReferralStatus(code=REFERRAL_PENDING_STATUS)
-        referral_status.save()
         client.save()
-        referral = Referral(client=client, referring_ip=referring_ip, receiving_ip=receiving_ip, referral_status=referral_status,
+        referral = Referral(client=client, referring_ip=referring_ip, receiving_ip=receiving_ip, referral_status=cls.pending_referral_status,
                             intervention_type=intervention_type, referral_date=datetime.now().date(),
                             referral_expiration_date=referral_expiration_date)
         referral.save()
