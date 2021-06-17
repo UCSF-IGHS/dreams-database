@@ -7,8 +7,9 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.shortcuts import get_object_or_404
 from django.test import TestCase, RequestFactory
 
+from DreamsApp.constants import REFERRAL_PENDING_STATUS
 from DreamsApp.models import User, Client, Intervention, InterventionType, ServiceDelegation, ImplementingPartner, \
-    ImplementingPartnerUser, County, SubCounty, Ward
+    ImplementingPartnerUser, County, SubCounty, Ward, Referral, ReferralStatus
 
 
 class InterventionDelegationTestCase(TestCase):
@@ -534,3 +535,16 @@ class InterventionDelegationTestCase(TestCase):
         middleware.process_request(request)
         request.session.save()
         return request
+
+    @classmethod
+    def create_referral(cls, client, referring_ip, receiving_ip):
+        intervention_type = cls.get_intervention_type()
+        referral_expiration_date = datetime.now().date() + timedelta(days=30)
+        referral_status = ReferralStatus(code=REFERRAL_PENDING_STATUS)
+        referral_status.save()
+        client.save()
+        referral = Referral(client=client, referring_ip=referring_ip, receiving_ip=receiving_ip, referral_status=referral_status,
+                            intervention_type=intervention_type, referral_date=datetime.now().date(),
+                            referral_expiration_date=referral_expiration_date)
+        referral.save()
+        return referral
