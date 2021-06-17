@@ -1612,9 +1612,9 @@ class ServiceDelegation(models.Model):
     start_date = models.DateField(verbose_name='Delegation start date', blank=False, null=False)
     end_date = models.DateField(verbose_name='Delegation end date', blank=False, null=False)
     intervention_type = models.ForeignKey(InterventionType, null=False, blank=False, related_name='delegation_intervention_type')
-    date_created = models.DateField(blank=False, null=False, default=datetime.now())
+    date_created = models.DateField(blank=False, null=False, auto_now_add=True)
     created_by = models.ForeignKey(User,blank=False, null=False, related_name='service_delegation_date_created')
-    date_updated = models.DateField(blank=False, null=False, default=datetime.now())
+    date_updated = models.DateField(blank=False, null=False, auto_now=True)
     updated_by = models.ForeignKey(User,blank=False, null=False, related_name='service_delegation_date_updated')
 
     def __str__(self):
