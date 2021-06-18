@@ -33,7 +33,7 @@ class InterventionSecurityServiceChecks:
     def check_client_has_active_referral_to_ip(cls, client, ip, intervention_type):
         referral_status = ReferralStatus.objects.get(code=REFERRAL_PENDING_STATUS)
         referrals = Referral.objects.filter(client=client, intervention_type=intervention_type, receiving_ip=ip,
-                                            referral_expiration_date__gte=datetime.now().date(), referral_status=referral_status)
+                                            referral_expiration_date__gte=datetime.now().date())
         if referrals.exists():
             return "VI005"
         return None
