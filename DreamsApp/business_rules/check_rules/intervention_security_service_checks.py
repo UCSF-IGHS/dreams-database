@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from DreamsApp.exceptions import DreamsPermissionDeniedException
-from DreamsApp.models import ServiceDelegation
+from DreamsApp.constants import REFERRAL_PENDING_STATUS
+from DreamsApp.models import ServiceDelegation, Referral, ReferralStatus
 
 
 class InterventionSecurityServiceChecks:
@@ -27,4 +27,13 @@ class InterventionSecurityServiceChecks:
     def check_intervention_belongs_to_ip(cls, user, intervention):
         if user.implementing_partner == intervention.implementing_partner:
             return "VI003"
+        return None
+
+    @classmethod
+    def check_client_has_active_referral_to_ip(cls, client, ip, intervention_type):
+        referral_status = ReferralStatus.objects.get(code=REFERRAL_PENDING_STATUS)
+        referrals = Referral.objects.filter(client=client, intervention_type=intervention_type, receiving_ip=ip,
+                                            referral_expiration_date__gte=datetime.now().date())
+        if referrals.exists():
+            return "VI005"
         return None

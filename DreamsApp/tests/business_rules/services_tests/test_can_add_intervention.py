@@ -29,3 +29,17 @@ class RuleCanAddInterventionTestCase(InterventionDelegationTestCase):
         checks_passed = InterventionSecurityService.rule_try_can_add_intervention(delegated_ip_user,
                                                                                   intervention_by_client_ip)
         self.assertIn('VI004', checks_passed, 'Expected check VI004_ip_has_active_delegation to have passed')
+
+
+    def test_when_a_pending_referral_from_user_ip_to_client_ip(self):
+        test_data=self.generate_test_data()
+        intervention_to_non_delegating_ip_client = self.test_data['intervention_by_ip_b_to_ip_a_client']
+        referral = self.create_referral(test_data['ip_a_client'], test_data['ip_a'], test_data['ip_b'])
+        intervention_to_non_delegating_ip_client.client = referral.client
+        intervention_to_non_delegating_ip_client.save()
+        receiving_ip_user = self.test_data['ip_b_user']
+
+        checks_passed = InterventionSecurityService.rule_try_can_add_intervention(receiving_ip_user,
+                                                                                  intervention_to_non_delegating_ip_client)
+        self.assertIn('VI005', checks_passed, 'Expected check VI005_check_client_has_active_referral_to_ip to have passed')
+

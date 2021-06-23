@@ -36,6 +36,8 @@
                                value="{{ user.id }}"/>
                         <input class="hidden validate-intervention-form-field" name="intervention_by_referral" id="intervention_by_referral"
                                    value="0"/>
+                        <input class="hidden validate-intervention-form-field" name="delegated_intervention_type_codes" id="delegated_intervention_type_codes"
+                                   value="{{ delegated_intervention_type_codes }}"/>
 
                         <!-- End of Permanently hidden fields -->
 
@@ -47,6 +49,10 @@
                             <div id="div_out_of_age_bracket_warning" class="custom-has-error hide">
                                 <label class="control-label">Warning!, the client's age is outside the selected
                                     intervention type's age bracket </label>
+                            </div>
+                            <div id="div_non_delegated_intervention_warning" class="custom-has-error hide">
+                                <label class="control-label">Warning! The selected intervention has not been delegated to
+                                    to your IP by {{ client.implementing_partner.name }}  </label>
                             </div>
                         </div>
 
