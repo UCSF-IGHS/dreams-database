@@ -1258,7 +1258,7 @@ def save_intervention(request):
                     }
                     return JsonResponse(response_data)
 
-                if update_drug_use_data is not None and type(intervention_type_code) is int:
+                if intervention_type_code is not None and type(intervention_type_code) is int:
                     with transaction.atomic():
                         intervention = Intervention()
                         intervention.client = client
