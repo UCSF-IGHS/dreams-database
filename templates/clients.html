@@ -102,6 +102,12 @@
 
         <div class=" alert hidden dp-action-alert fade in" id="client_actions_alert" role="alert"
              style="margin-bottom: 15px;"></div>
+        {% if display_first_100_clients %}
+            <div class="alert text-danger dp-action-alert fade in" id="display_first_100_clients"
+             style="margin-bottom: 15px;">
+            Displaying only the top 100 records. Please provide better search parameters
+            </div>
+        {% endif %}
 
         <div class="panel panel-default" style="padding-left: 0px; margin-left: 0px;">
             <div class="panel-body" style="margin: 0px;padding: 0px;">

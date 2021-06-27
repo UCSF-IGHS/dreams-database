@@ -37,12 +37,3 @@ class GetClientTestCase(InterventionDelegationTestCase):
         self.assertEquals(client.implementing_partner, test_data['ip_x'], 'Expected ip to be IP X')
         self.assertFalse(client.voided, 'Expected a client who is not voided')
 
-    def test_when_client_has_at_least_one_intervention(self):
-        test_data = self.create_test_data_for_ip_clients()
-        user = test_data['ip_z_user']
-        query_service = ClientQueryService(user=user)
-        client = query_service.get_client(dreams_id='101/1232/1')
-
-        self.assertEquals(client.dreams_id, '101/1232/1', 'Expected client have dreams id 101/1232/1')
-        self.assertEquals(client.implementing_partner, test_data['ip_y'], 'Expected ip to be IP Y')
-        self.assertFalse(client.voided, 'Expected a client who is not voided')

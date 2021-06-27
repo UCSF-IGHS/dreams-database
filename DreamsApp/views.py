@@ -241,7 +241,7 @@ def clients(request):
 
                 search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
                 # search_result = search_result_tuple[0]
-                search_result = result
+                search_result = result[:100]
                 # check for permissions
                 # if not request.user.has_perm("DreamsApp.can_view_cross_ip_data"):
                 #     try:
@@ -267,7 +267,7 @@ def clients(request):
 
             client_action_permissions = ClientActionPermissions(model=Client,user=request.user)
             intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
-
+            display_first_100_clients = (len(search_result) == 100)
 
             if request.is_ajax():
                 enrolment_results = []
@@ -290,7 +290,8 @@ def clients(request):
                     'current_ip': current_ip,
                     'demo_form': DemographicsForm(),
                     'client_action_permissions': client_action_permissions,
-                    'intervention_action_permissions': intervention_action_permissions
+                    'intervention_action_permissions': intervention_action_permissions,
+                    'display_first_100_clients': display_first_100_clients
                 }
                 return JsonResponse(json_response, safe=False)
             else:
@@ -349,7 +350,8 @@ def clients(request):
                     'min_dob': min_dob,
                     'result_list': enrolment_results,
                     'client_action_permissions': client_action_permissions,
-                    'intervention_action_permissions': intervention_action_permissions
+                    'intervention_action_permissions': intervention_action_permissions,
+                    'display_first_100_clients': display_first_100_clients
                 }
                 # county_filter, sub_county_filter, ward_filter, start_date_filter, end_date_filter
                 return render(request, 'clients.html', response_data)
@@ -1256,7 +1258,7 @@ def save_intervention(request):
                     }
                     return JsonResponse(response_data)
 
-                if intervention_type_code is not None and type(intervention_type_code) is int:
+                if update_drug_use_data is not None and type(intervention_type_code) is int:
                     with transaction.atomic():
                         intervention = Intervention()
                         intervention.client = client
