@@ -27,7 +27,7 @@ class SearchClientTestCase(InterventionDelegationTestCase):
         search_criteria = {'enrolment_start_date': datetime.now().date() - timedelta(weeks=57),
                            'enrolment_end_date': datetime.now().date()}
         clients = query_service.search_clients(search_criteria)
-        self.assertEquals(clients.count(), 3, 'Expected 3 client created within the specified date range')
+        self.assertEquals(clients.count(), 2, 'Expected 2 client created within the specified date range')
 
         for client in clients:
             self.assertTrue(client.date_of_enrollment >= search_criteria['enrolment_start_date'],
