@@ -1,0 +1,120 @@
+{% load getattribute %}
+
+
+
+{% if action.action_type == 2 %}
+    {# Row instance #}
+
+    {% if object|candoaction:action == True%}
+
+    <a  {% if action.use_ajax %}
+        data-toggle="modal"
+        data-target="#frmDlg"
+        html-target="#frmDlgHtml"
+        object_list="#ctxObjectList_{{ list_url_id }}"
+    {% endif %}
+            {% if action.next_url %}
+        data-next-url="{{ action.next_url }}"
+            {% endif %}
+        href="{% url action.url_name object|getattribute:primary_key %}"
+        class="{{ css_class }} {% if action.default_action %} btn-success{% endif %}"
+    >
+        {{ caption }}
+
+    </a>
+
+    {% endif %}
+{% endif %}
+
+{% if action.action_type == 4 %}
+    {# Pre initialised instance #}
+    <a  {% if action.use_ajax %}
+        data-toggle="modal"
+        data-target="#frmDlg"
+        html-target="#frmDlgHtml"
+        object_list="#ctxObjectList_{{ list_url_id }}"
+    {% endif %}
+            {% if action.next_url %}
+        data-next-url="{{ action.next_url }}"
+            {% endif %}
+        href="{% url action.url_name %}?{{ action.initial_data }}{{ object|getattribute:primary_key  }}"
+        class="{{ css_class }}"
+    >
+        {{ caption }}
+
+    </a>
+{% endif %}
+
+
+{% if action.action_type == 5 %}
+    {# Related instance #}
+     {% with object|getattribute:action.related_field as related_object %}
+        {% if related_object %}
+            <a  {% if action.use_ajax %}
+                data-toggle="modal"
+                data-target="#frmDlg"
+                html-target="#frmDlgHtml"
+                object_list="#ctxObjectList_{{ list_url_id }}"
+            {% endif %}
+                    {% if action.next_url %}
+                data-next-url="{{ action.next_url }}"
+                    {% endif %}
+
+                    {{ related_object|getattribute:primary_key }}
+
+                href="{% url action.url_name related_object|getattribute:primary_key %}"
+
+                class="{{ css_class }}"
+            >
+                {{ caption }}
+
+            </a>
+        {% else %}
+            {{ caption }}
+        {% endif %}
+    {% endwith %}
+
+{% endif %}
+
+{% if action.action_type == 6 %}
+    {# Link #}
+
+    {% if object|candoaction:action == True%}
+
+    <a  {% if action.use_ajax %}
+        data-toggle="modal"
+        data-target="#frmDlg"
+        html-target="#frmDlgHtml"
+        object_list="#ctxObjectList_{{ list_url_id }}"
+    {% endif %}
+            {% if action.next_url %}
+        data-next-url="{{ action.next_url }}"
+            {% endif %}
+        href="{{ action.url }}"
+        class="{{ css_class }} {% if action.default_action %} btn-success{% endif %}"
+    >
+        {{ caption }}
+
+    </a>
+
+    {% endif %}
+{% endif %}
+
+{% if action.action_type == 7 %}
+    {# Link in new window #}
+
+    {% if object|candoaction:action == True%}
+
+    <a
+            {% if action.next_url %}
+        data-next-url="{{ action.next_url }}"
+            {% endif %}
+        href="{{ action.url }}" target="_blank"
+        class="{{ css_class }} {% if action.default_action %} btn-success{% endif %}"
+    >
+        {{ caption }}
+
+    </a>
+
+    {% endif %}
+{% endif %}

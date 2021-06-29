@@ -1,0 +1,224 @@
+{% load widget_tweaks %}
+<form method="POST" class="post-form" id="form_demographics" action="/update-demographics/">
+    {% csrf_token %}
+    <input id="demo_current_client_id" class="hidden" type="text" name="client"/>
+
+    <div id="demo_replacement" style="margin: auto;">
+        <fieldset {% if not perms.DreamsApp.change_client %}disabled{% endif %}>
+            <div class="form-group form-inline " >
+                <label class="control-label enrolment-label">{{ demo_form.implementing_partner.label_tag}}</label>
+                {{ demo_form.implementing_partner|attr:"disabled title:You cannot change Client Implementing Partner"|add_class:"input-sm form-control enrolment-input"}}
+                {{ demo_form.implementing_partner.errors }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.first_name.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.first_name.label_tag }}</label>
+                {{ demo_form.first_name |add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.middle_name.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.middle_name.label_tag }}</label>
+                {{ demo_form.middle_name |add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.last_name.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.last_name.label_tag }}</label>
+                {{ demo_form.last_name |add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.date_of_enrollment.errors }}
+                <label class="control-label enrolment-label"> {{ demo_form.date_of_enrollment.label_tag }}</label>
+                <div class="form-group has-feedback">
+                    {{ demo_form.date_of_enrollment|add_class:"input-sm form-control enrolment-input pointer-area" }}
+                    <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                    <script>
+                          $(function() {
+                            $( "#id_date_of_enrollment" ).datepicker({
+                                beforeShow: function(input, inst) {
+                                    $(document).off('focusin.bs.modal');
+                                },
+                                onClose:function(){
+                                    $(document).on('focusin.bs.modal');
+                                },
+                                maxDate: '0y 0m 0d',
+                                minDate:  (new Date(2015, 9 , 1)),
+                                dateFormat: 'yy-mm-dd',
+                                changeMonth: true,
+                                changeYear: true
+                            });
+                          });
+                    </script>
+                </div>
+            </div>
+
+            <div class="form-group  form-inline">
+                {{ demo_form.date_of_birth.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.date_of_birth.label_tag }}</label>
+                <div class="form-group has-feedback">
+                    {{ demo_form.date_of_birth|add_class:"input-sm form-control enrolment-input pointer-area" }}
+                    <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                    <script>
+                          $(function() {
+                            $( "#id_date_of_birth" ).datepicker({
+                                beforeShow: function(input, inst) {
+                                    $(document).off('focusin.bs.modal');
+                                },
+                                onClose:function(){
+                                    $(document).on('focusin.bs.modal');
+                                },
+                                minDate: (new Date('{{ min_dob }}')),
+                                maxDate: (new Date('{{ max_dob }}')),
+                                dateFormat: 'yy-mm-dd',
+                                changeMonth: true,
+                                changeYear: true
+                            });
+                          });
+                    </script>
+                </div>
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.verification_document.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.verification_document.label_tag }}</label>
+                {{ demo_form.verification_document|add_class:"input-sm form-control enrolment-input listen-to-change"|set_data:"show_value:96"|set_data:"show_if_true:verification-doc-other" }}
+            </div>
+
+            <div class="form-group form-inline verification-doc-other {% if not demo_form.verification_document_other.value %} hidden {% endif %}">
+                {{ demo_form.verification_document_other.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.verification_document_other.label_tag }}</label>
+                {{ demo_form.verification_document_other|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.verification_doc_no.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.verification_doc_no.label_tag }}</label>
+                {{ demo_form.verification_doc_no|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+            <div class="form-group form-inline">
+                {{ demo_form.marital_status.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.marital_status.label_tag }}</label>
+                {{ demo_form.marital_status|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.phone_number.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.phone_number.label_tag }}</label>
+                {{ demo_form.phone_number|attr:"max_length:10"|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.dss_id_number.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.dss_id_number.label_tag }}</label>
+                {{ demo_form.dss_id_number|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.county_of_residence.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.county_of_residence.label_tag }}</label>
+                {{ demo_form.county_of_residence|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.sub_county.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.sub_county.label_tag }}</label>
+                {{ demo_form.sub_county|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.ward.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.ward.label_tag }}</label>
+                {{ demo_form.ward|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.informal_settlement.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.informal_settlement.label_tag }}</label>
+                {{ demo_form.informal_settlement|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.village.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.village.label_tag }}</label>
+                {{ demo_form.village|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.landmark.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.landmark.label_tag }}</label>
+                {{ demo_form.landmark|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.dreams_id.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.dreams_id.label_tag }}</label>
+                {{ demo_form.dreams_id|attr:"disabled"|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.guardian_name.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.guardian_name.label_tag }}</label>
+                {{ demo_form.guardian_name|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.relationship_with_guardian.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.relationship_with_guardian.label_tag }}</label>
+                {{ demo_form.relationship_with_guardian|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.guardian_phone_number.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.guardian_phone_number.label_tag }}</label>
+                {{ demo_form.guardian_phone_number|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline">
+                {{ demo_form.guardian_national_id.errors }}
+                <label class="control-label enrolment-label">{{ demo_form.guardian_national_id.label_tag }}</label>
+                {{ demo_form.guardian_national_id|add_class:"input-sm form-control enrolment-input" }}
+            </div>
+
+            <div class="form-group form-inline" id="ovc_section_checkbox">
+                {{ demo_form.ovc_checkbox.errors }}
+                <label class="control-label enrolment-label">Is OVC Client?</label>
+                {% if demo_form.ovc_id.value %}
+                    {{ demo_form.ovc_checkbox|attr:'checked:checked'|add_class:"input-sm form-control enrolment-input" }}
+                {% else %}
+                    {{ demo_form.ovc_checkbox|add_class:"input-sm form-control enrolment-input" }}
+                {% endif %}
+            </div>
+
+              <fieldset id="ovc_more_section" class="hidden">
+                  <div class="form-group form-inline">
+                     {{ demo_form.external_organisation.errors }}
+                        <label class="control-label enrolment-label">{{ demo_form.external_organisation.label_tag }}</label>
+                        {{ demo_form.external_organisation|add_class:"input-sm form-control enrolment-input" }}
+                  </div>
+                 <div class="form-group form-inline">
+                      {{ demo_form.ovc_id.errors }}
+                        <label class="control-label enrolment-label">{{ demo_form.ovc_id.label_tag }}</label>
+                        {{ demo_form.ovc_id|add_class:"input-sm form-control enrolment-input" }}
+                  </div>
+              </fieldset>
+
+            <div class="form-group form-inline">
+                {{ demo_form.as_hidden }}
+            </div>
+
+            {% if is_editable_by_ip %}
+                <div class="form-group form-inline">
+                    <label class="control-label enrolment-label"></label>
+                    {% if demo_form.instance.exited %}
+                        <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle" style="display: none;"> &nbsp; &nbsp;&nbsp; &nbsp; Save &nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    {% else %}
+                        <button type="submit" class="btn btn-sm btn-primary exit_unexit_toggle" style=""> &nbsp; &nbsp;&nbsp; &nbsp; Save &nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </fieldset>
+    </div>
+</form>

@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block pageJs %}
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('#i_types_1').change(function(){
+                fetchListOfInterventionsFromCategory();
+            });
+
+            $('#intervention').click(function(){
+                getInterventionUsingId();
+            });
+
+            $('#btn-download-csv').click(function(){
+                download_csv();
+            });
+
+            $('#btn_download_excel').click(function(){
+                download_excel();
+            });
+
+        });
+ function getCookie(name) {
+           var cookieValue = null;
+           if (document.cookie && document.cookie != '') {
+             var cookies = document.cookie.split(';');
+             for (var i = 0; i < cookies.length; i++) {
+             var cookie = jQuery.trim(cookies[i]);
+             // Does this cookie string begin with the name we want?
+             if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                 break;
+              }
+         }
+     }
+     return cookieValue;
+    }
+function fetchListOfInterventionsFromCategory() {
+
+        var csrftoken = getCookie('csrftoken');
+        var iv_category = $('#i_types_1').val();
+        var client_id = 1;
+        $.ajax({
+            url : "/ivList/", // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data : {
+                csrfmiddlewaretoken : csrftoken,
+                intervention_category_code : iv_category,
+                client_id: client_id
+            },
+            success : function(data) {
+                console.log(data);
+
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    }
+
+    function getInterventionUsingId() {
+
+        var csrftoken = getCookie('csrftoken');
+        var iv_id = $('#iv_id').val();
+
+        $.ajax({
+            url : "/ivGet/", // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data : {
+                csrfmiddlewaretoken : csrftoken,
+                intervention_id : iv_id
+            },
+            success : function(data) {
+                console.log(data);
+
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    }
+
+    function download_csv() {
+         var iframe = document.getElementById('download-csv');
+         iframe.src = "/download-csv/";
+    }
+
+    function download_excel() {
+         var i_frame = document.getElementById('download_excel');
+         i_frame.src = "/download-excel/";
+    }
+    </script>
+
+
+
+{% endblock %}
+
+{% block content %}
+    <h4>Test for get intervention list (Category IDs already provided in the drop down)</h4>
+
+    <hr/>
+    <div id="types">
+        <form method="post">
+            {% csrf_token %}
+            <select id="i_types_1">
+                <option value="0">Select Intervention</option>
+                <option value="1001">Behavioral</option>
+                <option value="2001">Bio-Medical</option>
+                <option value="3001">Post GBV Care</option>
+                <option value="4001">Social Protection</option>
+                <option value="5001">Other Interventions</option>
+
+            </select>
+        </form>
+
+        <div id="results"></div>
+    </div>
+
+     <h4>Test get intervention (Provide ID)</h4>
+
+    <hr/>
+    <div id="types">
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" id="iv_id" placeholder="Intervention ID"/>
+            <input type="button" id="intervention" value="Post">
+        </form>
+
+        <div id="results"></div>
+    </div>
+
+    <h4>Test get intervention (Provide ID)</h4>
+
+    <hr/>
+    <div id="download">
+        <form method="post">
+            {% csrf_token %}
+            <iframe id="download-csv" style="display: none" ></iframe>
+            <input type="button" id="btn-download-csv" value="Download CSV">
+        </form>
+
+    </div>
+
+     <hr/>
+    <div id="download-excel">
+        <form method="post">
+            {% csrf_token %}
+            <iframe id="download_excel" style="display: none" ></iframe>
+            <input type="button" id="btn_download_excel" value="Download EXCEL">
+        </form>
+
+    </div>
+
+{% endblock %}

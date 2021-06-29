@@ -1,0 +1,70 @@
+{% load staticfiles %}
+
+{% block client_void_form %}
+
+    <!-- Beginning Client void modal-->
+    <!-- Modal -->
+    <div class="modal fade " id="client-void-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html"
+    >
+
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header btn-default" style="border-radius: 4px 4px 0px 0px;">
+                    <button type="button" class="close" id="close_void_modal" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel"><span class="glyphicon glyphicon-minus-sign"></span>
+                        CLIENT VOID FORM</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="void-client-form" action="{% url 'void_client' %}" method="post">
+                        {% csrf_token %}
+
+                        <input id="void_client_id" type="hidden" name="id" value="">
+
+                        <div class="form-group form-inline">
+                            <label for="client_name" class="control-label enrolment-label">Client</label>
+                            <input id="client_name" class="form-control" type="text" value="{{ client.get_full_name }}"
+                                   readonly="readonly"/>
+                        </div>
+
+                        <div class="form-group form-inline">
+                            <label for="client_name" class="control-label enrolment-label">DREAMS ID</label>
+                            <input id="client_name" class="form-control" type="text" value="{{ client.dreams_id }}"
+                                   readonly="readonly"/>
+                        </div>
+
+                        <div class="form-group form-inline">
+                            <label for="void_reason" class="control-label enrolment-label">Reason</label>
+                            <textarea id="void_reason" name="void_reason" class="form-control" rows="10"
+                                      cols="40" required></textarea>
+                            <span id="help_void_reason" class="help-block"></span>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div id="void-modal-footer" style="display: none">
+                        <div class="pull-left">
+                            <strong>Are you sure you want to void {{ client.dreams_id }} - {{ client.get_full_name }}?</strong>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-success" data-dismiss="modal" aria-hidden="true">
+                            No
+                        </button>
+                        <button type="submit" id="btn_submit_void_client_form" class="btn btn-sm btn-danger"> Yes</button>
+                    </div>
+                    <div id="confirm-void-modal-footer">
+                        <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" aria-hidden="true">
+                            Cancel
+                        </button>
+                    {% if current_user_belongs_to_same_ip_as_client %}
+                        <button type="submit" id="btn_submit_confirm_void_client_form" class="btn btn-sm btn-primary"> Void</button>
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- End Client void modal-->
+
+{% endblock %}

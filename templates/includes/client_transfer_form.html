@@ -1,0 +1,56 @@
+{% load staticfiles %}
+{% load widget_tweaks %}
+
+{% block client_transfer_form %}
+
+    <!-- Beginning Client transfer modal-->
+    <!-- Modal -->
+    <div class="modal fade " id="client-transfer-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html"
+    >
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header btn-default" style="border-radius: 4px 4px 0px 0px;">
+                    <button type="button" class="close" id="close__enrollment_modal" data-dismiss="modal"
+                            aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel"><span class="glyphicon glyphicon-transfer"></span>
+                        Client Transfer Form</h4>
+                </div>
+                <div class="modal-body">
+                    <div style="margin: auto 15px;">
+                        <form id="client-transfer-form" action="{% url 'transfer_client' %}" method="post">
+                            {% csrf_token %}
+
+                            {{ transfer_form.client }}
+
+                            <div class="form-group">
+                                <label class="control-label">{{ transfer_form.destination_implementing_partner.label_tag }}</label>
+                                {{ transfer_form.destination_implementing_partner|add_class:"form-control" }}
+                                {{ transfer_form.destination_implementing_partner.errors }}
+                                <span id="help_{{ transfer_form.destination_implementing_partner.name }}" class="help-block"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">{{ transfer_form.transfer_reason.label_tag }}</label>
+                                {{ transfer_form.transfer_reason|add_class:"form-control" }}
+                                {{ transfer_form.transfer_reason.errors }}
+                                <span id="help_{{ transfer_form.transfer_reason.name }}" class="help-block"></span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" aria-hidden="true">
+                        Cancel
+                    </button>
+                    {% if current_user_belongs_to_same_ip_as_client %}
+                        <button type="submit" id="btn_submit_transfer_client_form" class="btn btn-sm btn-primary"> Transfer
+                            Client
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Client Transfer modal-->
+
+{% endblock %}

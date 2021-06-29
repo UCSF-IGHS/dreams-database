@@ -1,0 +1,45 @@
+{% load staticfiles %}
+
+{% block advanced_search_form %}
+
+    <!-- Beginning Client Exit modal-->
+        <!-- Modal -->
+    <div class="modal fade " id="advanced-search-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html"
+         >
+        <form id="form_advanced_search" class="form-horizontal">
+        {% csrf_token %}
+          <div class="modal-dialog" role="dialog" style="width: 60em;">
+            <div class="modal-content">
+                <div class="modal-header btn-default" style="border-radius: 4px 4px 0px 0px;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h5 class="modal-title" id="exampleModalLabel"><span class="glyphicon glyphicon-search"></span> Advanced Search</h5>
+                </div>
+                <div class="modal-body" style="margin: 15px;">
+                    <div class="row" style="margin-bottom: 10px;">
+                        <div class="col-md-4"><h5>Find clients with...</h5></div>
+                        <div class="col-md-6"></div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="client_search_term">DREAMS ID or Name</label>
+                        <input type="text" class="form-control  input-sm ">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">DREAMS ID or Name</div>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control  input-sm ">
+                        </div>
+                        <div class="col-md-4 faded-text">Type client's DREAMS ID or Full Name</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" aria-hidden="true"> Cancel </button>
+                    <button type="submit" class="btn btn-sm btn-primary" > Exit Client </button>
+                </div>
+            </div>
+          </div>
+        </form>
+    </div>
+    <!-- End Client Exit modal-->
+
+{% endblock %}

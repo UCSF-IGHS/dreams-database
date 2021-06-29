@@ -1,0 +1,23 @@
+[
+  {
+    "model": "DreamsApp.clienttransferstatus",
+    "fields" : {
+      "code": 1,
+      "name": "Initiated"
+    }
+  },
+  {
+    "model": "DreamsApp.clienttransferstatus",
+    "fields" : {
+      "code": 2,
+      "name": "Accepted"
+    }
+  },
+  {
+    "model": "DreamsApp.clienttransferstatus",
+    "fields" : {
+      "code": 3,
+      "name": "Rejected"
+    }
+  }
+]

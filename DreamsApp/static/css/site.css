@@ -1,0 +1,597 @@
+html, body{
+    height: 100%;
+    background-color: #FFFFFF;
+    font-size: 12px;
+}
+
+.wrapper{
+    width: 100%;
+    height: 100%;
+
+}
+
+.wrapper-container{
+    margin-bottom: 9em;
+}
+
+.referral-button {
+    padding-bottom: 8px;
+    width: 7.5em;
+}
+
+.referral-button-hide {
+    display: none;
+}
+/* Start nav-bar */
+
+#dreams-navbar{
+    background-color: #26247B;
+    border-radius: 0;
+    padding-top: 0.8em;
+    margin-bottom: 0;
+    height: 9em;
+    font-size: 14px;
+}
+
+#dreams-navbar .container{
+    background-color: #26247B;
+}
+
+#dreams-navbar .container .navbar-brand #dp-logo{
+    height: 7.35em;
+    margin-top: -1.85em;
+    z-index: -1;
+}
+
+#dreams-navbar .container #bs-example-navbar-collapse-1{
+    height: 3em;
+    padding: 0px 0px;
+    margin-top: 0;
+}
+
+#dreams-navbar .navbar-nav > li > a{
+    color: #aaaaaa;
+}
+
+#dreams-navbar .navbar-nav > li > a:hover,
+#dreams-navbar .navbar-nav > li > a:focus {
+    color: #ffffff;
+    background-color: #26247B;
+
+}
+
+
+#dreams-navbar .navbar-nav > .active > a,
+#dreams-navbar .navbar-nav > .active > a:hover,
+#dreams-navbar .navbar-nav > .active > a:focus{
+    color: #dddddd;
+    background-color: #201070;
+    border-radius: 50px;
+    margin-top: 10px;
+    padding: 5px 15px 5px;
+    /*
+    color: #dddddd;
+    background-color: #262958;
+    border-color: #2284a1;
+    border-radius: 50px;
+    margin-top: 14px;
+    padding: 5px 15px 5px;
+    */
+}
+
+
+/* End nav-bar */
+
+/* Start of login */
+
+.login-wrapper{
+    font-family: "Segoe UI Webfont",-apple-system,"Helvetica Neue","Lucida Grande","Roboto","Ebrima","Nirmala UI","Gadugi","Segoe Xbox Symbol","Segoe UI Symbol","Meiryo UI","Khmer UI","Tunga","Lao UI","Raavi","Iskoola Pota","Latha","Leelawadee","Microsoft YaHei UI","Microsoft JhengHei UI","Malgun Gothic","Estrangelo Edessa","Microsoft Himalaya","Microsoft New Tai Lue","Microsoft PhagsPa","Microsoft Tai Le","Microsoft Yi Baiti","Mongolian Baiti","MV Boli","Myanmar Text","Cambria Math";
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 400;
+    font-size: .9375rem;
+    line-height: 1.25rem;
+    padding-bottom: .227px;
+    padding-top: .227px;
+    padding-bottom: .227px;
+    padding-top: .227px;
+    color: #000;
+    background-color: #fff;
+    text-align: center;
+    display: flex;
+    margin: auto;
+    max-width: 800px;
+}
+
+.div-login-form{
+    margin: auto;
+    margin-bottom: 80px;
+    background-color: transparent;
+}
+
+.div-login-form .credentials{
+    width: 327px;
+    margin: auto;
+    padding-top: 35px;
+}
+
+.div-login-form .credentials .text-subheader{
+    font-weight: 100;
+    font-size: 3.125rem;
+    line-height: 2.0rem;
+    padding-bottom: 1.1812px;
+    padding-top: 3.1812px;
+    margin-bottom: 20px;
+}
+
+.div-login-form .credentials .text-body{
+    font-weight: 300;
+    font-size: 1.15rem;
+    line-height: 1.25rem;
+    padding-bottom: 15px;
+    padding-top: 0px;
+}
+
+.div-login-form .credentials input{
+    border-radius: 0px !important;
+    border: #6f6f6f solid 2px;
+}
+
+.div-login-form .credentials button{
+    border-radius: 0px !important;
+    border: #0078d7 solid 2px;
+    background-color: #0078d7;
+    color: #ffffff;
+}
+
+.div-login-form .credentials .option{
+    font-weight: 300;
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+    color: #0078d7;
+}
+
+.invalid-password-span{
+    font-size: 14px;
+    text-align: left;
+}
+
+/* End of Login*/
+
+/* Start Footer */
+
+.footer{
+     background-color: #ffffff;
+     margin-bottom: 0px;
+     padding-bottom: 1.25em;
+ }
+
+.descriptor-image{
+    width: 100%;
+    background-image: url("../images/descriptor.jpg");
+    height:24px;
+    margin-bottom: 10px;
+}
+
+.div-sponsors{
+    display: flex;
+    height: 40px;
+    background-color: transparent;
+    text-align: center;
+    margin: auto;
+    margin-top: 0px;
+}
+
+.div-sponsors .sponsor{
+    margin: auto;
+    padding-top: .227px;
+    padding-bottom: .227px;
+}
+
+/* End Footer */
+
+/* Start StatusBox */
+
+.statusBox{
+    font-size: 12px;
+    background-color: #f0db91;
+    display: inline-block;
+    padding: 1%;
+    text-align: left;
+    margin: 2% 0 2% 0;
+    width: 100%;
+    border: solid 3px #efc636;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px;
+}
+
+.statusBox .floatRightLinks{
+    margin-bottom: 0px;
+}
+
+.statusBox .floatRightLinks .rightItem {
+
+}
+
+.statusBox .text-info{
+    font-size: 12px;
+    margin-top: 10px;
+    margin-left: 5px;
+}
+
+/* End StatusBox */
+
+/* Start Clients List */
+
+
+#dreams-client-table .actions-col{
+    min-width: 150px;
+    width: 300px;
+    max-width: 250px;
+}
+
+    /* Start Enrollment */
+        #enrollment-modal{
+
+        }
+
+        #enrollment-form{
+
+        }
+
+        .modal-body {
+            max-height: calc(100vh - 210px);
+            overflow-y: auto;
+        }
+
+    /* End Enrollment */
+
+/* End Clients List */
+
+/* Start Client Profile Section */
+
+.dreams-profile-tab-control {
+    background-color: #F8F1E1;
+    display: inline-block;
+    padding: 1px;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-top: 1px;
+    text-align: left;
+    margin: 0% 0 2% 0;
+    margin-bottom: 4em;
+    width: 100%;
+    border: solid 1px #efc636;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px
+}
+
+#dreams-profile-tab-control >.nav-tabs> li > a{
+     color: #333;
+ }
+
+#dreams-profile-tab-control >.nav-tabs> li > a:focus,
+#dreams-profile-tab-control >.nav-tabs> li > a:active,
+#dreams-profile-tab-control >.nav-tabs> li > a:hover{
+     background-color: inherit;
+ }
+
+#dreams-profile-tab-control >.nav-tabs> .active > a,
+#dreams-profile-tab-control >.nav-tabs> .active > a:focus,
+#dreams-profile-tab-control >.nav-tabs> .active > a:active,
+#dreams-profile-tab-control >.nav-tabs> .active > a:hover{
+    background-color: #FFFFFF;
+    border: solid 1px #efc636;
+    border-bottom: solid 3px #FFFFFF;
+    z-index: 300;
+    margin-bottom: -5px;
+    text-decoration: none ;
+ }
+
+
+
+.dp-tab-content{
+    background-color: #FFFFFF;
+    border: solid 1px #efc636;
+    padding: 1%;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.underline_hover:hover{
+    text-decoration: underline;
+}
+
+.fit-item{
+     width: 100%;
+ }
+
+.tab-content{
+
+ }
+
+.dp-table-head-black{
+    background-color: #f5f5f5;color: #555555;
+    /*background-color: #333333;
+    color: #FFFFFF*/
+}
+
+ .space{
+     margin-bottom: 15px;
+ }
+
+ .spinner{
+     color: gray;
+     text-align: center;
+     margin:3em;
+     font-size: xx-large;
+ }
+
+  .message-view{
+     color: #333333;
+     text-align: center;
+     margin: 10px auto;
+      margin-top: 0px;
+      padding-top: 0px;
+     font-size: 12px;
+ }
+
+  .edit_intervention_click{
+      cursor: pointer;
+  }
+
+  .edit_intervention_click:hover{
+    text-decoration: none;
+      color: dodgerblue;
+  }
+
+  .delete_intervention_click{
+      cursor: pointer;
+  }
+
+  .delete_intervention_click:hover{
+     text-decoration: none;
+      color: red;
+  }
+
+  .view_intervention_click:hover{
+      text-decoration: none;
+      color: green;
+  }
+
+
+/* End Client Profile Section */
+
+.dreams-enrollment-tab-control {
+    background-color: #F8F1E1;
+    display: inline-block;
+    padding: 1px;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-top: 1px;
+    text-align: left;
+    margin: 0% 0 2% 0;
+    margin-bottom: 4em;
+    width: 100%;
+    border: solid 1px #efc636;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px
+}
+
+#dreams-enrollment-tab-control >.nav-tabs> li > a{
+     color: #333;
+ }
+
+#dreams-enrollment-tab-control >.nav-tabs> li > a:focus,
+#dreams-enrollment-tab-control >.nav-tabs> li > a:active,
+#dreams-enrollment-tab-control >.nav-tabs> li > a:hover{
+     background-color: inherit;
+ }
+
+#dreams-enrollment-tab-control >.nav-tabs> .active > a,
+#dreams-enrollment-tab-control >.nav-tabs> .active > a:focus,
+#dreams-enrollment-tab-control >.nav-tabs> .active > a:active,
+#dreams-enrollment-tab-control >.nav-tabs> .active > a:hover{
+    background-color: #FFFFFF;
+    border: solid 1px #efc636;
+    border-bottom: solid 3px #FFFFFF;
+    z-index: 300;
+    margin-bottom: -5px;
+    text-decoration: none ;
+ }
+
+/* Audit log */
+
+/*audit log table */
+
+.filter-log-wrapper{
+    margin-top: -45px;
+    margin-bottom: 5px;
+    text-align: right;
+}
+
+
+.filter-log-wrapper #date-div{
+    margin-top: 0px;
+}
+
+/* End Audit Log */
+
+/* Enrollment form design */
+
+.modal-backdrop{
+    background-color: #26247B;
+    opacity: 1;
+}
+
+
+#confirmationModal #frm_title{
+    font-weight: bold;
+}
+
+#confirmationModal #frm_body > h4{
+    font-weight: normal;
+    font-size: 15px;
+}
+
+
+/* general style */
+.actions-col{
+    width: 200px;
+    max-width: 200px;
+}
+
+.table-message{
+    text-align: center;
+    font-weight: normal;
+    color: #bbb;
+}
+
+/* End --general style */
+
+/* Users section */
+#user-list{
+    margin-top: 10px;
+}
+
+.edited-row{
+    background-color: lightyellow;
+}
+/* end of users section */
+
+.some-class{
+    color: red;
+    border-color: green;
+}
+
+
+.enrolment-input{
+    /*width: 450px !important;*/
+}
+
+.enrolment-label{
+    width: 200px;
+    text-align: left;
+}
+
+#household_fieldset .enrolment-input{
+
+}
+
+.enrolment-input-question label{
+    /*font-size: 12px;
+    font-weight: bold;*/
+}
+
+.enrolment-input-header-question{
+    margin-bottom: 10px;
+}
+
+
+.pointer-area{
+    cursor: pointer;
+}
+
+
+.ui-datepicker {
+
+ }
+
+.ui-datepicker .ui-datepicker-title{
+
+}
+
+.ui-datepicker .ui-datepicker-title select{
+    background: #FFFFFE;
+    color: #5e5e5e;
+    border-color: #adadad;
+}
+
+.custom .panel, .panel-group .panel-heading+.panel-collapse>.panel-body{
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+}
+
+.faded-text{
+    opacity: .6;
+}
+
+.text-centered-vertical{
+    text-align: match-parent;
+}
+
+.word-wrap {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.custom-has-error {
+    margin-top: 5px;
+    color: #ff0000;
+}
+
+.report-export-form-div {
+    border: 1px solid transparent;
+    padding-bottom: 21px;
+}
+
+input#external-organization-checkbox {
+    display: inline-block;
+    height: 1em;
+    width: 1em;
+    border: 1px solid red;
+}
+
+fieldset#external_organization_more_section {
+    border: 1px solid #ccc;
+    padding: 0.4em 1em 0 1em;
+    border-radius: 0.5em;
+    margin-bottom: 1em;
+ }
+
+fieldset#ltfu {
+    border: 1px solid #ccc;
+    padding: 0em 2em 0 2em;
+    border-radius: 0.5em;
+    margin-bottom: 1em;
+    width: 105.3%;
+    left: -3%;
+    position: relative;
+}
+
+fieldset#ltfu div.form-group:not(:last-child) {
+    margin-bottom: 0;
+}
+
+.transfer-dialogue-link {
+    pointer-events: none;
+    cursor: default;
+    color: black;
+    font-weight: bold;
+}
+
+.referral-dialogue-link {
+    pointer-events: none;
+    cursor: default;
+    color: black;
+    font-weight: bold;
+}
+
+input#filter_1001 {
+    width: 98%;
+    margin-left: 1em;
+}
+
+div#follow-up-table-container {
+    padding: 0;
+    margin: 0 1em 1em 1em;
+}

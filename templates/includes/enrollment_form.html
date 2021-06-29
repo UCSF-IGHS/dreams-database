@@ -1,0 +1,249 @@
+{% load staticfiles %}
+
+{% block enrollment_form %}
+
+    <!-- Beginning Enrollment modal-->
+        <!-- Modal -->
+    <div class="modal fade " id="enrollment-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html"
+         >
+        <form id="enrollment-form" class="form-horizontal">
+        {% csrf_token %}
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header btn-default" style="border-radius: 4px 4px 0px 0px;">
+                <button type="button" class="close" id="close__enrollment_modal" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel"><span class="glyphicon glyphicon-file"></span> CLIENT ENROLLMENT FORM</h4>
+                </div>
+                <div class="modal-body">
+                    <div style="margin: auto 15px;">
+                        <!-- Permanently hidden Fields -->
+
+                        <input class="hidden clear_value" name="client_id" id="client_id"/>
+                        <input class="hidden clear_value" type="text" name="implementing_partner" value="{{ current_ip }}">
+                        <!-- End of permanently hidden fields -->
+
+                        <div class="form-group">
+                             <label for="first_name" class="control-label">First Name</label>
+                             <input type="text" class="form-control clear_value" id="id_first_name" name="first_name" >
+                             <span id="spn_first_name" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="middle_name" class="control-label">Middle Name</label>
+                             <input type="text" class="form-control clear_value" id="id_middle_name" name="middle_name" >
+                             <span id="spn_middle_name" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="last_name" class="control-label">Last Name</label>
+                             <input type="text" class="form-control clear_value" id="id_last_name" name="last_name" >
+                             <span id="spn_last_name" class="clear_span"></span>
+                         </div>
+
+                        <div class="form-group has-feedback">
+                             <label for="date_of_enrollment" class="control-label">Date of Enrollment:</label>
+                             <input type="text" class="form-control clear_value" name="date_of_enrollment" id="id_date_of_enrollment" placeholder="Select date of Enrollment" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                             <script>
+                                $(function() {
+                                  $( "#id_date_of_enrollment").datepicker({
+                                      beforeShow: function(input, inst) {
+                                          $(document).off('focusin.bs.modal');
+                                      },
+                                      onClose:function(){
+                                          $(document).on('focusin.bs.modal');
+                                      },
+                                      maxDate: '0y 0m 0d',
+                                      minDate:  (new Date(2015, 9 , 1)),
+                                      dateFormat: 'yy-mm-dd',
+                                      changeMonth: true,
+                                      changeYear: true
+                                  });
+                                });
+                                {% if client != None %}
+                                    setTimeout(function () {
+
+                                    }, 1000);
+                                {% endif %}
+                            </script>
+                             <span id="spn_date_of_enrollment" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group hidden">
+                             <label for="aget_at_enrollment" class="control-label">Age at Enrollment</label>
+                             <input type="text" class="form-control validate_field clear_value" id="id_age_at_enrollment" name="age_at_enrollment" >
+                             <span id="spn_age_at_enrollment" class="clear_span"></span>
+                         </div>
+
+                        <div class="form-group">
+                            <label for="verification_document">Verification Document</label>
+                            <select id="id_verification_document" name="verification_document" class="form-control  enrolment-input listen-to-change" data-show_value="96" data-show_if_true="verification-doc-other" >
+                                <option value="">Select Option</option>
+                                {% for verification_document in verification_documents %}
+                                <option data-verification_document_id="{{ verification_document.id }}" value="{{ verification_document.code }}">{{ verification_document.name }}</option>
+                                {% endfor %}
+                            </select>
+                             <span id="spn_verification_document" class="clear_span"></span>
+                        </div>
+
+                        <div class="form-group verification-doc-other hidden">
+                             <label for="verification-doc-other" class="control-label">Verification Doc. Other</label>
+                             <input type="text" class="form-control  clear_value" id="id_verification-doc-other" name="verification-doc-other" >
+                             <span id="spn_verification-doc-other" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="verification_doc_no" class="control-label">Verification Doc. No.</label>
+                             <input type="text" class="form-control validate_field clear_value" id="id_verification_doc_no" name="verification_doc_no" >
+                             <span id="spn_verification_doc_no" class="clear_span"></span>
+                         </div>
+
+                        <div class="form-group has-feedback">
+                             <label for="date_of_birth" class="control-label">Date of Birth:</label>
+                             <input type="text" class="form-control clear_value" id="id_date_of_birth" name="date_of_birth" placeholder="Select date of birth" style="cursor: pointer;"><span class="add-on"><i class="icon-th"></i></span></p>
+                             <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                             <script>
+                                 $(function () {
+                                     $("#id_date_of_birth").datepicker({
+                                         beforeShow: function(input, inst) {
+                                             $(document).off('focusin.bs.modal');
+                                         },
+                                         onClose:function(){
+                                             $(document).on('focusin.bs.modal');
+                                         },
+                                         minDate: (new Date('{{ min_dob }}')),
+                                         maxDate: (new Date('{{ max_dob }}')),
+                                         dateFormat: 'yy-mm-dd',
+                                         changeMonth: true,
+                                         changeYear: true
+                                     });
+                                 });
+                                 {% if client != None %}
+                                     setTimeout(function () {
+                                     }, 1000);
+                                 {% endif %}
+                             </script>
+                             <span id="spn_date_of_birth" class="clear_span"></span>
+                            <label>
+                              <input type="checkbox" class="clear_true" id="id_is_date_of_birth_estimated" name="is_date_of_birth_estimated"> Is Date of Birth Estimated?
+                            </label>
+                         </div>
+
+                         <div class="form-group">
+                            <label for="marital_status">Marital Status</label>
+                            <select id="id_marital_status" name="marital_status" class="form-control clear_value" >
+                                <option value="">Select Option</option>
+                                {% for ms in marital_status %}
+                                <option data-marital_status_id="{{ ms.id }}" value="{{ ms.code }}" >{{ ms.name }}</option>
+                                {% endfor %}
+                            </select>
+                             <span id="spn_marital_status" class="clear_span"></span>
+                        </div>
+
+                         <div class="form-group">
+                             <label for="phone_number" class="control-label">Phone Number</label>
+                             <input type="text" class="form-control clear_value" id="id_phone_number" name="phone_number">
+                             <span id="spn_phone_number" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="dss_id_number" class="control-label">DSS ID Number (If applicable)</label>
+                             <input type="text" class="form-control" id="id_dss_id_number" name="dss_id_number">
+                             <span id="spn_dss_id_number" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                            <label for="county_of_residence">County of Residence</label>
+                            <select id="id_county_of_residence" name="county_of_residence" class="form-control clear_value">
+                                <option value="">Select County</option>
+                                {% for county in counties %}
+                                    <option data-county_of_residence_id="{{ county.id }}" value="{{ county.code }}">{{ county.name }}</option>
+                                {% endfor %}
+                            </select>
+                             <span id="spn_county_of_residence" class="clear_span"></span>
+                        </div>
+
+                         <div class="form-group">
+                            <label for="sub_county">Sub-County</label>
+                            <select id="id_sub_county" name="sub_county" class="form-control clear_value" >
+                                <option value="">Select Sub-County</option>
+                                {% for sub_county in sub_counties %}
+                                <option value="{{ sub_county.code }}" data-sub_county_id="{{ sub_county.id }}" data-county_code="{{ sub_county.county.code }}">{{ sub_county.name }}</option>
+                                {% endfor %}
+                            </select>
+                             <span id="spn_sub_county" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                            <label for="ward">Ward</label>
+                            <select id="id_ward" name="ward" class="form-control clear_value" >
+                                <option value="">Select Ward</option>
+                                {% for ward in wards %}
+                                <option value="{{ ward.code }}">{{ ward.name }}</option>
+                                {% endfor %}
+
+                            </select>
+                             <span id="spn_ward" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="informal_settlement" class="control-label">Informal Settlement</label>
+                             <input type="text" class="form-control clear_value" id="id_informal_settlement" name="informal_settlement" >
+                             <span id="spn_informal_settlement" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="village" class="control-label">Village</label>
+                             <input type="text" class="form-control clear_value" id="id_village" name="village" >
+                             <span id="spn_village" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="landmark" class="control-label">Land mark near residence</label>
+                             <input type="text" class="form-control clear_value" id="id_landmark" name="landmark">
+                             <span id="spn_landmark" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="dreams_id" class="control-label">DREAMS ID Number</label>
+                             <input type="text" class="form-control clear_value" id="id_dreams_id" name="dreams_id">
+                             <span id="spn_dreams_id" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="guardian_name" class="control-label">Primary care giver /Guardian’s Name</label>
+                             <input type="text" class="form-control clear_value" id="id_guardian_name" name="guardian_name">
+                             <span id="spn_guardian_name" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="relationship_with_guardian" class="control-label">Relationship</label>
+                             <input type="text" class="form-control clear_value" id="id_relationship_with_guardian" name="relationship_with_guardian" >
+                             <span id="spn_relationship_with_guardian" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="guardian_phone_number" class="control-label">Phone number (Care giver /Guardian)</label>
+                             <input type="text" class="form-control clear_value" id="id_guardian_phone_number" name="guardian_phone_number">
+                             <span id="spn_guardian_phone_number" class="clear_span"></span>
+                         </div>
+
+                         <div class="form-group">
+                             <label for="guardian_national_id" class="control-label">National ID (Care giver/Guardian)</label>
+                             <input type="text" class="form-control clear_value" id="id_guardian_national_id" name="guardian_national_id">
+                             <span id="spn_guardian_national_id" class="clear_span"></span>
+                         </div>
+                    </div>
+              </div>
+              <div class="modal-footer">
+                <button id="btn_hide_enrollment" type="button" class="btn btn-sm btn-default"> Cancel </button>
+                <button id="btn_save_enrollment" type="submit" class="btn btn-sm btn-primary" > Save Enrollment </button>
+              </div>
+            </div>
+          </div>
+    </form>
+    </div>
+    <!-- End Enrollment modal-->
+
+{% endblock %}

@@ -1,0 +1,209 @@
+{% load staticfiles %}
+{% load widget_tweaks %}
+<!-- Beginning modal-->
+        <!-- Modal -->
+    <div class="modal fade" id="grievance-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         xmlns="http://www.w3.org/1999/html" data-view_mode="add">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel">Grievance From</h4>
+              </div>
+              <div class="modal-body">
+                <form id="grievances-form" class="form-horizontal" method="post" action="" >
+                    <input class="hidden" name="id" id="id" value="">
+                    <div style="margin: auto 15px;">
+                        <div class="form-group has-feedback">
+                            <label class="control-label">{{ form.date.label_tag }}</label>
+                            {{ form.date|add_class:"input-sm form-control" }}
+                            <i class="glyphicon glyphicon-calendar form-control-feedback" style="margin-top:5px;"></i>
+                            {{ form.date.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">{{ form.implementing_partner.label_tag }}</label>
+                            {{ form.implementing_partner|add_class:"input-sm form-control" }}
+                            {{ form.implementing_partner.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">{{ form.county.label_tag }}</label>
+                            {{ form.county|add_class:"input-sm form-control" }}
+                            {{ form.county.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">{{ form.ward.label_tag }}</label>
+                            {{ form.ward|add_class:"input-sm form-control" }}
+                            {{ form.ward.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">{{ form.reporter_name.label_tag }}</label>
+                            {{ form.reporter_name|add_class:"input-sm form-control" }}
+                            {{ form.reporter_name.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">{{ form.reporter_category.label_tag }}</label>
+                            {{ form.reporter_category|add_class:"input-sm form-control" }}
+                            {{ form.reporter_category.errors }}
+                        </div>
+                        <div class="form-group hidden fg-reporter-specify-option" id="fg-dreams">
+                            <label class="control-label">{{ form.dreams_id.label_tag }}</label>
+                            {{ form.dreams_id|add_class:"input-sm form-control" }}
+                            {{ form.dreams_id.errors }}
+                        </div>
+                        <div class="form-group hidden fg-reporter-specify-option" id="fg-relationship">
+                            <label class="control-label">{{ form.relationship.label_tag }}</label>
+                            {{ form.relationship|add_class:"input-sm form-control" }}
+                            {{ form.relationship.errors }}
+                        </div>
+                        <div class="form-group hidden fg-reporter-specify-option" id="fg-other_specify">
+                            <label class="control-label">{{ form.other_specify.label_tag }}</label>
+                            {{ form.other_specify|add_class:"input-sm form-control" }}
+                            {{ form.other_specify.errors }}
+                        </div>
+                        <script>
+                            $('#id_reporter_category').change(function (e) {
+                                // Reset form
+                                $('.fg-reporter-specify-option').addClass('hidden'); // Hide all
+                                $('.fg-reporter-specify-option input').val("") // Reset all values
+                                switch ($(this).val()){
+                                    case '2':
+                                        $('#fg-dreams').removeClass('hidden')
+                                        break;
+                                    case '3':
+                                        $('#fg-relationship').removeClass('hidden')
+                                        break;
+                                    case '4':
+                                        $('#fg-other_specify').removeClass('hidden')
+                                    default:
+                                        break
+                                }
+                            })
+                        </script>
+                        <div class="form-group">
+                            <label class="control-label">{{ form.reporter_phone.label_tag }}</label>
+                            {{ form.reporter_phone|add_class:"input-sm form-control" }}
+                            {{ form.reporter_phone.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">{{ form.received_by.label_tag }}</label>
+                            {{ form.received_by|add_class:"input-sm form-control" }}
+                            {{ form.received_by.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">{{ form.receiver_designation.label_tag }}</label>
+                            {{ form.receiver_designation|add_class:"input-sm form-control" }}
+                            {{ form.receiver_designation.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">{{ form.grievance_nature.label_tag }}</label>
+                            {{ form.grievance_nature|add_class:"input-sm form-control" }}
+                            {{ form.grievance_nature.errors }}
+                        </div>
+                        <div class="form-group hidden" id="fg-other_grievance_specify">
+                            <label class="control-label">{{ form.other_grievance_specify.label_tag }}</label>
+                            {{ form.other_grievance_specify|add_class:"input-sm form-control" }}
+                            {{ form.other_grievance_specify.errors }}
+                        </div>
+                        <script>
+                            $('#id_grievance_nature').change(function (e) {
+                                $('#id_other_grievance_specify').val("");
+                                if($(this).val() == '8' || $(this).val() == 8)
+                                    $('#fg-other_grievance_specify').removeClass('hidden');
+                                else
+                                    $('#fg-other_grievance_specify').addClass('hidden');
+                            })
+                        </script>
+                        <div class="form-group">
+                            <label class="control-label">{{ form.person_responsible.label_tag }}</label>
+                            {{ form.person_responsible|add_class:"input-sm form-control" }}
+                            {{ form.person_responsible.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">{{ form.resolution.label_tag }}</label>
+                            {{ form.resolution|add_class:"input-sm form-control"|attr:"rows:3" }}
+                            {{ form.resolution.errors }}
+                        </div>
+                        <div class="form-group has-feedback">
+                            <label class="control-label">{{ form.resolution_date.label_tag }}</label>
+                            {{ form.resolution_date|add_class:"input-sm form-control" }}
+                            <i class="glyphicon glyphicon-calendar form-control-feedback" style="margin-top:5px;"></i>
+                            <script>
+                                $(function() {
+                                  $( "#id_resolution_date" ).datepicker({
+                                      dateFormat: 'yy-mm-dd',
+                                      minDate: '-24y',
+                                      maxDate: '-10y',
+                                      changeMonth: true,
+                                      changeYear: true,
+                                      defaultDate: ''
+                                  });
+                                });
+                            </script>
+                            {{ form.resolution_date.errors }}
+                        </div>
+                        <div class="form-group has-feedback">
+                            <label class="control-label">{{ form.complainant_feedback_date.label_tag }}</label>
+                            {{ form.complainant_feedback_date|add_class:"input-sm form-control" }}
+                            <i class="glyphicon glyphicon-calendar form-control-feedback" style="margin-top:5px;"></i>
+                            <script>
+                                $(function() {
+                                  $( "#id_complainant_feedback_date" ).datepicker({
+                                      dateFormat: 'yy-mm-dd',
+                                      minDate: '-24y',
+                                      maxDate: '-10y',
+                                      changeMonth: true,
+                                      changeYear: true,
+                                      defaultDate: ''
+                                  });
+                                });
+                            </script>
+                            {{ form.complainant_feedback_date.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">{{ form.status.label_tag }}</label>
+                            {{ form.status|add_class:"input-sm form-control" }}
+                            {{ form.status.errors }}
+                        </div>
+                        <div class="form-group hidden fg-closure">
+                            <label class="control-label">{{ form.closed_by.label_tag }}</label>
+                            {{ form.closed_by|add_class:"input-sm form-control" }}
+                            {{ form.closed_by.errors }}
+                        </div>
+                        <div class="form-group has-feedback hidden fg-closure">
+                            <label class="control-label">{{ form.closure_date.label_tag }}</label>
+                            {{ form.closure_date|add_class:"input-sm form-control" }}
+                            <i class="glyphicon glyphicon-calendar form-control-feedback" style="margin-top:5px;"></i>
+                            <script>
+                                $(function() {
+                                  $( "#id_closure_date" ).datepicker({
+                                      dateFormat: 'yy-mm-dd',
+                                      minDate: '-24y',
+                                      maxDate: '-10y',
+                                      changeMonth: true,
+                                      changeYear: true
+                                  });
+                                });
+                            </script>
+                            {{ form.closure_date.errors }}
+                        </div>
+                        <script>
+                            $('#id_status').change(function (e) {
+                                $('#id_closed_by').val("");
+                                $('#id_closure_date').val("");
+                                if($(this).val() == '3' || $(this).val() == 3)
+                                    $('.fg-closure').removeClass('hidden')
+                                else
+                                   $('.fg-closure').addClass('hidden')
+                            })
+                        </script>
+                    </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                    <button id="btn_cancel_action" type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel </button>
+                    <button id="grievances-form-submit" type="submit" class="btn btn-sm btn-primary" > Save </button>
+              </div>
+            </div>
+          </div>
+    </div>
+    <!-- End modal-->

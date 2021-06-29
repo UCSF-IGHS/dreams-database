@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block pageJs %}
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('#i_types_1').change(function(){
+                fetchListOfInterventionsFromCategory();
+            });
+
+            $('#intervention').click(function(){
+                getInterventionUsingId();
+            });
+
+        });
+ function getCookie(name) {
+           var cookieValue = null;
+           if (document.cookie && document.cookie != '') {
+             var cookies = document.cookie.split(';');
+             for (var i = 0; i < cookies.length; i++) {
+             var cookie = jQuery.trim(cookies[i]);
+             // Does this cookie string begin with the name we want?
+             if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                 break;
+              }
+         }
+     }
+     return cookieValue;
+    }
+function fetchListOfInterventionsFromCategory() {
+
+        var csrftoken = getCookie('csrftoken');
+        var iv_category = $('#i_types_1').val();
+        var client_id = 1;
+        $.ajax({
+            url : "/ivList/", // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data : {
+                csrfmiddlewaretoken : csrftoken,
+                intervention_category_code : iv_category,
+                client_id: client_id
+            },
+            success : function(data) {
+                console.log(data);
+
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    }
+
+    function getInterventionUsingId() {
+
+        var csrftoken = getCookie('csrftoken');
+        var iv_id = $('#iv_id').val();
+
+        $.ajax({
+            url : "/ivGet/", // the endpoint
+            type : "POST", // http method
+            dataType: 'json',
+            data : {
+                csrfmiddlewaretoken : csrftoken,
+                intervention_id : iv_id
+            },
+            success : function(data) {
+                console.log(data);
+
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    }
+    </script>
+
+
+
+{% endblock %}
+
+{% block content %}
+    <h4>Page Import</h4>
+
+    <div id="import-progress">
+    <p>Excel database imported successfully!! </p>
+    <p>This Task will be configured to run in the background and will have a dedicated page for progress and results. </p>
+    <p>Kindly check on your manage.py console for updates </p>
+    </div>
+
+{% endblock %}

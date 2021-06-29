@@ -1,0 +1,159 @@
+{% extends "t_filter_control_base.html" %}
+{% load dashgent_filters %}
+{% load xf_filters %}
+
+{% block widget_main %}
+
+    <input type="hidden" id="fromdate" name="fromdate">
+    <input type="hidden" id="todate" name="todate">
+    <input type="hidden" id="daterange" name="daterange">
+
+    <div id="reportrange"
+         style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc;
+         min-height: 38px; min-width: 309px; width: 100%">
+        <div class="tranform_y20">
+            <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+            <span></span> <b class="caret"></b>
+        </div>
+    </div>
+
+    <script>
+
+        $(document).ready(function () {
+
+            var single_date = false;
+            var label_description, mindate;
+            var epoch_date = new moment("1900-01-01");
+
+            {% if custom_attr|lookup:'single_date_picker' == 'yes' %}
+                single_date = true;
+            {% else %}
+                single_date = false;
+            {% endif %}
+            {% if custom_attr|lookup:'label' %}
+                label_description = "{{ custom_attr|lookup:'label' }}";
+            {% endif %}
+            {% if custom_attr|lookup:'min' %}
+                mindate = new moment("{{ custom_attr|lookup:'min' }}");
+            {% else %}
+                mindate = epoch_date;
+            {% endif %}
+
+            $('input').iCheck({
+                checkboxClass: 'icheckbox_flat-green',
+                radioClass: 'iradio_flat-green'
+            });
+
+            var cb = function (start, end, label) {
+                var range_dates = start.format('D MMMM YYYY') + ' - ' + end.format('D MMMM YYYY');
+                var single_date_value = start.format('D MMMM YYYY');
+
+                $('#reportrange span').html(single_date ? single_date_value : range_dates);
+                $('#daterange').val(single_date ? single_date_value : range_dates);
+
+                $('#fromdate').val(start.format('YYYY-MM-DD'));
+                $('#todate').val(end.format('YYYY-MM-DD'));
+            };
+
+            var start, end;
+
+            {% if request.GET.fromdate %}
+                start = new moment('{{ request.GET.fromdate }}');
+            {% else %}
+                {% if custom_attr|lookup:'start'|length > 0 %}
+                    start = new moment("{{ custom_attr|lookup:'start' }}");
+                {% else %}
+                    start = new moment();
+                {% endif %}
+            {% endif %}
+
+            {% if request.GET.todate %}
+                end = new moment('{{ request.GET.todate }}');
+            {% else %}
+                {% if custom_attr|lookup:'end'|length > 0 %}
+                    end = new moment("{{ custom_attr|lookup:'end' }}");
+                {% else %}
+                    end = new moment();
+                {% endif %}
+            {% endif %}
+
+            var optionSet1 = {
+                alwaysShowCalendars: {% if custom_attr|lookup:'always_show_calendars' == 'no' %}false{% else %}true{% endif %},
+                singleDatePicker: single_date,
+                startDate: start,
+                endDate: end,
+                {% if custom_attr|lookup:'min'|length > 0 %}
+                    minDate: mindate,
+                {% endif %}
+                {% if custom_attr|lookup:'max'|length > 0 %}
+                    maxDate: {{ custom_attr|lookup:'max'|safe }},
+                {% else %}
+                    maxDate: moment(),
+                {% endif %}
+                autoApply: false,
+                autoUpdateInput: true,
+                showCustomRangeLabel: {% if custom_attr|lookup:'show_ranges' == 'yes' %}true{% else %}false{% endif %},
+                showDropdowns: true,
+                showWeekNumbers: {% if custom_attr|lookup:'week_numbers' == 'yes' %}true{% else %}false{% endif %},
+                timePicker: false,
+                timePickerIncrement: 1,
+                timePicker12Hour: true,
+                {% if custom_attr|lookup:'show_ranges' == 'yes' %}
+                    ranges: {
+                        {% if custom_attr|lookup:'min' %}
+                            'Entire project period': [mindate, end],
+                        {% endif %}
+                        'Today': [moment(), moment()],
+                        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                        'This Month': [moment().startOf('month'), moment().endOf('month')],
+                        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month')
+                            .endOf('month')]
+                    },
+                {% endif %}
+                opens: 'left',
+                buttonClasses: ['btn btn-default'],
+                applyClass: 'btn-small btn-primary',
+                cancelClass: 'btn-small',
+                format: 'DD/MM/YYYY',
+                separator: ' to ',
+                locale: {
+                    applyLabel: 'Submit',
+                    cancelLabel: 'Clear',
+                    fromLabel: 'From',
+                    toLabel: 'To',
+                    daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+                    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
+                        'October', 'November', 'December'],
+                    firstDay: 1
+                }
+            };
+            $('#reportrange').daterangepicker(optionSet1, cb);
+            cb(start, end);
+
+
+            $('#reportrange').on('show.daterangepicker', function () {
+                {#console.log("show event fired");#}
+            });
+            $('#reportrange').on('hide.daterangepicker', function () {
+                {#console.log("hide event fired");#}
+            });
+            $('#reportrange').on('apply.daterangepicker', function (ev, picker) {
+                {#console.log("apply event fired, start/end dates are " + picker.startDate.format('MMMM D YYYY') #}
+                {#    + " to " + picker.endDate.format('MMMM D YYYY'));#}
+            });
+            $('#reportrange').on('cancel.daterangepicker', function (ev, picker) {
+                {#console.log("cancel event fired");#}
+            });
+            $('#options1').click(function () {
+                $('#reportrange').data('daterangepicker').setOptions(optionSet1, cb);
+            });
+            $('#destroy').click(function () {
+                $('#reportrange').data('daterangepicker').remove();
+            });
+        });
+    </script>
+
+
+{% endblock %}

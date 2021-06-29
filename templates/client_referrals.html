@@ -1,0 +1,374 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    <div class="wrapper-container">
+        <div class="statusBox">
+            <div>
+                <h4>{% if user.implementingpartneruser != None %}IMPLEMENTING PARTNER:
+                    {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
+                <div class="pull-right">
+                    <a class="btn btn-primary"
+                       href="{% url 'export_client_referrals' referred_in=referred_in|stringformat:'d' %}"
+                       target="_blank">Export to CSV</a>
+                </div>
+                {% if referred_in %}
+                    <h6>Client Referrals In</h6>
+                {% else %}
+                    <h6>Client Referrals Out</h6>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div{% if message.tags %}
+                    class=" msg alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} alert-danger {% else %} alert-{{ message.tags }} {% endif %} "{% endif %}>{{ message }}</div>
+                <script>
+                    setTimeout(function () {
+                        $('.msg').addClass('hidden').text("")
+                    }, 3000);
+                </script>
+            {% endfor %}
+        {% endif %}
+
+        <div class="alert hidden dp-action-alert" id="action_alert_gen" role="alert"></div>
+
+        <table class="table table-striped dp-patient-table table-bordered" id="dreams-client-table"
+               style="margin: 0px;border-radius: 5px;border: #efc636 solid 1px;">
+            <thead class="dp-listing-table-head" style="background-color: #F8F1E1;color: #333333;">
+            <th>Dreams ID</th>
+            <th>
+                {% if referred_in %}
+                    Referring IP
+                {% else %}
+                     Referred TO IP
+                {% endif %}
+            </th>
+            <th>External Organisation</th>
+            <th>Intervention</th>
+            <th>Referral Date</th>
+            <th>Expiration Date</th>
+            <th>Referring Comment</th>
+            <th>Completing Comment</th>
+
+            {% if can_accept_or_reject and referred_in %}
+                <th>Action</th>
+            {% else %}
+                <th>Status</th>
+            {% endif %}
+            </thead>
+            <tbody id="dp-patient-list-body">
+            {% if client_referrals %}
+                {% for client_referral in client_referrals %}
+                    <tr>
+                        <td>{{ client_referral.client.dreams_id }}</td>
+                        <td>
+                            {% if referred_in %}
+                                {{ client_referral.referring_ip.name }}
+                            {% else %}
+                                {% if client_referral.receiving_ip %}
+                                    {{ client_referral.receiving_ip.name }}
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if client_referral.external_organisation %}
+                                {{ client_referral.external_organisation.name }}
+                            {% else %}
+                                {% if client_referral.external_organisation_other %}
+                                    {{ client_referral.external_organisation_other }} (Other)
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>{{ client_referral.intervention_type.name }}</td>
+                        <td>{{ client_referral.referral_date }}</td>
+                        <td>{{ client_referral.referral_expiration_date }}</td>
+                        <td>
+                            {% if client_referral.comments %}
+                                {{ client_referral.comments }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if client_referral.receiving_ip_comment %}
+                                {{ client_referral.receiving_ip_comment }}
+                            {% endif %}
+                        </td>
+                        {% if can_accept_or_reject and referred_in and client_referral.referral_status.id == 1 %}
+                            <td>
+                                {% if not client_referral.client.exited %}
+                                    {% if client_referral.referral_expiration_date < now %}
+                                        Expired
+                                    {% else %}
+                                        <a id="accept-{{ client_referral.id }}" name="complete-referral-modal"
+                                           class='glyphicon glyphicon-ok badge btn btn-success exit_unexit_toggle'
+                                           arial-label='Arial-Hidden'
+                                           style="padding-bottom: 8px;" data-toggle="modal"
+                                           data-target="#referral-intervention-modal"
+                                           data-referral-id="{{ client_referral.id }}"
+                                           data-client-name="{{ client_referral.client.get_full_name }}"
+                                           data-client-id="{{ client_referral.client.id }}"
+                                           data-client-dreams-id="{{ client_referral.client.dreams_id }}"
+                                           data-client-date-of-birth="{{ client_referral.client.date_of_birth }}"
+                                           data-client-age-at-enrollment="{{ client_referral.client.get_age_at_enrollment }}"
+                                           data-client-current-age="{{ client_referral.client.get_current_age }}"
+                                           data-client-referral-date="{{ client_referral.referral_date | date:"m/d/Y" }}"
+                                           data-referral-intervention-type-id="{{ client_referral.intervention_type.id }}"
+                                           data-referral-intervention-type-code="{{ client_referral.intervention_type.code }}"
+                                           data-referral-intervention-type-name="{{ client_referral.intervention_type.name }}"
+                                           data-referral-external-organisation-id="{{ client_referral.external_organisation.id }}"
+                                           data-referral-external-organisation-other="{{ client_referral.external_organisation_other }}"
+                                           data-referral-intervention-type-is_specified="{{ client_referral.intervention_type.is_specified }}"
+                                           data-referral-intervention-type-has_hts_result="{{ client_referral.intervention_type.has_hts_result }}"
+                                           data-referral-intervention-type-has_ccc_number="{{ client_referral.intervention_type.has_ccc_number }}"
+                                           data-referral-intervention-type-has_pregnancy_result="{{ client_referral.intervention_type.has_pregnancy_result }}"
+                                           data-referral-intervention-type-has_no_of_sessions="{{ client_referral.intervention_type.has_no_of_sessions }}">
+                                            Complete
+                                        </a> &nbsp;&nbsp;
+                                        <a id="reject-{{ client_referral.id }}" name="reject-referral-modal"
+                                           class='glyphicon glyphicon-remove badge btn btn-danger exit_unexit_toggle referral-button'
+                                           arial-label='Arial-Hidden' data-toggle="modal"
+                                           data-target="#reject-referral-modal"
+                                           data-id="{{ client_referral.id }}"
+                                           data-client-name="{{ client_referral.client.get_full_name }}"
+                                           data-client-dreams-id="{{ client_referral.client.dreams_id }}"
+                                           data-client-date-of-birth="{{ client_referral.client.date_of_birth }}"
+                                           data-client-age-at-enrollment="{{ client_referral.client.get_age_at_enrollment }}"
+                                           data-client-current-age="{{ client_referral.client.get_current_age }}"
+                                           data-client-intervention-id="{{ client_referral.intervention_type.id }}"
+                                           data-client-intervention-name="{{ client_referral.intervention_type.name }}"
+                                           data-client-referral-date="{{ client_referral.referral_date }}"
+                                           data-client-referral-expiration-date="{{ client_referral.referral_expiration_date }}">
+                                            Reject
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        {% else %}
+                            <td>{{ client_referral.referral_status.name }}</td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="8"> No pending referrals.</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+
+        <!-- Pagination section -->
+        <div class="pagination">
+            <span class="step-links">
+                {% if client_referrals.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ client_referral.previous_page_number }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ client_referral.number }} of {{ client_referrals.paginator.num_pages }}.
+                </span>
+
+                {% if client_referrals.has_next %}
+                    <a href="?page={{ client_referrals.next_page_number }}">next</a>
+                    <a href="?page={{ client_referrals.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+
+        <!-- Beginning modal-->
+        <div class="modal fade" id="referral-intervention-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+             xmlns="http://www.w3.org/1999/html">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <form id="referral-intervention-entry-form" method="post">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                    aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="exampleModalLabel">ADD INTERVENTION FOR REFERRAL</h4>
+                            <h5 id="intervention_client_name"></h5>
+                            <h5 id="intervention_client_date_of_birth"></h5>
+                            <h5 id="intervention_client_age_at_enrollment"></h5>
+                            <h5 id="intervention_type_name"></h5>
+                        </div>
+                        <div class="modal-body">
+                            {% csrf_token %}
+                            <!-- Permanently hidden Fields -->
+
+                            <input class="hidden validate-intervention-form-field" name="client" id="client" value=""/>
+                            <input class="hidden validate-intervention-form-field" name="intervention_id"
+                                   id="intervention_id" value=""/>
+                            <input class="hidden validate-intervention-form-field" name="intervention_type_code"
+                                   id="intervention_type_code" value=""/>
+                            <input type="hidden" name="client_referral_date" id="client_referral_date" value=""/>
+                            <input class="hidden validate-intervention-form-field" name="referral_id"
+                                   id="referral_id" value=""/>
+                            <input class="hidden validate-intervention-form-field" name="created_by" value="{{ user.id }}"/>
+                            <input class="hidden validate-intervention-form-field" name="changed_by" id="changed_by"
+                                   value="{{ user.id }}"/>
+                            <input class="hidden validate-intervention-form-field" name="intervention_by_referral" id="intervention_by_referral"
+                                   value="1"/>
+
+                            <!-- End of Permanently hidden fields -->
+
+                            <fieldset id="external_organization_more_section" class="hidden">
+                                <div class="form-group">
+                                    <label for="external-organization-select">Intervention Provided by External
+                                        Organization:</label>
+                                    <select id="external-organization-select" name="external_organization_code"
+                                            class="form-control">
+                                    </select>
+                                </div>
+                                <div class="form-group" id="other_external_organization">
+                                    <label for="other-external-organization">Please specify</label>
+                                    <input type="text" id="other-external-organization"
+                                           name="other_external_organization_code" class="form-control">
+                                    </input>
+                                </div>
+                            </fieldset>
+
+                            <div class="form-group has-feedback" id="intervention_date_section">
+                                <label for="date-of-completion" class="control-label">Date: </label>
+                                <input type="text" class="form-control validate-intervention-form-field"
+                                       id="date-of-completion" placeholder="Select date " style="cursor: pointer;"><span
+                                    class="add-on"><i class="icon-th"></i></span></p>
+                                <input type="text" class="form-control validate-intervention-form-field hidden"
+                                       id="date-of-completion-formatted" name="intervention_date"/>
+                                <i class="glyphicon glyphicon-calendar form-control-feedback"></i>
+                                <div id="div-date-before-referral-date" class="custom-has-error hide">
+                                    <label class="control-label">Warning! Intervention date is before referral date</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group hidden" id="hts_result_section">
+                                <label for="intervention-type-select">HTS Test Result</label>
+                                <select id="hts-result-select" name="hts_result"
+                                        class="form-control validate-intervention-form-field">
+                                    <option value="">Select Option</option>
+                                    <option value="201">Negative</option>
+                                    <option value="202">Positive</option>
+                                    <option value="203">Known Positive</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group hidden" id="ccc_number_section">
+                                <label for="ccc-number" class="control-label">CCC Number</label>
+                                <input type="text" class="form-control validate-intervention-form-field" id="ccc-number"
+                                       name="client_ccc_number"></input>
+                            </div>
+
+                            <div class="form-group hidden" id="pregnancy_test_section">
+                                <label for="intervention-type-select">Pregnancy Test Result</label>
+                                <select id="pregnancy-result-select" name="pregnancy_test_result"
+                                        class="form-control validate-intervention-form-field">
+                                    <option value="">Select Option</option>
+                                    <option value="101">Not Pregnant</option>
+                                    <option value="102">Pregnant</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group hidden" id="no_of_sessions_section">
+                                <label for="number-of-ss-sessions-attended" class="control-label">Number of SS Sessions
+                                    Attended</label>
+                                <input type="number" class="form-control validate-intervention-form-field"
+                                       id="number-of-ss-sessions-attended" value="1" min="1" name="no_of_sessions_attended">
+                            </div>
+
+                            <div class="form-group" id="notes_section">
+                                <label for="comments-text" class="control-label">Comments/Notes</label>
+                                <textarea class="form-control validate-intervention-form-field" id="comments-text"
+                                          name="comment"></textarea>
+                            </div>
+
+                            <div class="form-group" id="notes_section">
+                                <span id="error-space" class="label error-space" style="color: red;"></span>
+                            </div>
+                            Updated by <strong>{{ user.first_name }} {{ user.last_name }}</strong> on {% now "d-m-Y" %}
+                        </div>
+                        <div class="modal-footer">
+                            <button id="btn_cancel_referral_intervention" type="button" class="btn btn-sm btn-default"
+                                    data-dismiss="modal"> Cancel
+                            </button>
+
+                            {% if perms.DreamsApp.add_intervention and perms.DreamsApp.change_intervention and perms.DreamsApp.add_referral and perms.DreamsApp.change_referral %}
+                                <button id="btn_save_referral_intervention" type="submit" class="btn btn-sm btn-primary"> Save
+                                    Intervention
+                                </button>
+                            {% endif %}
+
+                            <span class="processing-indicator hidden">
+                              <br/><br/>
+                              <span><i class='fa fa-spinner fa-spin fa-1.5x'></i> Saving intervention... </span>
+                          </span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Beginning Reject Referral Modal -->
+        <div class="modal fade" id="reject-referral-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Reject Client Referral</h4>
+                    </div>
+                    <form method="POST" action="{% url 'reject_client_referral' %}" id="reject_client_referral_form">
+                        <div class="modal-body">
+                            {% csrf_token %}
+
+                            <input id="reject_client_referral_id" type="hidden" name="id" value="">
+
+                            <div class="form-group form-inline">
+                                <label for="reject_client_name" class="control-label enrolment-label">Client:</label>
+                                <span id="reject_client_name" class="referral-dialogue-link"></span>
+                            </div>
+                            <div class="form-group form-inline">
+                                <label for="reject_client_dreams_id" class="control-label enrolment-label">DREAMS ID:</label>
+                                <span id="reject_client_dreams_id" class="referral-dialogue-link"></span>
+                            </div>
+                            <div class="form-group form-inline">
+                                <label for="reject_client_date_of_birth" class="control-label enrolment-label">Date of
+                                    Birth:</label>
+                                <span id="reject_client_date_of_birth" class="referral-dialogue-link"></span>
+                            </div>
+                            <div class="form-group form-inline">
+                                <label for="reject_client_age_at_enrollment" class="control-label enrolment-label">Age at
+                                    Enrollment:</label>
+                                <span id="reject_client_age_at_enrollment" class="referral-dialogue-link"></span>
+                            </div>
+
+                            <div class="form-group form-inline">
+                                <label for="reject_client_intervention" class="control-label enrolment-label">Intervention:</label>
+                                <span id="reject_client_intervention" class="referral-dialogue-link"></span>
+                            </div>
+                            <div class="form-group form-inline">
+                                <label for="reject_client_referral_date" class="control-label enrolment-label">Referral Date:</label>
+                                <span id="reject_client_referral_date" class="referral-dialogue-link"></span>
+                            </div>
+                            <div class="form-group form-inline">
+                                <label for="reject_client_referral_expiration_date" class="control-label enrolment-label">Referral Expiration Date:</label>
+                                <span id="reject_client_referral_expiration_date" class="referral-dialogue-link"></span>
+                            </div>
+                            <div class="form-group form-inline">
+                                <label for="reject_reason" class="control-label enrolment-label">Reject Reason:</label>
+                                <textarea id="reject_reason" name="reject_reason" class="form-control" rows="5"
+                                          cols="40" required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal"> Cancel
+                                </button>
+                                <button type="submit" class="btn btn-sm btn-info">Reject Referral</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
