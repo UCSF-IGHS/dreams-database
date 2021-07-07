@@ -3,7 +3,7 @@ from datetime import datetime
 from django.db.models import Q
 
 from DreamsApp.exceptions import ClientSearchException
-from DreamsApp.models import Client, ServiceDelegation, Intervention
+from DreamsApp.models import Client, ServiceDelegation
 
 
 class ClientQueryService:
@@ -62,27 +62,123 @@ class ClientQueryService:
     def _build_filter_client_queryset(self, clients, search_terms):
         try:
             if len(search_terms) == 2:
-                clients = clients.filter(
-                    Q(first_name__icontains=str(search_terms[0])) | Q(first_name__icontains=str(search_terms[1])) | Q(
-                        middle_name__icontains=str(search_terms[0])) | Q(
-                        middle_name__icontains=str(search_terms[1])) | Q(last_name__icontains=str(search_terms[0])) | Q(
-                        last_name__icontains=str(search_terms[1])))
-            else:
-                clients = clients.filter(
-                    Q(first_name__icontains=str(search_terms[0])) | Q(first_name__icontains=str(search_terms[1])) | Q(
-                        first_name__icontains=str(search_terms[2])) | Q(
-                        middle_name__icontains=str(search_terms[0])) | Q(
-                        middle_name__icontains=str(search_terms[1])) | Q(
-                        middle_name__icontains=str(search_terms[2])) | Q(
-                        last_name__icontains=str(search_terms[0])) | Q(
-                        last_name__icontains=str(search_terms[1])) | Q(last_name__icontains=str(search_terms[2])))
+                search_terms.append('')
+            _filter = [
+
+            ]
+            clients = clients.filter(
+                Q(first_name__icontains=str(search_terms[0]), middle_name__icontains=str(search_terms[1]),
+                  last_name__icontains=str(search_terms[2])) | Q(first_name__icontains=str(search_terms[0]),
+                                                                 middle_name__icontains=str(search_terms[2]),
+                                                                 last_name__icontains=str(search_terms[1])) | Q(
+                    first_name__icontains=str(search_terms[1]), middle_name__icontains=str(search_terms[0]),
+                    last_name__icontains=str(search_terms[2])) | Q(first_name__icontains=str(search_terms[1]),
+                                                                   middle_name__icontains=str(search_terms[2]),
+                                                                   last_name__icontains=str(search_terms[0])) | Q(
+                    first_name__icontains=str(search_terms[2]), middle_name__icontains=str(search_terms[0]),
+                    last_name__icontains=str(search_terms[1])) | Q(first_name__icontains=str(search_terms[2]),
+                                                                   middle_name__icontains=str(search_terms[1]),
+                                                                   last_name__icontains=str(search_terms[0])) | Q(
+                    first_name__icontains=str(search_terms[0] + ' ' + search_terms[1]),
+                    middle_name__icontains=str(search_terms[2]))
+                | Q(
+                    first_name__icontains=str(search_terms[0] + ' ' + search_terms[1]),
+                    last_name__icontains=str(search_terms[2])) | Q(
+                    first_name__icontains=str(search_terms[0] + ' ' + search_terms[1]),
+                    middle_name__icontains=str(search_terms[2])) | Q(
+                    middle_name__icontains=str(search_terms[0] + ' ' + search_terms[1]),
+                    first_name__icontains=str(search_terms[2])) | Q(
+                    middle_name__icontains=str(search_terms[0] + ' ' + search_terms[1]),
+                    last_name__icontains=str(search_terms[2])) | Q(
+                    last_name__icontains=str(search_terms[0] + ' ' + search_terms[1]),
+                    first_name__icontains=str(search_terms[2])) | Q(
+                    last_name__icontains=str(search_terms[0] + ' ' + search_terms[1]),
+                    middle_name__icontains=str(search_terms[2])) | Q(
+                    first_name__icontains=str(search_terms[0] + ' ' + search_terms[2]),
+                    last_name__icontains=str(search_terms[1])) | Q(
+                    first_name__icontains=str(search_terms[0] + ' ' + search_terms[2]),
+                    middle_name__icontains=str(search_terms[1])) | Q(
+                    middle_name__icontains=str(search_terms[0] + ' ' + search_terms[2]),
+                    first_name__icontains=str(search_terms[1])) | Q(
+                    middle_name__icontains=str(search_terms[0] + ' ' + search_terms[2]),
+                    last_name__icontains=str(search_terms[1])) | Q(
+                    last_name__icontains=str(search_terms[0] + ' ' + search_terms[2]),
+                    first_name__icontains=str(search_terms[1])) | Q(
+                    last_name__icontains=str(search_terms[0] + ' ' + search_terms[2]),
+                    middle_name__icontains=str(search_terms[1]))
+
+                | Q(
+                    first_name__icontains=str(search_terms[1] + ' ' + search_terms[0]),
+                    last_name__icontains=str(search_terms[2])) | Q(
+                    first_name__icontains=str(search_terms[1] + ' ' + search_terms[2]),
+                    middle_name__icontains=str(search_terms[0])) | Q(
+                    middle_name__icontains=str(search_terms[1] + ' ' + search_terms[0]),
+                    first_name__icontains=str(search_terms[2])) | Q(
+                    middle_name__icontains=str(search_terms[1] + ' ' + search_terms[2]),
+                    last_name__icontains=str(search_terms[0])) | Q(
+                    last_name__icontains=str(search_terms[1] + ' ' + search_terms[0]),
+                    first_name__icontains=str(search_terms[2])) | Q(
+                    last_name__icontains=str(search_terms[1] + ' ' + search_terms[2]),
+                    middle_name__icontains=str(search_terms[0])) | Q(
+                    first_name__icontains=str(search_terms[1] + ' ' + search_terms[0]),
+                    last_name__icontains=str(search_terms[2])) | Q(
+                    first_name__icontains=str(search_terms[1] + ' ' + search_terms[2]),
+                    middle_name__icontains=str(search_terms[0])) | Q(
+                    middle_name__icontains=str(search_terms[1] + ' ' + search_terms[0]),
+                    first_name__icontains=str(search_terms[2])) | Q(
+                    middle_name__icontains=str(search_terms[1] + ' ' + search_terms[2]),
+                    last_name__icontains=str(search_terms[0])) | Q(
+                    last_name__icontains=str(search_terms[1] + ' ' + search_terms[0]),
+                    first_name__icontains=str(search_terms[2])) | Q(
+                    last_name__icontains=str(search_terms[1] + ' ' + search_terms[2]),
+                    middle_name__icontains=str(search_terms[0]))
+
+                | Q(
+                    first_name__icontains=str(search_terms[2] + ' ' + search_terms[0]),
+                    last_name__icontains=str(search_terms[1])) | Q(
+                    first_name__icontains=str(search_terms[2] + ' ' + search_terms[1]),
+                    middle_name__icontains=str(search_terms[0])) | Q(
+                    middle_name__icontains=str(search_terms[2] + ' ' + search_terms[0]),
+                    first_name__icontains=str(search_terms[1])) | Q(
+                    middle_name__icontains=str(search_terms[2] + ' ' + search_terms[1]),
+                    last_name__icontains=str(search_terms[0])) | Q(
+                    last_name__icontains=str(search_terms[2] + ' ' + search_terms[0]),
+                    first_name__icontains=str(search_terms[1])) | Q(
+                    last_name__icontains=str(search_terms[2] + ' ' + search_terms[1]),
+                    middle_name__icontains=str(search_terms[0])) | Q(
+                    first_name__icontains=str(search_terms[2] + ' ' + search_terms[0]),
+                    last_name__icontains=str(search_terms[1])) | Q(
+                    first_name__icontains=str(search_terms[2] + ' ' + search_terms[1]),
+                    middle_name__icontains=str(search_terms[0])) | Q(
+                    middle_name__icontains=str(search_terms[2] + ' ' + search_terms[0]),
+                    first_name__icontains=str(search_terms[1])) | Q(
+                    middle_name__icontains=str(search_terms[2] + ' ' + search_terms[1]),
+                    last_name__icontains=str(search_terms[0])) | Q(
+                    last_name__icontains=str(search_terms[2] + ' ' + search_terms[0]),
+                    first_name__icontains=str(search_terms[1])) | Q(
+                    last_name__icontains=str(search_terms[2] + ' ' + search_terms[1]),
+                    middle_name__icontains=str(search_terms[0]))  | self._conditional_filter(search_terms)
+            )
+
             return clients
 
         except Exception as e:
             message = e.message if hasattr(e, 'message') else ''
             raise ClientSearchException(
-                message='Error encountered when searching for client with the provided search terms. {}'.format(message))
+                message='Error encountered when searching for client with the provided search terms. {}'.format(
+                    message))
 
+    def _conditional_filter(self, search_terms):
+        if search_terms[2] == '':
+            return Q(
+                    first_name__icontains=str(search_terms[0] + ' ' + search_terms[1])) | Q(
+                    first_name__icontains=str(search_terms[1] + ' ' + search_terms[0])) |Q(
+                    middle_name__icontains=str(search_terms[0] + ' ' + search_terms[1])) | Q(
+                    middle_name__icontains=str(search_terms[1] + ' ' + search_terms[0])) | Q(
+                    last_name__icontains=str(search_terms[0] + ' ' + search_terms[1])) | Q(
+                    last_name__icontains=str(search_terms[1] + ' ' + search_terms[0]))
+        else:
+            return Q()
     def _build_filter_client_queryset_for_one_word_search_text(self, clients, search_terms):
         try:
             clients = clients.filter(
@@ -96,4 +192,5 @@ class ClientQueryService:
         except Exception as e:
             message = str(e)
             raise ClientSearchException(
-                message='Error encountered when searching for client with the provided search terms. {}'.format(message))
+                message='Error encountered when searching for client with the provided search terms. {}'.format(
+                    message))
