@@ -63,7 +63,7 @@ class ClientQueryService:
         try:
             if len(search_terms) == 2:
                 search_terms.append('')
-                
+
             clients = clients.filter(
                 Q(first_name__icontains=str(search_terms[0]), middle_name__icontains=str(search_terms[1]),
                   last_name__icontains=str(search_terms[2])) | Q(first_name__icontains=str(search_terms[0]),
@@ -155,7 +155,7 @@ class ClientQueryService:
                     last_name__icontains=str(search_terms[2] + ' ' + search_terms[0]),
                     first_name__icontains=str(search_terms[1])) | Q(
                     last_name__icontains=str(search_terms[2] + ' ' + search_terms[1]),
-                    middle_name__icontains=str(search_terms[0]))  | self._conditional_filter(search_terms)
+                    middle_name__icontains=str(search_terms[0])) | self._conditional_filter(search_terms)
             )
 
             return clients
@@ -169,14 +169,15 @@ class ClientQueryService:
     def _conditional_filter(self, search_terms):
         if search_terms[2] == '':
             return Q(
-                    first_name__icontains=str(search_terms[0] + ' ' + search_terms[1])) | Q(
-                    first_name__icontains=str(search_terms[1] + ' ' + search_terms[0])) |Q(
-                    middle_name__icontains=str(search_terms[0] + ' ' + search_terms[1])) | Q(
-                    middle_name__icontains=str(search_terms[1] + ' ' + search_terms[0])) | Q(
-                    last_name__icontains=str(search_terms[0] + ' ' + search_terms[1])) | Q(
-                    last_name__icontains=str(search_terms[1] + ' ' + search_terms[0]))
+                first_name__icontains=str(search_terms[0] + ' ' + search_terms[1])) | Q(
+                first_name__icontains=str(search_terms[1] + ' ' + search_terms[0])) | Q(
+                middle_name__icontains=str(search_terms[0] + ' ' + search_terms[1])) | Q(
+                middle_name__icontains=str(search_terms[1] + ' ' + search_terms[0])) | Q(
+                last_name__icontains=str(search_terms[0] + ' ' + search_terms[1])) | Q(
+                last_name__icontains=str(search_terms[1] + ' ' + search_terms[0]))
         else:
             return Q()
+
     def _build_filter_client_queryset_for_one_word_search_text(self, clients, search_terms):
         try:
             clients = clients.filter(
