@@ -63,9 +63,7 @@ class ClientQueryService:
         try:
             if len(search_terms) == 2:
                 search_terms.append('')
-            _filter = [
-
-            ]
+                
             clients = clients.filter(
                 Q(first_name__icontains=str(search_terms[0]), middle_name__icontains=str(search_terms[1]),
                   last_name__icontains=str(search_terms[2])) | Q(first_name__icontains=str(search_terms[0]),
