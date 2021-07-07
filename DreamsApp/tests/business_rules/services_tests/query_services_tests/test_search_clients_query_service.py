@@ -45,7 +45,7 @@ class SearchClientTestCase(InterventionDelegationTestCase):
 
         search_criteria = {'search_text': 'Client X'}
         clients = query_service.search_clients(search_criteria)
-        self.assertEquals(clients.count(), 7, 'Expected 3 client whose first names are Client X')
+        self.assertEquals(clients.count(), 3, 'Expected 3 client whose first names are Client X')
 
         search_criteria = {'search_text': 'One'}
         clients = query_service.search_clients(search_criteria)
@@ -59,6 +59,15 @@ class SearchClientTestCase(InterventionDelegationTestCase):
         search_criteria = {'search_text': 'Doe'}
         clients = query_service.search_clients(search_criteria)
         self.assertEquals(clients.count(), 3, 'Expected 3 client whose middle names are Doe')
+
+        for client in clients:
+            self.assertEquals(client.middle_name, 'Doe',
+                              msg='Expected client middlename name to be Doe')
+            self.assertFalse(client.voided, 'Expected a client who is not voided')
+
+        search_criteria = {'search_text': 'Client X Doe'}
+        clients = query_service.search_clients(search_criteria)
+        self.assertEquals(clients.count(), 2, 'Expected 2 client with First name Client X and middle name Doe')
 
         for client in clients:
             self.assertEquals(client.middle_name, 'Doe',

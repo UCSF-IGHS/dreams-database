@@ -241,7 +241,7 @@ def clients(request):
 
                 search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
                 # search_result = search_result_tuple[0]
-                search_result = result[:100]
+                search_result = result.order_by('first_name', 'middle_name', 'last_name')[:100]
                 # check for permissions
                 # if not request.user.has_perm("DreamsApp.can_view_cross_ip_data"):
                 #     try:
