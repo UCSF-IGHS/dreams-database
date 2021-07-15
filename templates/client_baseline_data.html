@@ -34,11 +34,13 @@
                 <div class="col-xs-12 col-sm-3">
                 {% if client_action_permissions.can_perform_edit %}
                     <p><strong>Actions: </strong> <br>
-                    <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
-                       onclick="window.location='/client?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
-                       data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-folder-close"></span>
-                        Service Uptake</p>
 
+                    {% if intervention_action_permissions.can_perform_list %}
+                        <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
+                           onclick="window.location='/client?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
+                           data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-folder-close"></span>
+                            Service Uptake</p>
+                    {% endif %}
                         {% if 'Transferred Out' not in client_status %}
                             {% if perms.DreamsApp.can_exit_client and current_user_belongs_to_same_ip_as_client %}
                                 {% if client.exited %}

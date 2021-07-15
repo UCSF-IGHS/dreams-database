@@ -3038,7 +3038,9 @@ def viewBaselineData(request):
                     min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
                     current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
                     client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
-                    client_action_permissions.can_perform_edit()
+                    intervention_action_permissions = InterventionActionPermissions(model=Intervention,
+                                                                                    user=request.user)
+
                     return render(request, 'client_baseline_data.html', {'page': 'clients',
                                                                          'page_title': 'DREAMS Enrollment Data',
                                                                          'client': client_found,
@@ -3061,7 +3063,8 @@ def viewBaselineData(request):
                                                                          'max_dob': max_dob,
                                                                          'min_dob': min_dob,
                                                                          'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser,
-                                                                         'client_action_permissions': client_action_permissions
+                                                                         'client_action_permissions': client_action_permissions,
+                                                                         'intervention_action_permissions': intervention_action_permissions
                                                                          })
             except Client.DoesNotExist:
                 traceback.format_exc()
