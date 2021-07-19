@@ -14,6 +14,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
+from django.template import RequestContext
+from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.core.cache import cache
@@ -29,9 +31,13 @@ from DreamsApp.business_rules.model_access_permissions.intervention_access_permi
 from DreamsApp.business_rules.services.query_services.client_query_service import ClientQueryService
 from DreamsApp.forms import *
 from dateutil.relativedelta import relativedelta
-from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, ReferralServiceLayer, FollowUpsServiceLayer
+from DreamsApp.service_layer import ClientEnrolmentServiceLayer, TransferServiceLayer, ReferralServiceLayer, \
+    FollowUpsServiceLayer
 from operator import itemgetter
 import operator
+from django.views.generic.detail import SingleObjectTemplateResponseMixin
+from django.views.generic.edit import ModelFormMixin, ProcessFormView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView
 
 
 def get_enrollment_form_config_data(request):
@@ -150,9 +156,9 @@ def filter_clients(search_client_term, is_advanced_search, request):
     search_client_term_parts = search_client_term.split()
     # check number of parts
     parts_count = len(search_client_term_parts)
-    cache_key = '-'.join(search_client_term_parts) # needs to be unique
-    cache_time = 86400 # time in seconds for cache to be valid
-    search_result  = None
+    cache_key = '-'.join(search_client_term_parts)  # needs to be unique
+    cache_time = 86400  # time in seconds for cache to be valid
+    search_result = None
 
     if parts_count == 1:
         search_result = client_filter_with_one_search_part(search_client_term_parts[0])
@@ -165,16 +171,18 @@ def filter_clients(search_client_term, is_advanced_search, request):
     cache.set(cache_key, search_result, cache_time)
     return [search_result, is_advanced_search, '', '', '', '', '']
 
+
 def client_filter_with_one_search_part(search_client_part):
-    data = cache.get(search_client_part) # returns None if no key-value pair
+    data = cache.get(search_client_part)  # returns None if no key-value pair
     if not data:
         search_result = Client.objects.filter(Q(dreams_id__iexact=search_client_part) |
-                                            Q(first_name__iexact=search_client_part) |
-                                            Q(middle_name__iexact=search_client_part) |
-                                            Q(last_name__iexact=search_client_part)) \
+                                              Q(first_name__iexact=search_client_part) |
+                                              Q(middle_name__iexact=search_client_part) |
+                                              Q(last_name__iexact=search_client_part)) \
             .exclude(voided=True).order_by('first_name').order_by('middle_name').order_by('last_name')
         data = search_result
     return data
+
 
 def client_filter_with_multiple_search_parts(search_client_term_parts, parts_count):
     data = cache.get('-'.join(search_client_term_parts))
@@ -185,16 +193,17 @@ def client_filter_with_multiple_search_parts(search_client_term_parts, parts_cou
         filter_text_3 = '' if parts_count == 2 else search_client_term_parts[2]
         # first name and middle name
         data = build_filter_client_queryset((filter_text_1, filter_text_2, filter_text_3),
-                                                    (filter_text_2, filter_text_1, filter_text_3),
-                                                    (filter_text_2, filter_text_3, filter_text_1),
-                                                    (filter_text_3, filter_text_2, filter_text_1),
-                                                    (filter_text_3, filter_text_1, filter_text_2),
-                                                    (filter_text_1, filter_text_3, filter_text_2))
+                                            (filter_text_2, filter_text_1, filter_text_3),
+                                            (filter_text_2, filter_text_3, filter_text_1),
+                                            (filter_text_3, filter_text_2, filter_text_1),
+                                            (filter_text_3, filter_text_1, filter_text_2),
+                                            (filter_text_1, filter_text_3, filter_text_2))
     return data
+
 
 def client_advanced_search(search_result, is_advanced_search, request):
     county_filter = str(
-            request.GET.get('county', '') if request.method == 'GET' else request.POST.get('county', ''))
+        request.GET.get('county', '') if request.method == 'GET' else request.POST.get('county', ''))
     if county_filter != '':
         search_result = search_result.filter(county_of_residence_id=int(county_filter))
     sub_county_filter = str(
@@ -205,161 +214,735 @@ def client_advanced_search(search_result, is_advanced_search, request):
     if ward_filter != '':
         search_result = search_result.filter(ward_id=int(ward_filter))
     start_date_filter_original = request.GET.get('doe_start_filter',
-                                                    '') if request.method == 'GET' else request.POST.get(
+                                                 '') if request.method == 'GET' else request.POST.get(
         'doe_start_filter', '')
     start_date_filter = '2015-10-01' if start_date_filter_original == '' else start_date_filter_original
     end_date_filter_original = request.GET.get('doe_end_filter',
-                                                dt.today()) if request.method == 'GET' else request.POST.get(
+                                               dt.today()) if request.method == 'GET' else request.POST.get(
         'doe_end_filter', dt.today())
     end_date_filter = dt.today() if end_date_filter_original == '' else end_date_filter_original
     search_result = search_result.filter(date_of_enrollment__range=[start_date_filter, end_date_filter])  #
     return [search_result, is_advanced_search, county_filter, sub_county_filter, ward_filter,
-                start_date_filter_original,
-                end_date_filter_original]
+            start_date_filter_original,
+            end_date_filter_original]
 
-def clients(request):
-    try:
-        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-            # get search details -- search_client_term
-            page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
-            is_advanced_search = request.GET.get('is_advanced_search',
-                                                 'False') if request.method == 'GET' else request.POST.get(
-                'is_advanced_search', 'False')
-            search_client_term = request.GET.get('search_client_term',
-                                                 '') if request.method == 'GET' else request.POST.get(
-                'search_client_term', '')
-            search_client_term = search_client_term.strip()
 
-            if search_client_term != "":
-                client_query_service = ClientQueryService(request.user.implementingpartneruser)
-                search_criteria = get_search_criteria(search_client_term, is_advanced_search, request)
-                result = None
-                try:
-                    result = client_query_service.search_clients(search_criteria)
-                except Client.DoesNotExist as e:
-                    result = Client.objects.none()
+class ClientListView(ListView):
+    model = Client
+    template_name = 'clients.html'
 
-                search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
-                # search_result = search_result_tuple[0]
-                search_result = result[:100]
-                # check for permissions
-                # if not request.user.has_perm("DreamsApp.can_view_cross_ip_data"):
-                #     try:
-                #         ip = request.user.implementingpartneruser.implementing_partner
-                #
-                #         transfer_out = ClientTransfer.objects.filter(source_implementing_partner=ip).filter(
-                #             transfer_status=ClientTransferStatus.objects.get(
-                #                                       code__exact=TRANSFER_ACCEPTED_STATUS))
-                #
-                #         # transfer_out_clients = search_result.filter(pk__in=transfer_out.values_list('client'))
-                #
-                #     except Exception as e:
-                #         search_result = Client.objects.none()
+    def post(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(ClientListView, self).get_context_data(**kwargs)
+        context['page'] = 'clients'
+        context['page_title'] = 'DREAMS Client List'
+        context['status'] = 'success'
+        # context['implementing_partners'] = ImplementingPartner.objects.all()
+        # context['verification_documents'] = VerificationDocument.objects.all()
+        # ['marital_status'] = MaritalStatus.objects.all()
+        context['counties'] = County.objects.all()
+        context['demo_form'] = DemographicsForm()
+        context['to_login'] = False
+        context['error'] = ''
+
+        try:
+            if self.request.user is not None and self.request.user.is_authenticated() and self.request.user.is_active:
+                # get search details -- search_client_term
+                page = self.request.GET.get('page', 1) if self.request.method == 'GET' else self.request.POST.get(
+                    'page', 1)
+                is_advanced_search = self.request.GET.get('is_advanced_search',
+                                                          'False') if self.request.method == 'GET' else self.request.POST.get(
+                    'is_advanced_search', 'False')
+                search_client_term = self.request.GET.get('search_client_term',
+                                                          '') if self.request.method == 'GET' else self.request.POST.get(
+                    'search_client_term', '')
+                search_client_term = search_client_term.strip()
+
+                if search_client_term != "":
+                    client_query_service = ClientQueryService(self.request.user.implementingpartneruser)
+                    search_criteria = get_search_criteria(search_client_term, is_advanced_search, self.request)
+                    try:
+                        result = client_query_service.search_clients(search_criteria)
+                    except Client.DoesNotExist as e:
+                        result = Client.objects.none()
+
+                    ## EXCLUDE DELEGATION
+                    # search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
+                    search_result = result[:100]
+
+                    search_result_length = len(search_result)
+                    a = 'True' if search_result_length >= 100 else 'False'
+                    search_result_tuple = [search_result, a, '', '', '', '', '']
+
+                    log_custom_actions(self.request.user.id, "DreamsApp_client", None, "SEARCH", search_client_term)
+                    try:
+                        current_ip = self.request.user.implementingpartneruser.implementing_partner.code
+                    except Exception as e:
+                        current_ip = 0
+
+                    client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user)
+                    intervention_action_permissions = InterventionActionPermissions(model=Intervention,
+                                                                                    user=self.request.user)
+                    display_first_100_clients = (search_result_length == 100)
+
+                    # if request.is_ajax():
+                    #     enrolment_results = [
+                    #         [ClientActionPermissions(model=Client, user=request.user, enrolment=client), client] for
+                    #         client
+                    #         in search_result]
+                    #
+                    #     json_response = {
+                    #         'search_result': serializers.serialize('json', enrolment_results),
+                    #         'search_client_term': search_client_term,
+                    #         'can_manage_client': request.user.has_perm('auth.can_manage_client'),
+                    #         'can_change_client': request.user.has_perm('auth.can_change_client'),
+                    #         'can_delete_client': request.user.has_perm('auth.can_delete_client'),
+                    #         'implementing_partners': ImplementingPartner.objects.all(),
+                    #         'verification_documents': VerificationDocument.objects.all(),
+                    #         'marital_status': MaritalStatus.objects.all(),
+                    #         'counties': County.objects.all(),
+                    #         'current_ip': current_ip,
+                    #         'demo_form': DemographicsForm(),
+                    #         'client_action_permissions': client_action_permissions,
+                    #         'intervention_action_permissions': intervention_action_permissions,
+                    #         'display_first_100_clients': display_first_100_clients
+                    #     }
+                    #     return JsonResponse(json_response, safe=False)
+                    # else:
+
+                    # Non ajax request.. Do a paginator
+                    # do pagination
+                    enrolment_results = [
+                        [ClientActionPermissions(model=Client, user=self.request.user, enrolment=client), client] for
+                        client
+                        in search_result]
+
+                    try:
+                        paginator = Paginator(enrolment_results, 20)
+                        client_paginator = paginator.page(page)
+                    except PageNotAnInteger:
+                        client_paginator = paginator.page(1)  # Deliver the first page is page is not an integer
+                    except EmptyPage:
+                        client_paginator = paginator.page(
+                            paginator.num_pages)  # Deliver the last page if page is out of scope
+
+                    ### EXCLUDE DELEGATION
+                    # county_filter = search_result_tuple[2] if search_result_tuple[2] != '' else '0'
+                    # sub_county_filter = search_result_tuple[3] if search_result_tuple[3] != '' else '0'
+                    # sub_counties = SubCounty.objects.filter(county_id=int(county_filter))
+                    # ward_filter = search_result_tuple[4] if search_result_tuple[4] != '' else '0'
+                    # wards = Ward.objects.filter(sub_county_id=int(sub_county_filter))
+
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
+                    minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+                    max_dob = dt.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
+                    min_dob = dt.now().date() - relativedelta(
+                        years=int(minimum_maximum_age[1]) + 1) + timedelta(
+                        days=1)
+
+                    context['search_client_term'] = search_client_term
+                    context['client_paginator'] = client_paginator
+                    context['current_ip'] = current_ip
+                    context['is_advanced_search'] = search_result_tuple[1]
+                    # 'county_filter': county_filter,
+                    # 'sub_county_filter': sub_county_filter,
+                    # 'sub_counties': sub_counties,
+                    # 'ward_filter': ward_filter,
+                    # 'wards': wards,
+                    context['start_date_filter'] = search_result_tuple[5]
+                    context['end_date_filter'] = search_result_tuple[6]
+                    context['max_dob'] = max_dob
+                    context['min_dob'] = min_dob
+                    context['result_list'] = enrolment_results
+                    context['client_action_permissions'] = client_action_permissions
+                    context['intervention_action_permissions'] = intervention_action_permissions
+                    context['display_first_100_clients'] = display_first_100_clients
+                else:
+                    search_result = Client.objects.none()
+                    search_result_tuple = [search_result, 'False', '', '', '', '', '']
+                    current_ip = self.request.user.implementingpartneruser.implementing_partner.code
+
+                    client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user)
+                    # intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
+                    minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+                    max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
+                    min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(
+                        days=1)
+
+                    context['search_client_term'] = search_client_term
+                    # 'client_paginator': client_paginator,
+                    context['current_ip'] = current_ip
+                    context['is_advanced_search'] = search_result_tuple[1]
+                    # 'county_filter': county_filter,
+                    # 'sub_county_filter': sub_county_filter,
+                    # 'sub_counties': sub_counties,
+                    # 'ward_filter': ward_filter,
+                    # 'wards': wards,
+                    # 'start_date_filter': search_result_tuple[5],
+                    # 'end_date_filter': search_result_tuple[6],
+                    context['max_dob'] = max_dob
+                    context['min_dob'] = min_dob
+                    # 'result_list': enrolment_results,
+                    context['client_action_permissions'] = client_action_permissions
+                    # 'intervention_action_permissions': intervention_action_permissions
+                    # 'display_first_100_clients': display_first_100_clients
             else:
+                context['to_login'] = True
+            # print(len(db_conn_2.queries))
 
-                search_result = Client.objects.none()
-                search_result_tuple = [search_result, 'False', '', '', '', '', '']
-            log_custom_actions(request.user.id, "DreamsApp_client", None, "SEARCH", search_client_term)
-            try:
-                current_ip = request.user.implementingpartneruser.implementing_partner.code
-            except Exception as e:
-                current_ip = 0
+        except Exception as e:
+            tb = traceback.format_exc(e)
+            context['error'] = tb
+        return context
 
-            client_action_permissions = ClientActionPermissions(model=Client,user=request.user)
-            intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
-            display_first_100_clients = (len(search_result) == 100)
-
-            if request.is_ajax():
-                enrolment_results = []
-
-                for client in search_result:
-                    action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client)
-                    enrolment_result = [action_permissions, client]
-                    enrolment_results.append(enrolment_result)
-
-                json_response = {
-                    'search_result': serializers.serialize('json', enrolment_results),
-                    'search_client_term': search_client_term,
-                    'can_manage_client': request.user.has_perm('auth.can_manage_client'),
-                    'can_change_client': request.user.has_perm('auth.can_change_client'),
-                    'can_delete_client': request.user.has_perm('auth.can_delete_client'),
-                    'implementing_partners': ImplementingPartner.objects.all(),
-                    'verification_documents': VerificationDocument.objects.all(),
-                    'marital_status': MaritalStatus.objects.all(),
-                    'counties': County.objects.all(),
-                    'current_ip': current_ip,
-                    'demo_form': DemographicsForm(),
-                    'client_action_permissions': client_action_permissions,
-                    'intervention_action_permissions': intervention_action_permissions,
-                    'display_first_100_clients': display_first_100_clients
-                }
-                return JsonResponse(json_response, safe=False)
-            else:
-                # Non ajax request.. Do a paginator
-                # do pagination
-                enrolment_results = []
-
-                for client in search_result:
-                    action_permissions = ClientActionPermissions(model=Client,user=request.user, enrolment=client)
-                    enrolment_result = [action_permissions, client]
-                    enrolment_results.append(enrolment_result)
-
-                try:
-                    paginator = Paginator(enrolment_results, 20)
-                    client_paginator = paginator.page(page)
-                except PageNotAnInteger:
-                    client_paginator = paginator.page(1)  # Deliver the first page is page is not an integer
-                except EmptyPage:
-                    client_paginator = paginator.page(
-                        paginator.num_pages)  # Deliver the last page if page is out of scope
-
-
-
-                county_filter = search_result_tuple[2] if search_result_tuple[2] != '' else '0'
-                sub_county_filter = search_result_tuple[3] if search_result_tuple[3] != '' else '0'
-                sub_counties = SubCounty.objects.filter(county_id=int(county_filter))
-                ward_filter = search_result_tuple[4] if search_result_tuple[4] != '' else '0'
-                wards = Ward.objects.filter(sub_county_id=int(sub_county_filter))
-
-                client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
-                minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
-                max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
-                min_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
-
-                response_data = {
-                    'page': 'clients',
-                    'page_title': 'DREAMS Client List',
-                    'search_client_term': search_client_term,
-                    'client_paginator': client_paginator,
-                    'status': 'success',
-                    'implementing_partners': ImplementingPartner.objects.all(),
-                    'verification_documents': VerificationDocument.objects.all(),
-                    'marital_status': MaritalStatus.objects.all(),
-                    'counties': County.objects.all(),
-                    'current_ip': current_ip,
-                    'demo_form': DemographicsForm(),
-                    'is_advanced_search': search_result_tuple[1],
-                    'county_filter': county_filter,
-                    'sub_county_filter': sub_county_filter,
-                    'sub_counties': sub_counties,
-                    'ward_filter': ward_filter,
-                    'wards': wards,
-                    'start_date_filter': search_result_tuple[5],
-                    'end_date_filter': search_result_tuple[6],
-                    'max_dob': max_dob,
-                    'min_dob': min_dob,
-                    'result_list': enrolment_results,
-                    'client_action_permissions': client_action_permissions,
-                    'intervention_action_permissions': intervention_action_permissions,
-                    'display_first_100_clients': display_first_100_clients
-                }
-                # county_filter, sub_county_filter, ward_filter, start_date_filter, end_date_filter
-                return render(request, 'clients.html', response_data)
-        else:
+    def render_to_response(self, context, **response_kwargs):
+        if context['to_login']:
             return redirect('login')
+        if context['error'] != '':
+            return HttpResponseServerError(context['error'])
+        return super(ClientListView, self).render_to_response(context, **response_kwargs)
+
+    def get_queryset(self):
+        return Client.objects.none()
+
+
+class ClientDetailView(DetailView):
+    model = Client
+    template_name = 'client_baseline_data.html'
+
+    def get_object(self, queryset=None):
+        client_id = int(self.request.GET['client_id'])
+        if client_id is not None and client_id != 0:
+            self.object = Client.objects.get(id=client_id, voided=False)
+        return self.object
+
+    def get_context_data(self, **kwargs):
+        context = super(ClientDetailView, self).get_context_data(**kwargs)
+        context['page'] = 'clients'
+        context['page_title'] = 'DREAMS Enrollment Data'
+        context['user'] = self.request.user
+        context['to_login'] = False
+        context['error'] = ''
+
+        """ Returns client profile """
+        if self.request.user is None or not self.request.user.is_authenticated() or not self.request.user.is_active:
+            context['to_login'] = True
+            return context
+
+        if self.request.method != 'GET':
+            context['error'] = 'POST not allowed'
+            return context
+
+        try:
+            client_demographics = self.object
+            if not client_demographics:
+                context['error'] = "Client does not exist"
+                return context
+
+            # Relation is a one-to-one to Client
+            # Consider client = models.OneToOneField(Client, db_index=True)
+            # instead of client = models.ForeignKey(Client, db_index=True)
+            # then below: client_demographics.clientindividualandhouseholddata
+            #client_household_queryset = client_demographics.clientindividualandhouseholddata_set
+            # = client_household_queryset.get() if client_household_queryset.exists() else None
+            # client_edu_queryset = client_demographics.clienteducationandemploymentdata_set
+            # client_edu = client_edu_queryset.get() if client_edu_queryset.exists() else None
+            # client_sexual_data_queryset = client_demographics.clientsexualactivitydata_set
+            # client_sexual_data = client_sexual_data_queryset.get() if client_sexual_data_queryset.exists() else None
+            # client_gbv_data_queryset = client_demographics.clientgenderbasedviolencedata_set
+            # client_gbv_data = client_gbv_data_queryset.get() if client_gbv_data_queryset.exists() else None
+            # client_hiv_data_queryset = client_demographics.clienthivtestingdata_set
+            # client_hiv_data = client_hiv_data_queryset.get() if client_hiv_data_queryset.exists() else None
+            # client_rh_data_queryset = client_demographics.clientreproductivehealthdata_set
+            # client_rh_data = client_rh_data_queryset.get() if client_rh_data_queryset.exists() else None
+            # client_drug_data_queryset = client_demographics.clientdrugusedata_set
+            # client_drug_data = client_drug_data_queryset.get() if client_drug_data_queryset.exists() else None
+            # client_prog_part_data_queryset = client_demographics.clientparticipationindreams_set
+            # client_prog_part_data = client_prog_part_data_queryset.get() if client_prog_part_data_queryset.exists() else None
+
+            demographics_form = DemographicsForm(instance=client_demographics)
+            # household_form = IndividualAndHouseholdForm()
+            # edu_and_emp_form = EducationAndEmploymentForm(instance=client_edu)
+            # sexuality_form = SexualityForm(instance=client_sexual_data)
+            # gbv_form = GBVForm(instance=client_gbv_data)
+            # hiv_form = HivTestForm(instance=client_hiv_data)
+            # reproductive_health_form = ReproductiveHealthForm(instance=client_rh_data)
+            # drug_use_form = DrugUseForm(instance=client_drug_data)
+            # participation_form = DreamsProgramParticipationForm(instance=client_prog_part_data)
+
+            #household_form.fields["client"].initial = self.object
+            # edu_and_emp_form.fields["client"].initial = self.object
+            # sexuality_form.fields["client"].initial = self.object
+            # gbv_form.fields["client"].initial = self.object
+            # hiv_form.fields["client"].initial = self.object
+            # reproductive_health_form.fields["client"].initial = self.object
+            # drug_use_form.fields["client"].initial = self.object
+            # participation_form.fields["client"].initial = self.object
+
+            search_client_term = self.request.GET.get('search_client_term', '')
+            ip = self.request.user.implementingpartneruser.implementing_partner
+            ip_code = ip.code if ip else None
+
+            is_editable_by_ip = client_demographics.is_editable_by_ip(ip)
+            client_status = client_demographics.get_client_status(ip)
+            date_of_enrollment_str = demographics_form['date_of_enrollment'].value()
+            date_of_enrollment = datetime.strptime(str(date_of_enrollment_str),
+                                                   '%Y-%m-%d').date() if date_of_enrollment_str is not None else dt.now().date()
+            client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
+            minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+            max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
+            min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
+            current_user_belongs_to_same_ip_as_client = client_demographics.current_user_belongs_to_same_ip_as_client(
+                self.request.user.implementingpartneruser.implementing_partner_id)
+            client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user,
+                                                                enrolment=client_demographics)
+            client_action_permissions.can_perform_edit()
+
+            context['client'] = client_demographics
+            context['demo_form'] = demographics_form
+            #context['household_form'] = household_form
+            # context['edu_form'] = edu_and_emp_form
+            # context['sexuality_form'] = sexuality_form
+            # context['gbv_form'] = gbv_form
+            # context['hiv_form'] = hiv_form
+            # context['rh_form'] = reproductive_health_form
+            # context['drug_use_form'] = drug_use_form
+            # context['programe_participation_form'] = participation_form
+            context['search_client_term'] = search_client_term
+            context['transfer_form'] = ClientTransferForm(
+                ip_code=ip_code,
+                initial={'client': client_demographics})
+            context['is_editable_by_ip'] = is_editable_by_ip
+            context['client_status'] = client_status
+            context['max_dob'] = max_dob
+            context['min_dob'] = min_dob
+            context[
+                'current_user_belongs_to_same_ip_as_client'] = current_user_belongs_to_same_ip_as_client or self.request.user.is_superuser
+            context['client_action_permissions'] = client_action_permissions
+
+        except Client.DoesNotExist:
+            context['error'] = "Client does not exist"
+        except Exception as e:
+            context['error'] = traceback.format_exc()
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        if context['to_login']:
+            return redirect('login')
+        if context['error'] != '':
+            # return HttpResponseServerError(context['error'])
+            return redirect('clients')
+        return super(ClientDetailView, self).render_to_response(context, **response_kwargs)
+
+    def get_queryset(self):
+        return Client.objects.none()
+
+
+def householdView(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client_id = request.POST.get('client_id', None)
+            if client_id is None or client_id == "0":
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client = Client.objects.get(id=int(client_id), voided=False)
+            client_household_queryset = client.clientindividualandhouseholddata_set
+            client_household = client_household_queryset.get() if client_household_queryset.exists() else None
+
+            household_form = IndividualAndHouseholdForm(instance=client_household)
+            household_form.fields["client"].initial = client
+
+            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                                                                enrolment=client)
+            client_action_permissions.can_perform_edit()
+
+            ip = request.user.implementingpartneruser.implementing_partner
+            is_editable_by_ip = client.is_editable_by_ip(ip)
+
+            response_data = {
+                'status': 'success',
+                'household_form': household_form,
+                'client_action_permissions': client_action_permissions,
+                'is_editable_by_ip': is_editable_by_ip
+            }
+
+            template = render_to_string('client_individual_household_form.html', context=response_data, request=request)
+            return JsonResponse({"household_form": template})
+
     except Exception as e:
-        tb = traceback.format_exc(e)
-        return HttpResponseServerError(tb)
+        response_data = {
+            'status': 'fail'
+        }
+        template = render_to_string('client_individual_household_form.html', context=response_data, request=request)
+        return JsonResponse({"household_form": template})
+
+
+def educationEmploymentView(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client_id = request.POST.get('client_id', None)
+            if client_id is None or client_id == "0":
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client = Client.objects.get(id=int(client_id), voided=False)
+            client_edu_queryset = client.clienteducationandemploymentdata_set
+            client_edu = client_edu_queryset.get() if client_edu_queryset.exists() else None
+
+            edu_form = EducationAndEmploymentForm(instance=client_edu)
+            edu_form.fields["client"].initial = client
+
+            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                                                                enrolment=Client)
+            client_action_permissions.can_perform_edit()
+
+            ip = request.user.implementingpartneruser.implementing_partner
+            is_editable_by_ip = client.is_editable_by_ip(ip)
+
+            response_data = {
+                'status': 'success',
+                'edu_form': edu_form,
+                'client_action_permissions': client_action_permissions,
+                'is_editable_by_ip': is_editable_by_ip
+            }
+
+            template = render_to_string('education_and_employment_form.html', context=response_data, request=request)
+            return JsonResponse({"edu_form": template})
+
+    except Exception as e:
+        response_data = {
+            'status': 'fail'
+        }
+        template = render_to_string('education_and_employment_form.html', context=response_data, request=request)
+        return JsonResponse({"edu_form": template})
+
+
+def hivTestingView(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client_id = request.POST.get('client_id', None)
+            if client_id is None or client_id == "0":
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client = Client.objects.get(id=int(client_id), voided=False)
+            client_hiv_data_queryset = client.clienthivtestingdata_set
+            client_hiv_data = client_hiv_data_queryset.get() if client_hiv_data_queryset.exists() else None
+
+            hiv_form = HivTestForm(instance=client_hiv_data)
+            hiv_form.fields["client"].initial = client
+
+            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                                                                enrolment=Client)
+            client_action_permissions.can_perform_edit()
+
+            ip = request.user.implementingpartneruser.implementing_partner
+            is_editable_by_ip = client.is_editable_by_ip(ip)
+
+            response_data = {
+                'status': 'success',
+                'hiv_form': hiv_form,
+                'client_action_permissions': client_action_permissions,
+                'is_editable_by_ip': is_editable_by_ip
+            }
+
+            template = render_to_string('client_hiv_testing_form.html', context=response_data, request=request)
+            return JsonResponse({"hiv_form": template})
+
+    except Exception as e:
+        response_data = {
+            'status': 'fail'
+        }
+        template = render_to_string('client_hiv_testing_form.html', context=response_data, request=request)
+        return JsonResponse({"hiv_form": template})
+
+
+def sexualityView(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client_id = request.POST.get('client_id', None)
+            if client_id is None or client_id == "0":
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client = Client.objects.get(id=int(client_id), voided=False)
+            client_sexual_data_queryset = client.clientsexualactivitydata_set
+            client_sexual_data = client_sexual_data_queryset.get() if client_sexual_data_queryset.exists() else None
+
+            sexuality_form = SexualityForm(instance=client_sexual_data)
+            sexuality_form.fields["client"].initial = client
+
+            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                                                                enrolment=Client)
+            client_action_permissions.can_perform_edit()
+
+            ip = request.user.implementingpartneruser.implementing_partner
+            is_editable_by_ip = client.is_editable_by_ip(ip)
+
+            response_data = {
+                'status': 'success',
+                'sexuality_form': sexuality_form,
+                'client_action_permissions': client_action_permissions,
+                'is_editable_by_ip': is_editable_by_ip
+            }
+
+            template = render_to_string('client_sexuality_form.html', context=response_data, request=request)
+            return JsonResponse({"sexuality_form": template})
+
+    except Exception as e:
+        response_data = {
+            'status': 'fail'
+        }
+        template = render_to_string('client_sexuality_form.html', context=response_data, request=request)
+        return JsonResponse({"sexuality_form": template})
+
+
+def reproductiveHealthView(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client_id = request.POST.get('client_id', None)
+            if client_id is None or client_id == "0":
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client = Client.objects.get(id=int(client_id), voided=False)
+            client_rh_data_queryset = client.clientreproductivehealthdata_set
+            client_rh_data = client_rh_data_queryset.get() if client_rh_data_queryset.exists() else None
+
+            rh_form = ReproductiveHealthForm(instance=client_rh_data)
+            rh_form.fields["client"].initial = client
+
+            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                                                                enrolment=Client)
+            client_action_permissions.can_perform_edit()
+
+            ip = request.user.implementingpartneruser.implementing_partner
+            is_editable_by_ip = client.is_editable_by_ip(ip)
+
+            response_data = {
+                'status': 'success',
+                'rh_form': rh_form,
+                'client_action_permissions': client_action_permissions,
+                'is_editable_by_ip': is_editable_by_ip
+            }
+
+            template = render_to_string('client_reproductive_health_form.html', context=response_data, request=request)
+            return JsonResponse({"rh_form": template})
+
+    except Exception as e:
+        response_data = {
+            'status': 'fail'
+        }
+        template = render_to_string('client_reproductive_health_form.html', context=response_data, request=request)
+        return JsonResponse({"rh_form": template})
+
+
+def gbvView(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client_id = request.POST.get('client_id', None)
+            if client_id is None or client_id == "0":
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client = Client.objects.get(id=int(client_id), voided=False)
+            client_gbv_data_queryset = client.clientgenderbasedviolencedata_set
+            client_gbv_data = client_gbv_data_queryset.get() if client_gbv_data_queryset.exists() else None
+
+            gbv_form = GBVForm(instance=client_gbv_data)
+            gbv_form.fields["client"].initial = client
+
+            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                                                                enrolment=Client)
+            client_action_permissions.can_perform_edit()
+
+            ip = request.user.implementingpartneruser.implementing_partner
+            is_editable_by_ip = client.is_editable_by_ip(ip)
+
+            response_data = {
+                'status': 'success',
+                'gbv_form': gbv_form,
+                'client_action_permissions': client_action_permissions,
+                'is_editable_by_ip': is_editable_by_ip
+            }
+
+            template = render_to_string('client_gbv_form.html', context=response_data, request=request)
+            return JsonResponse({"gbv_form": template})
+
+    except Exception as e:
+        response_data = {
+            'status': 'fail'
+        }
+        template = render_to_string('client_gbv_form.html', context=response_data, request=request)
+        return JsonResponse({"gbv_form": template})
+
+
+def drugUseView(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client_id = request.POST.get('client_id', None)
+            if client_id is None or client_id == "0":
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client = Client.objects.get(id=int(client_id), voided=False)
+            client_drug_data_queryset = client.clientdrugusedata_set
+            client_drug_data = client_drug_data_queryset.get() if client_drug_data_queryset.exists() else None
+
+            drug_use_form = DrugUseForm(instance=client_drug_data)
+            drug_use_form.fields["client"].initial = client
+
+            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                                                                enrolment=Client)
+            client_action_permissions.can_perform_edit()
+
+            ip = request.user.implementingpartneruser.implementing_partner
+            is_editable_by_ip = client.is_editable_by_ip(ip)
+
+            response_data = {
+                'status': 'success',
+                'drug_use_form': drug_use_form,
+                'client_action_permissions': client_action_permissions,
+                'is_editable_by_ip': is_editable_by_ip
+            }
+
+            template = render_to_string('client_drug_use_form.html', context=response_data, request=request)
+            return JsonResponse({"drug_use_form": template})
+
+    except Exception as e:
+        response_data = {
+            'status': 'fail'
+        }
+        template = render_to_string('client_drug_use_form.html', context=response_data, request=request)
+        return JsonResponse({"drug_use_form": template})
+
+
+def participationInProgramView(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client_id = request.POST.get('client_id', None)
+            if client_id is None or client_id == "0":
+                response_data = {
+                    'status': 'fail',
+                    'to_login': True
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            client = Client.objects.get(id=int(client_id), voided=False)
+            client_prog_part_data_queryset = client.clientparticipationindreams_set
+            client_prog_part_data = client_prog_part_data_queryset.get() if client_prog_part_data_queryset.exists() else None
+
+            programe_participation_form = DreamsProgramParticipationForm(instance=client_prog_part_data)
+            programe_participation_form.fields["client"].initial = client
+
+            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                                                                enrolment=Client)
+            client_action_permissions.can_perform_edit()
+
+            ip = request.user.implementingpartneruser.implementing_partner
+            is_editable_by_ip = client.is_editable_by_ip(ip)
+
+            response_data = {
+                'status': 'success',
+                'programe_participation_form': programe_participation_form,
+                'client_action_permissions': client_action_permissions,
+                'is_editable_by_ip': is_editable_by_ip
+            }
+
+            template = render_to_string('client_programme_participation_form.html', context=response_data, request=request)
+            return JsonResponse({"programe_participation_form": template})
+
+    except Exception as e:
+        response_data = {
+            'status': 'fail'
+        }
+        template = render_to_string('client_programme_participation_form.html', context=response_data, request=request)
+        return JsonResponse({"programe_participation_form": template})
+
 
 def get_search_criteria(search_client_term, is_advanced_search, request):
     search_criteria = {}
@@ -383,11 +966,12 @@ def get_search_criteria(search_client_term, is_advanced_search, request):
     if ward_filter != '':
         search_criteria['ward'] = int(ward_filter)
 
-    doe_start_filter =  str(
-        request.GET.get('doe_start_filter', '') if request.method == 'GET' else request.POST.get('doe_start_filter', ''))
+    doe_start_filter = str(
+        request.GET.get('doe_start_filter', '') if request.method == 'GET' else request.POST.get('doe_start_filter',
+                                                                                                 ''))
 
     start_date = request.GET.get('doe_start_filter',
-                                                 '') if request.method == 'GET' else request.POST.get(
+                                 '') if request.method == 'GET' else request.POST.get(
         'doe_start_filter', '')
 
     if doe_start_filter != '' and is_advanced_search:
@@ -402,8 +986,10 @@ def get_search_criteria(search_client_term, is_advanced_search, request):
 
     return search_criteria
 
+
 def get_start_date(start_date):
     return '2015-10-01' if start_date == '' else start_date
+
 
 def follow_ups(request):
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
@@ -432,7 +1018,8 @@ def follow_ups(request):
                     displayed_follow_ups = paginator.page(1)
                 except EmptyPage:
                     displayed_follow_ups = paginator.page(paginator.num_pages)
-                current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
+                current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(
+                    request.user.implementingpartneruser.implementing_partner_id)
                 return render(request, 'client_follow_ups.html', {
                     'page': 'Follow Ups',
                     'page_title': 'Client Follow Ups Page',
@@ -492,7 +1079,8 @@ def client_profile(request):
                     cash_transfer_details_form = ClientCashTransferDetailsForm(instance=cash_transfer_details,
                                                                                current_AGYW=client_found)
                     cash_transfer_details_form.save(commit=False)
-                current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
+                current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(
+                    request.user.implementingpartneruser.implementing_partner_id)
                 return render(request, 'client_profile.html', {'page': 'clients',
                                                                'page_title': 'DREAMS Client Service Uptake',
                                                                'client': client_found,
@@ -513,10 +1101,13 @@ def client_profile(request):
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
-                current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
-                client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
+                current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(
+                    request.user.implementingpartneruser.implementing_partner_id)
+                client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                                                                    enrolment=client_found)
                 intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
-                delegated_intervention_type_codes = get_delegated_intervention_type_codes(client_found.implementing_partner, request.user.implementingpartneruser.implementing_partner)
+                delegated_intervention_type_codes = get_delegated_intervention_type_codes(
+                    client_found.implementing_partner, request.user.implementingpartneruser.implementing_partner)
 
                 return render(request, 'client_profile.html',
                               {'page': 'clients',
@@ -543,280 +1134,765 @@ def client_profile(request):
     else:
         raise PermissionDenied
 
+
 def get_delegated_intervention_type_codes(delegating_ip, delegated_ip):
     if delegated_ip == delegating_ip:
         return []
 
     delegations = ServiceDelegation.objects.filter(main_implementing_partner=delegating_ip,
-                                     delegated_implementing_partner=delegated_ip,
-                                     end_date__gt=datetime.now().date())
+                                                   delegated_implementing_partner=delegated_ip,
+                                                   end_date__gt=datetime.now().date())
     delegations = list(delegations.values_list('intervention_type__code', flat=True))
     return delegations
 
 
-def save_client(request):
-    try:
-        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-            if request.method == 'GET':
-                return render(request, 'enrollment.html', {'client': None})
-            elif request.method == 'POST' and request.is_ajax():
+class ClientCreateView(CreateView):
+    #model = Client
+    form_class = DemographicsForm
+
+    # def get_object(self, queryset=None):
+    #     try:
+    #         if not self.request.is_ajax():
+    #             raise PermissionDenied
+    #         if self.request.method != 'POST':
+    #             raise PermissionDenied
+    #
+    #         self.object = Client.objects.none()
+    #         return self.object
+    #     except AttributeError:
+    #         return None
+    #
+    # def get(self, request, *args, **kwargs):
+    #     self.object = self.get_object()
+    #     return super(ClientCreateView, self).get(request, *args, **kwargs)
+    #
+    # def post(self, request, *args, **kwargs):
+    #     self.object = self.get_object()
+    #     return super(ClientCreateView, self).post(request, *args, **kwargs)
+
+    # def get_context_data(self, **kwargs):
+    #     context = super(ClientCreateView, self).get_context_data(**kwargs)
+    #     return context
+
+    def form_valid(self, form):
+        if self.request.user is not None and self.request.user.is_authenticated() and self.request.user.is_active:
+            if self.request.method == 'GET':
+                return render(self.request, 'enrollment.html', {'client': None})
+            elif self.request.method == 'POST' and self.request.is_ajax():
                 # process saving user
                 try:
-                    ip_code = request.user.implementingpartneruser.implementing_partner.code
+                    ip_code = self.request.user.implementingpartneruser.implementing_partner.code
                 except Exception as e:
                     response_data = {
                         'status': 'fail',
                         'message': 'Enrollment Failed. You do not belong to an implementing partner',
                         'client_id': None,
-                        'can_manage_client': request.user.has_perm('auth.can_manage_client'),
-                        'can_change_client': request.user.has_perm('auth.can_change_client'),
-                        'can_delete_client': request.user.has_perm('auth.can_delete_client')
+                        'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
+                        'can_change_client': self.request.user.has_perm('auth.can_change_client'),
+                        'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
 
-                client_form = DemographicsForm(request.POST)
+                # client_form = DemographicsForm(request.POST)
 
-                if client_form.is_valid():
-                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
+                client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
 
-                    if not client_enrolment_service_layer.is_within_enrolment_dates(client_form.cleaned_data['date_of_birth'], client_form.cleaned_data['date_of_enrollment']):
-                        min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
-
-                        response_data = {
-                            'status': 'fail',
-                            'message': "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
-                                min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
-                            'client_id': None,
-                            'can_manage_client': request.user.has_perm('auth.can_manage_client'),
-                            'can_change_client': request.user.has_perm('auth.can_change_client'),
-                            'can_delete_client': request.user.has_perm('auth.can_delete_client')
-                        }
-                        return JsonResponse(json.dumps(response_data), safe=False)
-
-                    client = client_form.save()
-
-                    # Check client dreams_id
-                    if client.dreams_id is None or not client.dreams_id:
-                        # Generate client dreams_id
-                        cursor = db_conn_2.cursor()
-                        try:
-                            cursor.execute(
-                                """
-                                SELECT (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1)
-                                from DreamsApp_client WHERE dreams_id is not null and ward_id is not null
-                                AND dreams_id REGEXP CONCAT('^', CAST(%s as decimal(4, 0)), '/', CAST(%s as decimal(4, 0)),'/')
-                                ;""",
-                                (ip_code, client.ward.code))
-                            next_serial = cursor.fetchone()[0]
-                            if next_serial is None:
-                                next_serial = 1
-                            client.dreams_id = str(ip_code) + '/' + str(client.ward.code if client.ward != None else '') \
-                                               + '/' + str(next_serial)
-                        except Exception as e:
-                            next_serial = 1
-                            client.dreams_id = str(ip_code) + '/' + str(1) \
-                                               + '/' + str(next_serial)
-                        finally:
-                            cursor.close()
-                            client.save()
-                    # cascade create other modules
-                    ClientIndividualAndHouseholdData.objects.get_or_create(client=client)
-                    ClientEducationAndEmploymentData.objects.get_or_create(client=client)
-                    ClientHIVTestingData.objects.get_or_create(client=client)
-                    ClientSexualActivityData.objects.get_or_create(client=client)
-                    ClientReproductiveHealthData.objects.get_or_create(client=client)
-                    ClientGenderBasedViolenceData.objects.get_or_create(client=client)
-                    ClientDrugUseData.objects.get_or_create(client=client)
-                    ClientParticipationInDreams.objects.get_or_create(client=client)
-                    if request.is_ajax():
-                        response_data = {
-                            'status': 'success',
-                            'message': 'Enrollment to DREAMS successful. Redirecting you to the full enrolment data view',
-                            'client_id': client.id,
-                            'can_manage_client': request.user.has_perm('auth.can_manage_client'),
-                            'can_change_client': request.user.has_perm('auth.can_change_client'),
-                            'can_delete_client': request.user.has_perm('auth.can_delete_client')
-                        }
-                        return JsonResponse(json.dumps(response_data), safe=False)
-                    else:
-                        # redirect to page
-                        return redirect('clients')
-                else:
-                    response_data = {
-                        'status': 'fail',
-                        'message': client_form.errors,
-                        'client_id': None,
-                        'can_manage_client': request.user.has_perm('auth.can_manage_client'),
-                        'can_change_client': request.user.has_perm('auth.can_change_client'),
-                        'can_delete_client': request.user.has_perm('auth.can_delete_client')
-                    }
-                    return JsonResponse(json.dumps(response_data), safe=False)
-        else:
-            raise PermissionDenied
-    except Exception as e:
-        response_data = {
-            'status': 'fail',
-            'message': str(e),
-            'client_id': None,
-            'can_manage_client': request.user.has_perm('auth.can_manage_client'),
-            'can_change_client': request.user.has_perm('auth.can_change_client'),
-            'can_delete_client': request.user.has_perm('auth.can_delete_client')
-        }
-        return JsonResponse(json.dumps(response_data), safe=False)
-
-
-def edit_client(request):
-    try:
-        if request.user is not None and request.user.is_authenticated() and request.user.is_active:  # and request.user.is_superuser:
-            if request.method == 'GET':
-                client_id = int(request.GET['client_id'])
-                client = Client.objects.defer('date_of_enrollment', 'date_of_birth').get(id__exact=client_id)
-                if client is None:
-                    redirect('clients')
-                if request.is_ajax():
-                    response_data = {'client': serializers.serialize('json', [client, ])}
-                    return JsonResponse(response_data, safe=False)
-                else:
-                    # redirect to page
-                    return render(request, 'enrollment.html', {'client': client})
-                return redirect('clients')
-            elif request.method == 'POST':
-                client_id = int(str(request.POST.get('client_id')))
-                client = Client.objects.filter(id=client_id).first()
-
-                if not client.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner) or client.exited:
-                    response_data = {
-                        'status': 'failed',
-                        'message': 'Operation not allowed. Client is not editable by your Implementing partner or is exited',
-                        'client_id': client.id
-                    }
-                    return JsonResponse(json.dumps(response_data), safe=False)
-
-                if client.implementing_partner != request.user.implementingpartneruser.implementing_partner:
-                    # user and client IPs dont match. Return error message
-                    response_data = {
-                        'status': 'failed',
-                        'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
-                        'client_id': client.id
-                    }
-                    return JsonResponse(json.dumps(response_data), safe=False)
-
-                client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
-                date_of_birth = datetime.strptime(request.POST.get('date_of_birth'), '%Y-%m-%d').date()
-                date_of_enrollment = datetime.strptime(request.POST.get('date_of_enrollment'), '%Y-%m-%d').date()
-
-                if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth, date_of_enrollment):
+                if not client_enrolment_service_layer.is_within_enrolment_dates(
+                        form.cleaned_data['date_of_birth'], form.cleaned_data['date_of_enrollment']):
                     min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                         client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
 
                     response_data = {
-                        'status': 'failed',
-                        'message': "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                        'status': 'fail',
+                        'message': "The client is not within the accepted age range. At the date of enrolment the age "
+                                   "of the client must be between " + str(
                             min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
-                        'client_id': client.id
+                        'client_id': None,
+                        'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
+                        'can_change_client': self.request.user.has_perm('auth.can_change_client'),
+                        'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
 
-                # process editing user
-                client.implementing_partner = ImplementingPartner.objects.filter(
-                    code__exact=str(request.POST.get('implementing_partner', ''))).first()
-                client.first_name = str(request.POST.get('first_name', ''))
-                client.middle_name = str(request.POST.get('middle_name', ''))
-                client.last_name = str(request.POST.get('last_name', ''))
-                client.date_of_birth = str(date_of_birth)
-                client.is_date_of_birth_estimated = bool(str(request.POST.get('is_date_of_birth_estimated')))
-                client.verification_document = VerificationDocument.objects.filter(
-                    code__exact=str(request.POST.get('verification_document', ''))).first()
-                client.verification_doc_no = str(request.POST.get('verification_doc_no', ''))
-                client.date_of_enrollment = str(datetime.strptime(request.POST.get('date_of_enrollment', dt.now()), '%Y-%m-%d').date())
-                client.age_at_enrollment = int(str(request.POST.get('age_at_enrollment')))
-                client.marital_status = MaritalStatus.objects.filter(
-                    code__exact=str(request.POST.get('marital_status', ''))).first()
-                client.phone_number = str(request.POST.get('phone_number', ''))
-                client.dss_id_number = str(request.POST.get('dss_id_number', ''))
-                client.county_of_residence = County.objects.filter(
-                    code__exact=request.POST.get('county_of_residence', '')).first()
-                client.sub_county = SubCounty.objects.filter(code__exact=request.POST.get('sub_county', '')).first()
-                client.ward = Ward.objects.filter(code__exact=request.POST.get('ward', 0)).first()
-                client.informal_settlement = str(request.POST.get('informal_settlement', ''))
-                client.village = str(request.POST.get('village', ''))
-                client.landmark = str(request.POST.get('landmark', ''))
-                client.dreams_id = str(request.POST.get('dreams_id', ''))
-                client.guardian_name = str(request.POST.get('guardian_name', ''))
-                client.relationship_with_guardian = str(request.POST.get('relationship_with_guardian', ''))
-                client.guardian_phone_number = str(request.POST.get('guardian_phone_number', ''))
-                client.guardian_national_id = str(request.POST.get('guardian_national_id', ''))
-                client.save(user_id=request.user.id, action="UPDATE")
-                if request.is_ajax():
+                client = form.save()
+
+                # Check client dreams_id
+                if client.dreams_id is None or not client.dreams_id:
+                    # Generate client dreams_id
+                    cursor = db_conn_2.cursor()
+                    try:
+                        cursor.execute(
+                            """
+                            SELECT (max(CONVERT(SUBSTRING_INDEX(dreams_id, '/', -1), UNSIGNED INTEGER )) + 1)
+                            from DreamsApp_client WHERE dreams_id is not null and ward_id is not null
+                            AND dreams_id REGEXP CONCAT('^', CAST(%s as decimal(4, 0)), '/', CAST(%s as decimal(4, 0)),'/')
+                            ;""",
+                            (ip_code, client.ward.code))
+                        next_serial = cursor.fetchone()[0]
+                        if next_serial is None:
+                            next_serial = 1
+                        client.dreams_id = str(ip_code) + '/' + str(client.ward.code if client.ward != None else '') \
+                                           + '/' + str(next_serial)
+                    except Exception as e:
+                        next_serial = 1
+                        client.dreams_id = str(ip_code) + '/' + str(1) \
+                                           + '/' + str(next_serial)
+                    finally:
+                        cursor.close()
+                        client.save()
+
+                if self.request.is_ajax():
                     response_data = {
                         'status': 'success',
-                        'message': 'Client Details Updated successfuly.',
+                        'message': 'Enrollment to DREAMS successful. Redirecting you to the full enrolment data view',
                         'client_id': client.id,
-                        'can_manage_client': request.user.has_perm('auth.can_manage_client'),
-                        'can_change_client': request.user.has_perm('auth.can_change_client'),
-                        'can_delete_client': request.user.has_perm('auth.can_delete_client')
+                        'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
+                        'can_change_client': self.request.user.has_perm('auth.can_change_client'),
+                        'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
                 else:
                     # redirect to page
                     return redirect('clients')
-
         else:
             raise PermissionDenied
-    except Exception as e:
-        tb = traceback.format_exc(e)
-        return HttpResponseServerError(tb)
+
+    def form_invalid(self, form):
+        response_data = {
+            'status': 'fail',
+            'message': form.errors,
+            'client_id': None,
+            'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
+            'can_change_client': self.request.user.has_perm('auth.can_change_client'),
+            'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
+        }
+        return JsonResponse(json.dumps(response_data), safe=False)
 
 
-def delete_client(request):
-    try:
-        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-            if request.method == 'GET' and request.is_ajax():
-                client_id = int(request.GET['client_id'])
-                client = Client.objects.filter(id__exact=client_id).first()
+## NOT USED IN APPLICATION
+class ClientUpdateView(UpdateView):
+    model = Client
 
-                if not client.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner) or client.exited:
-                    response_data = {
-                        'status': 'failed',
-                        'message': 'Operation not allowed. Client is not editable by your Implementing partner or is exited',
-                        'client_id': client.id
-                    }
-                    return JsonResponse(json.dumps(response_data), safe=False)
+    def get_object(self, queryset=None):
+        try:
+            if self.request.method == 'GET':
+                client_id = int(self.request.GET['client_id'])
+                client = Client.objects.defer('date_of_enrollment', 'date_of_birth').get(id__exact=client_id)
 
-                # check if client and user IPs match
-                if client.implementing_partner != request.user.implementingpartneruser.implementing_partner:
-                    response_data = {
-                        'status': 'failed',
-                        'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
-                        'client_id': client.id
-                    }
-                    return JsonResponse(json.dumps(response_data), safe=False)
+            elif self.request.method == 'POST':
+                client_id = int(str(self.request.POST.get('client_id')))
+                client = Client.objects.filter(id=client_id).first()
 
-                # check if client has interventions
-                if Intervention.objects.filter(client=client).count() > 0:
-                    # Upating audit log
-                    log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", 'FAILED')
-                    response_data = {
-                        'status': 'fail',
-                        'message': 'This client cannot be deleted because they have interventions.'
-                    }
-                else:
-                    client.delete()
-                    # Upating audit log
-                    log_custom_actions(request.user.id, "DreamsApp_client", client_id, "DELETE", 'SUCCESS')
-                    response_data = {
-                        'status': 'success',
-                        'message': 'Client Details Deleted successfuly.'
-                    }
+            self.object = client
+            return self.object
+        except AttributeError:
+            return None
+
+    def form_valid(self, form):
+        try:
+            if self.request.user is not None and self.request.user.is_authenticated() and self.request.user.is_active:  # and request.user.is_superuser:
+                client = self.object
+
+                if self.request.method == 'GET':
+                    if client is None:
+                        redirect('clients')
+                    if self.request.is_ajax():
+                        response_data = {'client': serializers.serialize('json', [client, ])}
+                        return JsonResponse(response_data, safe=False)
+                    else:
+                        # redirect to page
+                        return render(self.request, 'enrollment.html', {'client': client})
+                    return redirect('clients')
+                elif self.request.method == 'POST':
+                    if not client.is_editable_by_ip(
+                            self.request.user.implementingpartneruser.implementing_partner) or client.exited:
+                        response_data = {
+                            'status': 'failed',
+                            'message': 'Operation not allowed. Client is not editable by your Implementing partner or is exited',
+                            'client_id': client.id
+                        }
+                        return JsonResponse(json.dumps(response_data), safe=False)
+
+                    if client.implementing_partner != self.request.user.implementingpartneruser.implementing_partner:
+                        # user and client IPs dont match. Return error message
+                        response_data = {
+                            'status': 'failed',
+                            'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
+                            'client_id': client.id
+                        }
+                        return JsonResponse(json.dumps(response_data), safe=False)
+
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
+                    date_of_birth = datetime.strptime(self.request.POST.get('date_of_birth'), '%Y-%m-%d').date()
+                    date_of_enrollment = datetime.strptime(self.request.POST.get('date_of_enrollment'),
+                                                           '%Y-%m-%d').date()
+
+                    if not client_enrolment_service_layer.is_within_enrolment_dates(date_of_birth, date_of_enrollment):
+                        min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                            client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+
+                        response_data = {
+                            'status': 'failed',
+                            'message': "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                                min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
+                            'client_id': client.id
+                        }
+                        return JsonResponse(json.dumps(response_data), safe=False)
+
+                    # process editing user
+                    client.implementing_partner = ImplementingPartner.objects.filter(
+                        code__exact=str(self.request.POST.get('implementing_partner', ''))).first()
+                    client.first_name = str(self.request.POST.get('first_name', ''))
+                    client.middle_name = str(self.request.POST.get('middle_name', ''))
+                    client.last_name = str(self.request.POST.get('last_name', ''))
+                    client.date_of_birth = str(date_of_birth)
+                    client.is_date_of_birth_estimated = bool(str(self.request.POST.get('is_date_of_birth_estimated')))
+                    client.verification_document = VerificationDocument.objects.filter(
+                        code__exact=str(self.request.POST.get('verification_document', ''))).first()
+                    client.verification_doc_no = str(self.request.POST.get('verification_doc_no', ''))
+                    client.date_of_enrollment = str(
+                        datetime.strptime(self.request.POST.get('date_of_enrollment', dt.now()), '%Y-%m-%d').date())
+                    client.age_at_enrollment = int(str(self.request.POST.get('age_at_enrollment')))
+                    client.marital_status = MaritalStatus.objects.filter(
+                        code__exact=str(self.request.POST.get('marital_status', ''))).first()
+                    client.phone_number = str(self.request.POST.get('phone_number', ''))
+                    client.dss_id_number = str(self.request.POST.get('dss_id_number', ''))
+                    client.county_of_residence = County.objects.filter(
+                        code__exact=self.request.POST.get('county_of_residence', '')).first()
+                    client.sub_county = SubCounty.objects.filter(
+                        code__exact=self.request.POST.get('sub_county', '')).first()
+                    client.ward = Ward.objects.filter(code__exact=self.request.POST.get('ward', 0)).first()
+                    client.informal_settlement = str(self.request.POST.get('informal_settlement', ''))
+                    client.village = str(self.request.POST.get('village', ''))
+                    client.landmark = str(self.request.POST.get('landmark', ''))
+                    client.dreams_id = str(self.request.POST.get('dreams_id', ''))
+                    client.guardian_name = str(self.request.POST.get('guardian_name', ''))
+                    client.relationship_with_guardian = str(self.request.POST.get('relationship_with_guardian', ''))
+                    client.guardian_phone_number = str(self.request.POST.get('guardian_phone_number', ''))
+                    client.guardian_national_id = str(self.request.POST.get('guardian_national_id', ''))
+                    client.save(user_id=self.request.user.id, action="UPDATE")
+                    if self.request.is_ajax():
+                        response_data = {
+                            'status': 'success',
+                            'message': 'Client Details Updated successfuly.',
+                            'client_id': client.id,
+                            'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
+                            'can_change_client': self.request.user.has_perm('auth.can_change_client'),
+                            'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
+                        }
+                        return JsonResponse(json.dumps(response_data), safe=False)
+                    else:
+                        # redirect to page
+                        return redirect('clients')
+
+            else:
+                raise PermissionDenied
+        except Exception as e:
+            tb = traceback.format_exc(e)
+            return HttpResponseServerError(tb)
+
+    def form_invalid(self, form):
+        response_data = {
+            'status': 'failed',
+            'message': 'There are errors'
+        }
+        return JsonResponse(json.dumps(response_data), safe=False)
+
+
+## NOT USED IN APPLICATION
+class ClientDeleteView(DeleteView):
+    model = Client
+
+    def get_object(self, queryset=None):
+        try:
+            if self.request.method == 'GET' and self.request.is_ajax():
+                client_id = int(self.request.GET['client_id'])
+                self.object = Client.objects.get(id__exact=client_id)
+            else:
+                self.object = None
+            return self.object
+        except AttributeError:
+            return None
+
+    def form_valid(self, form):
+        try:
+            if self.request.user is None or not self.request.user.is_authenticated() or not self.request.user.is_active:
+                raise PermissionDenied
+
+            if self.request.method == 'POST' or not self.request.is_ajax():
+                raise PermissionDenied
+
+            client = self.object
+            if not client.is_editable_by_ip(
+                    self.request.user.implementingpartneruser.implementing_partner) or client.exited:
+                response_data = {
+                    'status': 'failed',
+                    'message': 'Operation not allowed. Client is not editable by your Implementing partner or is exited',
+                    'client_id': client.id
+                }
                 return JsonResponse(json.dumps(response_data), safe=False)
 
-            elif request.method == 'POST':
+            # check if client and user IPs match
+            if client.implementing_partner != self.request.user.implementingpartneruser.implementing_partner:
+                response_data = {
+                    'status': 'failed',
+                    'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
+                    'client_id': client.id
+                }
+                return JsonResponse(json.dumps(response_data), safe=False)
+
+            # check if client has interventions
+            if Intervention.objects.filter(client=client).count() > 0:
+                # Upating audit log
+                log_custom_actions(self.request.user.id, "DreamsApp_client", client.id, "DELETE", 'FAILED')
+                response_data = {
+                    'status': 'fail',
+                    'message': 'This client cannot be deleted because they have interventions.'
+                }
+            else:
+                client.delete()
+                # Upating audit log
+                log_custom_actions(self.request.user.id, "DreamsApp_client", client.id, "DELETE", 'SUCCESS')
+                response_data = {
+                    'status': 'success',
+                    'message': 'Client Details Deleted successfuly.'
+                }
+            return JsonResponse(json.dumps(response_data), safe=False)
+
+        except Exception as e:
+            tb = traceback.format_exc(e)
+            return HttpResponseServerError(tb)
+
+    def form_invalid(self, form):
+        response_data = {
+            'status': 'failed',
+            'message': 'There are errors'
+        }
+        return JsonResponse(json.dumps(response_data), safe=False)
+
+
+
+class ClientDemographicsCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):
+    form_class = DemographicsForm
+
+    def get_object(self, queryset=None):
+        try:
+            if not self.request.is_ajax():
                 raise PermissionDenied
-        else:
-            raise PermissionDenied
-    except Exception as e:
-        tb = traceback.format_exc(e)
-        return HttpResponseServerError(tb)
+            if self.request.method != 'POST':
+                raise PermissionDenied
+
+            client_id = int(self.request.POST['client'])
+            if client_id is not None and client_id != 0:
+                self.object = Client.objects.get(id=client_id)
+            else:
+                self.object = None
+            return self.object
+        except AttributeError:
+            return None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(ClientDemographicsCreateUpdateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(ClientDemographicsCreateUpdateView, self).post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        try:
+            client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
+            if not client_enrolment_service_layer.is_within_enrolment_dates(form.instance.date_of_birth,
+                                                                            form.instance.date_of_enrollment):
+                min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                    client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+
+                response_data = {
+                    'status': 'fail',
+                    'errors': [
+                        "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                            min_max_age[0]) + " and " + str(min_max_age[1] + " years.")],
+                    'client_age': self.object.get_current_age()
+                }
+                return JsonResponse(response_data, status=500)
+
+            form.save()
+
+            response_data = {
+                'status': 'success',
+                'errors': form.errors,
+                'client_age': self.object.get_current_age()
+            }
+            return JsonResponse(response_data, status=200)
+        except Exception as e:
+            print(e)
+
+    def form_invalid(self, form):
+        response_data = {
+            'status': 'fail',
+            'errors': form.errors
+        }
+        return JsonResponse(response_data, status=500)
+
+
+class IndividualHouseHoldCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):
+    form_class = IndividualAndHouseholdForm
+
+    def get_object(self, queryset=None):
+        try:
+            if not self.request.is_ajax():
+                raise PermissionDenied
+            if self.request.method != 'POST':
+                raise PermissionDenied
+
+            client_id = int(self.request.POST['client'])
+            if client_id is not None and client_id != 0:
+                client = Client.objects.get(id=client_id)
+                individialhousehold_queryset = client.clientindividualandhouseholddata_set
+                individialhousehold = individialhousehold_queryset.get() if individialhousehold_queryset.exists() else None
+                self.object = individialhousehold
+            else:
+                self.object = None
+            return self.object
+        except AttributeError:
+            return None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(IndividualHouseHoldCreateUpdateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(IndividualHouseHoldCreateUpdateView, self).post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.save()
+        response_data = {
+            'status': 'success'
+        }
+        return JsonResponse(response_data, status=200)
+
+    def form_invalid(self, form):
+        response_data = {
+            'status': 'fail',
+            'errors': form.errors
+        }
+        return JsonResponse(response_data, status=500)
+
+
+class EducationAndEmploymentCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):
+    form_class = EducationAndEmploymentForm
+
+    def get_object(self, queryset=None):
+        try:
+            if not self.request.is_ajax():
+                raise PermissionDenied
+            if self.request.method != 'POST':
+                raise PermissionDenied
+
+            client_id = int(self.request.POST['client'])
+            if client_id is not None and client_id != 0:
+                client = Client.objects.get(id=client_id)
+                educationandemployment_queryset = client.clienteducationandemploymentdata_set
+                educationandemployment = educationandemployment_queryset.get() if educationandemployment_queryset.exists() else None
+                self.object = educationandemployment
+            else:
+                self.object = None
+            return self.object
+        except AttributeError:
+            return None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(EducationAndEmploymentCreateUpdateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(EducationAndEmploymentCreateUpdateView, self).post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.save()
+        response_data = {
+            'status': 'success'
+        }
+        return JsonResponse(response_data, status=200)
+
+    def form_invalid(self, form):
+        response_data = {
+            'status': 'fail',
+            'errors': form.errors
+        }
+        return JsonResponse(response_data, status=500)
+
+
+class HIVTestingCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):
+    form_class = HivTestForm
+
+    def get_object(self, queryset=None):
+        try:
+            if not self.request.is_ajax():
+                raise PermissionDenied
+            if self.request.method != 'POST':
+                raise PermissionDenied
+
+            client_id = int(self.request.POST['client'])
+            if client_id is not None and client_id != 0:
+                client = Client.objects.get(id=client_id)
+                clienthivtesting_queryset = client.clienthivtestingdata_set
+                clienthivtesting = clienthivtesting_queryset.get() if clienthivtesting_queryset.exists() else None
+                self.object = clienthivtesting
+            else:
+                self.object = None
+            return self.object
+        except AttributeError:
+            return None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(HIVTestingCreateUpdateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(HIVTestingCreateUpdateView, self).post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.save()
+        response_data = {
+            'status': 'success'
+        }
+        return JsonResponse(response_data, status=200)
+
+    def form_invalid(self, form):
+        response_data = {
+            'status': 'fail',
+            'errors': form.errors
+        }
+        return JsonResponse(response_data, status=500)
+
+
+class SexualityCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):
+    form_class = SexualityForm
+
+    def get_object(self, queryset=None):
+        try:
+            if not self.request.is_ajax():
+                raise PermissionDenied
+            if self.request.method != 'POST':
+                raise PermissionDenied
+
+            client_id = int(self.request.POST['client'])
+            if client_id is not None and client_id != 0:
+                client = Client.objects.get(id=client_id)
+                sexualactivity_queryset = client.clientsexualactivitydata_set
+                sexualactivity = sexualactivity_queryset.get() if sexualactivity_queryset.exists() else None
+                self.object = sexualactivity
+            else:
+                self.object = None
+            return self.object
+        except AttributeError:
+            return None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(SexualityCreateUpdateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(SexualityCreateUpdateView, self).post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.save()
+        response_data = {
+            'status': 'success'
+        }
+        return JsonResponse(response_data, status=200)
+
+    def form_invalid(self, form):
+        response_data = {
+            'status': 'fail',
+            'errors': form.errors
+        }
+        return JsonResponse(response_data, status=500)
+
+
+class ReproductiveHealthCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):
+    form_class = ReproductiveHealthForm
+
+    def get_object(self, queryset=None):
+        try:
+            if not self.request.is_ajax():
+                raise PermissionDenied
+            if self.request.method != 'POST':
+                raise PermissionDenied
+
+            client_id = int(self.request.POST['client'])
+            if client_id is not None and client_id != 0:
+                client = Client.objects.get(id=client_id)
+                reproductivehealth_queryset = client.clientreproductivehealthdata_set
+                reproductivehealth = reproductivehealth_queryset.get() if reproductivehealth_queryset.exists() else None
+                self.object = reproductivehealth
+            else:
+                self.object = None
+            return self.object
+        except AttributeError:
+            return None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(ReproductiveHealthCreateUpdateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(ReproductiveHealthCreateUpdateView, self).post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.save()
+        response_data = {
+            'status': 'success'
+        }
+        return JsonResponse(response_data, status=200)
+
+    def form_invalid(self, form):
+        response_data = {
+            'status': 'fail',
+            'errors': form.errors
+        }
+        return JsonResponse(response_data, status=500)
+
+
+class GenderBasedViolenceCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):
+    form_class = GBVForm
+
+    def get_object(self, queryset=None):
+        try:
+            if not self.request.is_ajax():
+                raise PermissionDenied
+            if self.request.method != 'POST':
+                raise PermissionDenied
+
+            client_id = int(self.request.POST['client'])
+            if client_id is not None and client_id != 0:
+                client = Client.objects.get(id=client_id)
+                gbv_queryset = client.clientgenderbasedviolencedata_set
+                gbv = gbv_queryset.get() if gbv_queryset.exists() else None
+                self.object = gbv
+            else:
+                self.object = None
+            return self.object
+        except AttributeError:
+            return None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(GenderBasedViolenceCreateUpdateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(GenderBasedViolenceCreateUpdateView, self).post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.save()
+        response_data = {
+            'status': 'success'
+        }
+        return JsonResponse(response_data, status=200)
+
+    def form_invalid(self, form):
+        response_data = {
+            'status': 'fail',
+            'errors': form.errors
+        }
+        return JsonResponse(response_data, status=500)
+
+
+class DrugUseCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):
+    form_class = DrugUseForm
+
+    def get_object(self, queryset=None):
+        try:
+            if not self.request.is_ajax():
+                raise PermissionDenied
+            if self.request.method != 'POST':
+                raise PermissionDenied
+
+            client_id = int(self.request.POST['client'])
+            if client_id is not None and client_id != 0:
+                client = Client.objects.get(id=client_id)
+                druguse_queryset = client.clientdrugusedata_set
+                druguse = druguse_queryset.get() if druguse_queryset.exists() else None
+                self.object = druguse
+            else:
+                self.object = None
+            return self.object
+        except AttributeError:
+            return None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(DrugUseCreateUpdateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(DrugUseCreateUpdateView, self).post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.save()
+        response_data = {
+            'status': 'success'
+        }
+        return JsonResponse(response_data, status=200)
+
+    def form_invalid(self, form):
+        response_data = {
+            'status': 'fail',
+            'errors': form.errors
+        }
+        return JsonResponse(response_data, status=500)
+
+
+class ProgramParticipationCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):
+    form_class = DreamsProgramParticipationForm
+
+    def get_object(self, queryset=None):
+        try:
+            if not self.request.is_ajax():
+                raise PermissionDenied
+            if self.request.method != 'POST':
+                raise PermissionDenied
+
+            client_id = int(self.request.POST['client'])
+            if client_id is not None and client_id != 0:
+                client = Client.objects.get(id=client_id)
+                programparticipation_queryset = client.clientparticipationindreams_set
+                programparticipation = programparticipation_queryset.get() if programparticipation_queryset.exists() else None
+                self.object = programparticipation
+            else:
+                self.object = None
+            return self.object
+        except AttributeError:
+            return None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(ProgramParticipationCreateUpdateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(ProgramParticipationCreateUpdateView, self).post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.save()
+        response_data = {
+            'status': 'success'
+        }
+        return JsonResponse(response_data, status=200)
+
+    def form_invalid(self, form):
+        response_data = {
+            'status': 'fail',
+            'errors': form.errors
+        }
+        return JsonResponse(response_data, status=500)
 
 
 def get_client_status(client):
@@ -850,7 +1926,8 @@ def unexit_client(request):
             date_of_exit = request.POST.get('date_of_unexit', datetime.now())
             client = Client.objects.filter(id=client_id).first()
             try:
-                if not (client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser):
+                if not (client.current_user_belongs_to_same_ip_as_client(
+                        request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser):
                     raise PermissionDenied
             except:
                 response_data = {
@@ -876,7 +1953,9 @@ def unexit_client(request):
             client.exited = not client.exited
             client.reason_exited = reason_for_exit
             client.exited_by = request.user
-            client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
+            client.date_exited = make_aware(
+                dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc,
+                is_dst=None)
             client.save()
             response_data = {
                 'status': 'success',
@@ -919,7 +1998,8 @@ def exit_client(request):
                 return JsonResponse(response_data, status=500)
 
             try:
-                if not (client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser):
+                if not (client.current_user_belongs_to_same_ip_as_client(
+                        request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser):
                     raise PermissionDenied
             except:
                 response_data = {
@@ -928,10 +2008,11 @@ def exit_client(request):
                 }
                 return JsonResponse(response_data, status=500)
 
-
             last_intervention_offered = get_last_intervention_offered(client)
 
-            if last_intervention_offered and dt.strptime(str(last_intervention_offered.intervention_date), '%Y-%m-%d').date() > dt.strptime(date_of_exit, '%Y-%m-%d').date():
+            if last_intervention_offered and dt.strptime(str(last_intervention_offered.intervention_date),
+                                                         '%Y-%m-%d').date() > dt.strptime(date_of_exit,
+                                                                                          '%Y-%m-%d').date():
                 response_data = {
                     'status': 'failed',
                     'message': 'You cannot exit this client since she has received an intervention after the selected exit date.'
@@ -955,7 +2036,8 @@ def exit_client(request):
             if reason_for_exit is not None:
                 if reason_for_exit.code == OTHER_CODE:
                     if is_not_null_or_empty(exit_comment):
-                        exited_client = other_client_exit(client, reason_for_exit, exit_comment, request.user, date_of_exit)
+                        exited_client = other_client_exit(client, reason_for_exit, exit_comment, request.user,
+                                                          date_of_exit)
                     else:
                         raise Exception('Reason for exit missing')
                 else:
@@ -987,7 +2069,8 @@ def other_client_exit(client, reason_for_exit, exit_comment, exit_user, date_of_
     client.exit_reason = reason_for_exit
     client.reason_exited = exit_comment
     client.exited_by = exit_user
-    client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
+    client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()),
+                                    timezone=timezone.utc, is_dst=None)
     client.save()
     return client
 
@@ -996,7 +2079,8 @@ def client_exit(client, reason_for_exit, exit_user, date_of_exit):
     client.exited = True
     client.exit_reason = reason_for_exit
     client.exited_by = exit_user
-    client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()), timezone=timezone.utc, is_dst=None)
+    client.date_exited = make_aware(dt.combine(dt.strptime(date_of_exit, "%Y-%m-%d").date(), datetime.now().time()),
+                                    timezone=timezone.utc, is_dst=None)
     client.save()
     return client
 
@@ -1038,7 +2122,8 @@ def get_unsuccessful_followup_attempts(request):
             client_id = int(request.GET.get('current_client_id'))
             client = Client.objects.get(id=client_id)
             unsuccessful_follow_up_attempts = ClientFollowUp.objects.filter(client=client,
-                                                                            result_of_followup=ClientLTFUResultType.objects.filter(name='Lost').first()).all()
+                                                                            result_of_followup=ClientLTFUResultType.objects.filter(
+                                                                                name='Lost').first()).all()
             response_data['unsuccessful_follow_up_attempts'] = len(unsuccessful_follow_up_attempts)
             return JsonResponse(response_data)
         else:
@@ -1108,7 +2193,8 @@ def get_intervention_type(request):
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
             response_data = {}
             type_code = request.POST.get('type_code')
-            i_type = serializers.serialize('json', InterventionType.objects.filter(code__exact=type_code).order_by('code'))
+            i_type = serializers.serialize('json',
+                                           InterventionType.objects.filter(code__exact=type_code).order_by('code'))
             response_data["itype"] = i_type
             return JsonResponse(response_data)
         else:
@@ -1116,6 +2202,7 @@ def get_intervention_type(request):
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
+
 
 # use /ivSave/ to post to the method
 # Gets intervention_type_id,  from request
@@ -1131,10 +2218,10 @@ def save_intervention(request):
 
                 if not client:
                     client = Client.objects.get(id__exact=int(client_id))
-                
+
                 if client.exited or client.voided:
                     client = Client.objects.get(id__exact=int(client_id))
-                    
+
                 cache_value(client_key, client)
 
                 status = True
@@ -1164,7 +2251,7 @@ def save_intervention(request):
             if request.user.implementingpartneruser.implementing_partner is not None:
                 intervention_type_code = int(request.POST.get('intervention_type_code'))
                 intervention_type_key = 'intervention-type-{}'.format(intervention_type_code)
-                
+
                 intervention_type = cache.get(intervention_type_key)
                 if not intervention_type:
                     intervention_type = InterventionType.objects.get(code__exact=intervention_type_code)
@@ -1175,11 +2262,11 @@ def save_intervention(request):
                     """Get client intervention filtered by intervention types"""
                     intervention_key = '{}-{}'.format(client.id, intervention_type_code)
                     client_interventions = cache.get(intervention_key)
-                    
+
                     if not client_interventions:
                         client_interventions = Intervention.objects.filter(intervention_type=intervention_type,
-                                                                        client=client).exclude(voided=True)
-                    
+                                                                           client=client).exclude(voided=True)
+
                     cache_value(intervention_key, client_interventions)
                     client_interventions_count = client_interventions.count()
 
@@ -1278,7 +2365,8 @@ def save_intervention(request):
                             intervention.referral = referral
 
                             if external_organization_code:
-                                intervention.external_organisation = ExternalOrganisation.objects.get(pk=external_organization_code)
+                                intervention.external_organisation = ExternalOrganisation.objects.get(
+                                    pk=external_organization_code)
                                 intervention.implementing_partner = ImplementingPartner.objects. \
                                     get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
 
@@ -1299,7 +2387,8 @@ def save_intervention(request):
                                 get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
 
                         if intervention_type.has_hts_result:
-                            intervention.hts_result = HTSResult.objects.get(code__exact=int(request.POST.get('hts_result')))
+                            intervention.hts_result = HTSResult.objects.get(
+                                code__exact=int(request.POST.get('hts_result')))
 
                         if intervention_type.has_pregnancy_result:
                             intervention.pregnancy_test_result = PregnancyTestResult.objects.get(
@@ -1313,7 +2402,8 @@ def save_intervention(request):
 
                         intervention.save(user_id=request.user.id, action="INSERT")  # Logging
 
-                        intervention_type_category_cache_key = 'client-{}-intervention-type-category-{}'.format(intervention.client.id, intervention.intervention_type.intervention_category.code)
+                        intervention_type_category_cache_key = 'client-{}-intervention-type-category-{}'.format(
+                            intervention.client.id, intervention.intervention_type.intervention_category.code)
                         cache.delete(intervention_type_category_cache_key)
 
                         if intervention_by_referral == INTERVENTION_BY_REFERRAL:
@@ -1325,7 +2415,8 @@ def save_intervention(request):
 
                         else:
                             # using defer() miraculously solved serialization problem of datetime properties.
-                            intervention = Intervention.objects.defer('date_changed', 'intervention_date', 'date_created'). \
+                            intervention = Intervention.objects.defer('date_changed', 'intervention_date',
+                                                                      'date_created'). \
                                 get(id__exact=intervention.id)
 
                             is_editable_by_ip = {}
@@ -1339,8 +2430,11 @@ def save_intervention(request):
                             client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
                                                                                 enrolment=client)
                             intervention_action_permission = InterventionActionPermissions(model=Intervention,
-                                                                                            user=request.user, intervention=intervention)
-                            interventions_action_permissions = {'can_perform_edit': intervention_action_permission.can_perform_edit(), 'can_perform_void': intervention_action_permission.can_perform_void()}
+                                                                                           user=request.user,
+                                                                                           intervention=intervention)
+                            interventions_action_permissions = {
+                                'can_perform_edit': intervention_action_permission.can_perform_edit(),
+                                'can_perform_void': intervention_action_permission.can_perform_void()}
 
                             response_data = {
                                 'status': 'success',
@@ -1408,8 +2502,10 @@ def initiate_referral(request):
         if is_valid_post_request(request):
             OTHER_EXTERNAL_ORGANISATION_ID = ExternalOrganisation.objects.get(name='Other').pk
             client = Client.objects.filter(id__exact=int(request.POST.get('referral-client-id'))).first()
-            source_implementing_partner = ImplementingPartner.objects.filter(id__exact=client.implementing_partner.id).first()
-            intervention_type = InterventionType.objects.filter(code__exact=int(request.POST.get('referral-interventions-select'))).first()
+            source_implementing_partner = ImplementingPartner.objects.filter(
+                id__exact=client.implementing_partner.id).first()
+            intervention_type = InterventionType.objects.filter(
+                code__exact=int(request.POST.get('referral-interventions-select'))).first()
             referral_date = request.POST.get('referral-date')
             expiry_date = request.POST.get('expiry-date')
             comment = request.POST.get('comment')
@@ -1444,14 +2540,17 @@ def initiate_referral(request):
                 return JsonResponse(response_data)
 
             if bool(to_external_organization):
-                if not request.POST.get('referral-external-organization-select') and not request.POST.get('other-organization-name'):
+                if not request.POST.get('referral-external-organization-select') and not request.POST.get(
+                        'other-organization-name'):
                     response_data = {
                         'status': 'fail',
                         'message': 'Select or input value for external organisation.'
                     }
                     return JsonResponse(response_data)
 
-                if int(request.POST.get('referral-external-organization-select')) == OTHER_EXTERNAL_ORGANISATION_ID and not request.POST.get('other-organization-name'):
+                if int(request.POST.get(
+                        'referral-external-organization-select')) == OTHER_EXTERNAL_ORGANISATION_ID and not request.POST.get(
+                    'other-organization-name'):
                     response_data = {
                         'status': 'fail',
                         'message': 'Input value for other external organisation.'
@@ -1478,16 +2577,19 @@ def initiate_referral(request):
 
                 if bool(to_external_organization):
                     if request.POST.get('referral-external-organization-select'):
-                        referral.external_organisation = ExternalOrganisation.objects.filter(id__exact=int(request.POST.get('referral-external-organization-select'))).first()
+                        referral.external_organisation = ExternalOrganisation.objects.filter(
+                            id__exact=int(request.POST.get('referral-external-organization-select'))).first()
 
-                        if int(request.POST.get('referral-external-organization-select')) == OTHER_EXTERNAL_ORGANISATION_ID:
+                        if int(request.POST.get(
+                                'referral-external-organization-select')) == OTHER_EXTERNAL_ORGANISATION_ID:
                             if request.POST.get('other-organization-name'):
                                 referral.external_organisation_other = request.POST.get('other-organization-name')
                     else:
                         if request.POST.get('other-organization-name'):
                             referral.external_organisation_other = request.POST.get('other-organization-name')
                 else:
-                    referral.receiving_ip = ImplementingPartner.objects.filter(id__exact=int(request.POST.get('implementing-partners-select'))).first()
+                    referral.receiving_ip = ImplementingPartner.objects.filter(
+                        id__exact=int(request.POST.get('implementing-partners-select'))).first()
 
                 referral.save()
                 response_data = {
@@ -1517,7 +2619,7 @@ def get_all_intervention_types(request):
 
 def get_implementing_partners(request):
     try:
-       if is_valid_get_request(request):
+        if is_valid_get_request(request):
             if has_get_arg('referral-client-id', request):
                 client_id = int(request.GET.get('referral-client-id'))
                 client_implementing_partner = Client.objects.get(id=client_id).implementing_partner
@@ -1551,11 +2653,14 @@ def get_intervention_list(request):
             list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
             iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
             # check for see_other_ip_data persmission
-            intervention_type_category_cache_key = 'client-{}-intervention-type-category-{}'.format(client_id, intervention_category_code)
-            list_of_interventions = get_list_of_interventions(client_id, iv_type_ids, intervention_type_category_cache_key)
+            intervention_type_category_cache_key = 'client-{}-intervention-type-category-{}'.format(client_id,
+                                                                                                    intervention_category_code)
+            list_of_interventions = get_list_of_interventions(client_id, iv_type_ids,
+                                                              intervention_type_category_cache_key)
             client_key = 'client-{}'.format(client_id)
             client_found = get_client_found(client_id, client_key)
-            client_is_transferred_out = client_found.transferred_out(request.user.implementingpartneruser.implementing_partner)
+            client_is_transferred_out = client_found.transferred_out(
+                request.user.implementingpartneruser.implementing_partner)
             if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 if client_is_transferred_out:
                     list_of_interventions = list_of_interventions.filter(
@@ -1579,9 +2684,9 @@ def get_intervention_list(request):
                 intervention_ip_names[i.pk] = i.implementing_partner.name
                 intervention_action_permissions.intervention = i
                 current_actions_permissions = {
-                                                'can_perform_edit': intervention_action_permissions.can_perform_edit(),
-                                                'can_perform_void': intervention_action_permissions.can_perform_void()
-                                                }
+                    'can_perform_edit': intervention_action_permissions.can_perform_edit(),
+                    'can_perform_void': intervention_action_permissions.can_perform_void()
+                }
                 interventions_action_permissions[i.pk] = current_actions_permissions
 
             response_data = {
@@ -1615,12 +2720,13 @@ def get_list_of_interventions(client_id, iv_type_ids, cache_key):
     list_of_interventions = cache.get(cache_key)
     if not list_of_interventions:
         list_of_interventions = Intervention.objects.defer('date_changed', 'intervention_date',
-                                                        'date_created').filter(client__exact=client_id,
-                                                                                intervention_type__in=iv_type_ids,
-                                                                                voided=False) \
-        .order_by('-intervention_date', '-date_created', '-date_changed')
+                                                           'date_created').filter(client__exact=client_id,
+                                                                                  intervention_type__in=iv_type_ids,
+                                                                                  voided=False) \
+            .order_by('-intervention_date', '-date_created', '-date_changed')
     cache_value(cache_key, list_of_interventions)
     return list_of_interventions
+
 
 def get_client_found(client_id, client_key):
     client_found = cache.get(client_key)
@@ -1657,7 +2763,8 @@ def add_follow_up(request):
             client = Client.objects.get(id=client_id)
 
             follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
-            follow_up_result_type = ClientLTFUResultType.objects.filter(id__exact=request.POST.get('follow_up_result_type')).first()
+            follow_up_result_type = ClientLTFUResultType.objects.filter(
+                id__exact=request.POST.get('follow_up_result_type')).first()
             follow_up_date = request.POST.get('follow_up_date')
             follow_up_comments = request.POST.get('follow_up_comments')
 
@@ -1667,7 +2774,8 @@ def add_follow_up(request):
                     'message': 'There is no client found or the client has been exited.'
                 }
                 return JsonResponse(response_data)
-            current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
+            current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(
+                request.user.implementingpartneruser.implementing_partner_id)
 
             if not current_user_belongs_to_same_ip_as_client:
                 response_data = {
@@ -1675,7 +2783,6 @@ def add_follow_up(request):
                     'message': 'Current user must belong to the same IP as the client.'
                 }
                 return JsonResponse(response_data)
-
 
             if dt.strptime(str(follow_up_date), '%Y-%m-%d').date() > dt.now().date():
                 response_data = {
@@ -1700,7 +2807,7 @@ def add_follow_up(request):
                 return JsonResponse(response_data)
 
             if follow_up_type is not None \
-                    and follow_up_result_type is not None\
+                    and follow_up_result_type is not None \
                     and follow_up_date is not None:
 
                 follow_up = ClientFollowUp()
@@ -1749,7 +2856,8 @@ def update_follow_up(request):
                         'message': 'There is no client found or the client has been exited.'
                     }
                     return JsonResponse(response_data)
-                current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
+                current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(
+                    request.user.implementingpartneruser.implementing_partner_id)
 
                 if not current_user_belongs_to_same_ip_as_client:
                     response_data = {
@@ -1767,7 +2875,8 @@ def update_follow_up(request):
                     return JsonResponse(response_data)
 
                 follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
-                follow_up_result_type = ClientLTFUResultType.objects.filter(id__exact=request.POST.get('follow_up_result_type')).first()
+                follow_up_result_type = ClientLTFUResultType.objects.filter(
+                    id__exact=request.POST.get('follow_up_result_type')).first()
                 follow_up_date = request.POST.get('edit_follow_up_date')
                 follow_up_comments = request.POST.get('follow_up_comments')
 
@@ -1833,7 +2942,8 @@ def update_intervention(request):
                 if intervention_id is not None and type(intervention_id) is int:
                     intervention = Intervention.objects.get(id__exact=intervention_id)
 
-                    if not intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner) or intervention.client.exited:
+                    if not intervention.is_editable_by_ip(
+                            request.user.implementingpartneruser.implementing_partner) or intervention.client.exited:
                         raise Exception(
                             'You do not have the rights to update this intervention or the client has been exited.'
                         )
@@ -1890,7 +3000,8 @@ def update_intervention(request):
                             intervention.no_of_sessions_attended = request.POST.get('no_of_sessions_attended')
 
                         if external_organization_checkbox:
-                            intervention.external_organisation = ExternalOrganisation.objects.get(pk=external_organization_code)
+                            intervention.external_organisation = ExternalOrganisation.objects.get(
+                                pk=external_organization_code)
                             if other_external_organization_code:
                                 intervention.external_organisation_other = other_external_organization_code
                             else:
@@ -1898,7 +3009,9 @@ def update_intervention(request):
 
                         intervention.save(user_id=request.user.id, action="UPDATE")  # Logging
 
-                        intervention_type_category_cache_key = ('client-{}-intervention-type-category-{}'.format(intervention.client.id, intervention.intervention_type.intervention_category.code))
+                        intervention_type_category_cache_key = (
+                            'client-{}-intervention-type-category-{}'.format(intervention.client.id,
+                                                                             intervention.intervention_type.intervention_category.code))
                         cache.delete(intervention_type_category_cache_key)
                         # using defer() miraculously solved serialization problem of datetime properties.
                         intervention = Intervention.objects.defer('date_changed', 'intervention_date',
@@ -2018,7 +3131,8 @@ def delete_intervention(request):
                         intervention = Intervention.objects.filter(pk=intervention_id).first()
                     cache_value(intervention_key, intervention)
 
-                    if not intervention.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner) or intervention.client.exited:
+                    if not intervention.is_editable_by_ip(
+                            request.user.implementingpartneruser.implementing_partner) or intervention.client.exited:
                         response_data = {
                             'status': 'fail',
                             'message': 'You do not have the rights to delete this intervention or the client has been exited.'
@@ -2030,7 +3144,8 @@ def delete_intervention(request):
                         intervention.voided_by = request.user
                         intervention.date_voided = datetime.now()
                         intervention.save(user_id=request.user.id, action="UPDATE")  # Updating logs
-                        intervention_type_category_cache_key = 'client-{}-intervention-type-category-{}'.format(intervention.client.id, intervention.intervention_type.intervention_category.code)
+                        intervention_type_category_cache_key = 'client-{}-intervention-type-category-{}'.format(
+                            intervention.client.id, intervention.intervention_type.intervention_category.code)
                         cache.delete(intervention_type_category_cache_key)
                         # intervention.delete() # No deletion whatsoever
                         log_custom_actions(request.user.id, "DreamsApp_intervention", intervention_id, "DELETE", None)
@@ -2215,7 +3330,7 @@ def logs(request):
                         reduce(operator.or_, (Q(user__username__icontains=item) for item in filter_text.split(" "))) |
                         reduce(operator.or_, (Q(user__first_name__icontains=item) for item in filter_text.split(" "))) |
                         reduce(operator.or_, (Q(user__last_name__icontains=item) for item in filter_text.split(" ")))
-                        ).order_by('-timestamp')
+                    ).order_by('-timestamp')
                 else:
                     logs = Audit.objects.all().order_by('-timestamp')
 
@@ -2832,8 +3947,8 @@ def download_raw_enrollment_export(request):
             raise ValidationError(validation_errors)
             return render(request, 'idataExport.html', {form: params, errors: validation_errors})
 
-
-        export_file_name = urllib.parse.quote(("/tmp/raw_enrolment_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        export_file_name = urllib.parse.quote(
+            ("/tmp/raw_enrolment_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         export_doc = DreamsRawExportTemplateRenderer()
 
         if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
@@ -2845,7 +3960,8 @@ def download_raw_enrollment_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.prepare_enrolment_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, from_date, end_date)
+        export_doc.prepare_enrolment_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, from_date,
+                                                end_date)
 
         return response
 
@@ -2883,13 +3999,14 @@ def download_raw_intervention_export(request):
         export_doc = DreamsRawExportTemplateRenderer()
 
         show_PHI = request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_phi_data') \
-                  or Permission.objects.filter(group__user=request.user).filter(
+                   or Permission.objects.filter(group__user=request.user).filter(
             codename='DreamsApp.can_view_phi_data').exists()
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
 
-        export_doc.get_intervention_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, from_date, to_date)
+        export_doc.get_intervention_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, from_date,
+                                               to_date)
 
         return response
     except ValidationError as e:
@@ -2949,7 +4066,8 @@ def download_services_received_export(request):
 
         if len(validation_errors) > 0:
             raise ValidationError(validation_errors)
-            return render(request, 'individualServiceLayeringDataExport.html', {form: params, errors: validation_errors})
+            return render(request, 'individualServiceLayeringDataExport.html',
+                          {form: params, errors: validation_errors})
 
         export_file_name = urllib.parse.quote(
             ("/tmp/services_received_export-{}.csv").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
@@ -2964,379 +4082,13 @@ def download_services_received_export(request):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; filename="{}"').format(export_file_name)
-        export_doc.get_individual_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, from_date, to_date)
+        export_doc.get_individual_export_doc(response, ip_list_str, county, sub_county, ward, show_PHI, from_date,
+                                             to_date)
         return response
 
     except Exception as e:
         traceback.format_exc()
         return
-
-
-def viewBaselineData(request):
-    """ Returns client profile """
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        if request.method == 'GET':
-            try:
-                client_id = int(request.GET['client_id'])
-                client_demographics = Client.objects.filter(id=client_id).exclude(voided=True).first()
-                client_household = ClientIndividualAndHouseholdData.objects.filter(client=client_id).exclude(
-                    voided=True).first()
-                client_edu = ClientEducationAndEmploymentData.objects.filter(client=client_id).exclude(
-                    voided=True).first()
-                client_sexual_data = ClientSexualActivityData.objects.filter(client=client_id).exclude(
-                    voided=True).first()
-                client_gbv_data = ClientGenderBasedViolenceData.objects.filter(client=client_id).exclude(
-                    voided=True).first()
-                client_hiv_data = ClientHIVTestingData.objects.filter(client=client_id).exclude(voided=True).first()
-                client_rh_data = ClientReproductiveHealthData.objects.filter(client=client_id).exclude(
-                    voided=True).first()
-                client_drug_data = ClientDrugUseData.objects.filter(client=client_id).exclude(voided=True).first()
-                client_prog_part_data = ClientParticipationInDreams.objects.filter(client=client_id).exclude(
-                    voided=True).first()
-
-                demographics_form = DemographicsForm(instance=client_demographics)
-                household_form = IndividualAndHouseholdForm(instance=client_household)
-                edu_and_emp_form = EducationAndEmploymentForm(instance=client_edu)
-                sexuality_form = SexualityForm(instance=client_sexual_data)
-                gbv_form = GBVForm(instance=client_gbv_data)
-                hiv_form = HivTestForm(instance=client_hiv_data)
-                reproductive_health_form = ReproductiveHealthForm(instance=client_rh_data)
-                drug_use_form = DrugUseForm(instance=client_drug_data)
-                participation_form = DreamsProgramParticipationForm(instance=client_prog_part_data)
-
-                search_client_term = request.GET.get('search_client_term', '')
-            except Client.DoesNotExist:
-                traceback.format_exc()
-            except Exception as e:
-                traceback.format_exc()
-                print(str(e))
-        else:
-            print ('POST not allowed')
-
-        ip = None
-        try:
-            ip = request.user.implementingpartneruser.implementing_partner
-            if ip:
-                ip_code = ip.code
-            else:
-                ip = None
-        except Exception as e:
-            ip_code = None
-
-        if client_id is not None and client_id != 0:
-            try:
-                client_found = Client.objects.get(id=client_id)
-                if client_found is not None:
-                    is_editable_by_ip = client_found.is_editable_by_ip(ip)
-                    client_status = client_found.get_client_status(ip)
-                    date_of_enrollment_str = demographics_form['date_of_enrollment'].value()
-                    date_of_enrollment = datetime.strptime(str(date_of_enrollment_str), '%Y-%m-%d').date() if date_of_enrollment_str is not None else dt.now().date()
-                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
-                    minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
-                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
-                    max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
-                    min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
-                    current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
-                    client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
-                    client_action_permissions.can_perform_edit()
-                    return render(request, 'client_baseline_data.html', {'page': 'clients',
-                                                                         'page_title': 'DREAMS Enrollment Data',
-                                                                         'client': client_found,
-                                                                         'user': request.user,
-                                                                         'demo_form': demographics_form,
-                                                                         'household_form': household_form,
-                                                                         'edu_form': edu_and_emp_form,
-                                                                         'sexuality_form': sexuality_form,
-                                                                         'gbv_form': gbv_form,
-                                                                         'hiv_form': hiv_form,
-                                                                         'rh_form': reproductive_health_form,
-                                                                         'drug_use_form': drug_use_form,
-                                                                         'programe_participation_form': participation_form,
-                                                                         'search_client_term': search_client_term,
-                                                                         'transfer_form': ClientTransferForm(
-                                                                             ip_code=ip_code,
-                                                                             initial={'client': client_found}),
-                                                                         'is_editable_by_ip': is_editable_by_ip,
-                                                                         'client_status': client_status,
-                                                                         'max_dob': max_dob,
-                                                                         'min_dob': min_dob,
-                                                                         'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser,
-                                                                         'client_action_permissions': client_action_permissions
-                                                                         })
-            except Client.DoesNotExist:
-                traceback.format_exc()
-                return redirect('clients')
-            except Exception as e:
-                traceback.format_exc()
-                return redirect('clients')
-    else:
-        return redirect('login')
-
-
-def update_demographics_data(request):
-    client_id = int(request.POST['client'], 0)
-    instance = Client.objects.get(id=client_id)
-    if request.is_ajax():
-        if request.method == 'POST':
-            county_of_residence = instance.county_of_residence
-            sub_county = instance.sub_county
-            implementing_partner = instance.implementing_partner
-            dreams_id = instance.dreams_id
-            form = DemographicsForm(request.POST, instance=instance)
-
-            if form.is_valid():
-                client_enrolment_service_layer = ClientEnrolmentServiceLayer(request.user)
-                if not client_enrolment_service_layer.is_within_enrolment_dates(form.instance.date_of_birth,
-                                                                                form.instance.date_of_enrollment):
-                    min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
-                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
-
-                    response_data = {
-                        'status': 'fail',
-                        'errors': [
-                            "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
-                                min_max_age[0]) + " and " + str(min_max_age[1] + " years.")],
-                        'client_age': instance.get_current_age()
-                    }
-                    return JsonResponse(response_data, status=500)
-
-                form.instance.implementing_partner = implementing_partner
-                form.instance.county_of_residence = county_of_residence
-                form.instance.sub_county = sub_county
-                form.instance.implementing_partner = implementing_partner
-                form.instance.dreams_id = dreams_id
-                form.instance.save(user_id=request.user.id, action="UPDATE")
-
-                response_data = {
-                    'status': 'success',
-                    'errors': form.errors,
-                    'client_age': instance.get_current_age()
-                }
-                return JsonResponse(response_data, status=200)
-            else:
-                response_data = {
-                    'status': 'fail',
-                    'errors': form.errors
-                }
-                return JsonResponse(response_data, status=500)
-        else:
-            raise PermissionDenied
-    else:
-        raise PermissionDenied
-    return render(request, template, {'status': 'success'})
-
-
-def update_individual_and_household_data(request):
-    client_id = int(request.POST['client'])
-    instance = ClientIndividualAndHouseholdData.objects.get(client=client_id)
-    if request.is_ajax():
-        template = 'ajax_response_form/client_individual_household_ajax_form.html'
-
-        if request.method == 'POST':
-            form = IndividualAndHouseholdForm(request.POST, instance=instance)
-            if form.is_valid():
-                form.save()
-                response_data = {
-                    'status': 'success'
-                }
-                return JsonResponse(response_data, status=200)
-            else:
-                response_data = {
-                    'status': 'fail',
-                    'errors': form.errors
-                }
-                return JsonResponse(response_data, status=500)
-        else:
-            raise PermissionDenied
-    else:
-        raise PermissionDenied
-    return render(request, template, {'household_form': form})
-
-
-def update_edu_and_employment_data(request):
-    client_id = int(request.POST['client'])
-    instance = ClientEducationAndEmploymentData.objects.get(client=client_id)
-    if request.is_ajax():
-        template = 'ajax_response_form/education_and_employment_ajax_form.html'
-        form = EducationAndEmploymentForm(request.POST, instance=instance)
-        if request.method == 'POST':
-            if form.is_valid():
-                form.save()
-                response_data = {
-                    'status': 'success'
-                }
-                return JsonResponse(response_data, status=200)
-            else:
-                print (form.errors)
-        else:
-            response_data = {
-                'status': 'fail',
-                'errors': form.errors
-            }
-            return JsonResponse(response_data, status=500)
-    else:
-        raise PermissionDenied
-    return render(request, template, {'edu_form': form})
-
-
-def update_hiv_testing_data(request):
-    client_id = int(request.POST['client'])
-    instance = ClientHIVTestingData.objects.get(client=client_id)
-    if request.is_ajax():
-        template = 'ajax_response_form/client_hiv_testing_ajax_form.html'
-
-        if request.method == 'POST':
-            form = HivTestForm(request.POST, instance=instance)
-            if form.is_valid():
-                form.save()
-                response_data = {
-                    'status': 'success'
-                }
-                return JsonResponse(response_data, status=200)
-            else:
-                response_data = {
-                    'status': 'fail',
-                    'errors': form.errors
-                }
-                return JsonResponse(response_data, status=500)
-        else:
-            raise PermissionDenied
-    else:
-        raise PermissionDenied
-    return render(request, template, {'hiv_form': form})
-
-
-def update_sexuality_data(request):
-    client_id = int(request.POST['client'])
-    instance = ClientSexualActivityData.objects.get(client=client_id)
-    if request.is_ajax():
-        if request.method == 'POST':
-            form = SexualityForm(request.POST, instance=instance)
-            if form.is_valid():
-                form.save()
-                response_data = {
-                    'status': 'success'
-                }
-                return JsonResponse(response_data, status=200)
-            else:
-                response_data = {
-                    'status': 'fail',
-                    'errors': form.errors
-                }
-                return JsonResponse(response_data, status=500)
-        else:
-            raise PermissionDenied
-    else:
-        raise PermissionDenied
-    return render(request, template, {'sexuality_form': form})
-
-
-def update_rep_health_data(request):
-    client_id = int(request.POST['client'])
-    instance = ClientReproductiveHealthData.objects.get(client=client_id)
-    if request.is_ajax():
-        template = 'ajax_response_form/client_reproductive_health_ajax_form.html'
-
-        if request.method == 'POST':
-            form = ReproductiveHealthForm(request.POST, instance=instance)
-            if form.is_valid():
-                form.save()
-                response_data = {
-                    'status': 'success'
-                }
-                return JsonResponse(response_data, status=200)
-            else:
-                response_data = {
-                    'status': 'fail',
-                    'errors': form.errors
-                }
-                return JsonResponse(response_data, status=500)
-        else:
-            raise PermissionDenied
-    else:
-        raise PermissionDenied
-    return render(request, template, {'rh_form': form})
-
-
-def update_gbv_data(request):
-    client_id = int(request.POST['client'])
-    instance = ClientGenderBasedViolenceData.objects.get(client=client_id)
-    if request.is_ajax():
-        template = 'ajax_response_form/client_gbv_ajax_form.html'
-
-        if request.method == 'POST':
-            form = GBVForm(request.POST, instance=instance)
-            if form.is_valid():
-                form.save()
-                response_data = {
-                    'status': 'success'
-                }
-                return JsonResponse(response_data, status=200)
-            else:
-                response_data = {
-                    'status': 'fail',
-                    'errors': form.errors
-                }
-                return JsonResponse(response_data, status=500)
-        else:
-            raise PermissionDenied
-    else:
-        raise PermissionDenied
-    return render(request, template, {'gbv_form': form})
-
-
-def update_drug_use_data(request):
-    client_id = int(request.POST['client'])
-    instance = ClientDrugUseData.objects.get(client=client_id)
-    if request.is_ajax():
-        template = 'ajax_response_form/client_drug_use_ajax_form.html'
-
-        if request.method == 'POST':
-            form = DrugUseForm(request.POST, instance=instance)
-            if form.is_valid():
-                form.save()
-                response_data = {
-                    'status': 'success'
-                }
-                return JsonResponse(response_data, status=200)
-            else:
-                response_data = {
-                    'status': 'fail',
-                    'errors': form.errors
-                }
-                return JsonResponse(response_data, status=500)
-        else:
-            raise PermissionDenied
-    else:
-        raise PermissionDenied
-    return render(request, template, {'drug_use_form': form})
-
-
-def update_programme_participation_data(request):
-    client_id = int(request.POST['client'])
-    instance = ClientParticipationInDreams.objects.get(client=client_id)
-    if request.is_ajax():
-        template = 'ajax_response_form/client_programme_participation_ajax_form.html'
-
-        if request.method == 'POST':
-            form = DreamsProgramParticipationForm(request.POST, instance=instance)
-            if form.is_valid():
-                form.save()
-                response_data = {
-                    'status': 'success'
-                }
-                return JsonResponse(response_data, status=200)
-            else:
-                response_data = {
-                    'status': 'fail',
-                    'errors': form.errors
-                }
-                return JsonResponse(response_data, status=500)
-        else:
-            raise PermissionDenied
-    else:
-        raise PermissionDenied
-    return render(request, template, {'programe_participation_form': form})
 
 
 def transfer_client(request):
@@ -3361,7 +4113,8 @@ def transfer_client(request):
                             'message': 'There is no client found or the client has been exited.'
                         }
                         return JsonResponse(response_data)
-                    current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser
+                    current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(
+                        request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser
                     initiate_transfer_perm = TransferServiceLayer(request.user)
                     if not initiate_transfer_perm.can_initiate_transfer() and current_user_belongs_to_same_ip_as_client:
                         response_data = {
@@ -3375,14 +4128,15 @@ def transfer_client(request):
                                                                                  code__exact=TRANSFER_INITIATED_STATUS)).count()
 
                     if num_of_pending_transfers > 0:
-                        print ("{} pending transfers for client".format(num_of_pending_transfers))
+                        print("{} pending transfers for client".format(num_of_pending_transfers))
                         response_data = {
                             'status': 'fail',
                             'message': "Transfer failed, there's a pending transfer for this client.",
                         }
                     else:
                         client_transfer = transfer_form.save(commit=False)
-                        client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
+                        client_transfer.transfer_status = ClientTransferStatus.objects.get(
+                            code__exact=TRANSFER_INITIATED_STATUS)
                         client_transfer.source_implementing_partner = ip
                         client_transfer.initiated_by = request.user
                         client_transfer.start_date = dt.now()
@@ -3428,16 +4182,20 @@ def client_transfers(request, *args, **kwargs):
                     search_term = request.POST.get('search-transfers-term')
                     if search_term != '':
                         search_transfers_term = search_term
-                        c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).select_related('client') \
-                                        .filter(Q(client__dreams_id__iexact=search_term) ) \
-                                        .exclude(client__voided=True).order_by('transfer_status', '-date_created')
+                        c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).select_related(
+                            'client') \
+                            .filter(Q(client__dreams_id__iexact=search_term)) \
+                            .exclude(client__voided=True).order_by('transfer_status', '-date_created')
                     else:
                         search_transfers_term = ''
-                        c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('transfer_status', '-date_created')
+                        c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by(
+                            'transfer_status', '-date_created')
                 else:
-                    c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by('transfer_status', '-date_created')
+                    c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by(
+                        'transfer_status', '-date_created')
             else:
-                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('transfer_status', '-date_created')
+                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('transfer_status',
+                                                                                                     '-date_created')
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             return render(request, 'login.html')
@@ -3454,7 +4212,8 @@ def client_transfers(request, *args, **kwargs):
 
         return render(request, "client_transfers.html",
                       {'client_transfers': transfers, 'can_accept_or_reject': can_accept_or_reject,
-                       'transferred_in': transferred_in, 'page': 'transfers', 'search_transfers_term': search_transfers_term})
+                       'transferred_in': transferred_in, 'page': 'transfers',
+                       'search_transfers_term': search_transfers_term})
     else:
         return redirect('login')
 
@@ -3469,12 +4228,13 @@ def client_referrals(request, *args, **kwargs):
             ip = request.user.implementingpartneruser.implementing_partner
             if referred_in:
                 client_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
-                Q(external_organisation__isnull=False) | Q(external_organisation_other__isnull=False)))).order_by(
+                        Q(external_organisation__isnull=False) | Q(
+                    external_organisation_other__isnull=False)))).order_by(
                     'referral_status', '-referral_date')
             else:
                 client_referrals = Referral.objects.filter(Q(referring_ip=ip)).exclude((Q(referring_ip=ip) and (
-                    Q(external_organisation__isnull=False) | Q(
-                        external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
+                        Q(external_organisation__isnull=False) | Q(
+                    external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
 
             for client_referral in client_referrals:
                 intervention = Intervention.objects.filter(referral_id=client_referral.pk)
@@ -3536,7 +4296,8 @@ def accept_client_transfer(request):
                             raise PermissionDenied
 
                         if client_transfer is not None:
-                            accepted_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_ACCEPTED_STATUS)
+                            accepted_client_transfer_status = ClientTransferStatus.objects.get(
+                                code__exact=TRANSFER_ACCEPTED_STATUS)
 
                             client_transfer.transfer_status = accepted_client_transfer_status
                             client_transfer.completed_by = request.user
@@ -3593,7 +4354,8 @@ def reject_client_transfer(request):
                     if not can_reject_transfer:
                         raise PermissionDenied
 
-                    client_transfer.transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_REJECTED_STATUS)
+                    client_transfer.transfer_status = ClientTransferStatus.objects.get(
+                        code__exact=TRANSFER_REJECTED_STATUS)
                     client_transfer.completed_by = request.user
                     client_transfer.end_date = dt.now()
                     client_transfer.save()
@@ -3628,18 +4390,19 @@ def reject_client_referral(request):
                             raise PermissionDenied
 
                         if client_referral.referral_expiration_date >= dt.now().date():
-                            client_referral.referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_REJECTED_STATUS)
+                            client_referral.referral_status = ReferralStatus.objects.get(
+                                code__exact=REFERRAL_REJECTED_STATUS)
                             client_referral.completed_by = request.user
                             client_referral.end_date = dt.now()
                             client_referral.rejectreason = reject_reason
                             client_referral.save()
                             messages.info(request, "Referral successfully rejected.")
                         else:
-                             messages.error(request,
-                                              "This referral has already expired and cannot be rejected.")
+                            messages.error(request,
+                                           "This referral has already expired and cannot be rejected.")
                     else:
                         messages.error(request,
-                                     "Referral does not exist.")
+                                       "Referral does not exist.")
                 else:
                     messages.error(request,
                                    "Invalid referral ID.")
@@ -3714,14 +4477,14 @@ def get_pending_client_referrals_in_out_count(request):
             ip = request.user.implementingpartneruser.implementing_partner
             client_referrals_in_count = Referral.objects.filter(
                 referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
-                    Q(external_organisation__isnull=False) | Q(
-                        external_organisation_other__isnull=False))))).filter(client__exited=False).filter(
+                        Q(external_organisation__isnull=False) | Q(
+                    external_organisation_other__isnull=False))))).filter(client__exited=False).filter(
                 referral_expiration_date__gte=datetime.now().date()).count()
             client_referrals_out_count = Referral.objects.filter(
                 referral_status=pending_client_referral_status and (Q(referring_ip=ip))).exclude(
                 Q(referring_ip=ip) and (
-                    Q(external_organisation__isnull=False) | Q(
-                        external_organisation_other__isnull=False))).filter(client__exited=False).filter(
+                        Q(external_organisation__isnull=False) | Q(
+                    external_organisation_other__isnull=False))).filter(client__exited=False).filter(
                 referral_expiration_date__gte=datetime.now().date()).count()
 
             client_referrals_count_array = [client_referrals_in_count, client_referrals_out_count]
@@ -3834,10 +4597,11 @@ def export_client_referrals(request, *args, **kwargs):
             ip = request.user.implementingpartneruser.implementing_partner
             if referred_in:
                 c_referrals = Referral.objects.values(*columns).filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
-                            Q(external_organisation__isnull=False) | Q(
-                        external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
+                        Q(external_organisation__isnull=False) | Q(
+                    external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
             else:
-                c_referrals = Referral.objects.values(*columns).filter(referring_ip=ip).order_by('referral_status', '-referral_date')
+                c_referrals = Referral.objects.values(*columns).filter(referring_ip=ip).order_by('referral_status',
+                                                                                                 '-referral_date')
 
         except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
             c_referrals = Referral.objects.values(*columns)
@@ -3870,16 +4634,17 @@ def void_client(request):
             if request.method == 'POST' and request.is_ajax():
                 if not request.user.is_superuser and not request.user.has_perm(
                         'DreamsApp.can_void_client') and not Permission.objects.filter(group__user=request.user).filter(
-                        codename='DreamsApp.can_void_client').exists():
+                    codename='DreamsApp.can_void_client').exists():
                     return get_response_data(0, 'Voiding Failed. You do not have permission to void a client')
 
                 client_id = request.POST.get("id", "")
                 client = Client.objects.get(id=client_id)
-                current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(request.user.implementingpartneruser.implementing_partner_id)
+                current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(
+                    request.user.implementingpartneruser.implementing_partner_id)
                 if not (current_user_belongs_to_same_ip_as_client or request.user.is_superuser):
                     response_data = {
-                    'status': 'fail',
-                    'errors': "Void failed. You must belong to the same IP as the client inorder to update"
+                        'status': 'fail',
+                        'errors': "Void failed. You must belong to the same IP as the client inorder to update"
                     }
                     return JsonResponse(response_data, status=500)
 
@@ -3964,7 +4729,8 @@ def download_audit_logs(request):
             columns = ['timestamp', 'user_name', 'table', 'column', 'old_value', 'new_value', 'action', 'search_text']
             header = ['Timestamp', 'User', 'Table', 'Field', 'Old Value', 'New Value', 'Action', 'Text']
 
-            export_file_name = urllib.parse.quote("/tmp/audit_log_export-{}.csv".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            export_file_name = urllib.parse.quote(
+                "/tmp/audit_log_export-{}.csv".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'attachment; filename="{}"'.format(export_file_name)
 
@@ -3985,7 +4751,10 @@ def download_audit_logs(request):
                     old_value = ', '.join([str(x[1]) for x in column_values])
                     new_value = ', '.join([str(x[2]) for x in column_values])
 
-                writer.writerow({'timestamp': log['timestamp'], 'user_name': get_user_name(log['user_id']), 'table': log['table'], 'column': column, 'old_value': old_value, 'new_value': new_value, 'action': log['action'], 'search_text': log['search_text']})
+                writer.writerow(
+                    {'timestamp': log['timestamp'], 'user_name': get_user_name(log['user_id']), 'table': log['table'],
+                     'column': column, 'old_value': old_value, 'new_value': new_value, 'action': log['action'],
+                     'search_text': log['search_text']})
 
             return response
 
@@ -4036,6 +4805,7 @@ def get_min_max_date_of_birth(request):
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
 
+
 def cache_value(key, value):
-    cache_time = 86400 # time in seconds for cache to be valid
+    cache_time = 86400  # time in seconds for cache to be valid
     cache.set(key, value, cache_time)

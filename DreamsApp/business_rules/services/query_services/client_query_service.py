@@ -13,17 +13,30 @@ class ClientQueryService:
 
     def get_clients(self):
         if self.user:
-            clients = Client.objects.select_related('implementing_partner', 'ward', 'ward__sub_county',
-                                                    'ward__sub_county__county')
-            delegating_ips = self._get_delegating_ips()
-            clients = clients.filter(
-                Q(implementing_partner__in=delegating_ips) | Q(implementing_partner=self.user.implementing_partner))
-            clients = clients.filter(voided=False)
+            ## EXCLUDE DELEGATION
+            # clients = Client.objects.select_related('implementing_partner', 'ward', 'ward__sub_county',
+            #                                         'ward__sub_county__county')
+
+            # delegating_ips = self._get_delegating_ips()
+            # clients = clients.filter(
+            #     (Q(implementing_partner__in=delegating_ips) | Q(implementing_partner=self.user.implementing_partner))
+            #     & Q(voided=False))
+
+            # clients = Client.objects.select_related('implementing_partner', 'ward', 'ward__sub_county',
+            #                                         'ward__sub_county__county').filter(
+            #     (Q(implementing_partner=self.user.implementing_partner))
+            #     & Q(voided=False))
+
+            clients = Client.objects.filter(
+                (Q(implementing_partner=self.user.implementing_partner))
+                & Q(voided=False))
             return clients
 
     def get_client(self, dreams_id):
-        clients = self.get_clients()
-        return clients.get(dreams_id=dreams_id)
+        ## EXCLUDE DELEGATION
+        # clients = self.get_clients()
+        # return clients.get(dreams_id=dreams_id)
+        return Client.objects.get(dreams_id=dreams_id)
 
     def search_clients(self, search_criteria):
         clients = self.get_clients()
