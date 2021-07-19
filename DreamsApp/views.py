@@ -471,14 +471,6 @@ class ClientDetailView(DetailView):
 
             context['client'] = client_demographics
             context['demo_form'] = demographics_form
-            # context['household_form'] = household_form
-            # context['edu_form'] = edu_and_emp_form
-            # context['sexuality_form'] = sexuality_form
-            # context['gbv_form'] = gbv_form
-            # context['hiv_form'] = hiv_form
-            # context['rh_form'] = reproductive_health_form
-            # context['drug_use_form'] = drug_use_form
-            # context['programe_participation_form'] = participation_form
             context['search_client_term'] = search_client_term
             context['transfer_form'] = ClientTransferForm(
                 ip_code=ip_code,
