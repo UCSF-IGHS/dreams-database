@@ -7,43 +7,63 @@
     {% include 'includes/client_void_form.html' %}
     {% if client_action_permissions.can_perform_view %}
         <div class="wrapper-container enrolment-input-question">
-            <!-- Start of Client profile section -->
-            <div class=" statusBox">
-                <div>
-                    <h4>{% if client != None %}CLIENT IMPLEMENTING PARTNER:
-                        {{ client.implementing_partner.name }}{% endif %}</h4>
-                </div>
-                <div class="row">
-                    <div class="col-xs-12 col-sm-5">
-                        <p><strong>Client: </strong><span id="shown_client_name"> {{ client.get_full_name }} <span
-                                class="client_exit_voided_status">{{ client_status }}</span></p>
-                        <p><strong>DREAMS ID: </strong><span id="shown_client_dreams_id"> {{ client.dreams_id }}</span>
-                        </p>
-                        <p><strong>Date Birth: </strong><span id="shown_client_dob"> {{ client.date_of_birth }}</span>
-                            (Current Age <span id="shown_client_age">{{ client.get_current_age }}</span> )</p>
+            
+        <!-- Start of Client profile section -->
+        <div class=" statusBox">
+            <div>
+                <h4>{% if client != None %}CLIENT IMPLEMENTING PARTNER:
+                    {{ client.implementing_partner.name }}{% endif %}</h4>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-sm-5">
+                    <p><strong>Client: </strong><span id="shown_client_name"> {{ client.get_full_name }} <span
+                            class="client_exit_voided_status">{{ client_status }}</span></p>
+                    <p><strong>DREAMS ID: </strong><span id="shown_client_dreams_id"> {{ client.dreams_id }}</span></p>
+                    <p><strong>Date Birth: </strong><span id="shown_client_dob"> {{ client.date_of_birth }}</span>
+                        (Current Age <span id="shown_client_age">{{ client.get_current_age }}</span> )</p>
 
-                    </div><!--/col-->
-                    <div class="col-xs-12 col-sm-4">
-                        <p><strong>Date Enrolled: </strong> <span id="shown_client_doe">{{ client.date_of_enrollment }} (Age at enrollment: {{ client.get_age_at_enrollment }})</span>
-                        </p>
-                        <p><strong>Phone Number: </strong>
-                            <span id="shown_client_phone">{% if client.phone_number != None %}
-                                {{ client.phone_number }}{% endif %}</span>
-                        </p>
-                        <p><strong>Marital status: </strong> <span
-                                id="shown_client_marital_status">{{ client.marital_status }}</span></p>
-                    </div><!--/col-->
-                    <div class="col-xs-12 col-sm-3">
-                        {% if client_action_permissions.can_perform_edit %}
-                            <p><strong>Actions: </strong> <br>
-                            <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
-                               onclick="window.location='/client?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
-                               data-toggle="tooltip" title="Edit Enrollment"><span
-                                    class="glyphicon glyphicon-folder-close"></span>
-                                Service Uptake</p>
+                </div><!--/col-->
+                <div class="col-xs-12 col-sm-4">
+                    <p><strong>Date Enrolled: </strong> <span id="shown_client_doe">{{ client.date_of_enrollment }} (Age at enrollment: {{ client.get_age_at_enrollment }})</span>
+                    </p>
+                    <p><strong>Phone Number: </strong>
+                        <span id="shown_client_phone">{% if client.phone_number != None %}
+                            {{ client.phone_number }}{% endif %}</span>
+                    </p>
+                    <p><strong>Marital status: </strong> <span
+                            id="shown_client_marital_status">{{ client.marital_status }}</span></p>
+                </div><!--/col-->
+                <div class="col-xs-12 col-sm-3">
+                {% if client_action_permissions.can_perform_edit %}
+                    <p><strong>Actions: </strong> <br>
 
-                            {% if 'Transferred Out' not in client_status %}
-                                {% if perms.DreamsApp.can_exit_client and current_user_belongs_to_same_ip_as_client %}
+                    {% if intervention_action_permissions.can_perform_list %}
+                        <p class="underline_hover" data-client_id='{{ client.id }}' style="cursor:pointer;"
+                           onclick="window.location='/client?client_id={{ client.id }}&search_client_term={{ search_client_term }}'"
+                           data-toggle="tooltip" title="Edit Enrollment"><span class="glyphicon glyphicon-folder-close"></span>
+                            Service Uptake</p>
+                    {% endif %}
+                        {% if 'Transferred Out' not in client_status %}
+                            {% if perms.DreamsApp.can_exit_client and current_user_belongs_to_same_ip_as_client %}
+                                {% if client.exited %}
+                                    <p class="underline_hover" id="p_exit_client" data-client_id='{{ client.id }}'
+                                       data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                                       data-toggle="modal" data-target="#client-unexit-modal" title="Exit Client">
+                                        <span class="glyphicon glyphicon-log-out"></span> <span
+                                            class="client_status_action_text">Undo Exit Client</span>
+                                    </p>
+                                {% else %}
+                                    <p class="underline_hover" id="p_exit_client" data-client_id='{{ client.id }}'
+                                       data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"
+                                       data-toggle="modal" data-target="#client-exit-modal" title="Exit Client">
+                                        <span class="glyphicon glyphicon-log-out"></span> <span
+                                            class="client_status_action_text">Exit Client</span>
+                                    </p>
+                                {% endif %}
+                            {% endif %}
+                            {% if perms.DreamsApp.add_clienttransfer %}
+                                {% if client.can_be_transferred and not client.voided and not client.exited and current_user_belongs_to_same_ip_as_client %}
+
                                     {% if client.exited %}
                                         <p class="underline_hover" id="p_exit_client" data-client_id='{{ client.id }}'
                                            data-search_client_term='{{ search_client_term }}' style="cursor:pointer;"

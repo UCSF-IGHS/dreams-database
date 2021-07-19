@@ -268,10 +268,10 @@ class ClientListView(ListView):
                     except Client.DoesNotExist as e:
                         result = Client.objects.none()
 
+                    search_result = result.order_by('first_name', 'middle_name', 'last_name')[:100]
                     ## EXCLUDE DELEGATION
                     # search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
-                    search_result = result[:100]
-
+                   
                     search_result_length = len(search_result)
                     a = 'True' if search_result_length >= 100 else 'False'
                     search_result_tuple = [search_result, a, '', '', '', '', '']
@@ -391,6 +391,7 @@ class ClientListView(ListView):
                     context['client_action_permissions'] = client_action_permissions
                     # 'intervention_action_permissions': intervention_action_permissions
                     # 'display_first_100_clients': display_first_100_clients
+
             else:
                 context['to_login'] = True
             # print(len(db_conn_2.queries))
