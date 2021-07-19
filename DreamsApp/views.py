@@ -448,42 +448,7 @@ class ClientDetailView(DetailView):
             # Consider client = models.OneToOneField(Client, db_index=True)
             # instead of client = models.ForeignKey(Client, db_index=True)
             # then below: client_demographics.clientindividualandhouseholddata
-            #client_household_queryset = client_demographics.clientindividualandhouseholddata_set
-            # = client_household_queryset.get() if client_household_queryset.exists() else None
-            # client_edu_queryset = client_demographics.clienteducationandemploymentdata_set
-            # client_edu = client_edu_queryset.get() if client_edu_queryset.exists() else None
-            # client_sexual_data_queryset = client_demographics.clientsexualactivitydata_set
-            # client_sexual_data = client_sexual_data_queryset.get() if client_sexual_data_queryset.exists() else None
-            # client_gbv_data_queryset = client_demographics.clientgenderbasedviolencedata_set
-            # client_gbv_data = client_gbv_data_queryset.get() if client_gbv_data_queryset.exists() else None
-            # client_hiv_data_queryset = client_demographics.clienthivtestingdata_set
-            # client_hiv_data = client_hiv_data_queryset.get() if client_hiv_data_queryset.exists() else None
-            # client_rh_data_queryset = client_demographics.clientreproductivehealthdata_set
-            # client_rh_data = client_rh_data_queryset.get() if client_rh_data_queryset.exists() else None
-            # client_drug_data_queryset = client_demographics.clientdrugusedata_set
-            # client_drug_data = client_drug_data_queryset.get() if client_drug_data_queryset.exists() else None
-            # client_prog_part_data_queryset = client_demographics.clientparticipationindreams_set
-            # client_prog_part_data = client_prog_part_data_queryset.get() if client_prog_part_data_queryset.exists() else None
-
             demographics_form = DemographicsForm(instance=client_demographics)
-            # household_form = IndividualAndHouseholdForm()
-            # edu_and_emp_form = EducationAndEmploymentForm(instance=client_edu)
-            # sexuality_form = SexualityForm(instance=client_sexual_data)
-            # gbv_form = GBVForm(instance=client_gbv_data)
-            # hiv_form = HivTestForm(instance=client_hiv_data)
-            # reproductive_health_form = ReproductiveHealthForm(instance=client_rh_data)
-            # drug_use_form = DrugUseForm(instance=client_drug_data)
-            # participation_form = DreamsProgramParticipationForm(instance=client_prog_part_data)
-
-            #household_form.fields["client"].initial = self.object
-            # edu_and_emp_form.fields["client"].initial = self.object
-            # sexuality_form.fields["client"].initial = self.object
-            # gbv_form.fields["client"].initial = self.object
-            # hiv_form.fields["client"].initial = self.object
-            # reproductive_health_form.fields["client"].initial = self.object
-            # drug_use_form.fields["client"].initial = self.object
-            # participation_form.fields["client"].initial = self.object
-
             search_client_term = self.request.GET.get('search_client_term', '')
             ip = self.request.user.implementingpartneruser.implementing_partner
             ip_code = ip.code if ip else None
@@ -506,7 +471,7 @@ class ClientDetailView(DetailView):
 
             context['client'] = client_demographics
             context['demo_form'] = demographics_form
-            #context['household_form'] = household_form
+            # context['household_form'] = household_form
             # context['edu_form'] = edu_and_emp_form
             # context['sexuality_form'] = sexuality_form
             # context['gbv_form'] = gbv_form
@@ -544,7 +509,7 @@ class ClientDetailView(DetailView):
         return Client.objects.none()
 
 
-def householdView(request):
+def householdview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
@@ -569,7 +534,8 @@ def householdView(request):
             household_form = IndividualAndHouseholdForm(instance=client_household)
             household_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+            client_action_permissions = ClientActionPermissions(model=ClientIndividualAndHouseholdData,
+                                                                user=request.user,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -594,7 +560,7 @@ def householdView(request):
         return JsonResponse({"household_form": template})
 
 
-def educationEmploymentView(request):
+def educationemploymentview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
@@ -619,8 +585,9 @@ def educationEmploymentView(request):
             edu_form = EducationAndEmploymentForm(instance=client_edu)
             edu_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
-                                                                enrolment=Client)
+            client_action_permissions = ClientActionPermissions(model=ClientEducationAndEmploymentData,
+                                                                user=request.user,
+                                                                enrolment=client)
             client_action_permissions.can_perform_edit()
 
             ip = request.user.implementingpartneruser.implementing_partner
@@ -644,7 +611,7 @@ def educationEmploymentView(request):
         return JsonResponse({"edu_form": template})
 
 
-def hivTestingView(request):
+def hivtestingview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
@@ -669,8 +636,8 @@ def hivTestingView(request):
             hiv_form = HivTestForm(instance=client_hiv_data)
             hiv_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
-                                                                enrolment=Client)
+            client_action_permissions = ClientActionPermissions(model=ClientHIVTestingData, user=request.user,
+                                                                enrolment=client)
             client_action_permissions.can_perform_edit()
 
             ip = request.user.implementingpartneruser.implementing_partner
@@ -694,7 +661,7 @@ def hivTestingView(request):
         return JsonResponse({"hiv_form": template})
 
 
-def sexualityView(request):
+def sexualityview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
@@ -719,8 +686,8 @@ def sexualityView(request):
             sexuality_form = SexualityForm(instance=client_sexual_data)
             sexuality_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
-                                                                enrolment=Client)
+            client_action_permissions = ClientActionPermissions(model=ClientSexualActivityData, user=request.user,
+                                                                enrolment=client)
             client_action_permissions.can_perform_edit()
 
             ip = request.user.implementingpartneruser.implementing_partner
@@ -744,7 +711,7 @@ def sexualityView(request):
         return JsonResponse({"sexuality_form": template})
 
 
-def reproductiveHealthView(request):
+def reproductivehealthview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
@@ -769,8 +736,8 @@ def reproductiveHealthView(request):
             rh_form = ReproductiveHealthForm(instance=client_rh_data)
             rh_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
-                                                                enrolment=Client)
+            client_action_permissions = ClientActionPermissions(model=ClientReproductiveHealthData, user=request.user,
+                                                                enrolment=client)
             client_action_permissions.can_perform_edit()
 
             ip = request.user.implementingpartneruser.implementing_partner
@@ -794,7 +761,7 @@ def reproductiveHealthView(request):
         return JsonResponse({"rh_form": template})
 
 
-def gbvView(request):
+def gbvview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
@@ -819,8 +786,8 @@ def gbvView(request):
             gbv_form = GBVForm(instance=client_gbv_data)
             gbv_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
-                                                                enrolment=Client)
+            client_action_permissions = ClientActionPermissions(model=ClientGenderBasedViolenceData, user=request.user,
+                                                                enrolment=client)
             client_action_permissions.can_perform_edit()
 
             ip = request.user.implementingpartneruser.implementing_partner
@@ -844,7 +811,7 @@ def gbvView(request):
         return JsonResponse({"gbv_form": template})
 
 
-def drugUseView(request):
+def druguseview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
@@ -869,8 +836,8 @@ def drugUseView(request):
             drug_use_form = DrugUseForm(instance=client_drug_data)
             drug_use_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
-                                                                enrolment=Client)
+            client_action_permissions = ClientActionPermissions(model=ClientDrugUseData, user=request.user,
+                                                                enrolment=client)
             client_action_permissions.can_perform_edit()
 
             ip = request.user.implementingpartneruser.implementing_partner
@@ -894,7 +861,7 @@ def drugUseView(request):
         return JsonResponse({"drug_use_form": template})
 
 
-def participationInProgramView(request):
+def participationinprogramview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
@@ -919,8 +886,8 @@ def participationInProgramView(request):
             programe_participation_form = DreamsProgramParticipationForm(instance=client_prog_part_data)
             programe_participation_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
-                                                                enrolment=Client)
+            client_action_permissions = ClientActionPermissions(model=ClientParticipationInDreams, user=request.user,
+                                                                enrolment=client)
             client_action_permissions.can_perform_edit()
 
             ip = request.user.implementingpartneruser.implementing_partner
@@ -933,7 +900,8 @@ def participationInProgramView(request):
                 'is_editable_by_ip': is_editable_by_ip
             }
 
-            template = render_to_string('client_programme_participation_form.html', context=response_data, request=request)
+            template = render_to_string('client_programme_participation_form.html', context=response_data,
+                                        request=request)
             return JsonResponse({"programe_participation_form": template})
 
     except Exception as e:
@@ -1147,7 +1115,7 @@ def get_delegated_intervention_type_codes(delegating_ip, delegated_ip):
 
 
 class ClientCreateView(CreateView):
-    #model = Client
+    # model = Client
     form_class = DemographicsForm
 
     # def get_object(self, queryset=None):
@@ -1469,7 +1437,6 @@ class ClientDeleteView(DeleteView):
             'message': 'There are errors'
         }
         return JsonResponse(json.dumps(response_data), safe=False)
-
 
 
 class ClientDemographicsCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):

@@ -208,11 +208,13 @@
             <br/>
 
             <script>
+                baseonchange();
                 frmdemographicsonsubmit() /* Default */
 
                 $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                     var target = $(e.target).attr("href") // activated tab
                     var current_client_id = {{ client.id }};
+
                     if (target == "#individual_and_household") {
                         $.ajax({
                             type: "POST",
@@ -223,6 +225,8 @@
                             success: function(result)
                             {
                                 $('#individual_and_household').html(result.household_form);
+                                individualhouseholdvalidate();
+                                baseonchange();
                                 frmhouseholdonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
@@ -240,6 +244,8 @@
                             dataType: 'json',
                             success: function (result) {
                                 $('#education_and_employment').html(result.edu_form);
+                                educationemploymentvalidate();
+                                baseonchange();
                                 frmeducationemploymentonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
@@ -257,6 +263,8 @@
                             dataType: 'json',
                             success: function (result) {
                                 $('#hiv_testing').html(result.hiv_form);
+                                hivtestingvalidate();
+                                baseonchange();
                                 frmhivtestingonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
@@ -274,6 +282,8 @@
                             dataType: 'json',
                             success: function (result) {
                                 $('#sexuality').html(result.sexuality_form);
+                                sexualityvalidate();
+                                baseonchange();
                                 frmsexualityonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
@@ -291,6 +301,8 @@
                             dataType: 'json',
                             success: function (result) {
                                 $('#reproductive_health').html(result.rh_form);
+                                frmreproductivehealthvalidate();
+                                baseonchange();
                                 frmreproductivehealthonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
@@ -308,6 +320,8 @@
                             dataType: 'json',
                             success: function (result) {
                                 $('#gbv').html(result.gbv_form);
+                                gbvvalidate();
+                                baseonchange();
                                 frmgbvonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
@@ -325,6 +339,8 @@
                             dataType: 'json',
                             success: function (result) {
                                 $('#drug_use').html(result.drug_use_form);
+                                drugusevalidate();
+                                baseonchange();
                                 frmdruguseonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
@@ -341,7 +357,9 @@
                             },
                             dataType: 'json',
                             success: function (result) {
-                                $('#participation_in_program').html(result.participation_in_program_form);
+                                $('#participation_in_program').html(result.programe_participation_form);
+
+                                baseonchange();
                                 frmparticipationonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
@@ -349,6 +367,7 @@
                             }
                         });
                     }
+
                 });
 
 
@@ -657,136 +676,530 @@
                     });
                 }
 
-                $('.listen-to-change').on('change keyup', function () {
-                    var val = $(this).val();
-                    var show_if_true = $(this).data('show_if_true'); // class to show
-                    var hide_if_true = $(this).data('hide_if_true'); // class to show
-                    var hide_if_false = $(this).data('hide_if_false'); // class to hide
-                    var show_value = $(this).data('show_value'); // value to determine show/hide
-
-                    if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
-                        var hide_classes = hide_if_false.split(" ");
-                        hide_if_false = hide_classes;
-                    }
-
-                    if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
-                        var hide_on_show_classes = hide_if_true.split(" ");
-                        hide_if_true = hide_on_show_classes;
-                    }
-
-                    if (val == show_value || show_value == 'any') {
-                        $('.' + show_if_true).removeClass('hidden');
-
-                        if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
-                            for (var i = 0; i < hide_if_true.length; i++) {
-                                var class_name = hide_if_true[i];
-                                $('.' + class_name).addClass('hidden');
-                                $('.' + class_name).find('input,select').each(function () {
-                                    $(this).val('');
-                                    $(this).attr('checked', false);
-                                });
+                function individualhouseholdvalidate() {
+                    $("#form_ind_household").validate({
+                        rules: {
+                            head_of_household: {
+                                required: true
+                            },
+                            head_of_household_other: {
+                                requiredIfHeadOfHouseholdIsOtherSpecify: true
+                            },
+                            age_of_household_head: {
+                                number: true,
+                                positiveNumberZeroExclusive: true
+                            },
+                            is_father_alive: {
+                                required: true
+                            },
+                            is_mother_alive: {
+                                required: true
+                            },
+                            is_parent_chronically_ill: {
+                                required: true
+                            },
+                            main_floor_material: {
+                                required: true
+                            },
+                            main_roof_material: {
+                                required: true
+                            },
+                            main_wall_material: {
+                                required: true
+                            },
+                            source_of_drinking_water: {
+                                required: true
+                            },
+                            ever_missed_full_day_food_in_4wks: {
+                                required: true
+                            },
+                            has_disability: {
+                                required: true
+                            },
+                            no_of_people_in_household: {
+                                required: true,
+                                number: true,
+                                positiveNumber: true
+                            },
+                            no_of_females: {
+                                required: true,
+                                number: true,
+                                positiveNumber: true
+                            },
+                            no_of_males: {
+                                required: true,
+                                number: true,
+                                positiveNumber: true,
+                                matchingGenderDisaggregatedCount: true
+                            },
+                            no_of_adults: {
+                                required: true,
+                                number: true,
+                                positiveNumber: true
+                            },
+                            no_of_children: {
+                                required: true,
+                                number: true,
+                                positiveNumber: true,
+                                matchingAgeDisaggregatedCount: true
+                            },
+                            ever_enrolled_in_ct_program: {
+                                required: true
                             }
-                        }
-                    } else {
-                        $('.' + show_if_true).addClass('hidden');
-
-                        $('.' + show_if_true).find('input,select').each(function () {
-                            $(this).val('');
-                            $(this).attr('checked', false);
-                        });
-
-                        if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
-                            for (var i = 0; i < hide_if_false.length; i++) {
-                                var class_name = hide_if_false[i];
-                                $('.' + class_name).addClass('hidden');
-                                $('.' + class_name).find('input,select').each(function () {
-                                    $(this).val('');
-                                    $(this).attr('checked', false);
-                                });
+                        },
+                        messages: {
+                            head_of_household: {
+                                required: " * Please Select Head of Household"
+                            },
+                            head_of_household_other: {
+                                requiredIfHeadOfHouseholdIsOtherSpecify: "* Please Specify household head"
+                            },
+                            age_of_household_head: {
+                                number: " Enter valid age e.g 45"
+                            },
+                            is_father_alive: {
+                                required: " * Required field"
+                            },
+                            is_mother_alive: {
+                                required: " * Required field"
+                            },
+                            is_parent_chronically_ill: {
+                                required: " * Required field"
+                            },
+                            main_floor_material: {
+                                required: " * Required field"
+                            },
+                            main_roof_material: {
+                                required: " * Required field"
+                            },
+                            main_wall_material: {
+                                required: " * Required field"
+                            },
+                            source_of_drinking_water: {
+                                required: " * Required field"
+                            },
+                            ever_missed_full_day_food_in_4wks: {
+                                required: " * Required field"
+                            },
+                            has_disability: {
+                                required: " * Required field"
+                            },
+                            no_of_people_in_household: {
+                                required: " * Required field",
+                                number: " Enter valid number e.g 5"
+                            },
+                            no_of_females: {
+                                required: " * Required field",
+                                number: " Enter valid number e.g 5"
+                            },
+                            no_of_males: {
+                                required: " * Required field",
+                                number: " Enter valid number e.g 5",
+                                matchingGenderDisaggregatedCount: " Number of females and males in household do not add up."
+                            },
+                            no_of_adults: {
+                                required: " * Required field",
+                                number: " Enter valid number e.g 5"
+                            },
+                            no_of_children: {
+                                required: " * Required field",
+                                number: " Enter valid number e.g 5",
+                                matchingAgeDisaggregatedCount: " Number of adults and children in household do not add up."
+                            },
+                            ever_enrolled_in_ct_program: {
+                                required: " * Required field"
                             }
+                        },
+                        highlight: function (element) {
+                            $('#form_ind_household .error').addClass('text-danger')
+                        },
+                        unhighlight: function (element) {
+                            $('#form_ind_household').find('.error').removeClass('text-danger')
                         }
+                    });
+                }
 
-                        if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
-                            for (var i = 0; i < hide_if_true.length; i++) {
-                                var class_name = hide_if_true[i];
-                                $('.' + class_name).removeClass('hidden');
+
+                function educationemploymentvalidate() {
+                    $("#form_edu_and_employment").validate({
+                        rules: {
+                            currently_in_school: {
+                                required: true
+                            },
+                            has_savings: {
+                                required: true
                             }
+                        },
+                        messages: {
+                            currently_in_school: {
+                                required: " * Please Select Head of Household"
+                            },
+                            has_savings: {
+                                required: " * Required field"
+                            }
+                        },
+                        highlight: function (element) {
+                            $('#form_edu_and_employment .error').addClass('text-danger')
+                        },
+                        unhighlight: function (element) {
+                            $('#form_edu_and_employment').find('.error').removeClass('text-danger')
                         }
-                    }
-                });
+                    });
+                }
 
-                $('.multi-select').on('change', function () {
-                    var selected = $(this).val();
-                    var show_value = $(this).data('show_value');
-                    var show_if_true = $(this).data('show_if_true');
-
-                    for (var i = 0; i < selected.length; i++) {
-                        if (selected[i] == show_value) {
-                            $('.' + show_if_true).removeClass('hidden');
-                        } else {
-                            $('.' + show_if_true).addClass('hidden');
-                        }
-                    }
-                    console.log(selected);
-                });
-
-                $('.if-not-listener').on('change', function () {
-                    var selected = $(this).val();
-                    var if_not_value = $(this).data('if_not_value');
-                    var if_not_show_class = $(this).data('if_not_show_class');
-
-                    if (selected == if_not_value) {
-                        $('.' + if_not_show_class).addClass('hidden');
-                    } else {
-                        $('.' + if_not_show_class).removeClass('hidden');
-                    }
-                });
-
-                $('.multi-value-listener').on('change', function () {
-
-                    var selected = $(this).val();
-                    var group_value = $(this).data('group_value');
-                    var group_get_value_class = $(this).data('group_get_value_class');
-                    var group_show_class = $(this).data('group_show_class');
-                    var group_hide_class = $(this).data('group_hide_class');
-                    var result = false;
-                    $('.' + group_get_value_class + ' :selected').each(function () {
-                        if ($(this).val() == 1) {
-                            result = true;
-                            return false;
+                function hivtestingvalidate() {
+                    $("#form_hiv_testing").validate({
+                        rules: {
+                            ever_tested_for_hiv: {
+                                required: true
+                            }
+                        },
+                        messages: {
+                            ever_tested_for_hiv: {
+                                required: " * Required field"
+                            }
+                        },
+                        highlight: function (element) {
+                            $('#form_hiv_testing .error').addClass('text-danger')
+                        },
+                        unhighlight: function (element) {
+                            $('#form_hiv_testing').find('.error').removeClass('text-danger')
                         }
                     });
 
-                    if (result) {
-                        $('.' + group_show_class).removeClass('hidden');
-                        $('.' + group_hide_class).addClass('hidden');
-                    } else {
-                        $('.' + group_show_class).addClass('hidden');
-                        $('.' + group_hide_class).removeClass('hidden');
-                    }
-                });
+                    $.validator.addMethod('requiredPositiveIfHasCurrentSexualPartnerElseZero', function (value) {
+                        var isEntered = false;
+                        var sexualPartnersInLast12Months = 0;
+                        if (value != "")
+                            sexualPartnersInLast12Months = parseInt(value, 10) || 0;
+                        isEntered = true;
+                        var has_sexual_partner = parseInt($('#id_has_sexual_partner').val(), 10) || 0;
+                        if (has_sexual_partner == 1 && (!isEntered || (sexualPartnersInLast12Months == 0)))
+                            return false;
+                        return true;
+                    }, ' ');
+                }
 
-                $('.sexual-partner-info').on('change keyup', function () {
-                    var value = parseInt($(this).val().trim());
-                    $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
-                    switch (true) {
-                        case (value == 1):
-                            $('.last-partner').removeClass('hidden');
-                            $('.sexual-partners').removeClass('hidden');
-                            break;
-                        case (value == 2):
-                            $('.second-last-partner, .last-partner').removeClass('hidden');
-                            $('.sexual-partners').removeClass('hidden');
-                            break;
-                        case (value > 2):
-                            $('.third-last-partner, .second-last-partner, .last-partner').removeClass('hidden');
-                            $('.sexual-partners').removeClass('hidden');
-                            break;
-                        default:
-                            $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
-                            $('.sexual-partners').addClass('hidden');
-                    }
-                });
+                function sexualityvalidate() {
+                    $("#form_sexuality").validate({
+                        rules: {
+                            ever_had_sex: {
+                                required: true
+                            },
+                            age_at_first_sexual_encounter: {
+                                requiredIfEverHadSex: true,
+                                positiveNumberZeroExclusive: true
+                            },
+                            has_sexual_partner: {
+                                requiredIfEverHadSex: true
+                            },
+                            sex_partners_in_last_12months: {
+                                requiredIfEverHadSex: true,
+                                requiredPositiveIfHasCurrentSexualPartnerElseZero: true
+                            }
+                        },
+                        messages: {
+                            ever_had_sex: {
+                                required: " * Required field"
+                            },
+                            age_at_first_sexual_encounter: {
+                                requiredIfEverHadSex: " * Required field",
+                                positiveNumberZeroExclusive: "Enter a positive number greater than 0."
+                            },
+                            has_sexual_partner: {
+                                positiveNumber: " Enter positive number e.g 0,1,2...",
+                                requiredIfEverHadSex: "* Required field"
+                            },
+                            sex_partners_in_last_12months: {
+                                requiredIfEverHadSex: " * Required field",
+                                requiredPositiveIfHasCurrentSexualPartnerElseZero: " * Number of sex partners should be greater than Zero"
+                            }
+                        },
+                        highlight: function (element) {
+                            $('#form_sexuality .error').addClass('text-danger')
+                        },
+                        unhighlight: function (element) {
+                            $('#form_sexuality').find('.error').removeClass('text-danger')
+                        }
+                    });
+                }
+
+                function frmreproductivehealthvalidate() {
+                    $("#form_rep_health").validate({
+                        rules: {
+                            fp_methods_awareness: {
+                                required: true
+                            },
+                            no_of_biological_children: {
+                                positiveNumber: true,
+                                requiresChildren: true
+                            },
+                            currently_pregnant: {
+                                required: true
+                            },
+                            known_fp_method: {
+                                required: true
+                            },
+                            currently_use_modern_fp: {
+                                required: true
+                            }
+                        },
+                        messages: {
+                            fp_methods_awareness: {
+                                required: " * Required field"
+                            },
+                            no_of_biological_children: {
+                                requiresChildren: "Number of biological children required."
+                            },
+                            currently_pregnant: {
+                                required: "* Required field"
+                            },
+                            known_fp_method: {
+                                required: "* Required field"
+                            },
+                            currently_use_modern_fp: {
+                                required: "* Required field"
+                            }
+                        },
+                        highlight: function (element) {
+                            $('#form_rep_health .error').addClass('text-danger')
+                        },
+                        unhighlight: function (element) {
+                            $('#form_rep_health').find('.error').removeClass('text-danger')
+                        }
+                    });
+                }
+
+                function gbvvalidate() {
+                    $("#form_gbv").validate({
+                        rules: {
+                            humiliated_ever: {
+                                required: true
+                            },
+                            threats_to_hurt_ever: {
+                                required: true
+                            },
+                            insulted_ever: {
+                                required: true
+                            },
+                            economic_threat_ever: {
+                                required: true
+                            },
+                            physical_violence_ever: {
+                                required: true
+                            },
+                            physically_forced_sex_ever: {
+                                required: true
+                            },
+                            physically_forced_other_sex_acts_ever: {
+                                required: true
+                            },
+                            threatened_for_sexual_acts_ever: {
+                                required: true
+                            }
+                        },
+                        messages: {
+                            humiliated_ever: {
+                                required: " * Required field"
+                            },
+                            threats_to_hurt_ever: {
+                                required: " * Required field"
+                            },
+                            insulted_ever: {
+                                required: " * Required field"
+                            },
+                            economic_threat_ever: {
+                                required: " * Required field"
+                            },
+                            physical_violence_ever: {
+                                required: " * Required field"
+                            },
+                            physically_forced_sex_ever: {
+                                required: " * Required field"
+                            },
+                            physically_forced_other_sex_acts_ever: {
+                                required: " * Required field"
+                            },
+                            threatened_for_sexual_acts_ever: {
+                                required: " * Required field"
+                            }
+                        },
+                        highlight: function (element) {
+                            $('#form_gbv .error').addClass('text-danger')
+                        },
+                        unhighlight: function (element) {
+                            $('#form_gbv').find('.error').removeClass('text-danger')
+                        }
+                    });
+                }
+
+                function drugusevalidate() {
+                    $("#form_drug_use").validate({
+                        rules: {
+                            used_alcohol_last_12months: {
+                                required: true
+                            },
+                            drug_abuse_last_12months: {
+                                required: true
+                            },
+                            produced_alcohol_last_12months: {
+                                required: true
+                            }
+                        },
+                        messages: {
+                            used_alcohol_last_12months: {
+                                required: " * Required field"
+                            },
+                            drug_abuse_last_12months: {
+                                required: " * Required field"
+                            },
+                            produced_alcohol_last_12months: {
+                                required: " * Required field"
+                            }
+                        },
+                        highlight: function (element) {
+                            $('#form_drug_use .error').addClass('text-danger')
+                        },
+                        unhighlight: function (element) {
+                            $('#form_drug_use').find('.error').removeClass('text-danger')
+                        }
+                    });
+                }
+
+
+                function baseonchange() {
+                    $('.listen-to-change').on('change keyup', function () {
+                        var val = $(this).val();
+                        var show_if_true = $(this).data('show_if_true'); // class to show
+                        var hide_if_true = $(this).data('hide_if_true'); // class to show
+                        var hide_if_false = $(this).data('hide_if_false'); // class to hide
+                        var show_value = $(this).data('show_value'); // value to determine show/hide
+
+                        if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
+                            var hide_classes = hide_if_false.split(" ");
+                            hide_if_false = hide_classes;
+                        }
+
+                        if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                            var hide_on_show_classes = hide_if_true.split(" ");
+                            hide_if_true = hide_on_show_classes;
+                        }
+
+                        if (val == show_value || show_value == 'any') {
+                            $('.' + show_if_true).removeClass('hidden');
+
+                            if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                                for (var i = 0; i < hide_if_true.length; i++) {
+                                    var class_name = hide_if_true[i];
+                                    $('.' + class_name).addClass('hidden');
+                                    $('.' + class_name).find('input,select').each(function () {
+                                        $(this).val('');
+                                        $(this).attr('checked', false);
+                                    });
+                                }
+                            }
+                        } else {
+                            $('.' + show_if_true).addClass('hidden');
+
+                            $('.' + show_if_true).find('input,select').each(function () {
+                                $(this).val('');
+                                $(this).attr('checked', false);
+                            });
+
+                            if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
+                                for (var i = 0; i < hide_if_false.length; i++) {
+                                    var class_name = hide_if_false[i];
+                                    $('.' + class_name).addClass('hidden');
+                                    $('.' + class_name).find('input,select').each(function () {
+                                        $(this).val('');
+                                        $(this).attr('checked', false);
+                                    });
+                                }
+                            }
+
+                            if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                                for (var i = 0; i < hide_if_true.length; i++) {
+                                    var class_name = hide_if_true[i];
+                                    $('.' + class_name).removeClass('hidden');
+                                }
+                            }
+                        }
+                    });
+
+                    $('.multi-select').on('change', function () {
+                        var selected = $(this).val();
+                        var show_value = $(this).data('show_value');
+                        var show_if_true = $(this).data('show_if_true');
+
+                        for (var i = 0; i < selected.length; i++) {
+                            if (selected[i] == show_value) {
+                                $('.' + show_if_true).removeClass('hidden');
+                            } else {
+                                $('.' + show_if_true).addClass('hidden');
+                            }
+                        }
+                        console.log(selected);
+                    });
+
+                    $('.if-not-listener').on('change', function () {
+                        var selected = $(this).val();
+                        var if_not_value = $(this).data('if_not_value');
+                        var if_not_show_class = $(this).data('if_not_show_class');
+
+                        if (selected == if_not_value) {
+                            $('.' + if_not_show_class).addClass('hidden');
+                        } else {
+                            $('.' + if_not_show_class).removeClass('hidden');
+                        }
+                    });
+
+                    $('.multi-value-listener').on('change', function () {
+
+                        var selected = $(this).val();
+                        var group_value = $(this).data('group_value');
+                        var group_get_value_class = $(this).data('group_get_value_class');
+                        var group_show_class = $(this).data('group_show_class');
+                        var group_hide_class = $(this).data('group_hide_class');
+                        var result = false;
+                        $('.' + group_get_value_class + ' :selected').each(function () {
+                            if ($(this).val() == 1) {
+                                result = true;
+                                return false;
+                            }
+                        });
+
+                        if (result) {
+                            $('.' + group_show_class).removeClass('hidden');
+                            $('.' + group_hide_class).addClass('hidden');
+                        } else {
+                            $('.' + group_show_class).addClass('hidden');
+                            $('.' + group_hide_class).removeClass('hidden');
+                        }
+                    });
+
+                    $('.sexual-partner-info').on('change keyup', function () {
+                        var value = parseInt($(this).val().trim());
+                        $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
+                        switch (true) {
+                            case (value == 1):
+                                $('.last-partner').removeClass('hidden');
+                                $('.sexual-partners').removeClass('hidden');
+                                break;
+                            case (value == 2):
+                                $('.second-last-partner, .last-partner').removeClass('hidden');
+                                $('.sexual-partners').removeClass('hidden');
+                                break;
+                            case (value > 2):
+                                $('.third-last-partner, .second-last-partner, .last-partner').removeClass('hidden');
+                                $('.sexual-partners').removeClass('hidden');
+                                break;
+                            default:
+                                $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
+                                $('.sexual-partners').addClass('hidden');
+                        }
+                    });
+                }
+
 
                 function skip_pattern(target_element, target_value, element_list_to_manipulate, hide_class) {
                     var option = $('#' + target_element).val();

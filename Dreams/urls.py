@@ -72,14 +72,14 @@ urlpatterns = [
     url(r'^client_baseline_info', views.ClientDetailView.as_view()),
 
     # URLs for ajax to populate related client info individually
-    url(r'^client_household_info', views.householdView),
-    url(r'^education_employment_info', views.educationEmploymentView),
-    url(r'^hiv_testing_info', views.hivTestingView),
-    url(r'^sexuality_info', views.sexualityView),
-    url(r'^reproductive_health_info', views.reproductiveHealthView),
-    url(r'^gbv_info', views.gbvView),
-    url(r'^drug_use_info', views.drugUseView),
-    url(r'^participation_in_program_info', views.participationInProgramView),
+    url(r'^client_household_info', views.householdview),
+    url(r'^education_employment_info', views.educationemploymentview),
+    url(r'^hiv_testing_info', views.hivtestingview),
+    url(r'^sexuality_info', views.sexualityview),
+    url(r'^reproductive_health_info', views.reproductivehealthview),
+    url(r'^gbv_info', views.gbvview),
+    url(r'^drug_use_info', views.druguseview),
+    url(r'^participation_in_program_info', views.participationinprogramview),
 
     url(r'^update-demographics', views.ClientDemographicsCreateUpdateView.as_view()),
     url(r'^update-individual-household', views.IndividualHouseHoldCreateUpdateView.as_view()),
