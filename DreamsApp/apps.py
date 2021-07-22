@@ -8,4 +8,5 @@ class DreamsappConfig(AppConfig):
     name = 'DreamsApp'
 
     def ready(self):
-        from DreamsApp.business_rules.services.save_service import SaveService
+        import DreamsApp.signals
+        #from DreamsApp.business_rules.services.save_service import SaveService
