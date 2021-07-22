@@ -310,18 +310,18 @@ class Client(models.Model):
             return False
     
     def is_editable_by_ip(self, user_ip):
-        editable = False
+        editable = True
         try:
             if self.transferred_out(user_ip):
                 editable = False
-
-            elif self.transferred_in(user_ip):
-                editable = True
-            # elif self.exited:
-            #     editable = False
-
-            else:
-                editable = True
+            #
+            # elif self.transferred_in(user_ip):
+            #     editable = True
+            # # elif self.exited:
+            # #     editable = False
+            #
+            # else:
+            #     editable = True
             return editable
         except:
             return False
@@ -347,9 +347,9 @@ class Client(models.Model):
 
     def client_transfer_status(self, user_ip, client, implementing_partner_query, transfer_status):
         try:
-            clients_transferred = client.clienttransfer_set.filter(client_id=client.pk).order_by('-id')
-            if clients_transferred.exists():
-                client_transfer_found = clients_transferred.first()
+            clients_transferred = client.clienttransfer_set.get(client_id=client.pk) # get returns error if nothing found
+            if clients_transferred:
+                client_transfer_found = clients_transferred
 
                 if implementing_partner_query == "source_implementing_partner":
                     return client_transfer_found.transfer_status.pk == transfer_status if client_transfer_found.source_implementing_partner == user_ip else False
