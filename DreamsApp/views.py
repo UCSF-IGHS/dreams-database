@@ -1108,32 +1108,7 @@ def get_delegated_intervention_type_codes(delegating_ip, delegated_ip):
 
 
 class ClientCreateView(CreateView):
-    # model = Client
     form_class = DemographicsForm
-
-    # def get_object(self, queryset=None):
-    #     try:
-    #         if not self.request.is_ajax():
-    #             raise PermissionDenied
-    #         if self.request.method != 'POST':
-    #             raise PermissionDenied
-    #
-    #         self.object = Client.objects.none()
-    #         return self.object
-    #     except AttributeError:
-    #         return None
-    #
-    # def get(self, request, *args, **kwargs):
-    #     self.object = self.get_object()
-    #     return super(ClientCreateView, self).get(request, *args, **kwargs)
-    #
-    # def post(self, request, *args, **kwargs):
-    #     self.object = self.get_object()
-    #     return super(ClientCreateView, self).post(request, *args, **kwargs)
-
-    # def get_context_data(self, **kwargs):
-    #     context = super(ClientCreateView, self).get_context_data(**kwargs)
-    #     return context
 
     def form_valid(self, form):
         if self.request.user is not None and self.request.user.is_authenticated() and self.request.user.is_active:
@@ -1175,7 +1150,7 @@ class ClientCreateView(CreateView):
                     }
                     return JsonResponse(json.dumps(response_data), safe=False)
 
-                client = form.save()
+                client = form.save(commit=False)
 
                 # Check client dreams_id
                 if client.dreams_id is None or not client.dreams_id:
@@ -1200,7 +1175,7 @@ class ClientCreateView(CreateView):
                                            + '/' + str(next_serial)
                     finally:
                         cursor.close()
-                        client.save()
+                client.save()
 
                 if self.request.is_ajax():
                     response_data = {
@@ -1476,7 +1451,10 @@ class ClientDemographicsCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
                 }
                 return JsonResponse(response_data, status=500)
 
-            form.save()
+            client = form.save(commit=False)
+            client.implementing_partner = ImplementingPartner.objects.get(id=form.initial["implementing_partner"])
+            client.dreams_id = form.initial["dreams_id"]
+            client.save()
 
             response_data = {
                 'status': 'success',
