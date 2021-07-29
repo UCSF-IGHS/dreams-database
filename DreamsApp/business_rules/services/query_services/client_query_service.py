@@ -196,8 +196,7 @@ class ClientQueryService:
             clients = clients.filter(
                 Q(first_name__icontains=str(search_terms[0])) | Q(first_name=str(search_terms[0])) | Q(
                     middle_name__icontains=str(search_terms[0])) | Q(middle_name=str(search_terms[0])) | Q(
-                    last_name__icontains=str(search_terms[0])) | Q(last_name=str(search_terms[0])) | Q(
-                    dreams_id__icontains=str(search_terms[0])) | Q(dreams_id=str(search_terms[0])))
+                    last_name__icontains=str(search_terms[0])) | Q(last_name=str(search_terms[0])) | Q(dreams_id=str(search_terms[0])))
 
             return clients
 
