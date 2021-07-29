@@ -1111,49 +1111,46 @@ class ClientCreateView(CreateView):
     form_class = DemographicsForm
 
     def form_valid(self, form):
-        if self.request.user is not None and self.request.user.is_authenticated() and self.request.user.is_active:
-            if self.request.method == 'GET':
-                return render(self.request, 'enrollment.html', {'client': None})
-            elif self.request.method == 'POST' and self.request.is_ajax():
-                # process saving user
-                try:
-                    ip_code = self.request.user.implementingpartneruser.implementing_partner.code
-                except Exception as e:
-                    response_data = {
-                        'status': 'fail',
-                        'message': 'Enrollment Failed. You do not belong to an implementing partner',
-                        'client_id': None,
-                        'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
-                        'can_change_client': self.request.user.has_perm('auth.can_change_client'),
-                        'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
-                    }
-                    return JsonResponse(json.dumps(response_data), safe=False)
+        try:
+            if self.request.user is not None and self.request.user.is_authenticated() and self.request.user.is_active:
+                if self.request.method == 'GET':
+                    return render(self.request, 'enrollment.html', {'client': None})
+                elif self.request.method == 'POST' and self.request.is_ajax():
+                    # process saving user
+                    try:
+                        ip_code = self.request.user.implementingpartneruser.implementing_partner.code
+                    except Exception as e:
+                        response_data = {
+                            'status': 'fail',
+                            'message': 'Enrollment Failed. You do not belong to an implementing partner',
+                            'client_id': None,
+                            'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
+                            'can_change_client': self.request.user.has_perm('auth.can_change_client'),
+                            'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
+                        }
+                        return JsonResponse(json.dumps(response_data), safe=False)
 
-                # client_form = DemographicsForm(request.POST)
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
 
-                client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
+                    if not client_enrolment_service_layer.is_within_enrolment_dates(
+                            form.cleaned_data['date_of_birth'], form.cleaned_data['date_of_enrollment']):
+                        min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
+                            client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
 
-                if not client_enrolment_service_layer.is_within_enrolment_dates(
-                        form.cleaned_data['date_of_birth'], form.cleaned_data['date_of_enrollment']):
-                    min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
-                        client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
+                        response_data = {
+                            'status': 'fail',
+                            'message': "The client is not within the accepted age range. At the date of enrolment the "
+                                       "age of the client must be between " + str(
+                                min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
+                            'client_id': None,
+                            'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
+                            'can_change_client': self.request.user.has_perm('auth.can_change_client'),
+                            'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
+                        }
+                        return JsonResponse(json.dumps(response_data), safe=False)
 
-                    response_data = {
-                        'status': 'fail',
-                        'message': "The client is not within the accepted age range. At the date of enrolment the age "
-                                   "of the client must be between " + str(
-                            min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
-                        'client_id': None,
-                        'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
-                        'can_change_client': self.request.user.has_perm('auth.can_change_client'),
-                        'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
-                    }
-                    return JsonResponse(json.dumps(response_data), safe=False)
+                    client = form.save()
 
-                client = form.save(commit=False)
-
-                # Check client dreams_id
-                if client.dreams_id is None or not client.dreams_id:
                     # Generate client dreams_id
                     cursor = db_conn_2.cursor()
                     try:
@@ -1167,31 +1164,45 @@ class ClientCreateView(CreateView):
                         next_serial = cursor.fetchone()[0]
                         if next_serial is None:
                             next_serial = 1
+
                         client.dreams_id = str(ip_code) + '/' + str(client.ward.code if client.ward != None else '') \
                                            + '/' + str(next_serial)
+
                     except Exception as e:
                         next_serial = 1
                         client.dreams_id = str(ip_code) + '/' + str(1) \
                                            + '/' + str(next_serial)
                     finally:
                         cursor.close()
-                client.save()
+                        client.save(update_fields=['dreams_id'])
 
-                if self.request.is_ajax():
-                    response_data = {
-                        'status': 'success',
-                        'message': 'Enrollment to DREAMS successful. Redirecting you to the full enrolment data view',
-                        'client_id': client.id,
-                        'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
-                        'can_change_client': self.request.user.has_perm('auth.can_change_client'),
-                        'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
-                    }
-                    return JsonResponse(json.dumps(response_data), safe=False)
-                else:
-                    # redirect to page
-                    return redirect('clients')
-        else:
-            raise PermissionDenied
+                    if self.request.is_ajax():
+                        response_data = {
+                            'status': 'success',
+                            'message': 'Enrollment to DREAMS successful. Redirecting you to the full enrolment data '
+                                       'view',
+                            'client_id': client.id,
+                            'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
+                            'can_change_client': self.request.user.has_perm('auth.can_change_client'),
+                            'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
+                        }
+                        return JsonResponse(json.dumps(response_data), safe=False)
+                    else:
+                        # redirect to page
+                        return redirect('clients')
+            else:
+                raise PermissionDenied
+
+        except Exception as e:
+            response_data = {
+                'status': 'fail',
+                'message': str(e),
+                'client_id': None,
+                'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
+                'can_change_client': self.request.user.has_perm('auth.can_change_client'),
+                'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
+            }
+            return JsonResponse(json.dumps(response_data), safe=False)
 
     def form_invalid(self, form):
         response_data = {
@@ -4358,9 +4369,8 @@ def reject_client_referral(request):
 
 
 def get_pending_client_transfers_total_count(request):
+    client_transfers_total_count = 0
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        client_transfers_total_count = 0
-
         initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
             ip = request.user.implementingpartneruser.implementing_partner
