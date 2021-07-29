@@ -1005,6 +1005,7 @@ def follow_ups(request):
         raise PermissionDenied
 
 
+
 def client_profile(request):
     """ Returns client profile """
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
@@ -1042,6 +1043,7 @@ def client_profile(request):
                     cash_transfer_details_form.save(commit=False)
                 current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(
                     request.user.implementingpartneruser.implementing_partner_id)
+                #intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
                 return render(request, 'client_profile.html', {'page': 'clients',
                                                                'page_title': 'DREAMS Client Service Uptake',
                                                                'client': client_found,
@@ -1066,9 +1068,9 @@ def client_profile(request):
                     request.user.implementingpartneruser.implementing_partner_id)
                 client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
                                                                     enrolment=client_found)
-                intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
-                delegated_intervention_type_codes = get_delegated_intervention_type_codes(
-                    client_found.implementing_partner, request.user.implementingpartneruser.implementing_partner)
+                # intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
+                # delegated_intervention_type_codes = get_delegated_intervention_type_codes(
+                #     client_found.implementing_partner, request.user.implementingpartneruser.implementing_partner)
 
                 return render(request, 'client_profile.html',
                               {'page': 'clients',
@@ -1084,9 +1086,9 @@ def client_profile(request):
                                '60_days_from_now': dt.now() + + timedelta(days=60),
                                'intervention_categories': InterventionCategory.objects.all(),
                                'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser,
-                               'client_action_permissions': client_action_permissions,
-                               'intervention_action_permissions': intervention_action_permissions,
-                               'delegated_intervention_type_codes': delegated_intervention_type_codes
+                               'client_action_permissions': client_action_permissions
+                               #'intervention_action_permissions': intervention_action_permissions,
+                               #'delegated_intervention_type_codes': delegated_intervention_type_codes
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -2111,14 +2113,14 @@ def get_intervention_types(request):
             category_code = request.POST.get('category_code')
             current_client_id = request.POST.get('current_client_id', 0)
             # get current client
-            current_client = Client.objects.filter(id__exact=current_client_id).first()
+            current_client = Client.objects.get(id=current_client_id)
             if current_client is None:
                 raise Exception
             # Get category by code and gets all related types
             # Returns an object with itypes property
-            given_intervention_type_ids = Intervention.objects.values_list('intervention_type', flat=True). \
-                filter(client=current_client). \
-                distinct()  # select distinct intervention type ids given to a user
+            # given_intervention_type_ids = Intervention.objects.values_list('intervention_type', flat=True). \
+            #     filter(client=current_client). \
+            #     distinct()  # select distinct intervention type ids given to a user
             i_category = InterventionCategory.objects.get(code__exact=category_code)
             # compute age at enrollment
             current_age = current_client.get_current_age()
@@ -2144,6 +2146,8 @@ def get_intervention_type(request):
             type_code = request.POST.get('type_code')
             i_type = serializers.serialize('json',
                                            InterventionType.objects.filter(code__exact=type_code).order_by('code'))
+            # i_type = serializers.serialize('json',
+            #                                InterventionType.objects.get(code=type_code))
             response_data["itype"] = i_type
             return JsonResponse(response_data)
         else:

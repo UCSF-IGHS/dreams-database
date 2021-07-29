@@ -343,7 +343,7 @@ class Client(models.Model):
                 can_add_intervention = True
             return can_add_intervention
         except:
-            return False
+            return can_add_intervention
 
     def client_transfer_status(self, user_ip, client, implementing_partner_query, transfer_status):
         try:
