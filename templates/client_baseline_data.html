@@ -178,49 +178,86 @@
                     </li>
                 </ul>
                 <div id="results"></div>
+
                 <div class="tab-content dp-tab-content">
                     <br/>
                     <div role="tabpanel" id="demographics" class="tab-pane fade in active client_profile_tab"
                          data-tabpanel_id="#demographics">
                         {% include 'client_demographics_form.html' %}
+                        <div class="spinner hidden fit-item">
+                                <i class='fa fa-spinner fa-spin'></i>
+                                <p style="font-size: large">Loading ...</p>
+                            </div>
                     </div>
 
                     <div role="tabpanel" id="individual_and_household" class="tab-pane fade client_profile_tab"
-                         data-tabpanel_id="#individual_and_household">
+                         data-tabpanel_id="#individual_and_household1">
                         {% include 'client_individual_household_form.html' %}
+                        <div class="spinner hidden fit-item">
+                                <i class='fa fa-spinner fa-spin'></i>
+                                <p style="font-size: large">Loading ...</p>
+                            </div>
                     </div>
 
                     <div role="tabpanel" id="education_and_employment" class="tab-pane fade client_profile_tab"
                          data-tabpanel_id="#education_and_employment">
                         {% include 'education_and_employment_form.html' %}
+                        <div class="spinner hidden fit-item">
+                                <i class='fa fa-spinner fa-spin'></i>
+                                <p style="font-size: large">Loading ...</p>
+                            </div>
                     </div>
 
                     <div role="tabpanel" id="hiv_testing" class="tab-pane fade client_profile_tab"
                          data-tabpanel_id="#hiv_testing">
                         {% include 'client_hiv_testing_form.html' %}
+                        <div class="spinner hidden fit-item">
+                                <i class='fa fa-spinner fa-spin'></i>
+                                <p style="font-size: large">Loading ...</p>
+                            </div>
                     </div>
 
                     <div role="tabpanel" id="sexuality" class="tab-pane fade client_profile_tab"
                          data-tabpanel_id="#sexuality">
                         {% include 'client_sexuality_form.html' %}
+                        <div class="spinner hidden fit-item">
+                                <i class='fa fa-spinner fa-spin'></i>
+                                <p style="font-size: large">Loading ...</p>
+                            </div>
                     </div>
                     <div role="tabpanel" id="reproductive_health" class="tab-pane fade client_profile_tab"
                          data-tabpanel_id="#reproductive_health">
                         {% include 'client_reproductive_health_form.html' %}
+                        <div class="spinner hidden fit-item">
+                                <i class='fa fa-spinner fa-spin'></i>
+                                <p style="font-size: large">Loading ...</p>
+                            </div>
                     </div>
 
                     <div role="tabpanel" id="gbv" class="tab-pane fade client_profile_tab" data-tabpanel_id="#gbv">
                         {% include 'client_gbv_form.html' %}
+                        <div class="spinner hidden fit-item">
+                                <i class='fa fa-spinner fa-spin'></i>
+                                <p style="font-size: large">Loading ...</p>
+                            </div>
                     </div>
 
                     <div role="tabpanel" id="drug_use" class="tab-pane fade client_profile_tab"
                          data-tabpanel_id="#drug_use">
                         {% include 'client_drug_use_form.html' %}
+                        <div class="spinner hidden fit-item">
+                                <i class='fa fa-spinner fa-spin'></i>
+                                <p style="font-size: large">Loading ...</p>
+                            </div>
                     </div>
 
                     <div role="tabpanel" id="participation_in_program" class="tab-pane fade client_profile_tab"
                          data-tabpanel_id="#participation_in_program">
                         {% include 'client_programme_participation_form.html' %}
+                        <div class="spinner hidden fit-item">
+                                <i class='fa fa-spinner fa-spin'></i>
+                                <p style="font-size: large">Loading ...</p>
+                            </div>
                     </div>
                     <input id="current_client_id" class="hidden" type="text" value="{{ client.id }}">
                 </div>
@@ -232,9 +269,12 @@
                 baseonchange();
                 frmdemographicsonsubmit() /* Default */
 
-                $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                $('#dreams-enrollment-tab-control a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                     var target = $(e.target).attr("href") // activated tab
                     var current_client_id = {{ client.id }};
+
+                    var spinner = $(target + ' .spinner');
+                    spinner.removeClass('hidden');
 
                     if (target == "#individual_and_household") {
                         $.ajax({
@@ -251,7 +291,7 @@
                                 frmhouseholdonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
-                                alert("error");
+                                alert(errmsg);
                             }
                         });
                     } else if (target == "#education_and_employment") {
@@ -270,7 +310,7 @@
                                 frmeducationemploymentonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
-                                alert("error");
+                                alert(errmsg);
                             }
                         });
                     } else if (target == "#hiv_testing") {
@@ -289,7 +329,7 @@
                                 frmhivtestingonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
-                                alert("error");
+                                alert(errmsg);
                             }
                         });
                     } else if (target == "#sexuality") {
@@ -308,7 +348,7 @@
                                 frmsexualityonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
-                                alert("error");
+                                alert(errmsg);
                             }
                         });
                     } else if (target == "#reproductive_health") {
@@ -327,7 +367,7 @@
                                 frmreproductivehealthonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
-                                alert("error");
+                                alert(errmsg);
                             }
                         });
                     } else if (target == "#gbv") {
@@ -346,7 +386,7 @@
                                 frmgbvonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
-                                alert("error");
+                                alert(errmsg);
                             }
                         });
                     } else if (target == "#drug_use") {
@@ -365,7 +405,7 @@
                                 frmdruguseonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
-                                alert("error");
+                                alert(errmsg);
                             }
                         });
                     } else if (target == "#participation_in_program") {
@@ -384,11 +424,11 @@
                                 frmparticipationonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
-                                alert("error");
+                                alert(errmsg);
                             }
                         });
                     }
-
+                    $(target + ' .spinner').addClass('hidden');
                 });
 
 

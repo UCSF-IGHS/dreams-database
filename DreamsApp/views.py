@@ -282,9 +282,15 @@ class ClientListView(ListView):
                     except Exception as e:
                         current_ip = 0
 
-                    client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user)
+                    client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user,
+                                                                        implementing_partner_user=
+                                                                        self.request.user.implementingpartneruser
+                                                                        )
                     intervention_action_permissions = InterventionActionPermissions(model=Intervention,
-                                                                                    user=self.request.user)
+                                                                                    user=self.request.user,
+                                                                                    implementing_partner_user=
+                                                                                    self.request.user.implementingpartneruser
+                                                                                    )
                     display_first_100_clients = (search_result_length == 100)
 
                     # if request.is_ajax():
@@ -315,9 +321,8 @@ class ClientListView(ListView):
                     # Non ajax request.. Do a paginator
                     # do pagination
                     enrolment_results = [
-                        [ClientActionPermissions(model=Client, user=self.request.user, enrolment=client), client] for
-                        client
-                        in search_result]
+                        [ClientActionPermissions(model=Client, user=self.request.user, implementing_partner_user=
+                        self.request.user.implementingpartneruser, enrolment=client), client] for client in search_result]
 
                     try:
                         paginator = Paginator(enrolment_results, 20)
@@ -365,7 +370,8 @@ class ClientListView(ListView):
                     search_result_tuple = [search_result, 'False', '', '', '', '', '']
                     current_ip = self.request.user.implementingpartneruser.implementing_partner.code
 
-                    client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user)
+                    client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user, implementing_partner_user=
+                                                                                           self.request.user.implementingpartneruser)
                     # intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
                     client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
                     minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
@@ -467,6 +473,7 @@ class ClientDetailView(DetailView):
             current_user_belongs_to_same_ip_as_client = client_demographics.current_user_belongs_to_same_ip_as_client(
                 self.request.user.implementingpartneruser.implementing_partner_id)
             client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user,
+                                                                implementing_partner_user=self.request.user.implementingpartneruser,
                                                                 enrolment=client_demographics)
             client_action_permissions.can_perform_edit()
 
@@ -528,7 +535,8 @@ def householdview(request):
             household_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientIndividualAndHouseholdData,
-                                                                user=request.user,
+                                                                user=request.user,implementing_partner_user=
+                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -579,7 +587,8 @@ def educationemploymentview(request):
             edu_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientEducationAndEmploymentData,
-                                                                user=request.user,
+                                                                user=request.user, implementing_partner_user=
+                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -630,6 +639,8 @@ def hivtestingview(request):
             hiv_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientHIVTestingData, user=request.user,
+                                                                implementing_partner_user=
+                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -680,6 +691,8 @@ def sexualityview(request):
             sexuality_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientSexualActivityData, user=request.user,
+                                                                implementing_partner_user=
+                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -730,6 +743,8 @@ def reproductivehealthview(request):
             rh_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientReproductiveHealthData, user=request.user,
+                                                                implementing_partner_user=
+                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -780,6 +795,8 @@ def gbvview(request):
             gbv_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientGenderBasedViolenceData, user=request.user,
+                                                                implementing_partner_user=
+                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -830,6 +847,8 @@ def druguseview(request):
             drug_use_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientDrugUseData, user=request.user,
+                                                                implementing_partner_user=
+                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -880,6 +899,8 @@ def participationinprogramview(request):
             programe_participation_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientParticipationInDreams, user=request.user,
+                                                                implementing_partner_user=
+                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -1005,7 +1026,6 @@ def follow_ups(request):
         raise PermissionDenied
 
 
-
 def client_profile(request):
     """ Returns client profile """
     if request.user is not None and request.user.is_authenticated() and request.user.is_active:
@@ -1016,6 +1036,7 @@ def client_profile(request):
         if client_id is not None and client_id != 0:
             try:
                 ip = request.user.implementingpartneruser.implementing_partner
+                ip_code = ip.code if ip else None
                 if ip:
                     ip_code = ip.code
                 else:
@@ -1067,6 +1088,8 @@ def client_profile(request):
                 current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(
                     request.user.implementingpartneruser.implementing_partner_id)
                 client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                                                                    implementing_partner_user=
+                                                                    request.user.implementingpartneruser,
                                                                     enrolment=client_found)
                 # intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
                 # delegated_intervention_type_codes = get_delegated_intervention_type_codes(
@@ -2159,8 +2182,6 @@ def get_intervention_type(request):
 
 # use /ivSave/ to post to the method
 # Gets intervention_type_id,  from request
-
-
 def save_intervention(request):
     try:
         if is_valid_post_request(request) and request.user.has_perm('DreamsApp.add_intervention'):
@@ -2172,8 +2193,8 @@ def save_intervention(request):
                 if not client:
                     client = Client.objects.get(id__exact=int(client_id))
 
-                if client.exited or client.voided:
-                    client = Client.objects.get(id__exact=int(client_id))
+                # if client.exited or client.voided:
+                #     client = Client.objects.get(id__exact=int(client_id))
 
                 cache_value(client_key, client)
 
@@ -2214,19 +2235,19 @@ def save_intervention(request):
                 try:
                     """Get client intervention filtered by intervention types"""
                     intervention_key = '{}-{}'.format(client.id, intervention_type_code)
-                    client_interventions = cache.get(intervention_key)
+                    client_interventions_count = cache.get(intervention_key)
 
-                    if not client_interventions:
-                        client_interventions = Intervention.objects.filter(intervention_type=intervention_type,
-                                                                           client=client).exclude(voided=True)
+                    if client_interventions_count is None:
+                        client_interventions_count = Intervention.objects.filter(intervention_type=intervention_type,
+                                                                           client=client).exclude(voided=True).count()
 
-                    cache_value(intervention_key, client_interventions)
-                    client_interventions_count = client_interventions.count()
+                    cache_value(intervention_key, client_interventions_count)
 
-                    if intervention_type.is_given_once and client_interventions.count() > 0:
+                    if intervention_type.is_given_once and client_interventions_count > 0:
                         response_data = {
                             'status': 'fail',
-                            'message': "Error: This is a one time service that has already been offered. Please consider editing if necessary"
+                            'message': "Error: This is a one time service that has already been offered. Please "
+                                       "consider editing if necessary "
                         }
                         return JsonResponse(response_data)
                 except Exception as e:
@@ -2299,6 +2320,9 @@ def save_intervention(request):
                     return JsonResponse(response_data)
 
                 if intervention_type_code is not None and type(intervention_type_code) is int:
+                    htsresult = HTSResult.objects.all()
+                    pregnancytestresult = PregnancyTestResult.objects.all()
+
                     with transaction.atomic():
                         intervention = Intervention()
                         intervention.client = client
@@ -2340,12 +2364,14 @@ def save_intervention(request):
                                 get(id__exact=created_by.implementingpartneruser.implementing_partner.id)
 
                         if intervention_type.has_hts_result:
-                            intervention.hts_result = HTSResult.objects.get(
-                                code__exact=int(request.POST.get('hts_result')))
+                            if request.POST.get('hts_result'):
+                                intervention.hts_result = htsresult.get(
+                                    code__exact=int(request.POST.get('hts_result')))
 
                         if intervention_type.has_pregnancy_result:
-                            intervention.pregnancy_test_result = PregnancyTestResult.objects.get(
-                                code__exact=int(request.POST.get('pregnancy_test_result')))
+                            if request.POST.get('pregnancy_test_result'):
+                                intervention.pregnancy_test_result = pregnancytestresult.get(
+                                    code__exact=int(request.POST.get('pregnancy_test_result')))
 
                         if intervention_type.has_ccc_number:
                             intervention.client_ccc_number = request.POST.get('client_ccc_number')
@@ -2380,11 +2406,13 @@ def save_intervention(request):
                             is_visible_by_ip[intervention.pk] = intervention.is_visible_by_ip(
                                 request.user.implementingpartneruser.implementing_partner)
 
-                            client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
-                                                                                enrolment=client)
+                            # client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                            #                                                     enrolment=client)
                             intervention_action_permission = InterventionActionPermissions(model=Intervention,
                                                                                            user=request.user,
-                                                                                           intervention=intervention)
+                                                                                           implementing_partner_user=
+                                                                                           request.user.implementingpartneruser,
+                                                                                           intervention=intervention,)
                             interventions_action_permissions = {
                                 'can_perform_edit': intervention_action_permission.can_perform_edit(),
                                 'can_perform_void': intervention_action_permission.can_perform_void()}
@@ -2394,8 +2422,8 @@ def save_intervention(request):
                                 'message': 'Intervention successfully saved',
                                 'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
                                 'i_type': serializers.serialize('json', [intervention_type]),
-                                'hts_results': serializers.serialize('json', HTSResult.objects.all()),
-                                'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
+                                'hts_results': serializers.serialize('json', htsresult),
+                                'pregnancy_results': serializers.serialize('json', pregnancytestresult),
                                 'permissions': json.dumps({
                                     'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
                                     'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention')
@@ -2576,7 +2604,7 @@ def get_implementing_partners(request):
             if has_get_arg('referral-client-id', request):
                 client_id = int(request.GET.get('referral-client-id'))
                 client_implementing_partner = Client.objects.get(id=client_id).implementing_partner
-                implementing_partners = ImplementingPartner.objects.all().exclude(id=client_implementing_partner.id)
+                implementing_partners = ImplementingPartner.objects.exclude(id=client_implementing_partner.id)
                 response_data = {
                     'implementing_partners': serializers.serialize('json', implementing_partners)
                 }
@@ -2628,8 +2656,11 @@ def get_intervention_list(request):
             is_editable_by_ip = {}
             is_visible_by_ip = {}
             intervention_ip_names = {}
-            client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
-            intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
+            #client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
+            intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user,
+                                                                            implementing_partner_user=
+                                                                            request.user.implementingpartneruser
+                                                                            )
             interventions_action_permissions = {}
             for i in list_of_interventions:
                 is_editable_by_ip[i.pk] = i.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner)
@@ -2903,9 +2934,9 @@ def update_intervention(request):
 
                     # check if intervention belongs to the ip
                     if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
-                        intervention.intervention_type = InterventionType.objects.get(
-                            code__exact=int(request.POST.get('intervention_type_code')))
-                        intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                        # intervention.intervention_type = InterventionType.objects.get(
+                        #     code__exact=int(request.POST.get('intervention_type_code')))
+                        #intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
 
                         intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
 
@@ -2936,15 +2967,21 @@ def update_intervention(request):
                         intervention.date_changed = dt.now()
                         intervention.comment = request.POST.get('comment')
 
-                        i_type = InterventionType.objects.get(id__exact=intervention.intervention_type.id)
+                        #i_type = InterventionType.objects.get(id__exact=intervention.intervention_type.id)
+                        i_type = intervention.intervention_type
+
+                        htsresult = HTSResult.objects.all()
+                        pregnancytestresult = PregnancyTestResult.objects.all()
 
                         if i_type.has_hts_result:
-                            intervention.hts_result = HTSResult.objects.get(
-                                code__exact=int(request.POST.get('hts_result')))
+                            if request.POST.get('hts_result'):
+                                intervention.hts_result = htsresult.get(
+                                    code__exact=int(request.POST.get('hts_result')))
 
                         if i_type.has_pregnancy_result:
-                            intervention.pregnancy_test_result = PregnancyTestResult.objects.get(
-                                code__exact=int(request.POST.get('pregnancy_test_result')))
+                            if request.POST.get('pregnancy_test_result'):
+                                intervention.pregnancy_test_result = pregnancytestresult.get(
+                                    code__exact=int(request.POST.get('pregnancy_test_result')))
 
                         if i_type.has_ccc_number:
                             intervention.client_ccc_number = request.POST.get('client_ccc_number')
@@ -2967,8 +3004,8 @@ def update_intervention(request):
                                                                              intervention.intervention_type.intervention_category.code))
                         cache.delete(intervention_type_category_cache_key)
                         # using defer() miraculously solved serialization problem of datetime properties.
-                        intervention = Intervention.objects.defer('date_changed', 'intervention_date',
-                                                                  'date_created').get(id__exact=intervention.id)
+                        # intervention = Intervention.objects.defer('date_changed', 'intervention_date',
+                        #                                           'date_created').get(id__exact=intervention.id)
                         # construct response
 
                         response_data = {
@@ -2976,8 +3013,8 @@ def update_intervention(request):
                             'message': 'Intervention successfully updated',
                             'intervention': serializers.serialize('json', [intervention, ], ensure_ascii=False),
                             'i_type': serializers.serialize('json', [i_type]),
-                            'hts_results': serializers.serialize('json', HTSResult.objects.all()),
-                            'pregnancy_results': serializers.serialize('json', PregnancyTestResult.objects.all()),
+                            'hts_results': serializers.serialize('json', htsresult),
+                            'pregnancy_results': serializers.serialize('json', pregnancytestresult),
                             'permissions': json.dumps({
                                 'can_change_intervention': request.user.has_perm('DreamsApp.change_intervention'),
                                 'can_delete_intervention': request.user.has_perm('DreamsApp.delete_intervention'),
