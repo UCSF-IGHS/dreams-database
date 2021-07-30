@@ -6,10 +6,10 @@ from xf.xf_services import XFModelPermissionBase
 
 class InterventionActionPermissions(XFModelPermissionBase):
 
-    def __init__(self, model, user, implementing_partner_user, intervention=None):
+    def __init__(self, model, user, intervention=None):
         self.model = model
         self.user = user
-        self.implementing_partner_user = implementing_partner_user # ImplementingPartnerUser.objects.get(user=user)
+        self.implementing_partner_user = ImplementingPartnerUser.objects.get(user=user)
         self.intervention = intervention
 
     def can_perform_new(self):

@@ -5,10 +5,10 @@ from xf.xf_services import XFModelPermissionBase
 
 class ClientActionPermissions(XFModelPermissionBase):
 
-    def __init__(self, model, user, implementing_partner_user, enrolment=None, *args, **kwargs):
+    def __init__(self, model, user, enrolment=None, *args, **kwargs):
         self.model = model
         self.user = user
-        self.implementing_partner_user = implementing_partner_user # ImplementingPartnerUser.objects.get(user=user)
+        self.implementing_partner_user = ImplementingPartnerUser.objects.get(user=user)
         self.enrolment = enrolment
 
     def can_perform_new(self):

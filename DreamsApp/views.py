@@ -282,15 +282,9 @@ class ClientListView(ListView):
                     except Exception as e:
                         current_ip = 0
 
-                    client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user,
-                                                                        implementing_partner_user=
-                                                                        self.request.user.implementingpartneruser
-                                                                        )
+                    client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user)
                     intervention_action_permissions = InterventionActionPermissions(model=Intervention,
-                                                                                    user=self.request.user,
-                                                                                    implementing_partner_user=
-                                                                                    self.request.user.implementingpartneruser
-                                                                                    )
+                                                                                    user=self.request.user)
                     display_first_100_clients = (search_result_length == 100)
 
                     # if request.is_ajax():
@@ -321,8 +315,7 @@ class ClientListView(ListView):
                     # Non ajax request.. Do a paginator
                     # do pagination
                     enrolment_results = [
-                        [ClientActionPermissions(model=Client, user=self.request.user, implementing_partner_user=
-                        self.request.user.implementingpartneruser, enrolment=client), client] for client in search_result]
+                        [ClientActionPermissions(model=Client, user=self.request.user, enrolment=client), client] for client in search_result]
 
                     try:
                         paginator = Paginator(enrolment_results, 20)
@@ -370,8 +363,7 @@ class ClientListView(ListView):
                     search_result_tuple = [search_result, 'False', '', '', '', '', '']
                     current_ip = self.request.user.implementingpartneruser.implementing_partner.code
 
-                    client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user, implementing_partner_user=
-                                                                                           self.request.user.implementingpartneruser)
+                    client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user)
                     # intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
                     client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
                     minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
@@ -423,9 +415,12 @@ class ClientDetailView(DetailView):
     template_name = 'client_baseline_data.html'
 
     def get_object(self, queryset=None):
-        client_id = int(self.request.GET['client_id'])
-        if client_id is not None and client_id != 0:
-            self.object = Client.objects.get(id=client_id, voided=False)
+        try:
+            client_id = int(self.request.GET['client_id'])
+            if client_id is not None and client_id != 0:
+                self.object = Client.objects.get(id=client_id, voided=False)
+        except Exception as e:
+            self.object = None
         return self.object
 
     def get_context_data(self, **kwargs):
@@ -473,7 +468,6 @@ class ClientDetailView(DetailView):
             current_user_belongs_to_same_ip_as_client = client_demographics.current_user_belongs_to_same_ip_as_client(
                 self.request.user.implementingpartneruser.implementing_partner_id)
             client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user,
-                                                                implementing_partner_user=self.request.user.implementingpartneruser,
                                                                 enrolment=client_demographics)
             client_action_permissions.can_perform_edit()
 
@@ -535,9 +529,7 @@ def householdview(request):
             household_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientIndividualAndHouseholdData,
-                                                                user=request.user,implementing_partner_user=
-                                                                request.user.implementingpartneruser,
-                                                                enrolment=client)
+                                                                user=request.user, enrolment=client)
             client_action_permissions.can_perform_edit()
 
             ip = request.user.implementingpartneruser.implementing_partner
@@ -587,9 +579,7 @@ def educationemploymentview(request):
             edu_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientEducationAndEmploymentData,
-                                                                user=request.user, implementing_partner_user=
-                                                                request.user.implementingpartneruser,
-                                                                enrolment=client)
+                                                                user=request.user, enrolment=client)
             client_action_permissions.can_perform_edit()
 
             ip = request.user.implementingpartneruser.implementing_partner
@@ -639,8 +629,6 @@ def hivtestingview(request):
             hiv_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientHIVTestingData, user=request.user,
-                                                                implementing_partner_user=
-                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -691,8 +679,6 @@ def sexualityview(request):
             sexuality_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientSexualActivityData, user=request.user,
-                                                                implementing_partner_user=
-                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -743,8 +729,6 @@ def reproductivehealthview(request):
             rh_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientReproductiveHealthData, user=request.user,
-                                                                implementing_partner_user=
-                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -795,8 +779,6 @@ def gbvview(request):
             gbv_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientGenderBasedViolenceData, user=request.user,
-                                                                implementing_partner_user=
-                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -847,8 +829,6 @@ def druguseview(request):
             drug_use_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientDrugUseData, user=request.user,
-                                                                implementing_partner_user=
-                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -899,8 +879,6 @@ def participationinprogramview(request):
             programe_participation_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientParticipationInDreams, user=request.user,
-                                                                implementing_partner_user=
-                                                                request.user.implementingpartneruser,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
@@ -1088,8 +1066,6 @@ def client_profile(request):
                 current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(
                     request.user.implementingpartneruser.implementing_partner_id)
                 client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
-                                                                    implementing_partner_user=
-                                                                    request.user.implementingpartneruser,
                                                                     enrolment=client_found)
                 # intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
                 # delegated_intervention_type_codes = get_delegated_intervention_type_codes(
@@ -1244,6 +1220,7 @@ class ClientCreateView(CreateView):
 ## NOT USED IN APPLICATION
 class ClientUpdateView(UpdateView):
     model = Client
+    fields = '__all__'
 
     def get_object(self, queryset=None):
         try:
@@ -1253,7 +1230,7 @@ class ClientUpdateView(UpdateView):
 
             elif self.request.method == 'POST':
                 client_id = int(str(self.request.POST.get('client_id')))
-                client = Client.objects.filter(id=client_id).first()
+                client = Client.objects.get(id=client_id, voided=False)
 
             self.object = client
             return self.object
@@ -1455,11 +1432,10 @@ class ClientDemographicsCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
 
             client_id = int(self.request.POST['client'])
             if client_id is not None and client_id != 0:
-                self.object = Client.objects.get(id=client_id)
+                return Client.objects.get(id=client_id)
             else:
-                self.object = None
-            return self.object
-        except AttributeError:
+                return None
+        except Exception as e:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1481,7 +1457,8 @@ class ClientDemographicsCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
                 response_data = {
                     'status': 'fail',
                     'errors': [
-                        "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                        "The client is not within the accepted age range. At the date of enrolment the age of the client"
+                        " must be between " + str(
                             min_max_age[0]) + " and " + str(min_max_age[1] + " years.")],
                     'client_age': self.object.get_current_age()
                 }
@@ -1499,7 +1476,11 @@ class ClientDemographicsCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
             }
             return JsonResponse(response_data, status=200)
         except Exception as e:
-            print(e)
+            response_data = {
+                'status': 'fail',
+                'errors': str(e)
+            }
+            return JsonResponse(response_data, status=500)
 
     def form_invalid(self, form):
         response_data = {
@@ -1524,11 +1505,10 @@ class IndividualHouseHoldCreateUpdateView(SingleObjectTemplateResponseMixin, Mod
                 client = Client.objects.get(id=client_id)
                 individialhousehold_queryset = client.clientindividualandhouseholddata_set
                 individialhousehold = individialhousehold_queryset.get() if individialhousehold_queryset.exists() else None
-                self.object = individialhousehold
+                return individialhousehold
             else:
-                self.object = None
-            return self.object
-        except AttributeError:
+                return None
+        except Exception as e:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1569,11 +1549,10 @@ class EducationAndEmploymentCreateUpdateView(SingleObjectTemplateResponseMixin, 
                 client = Client.objects.get(id=client_id)
                 educationandemployment_queryset = client.clienteducationandemploymentdata_set
                 educationandemployment = educationandemployment_queryset.get() if educationandemployment_queryset.exists() else None
-                self.object = educationandemployment
+                return educationandemployment
             else:
-                self.object = None
-            return self.object
-        except AttributeError:
+                return None
+        except Exception as e:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1614,11 +1593,10 @@ class HIVTestingCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMix
                 client = Client.objects.get(id=client_id)
                 clienthivtesting_queryset = client.clienthivtestingdata_set
                 clienthivtesting = clienthivtesting_queryset.get() if clienthivtesting_queryset.exists() else None
-                self.object = clienthivtesting
+                return clienthivtesting
             else:
-                self.object = None
-            return self.object
-        except AttributeError:
+                return None
+        except Exception as e:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1659,11 +1637,10 @@ class SexualityCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixi
                 client = Client.objects.get(id=client_id)
                 sexualactivity_queryset = client.clientsexualactivitydata_set
                 sexualactivity = sexualactivity_queryset.get() if sexualactivity_queryset.exists() else None
-                self.object = sexualactivity
+                return sexualactivity
             else:
-                self.object = None
-            return self.object
-        except AttributeError:
+                return None
+        except Exception as e:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1704,11 +1681,10 @@ class ReproductiveHealthCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
                 client = Client.objects.get(id=client_id)
                 reproductivehealth_queryset = client.clientreproductivehealthdata_set
                 reproductivehealth = reproductivehealth_queryset.get() if reproductivehealth_queryset.exists() else None
-                self.object = reproductivehealth
+                return reproductivehealth
             else:
-                self.object = None
-            return self.object
-        except AttributeError:
+                return None
+        except Exception as e:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1749,11 +1725,10 @@ class GenderBasedViolenceCreateUpdateView(SingleObjectTemplateResponseMixin, Mod
                 client = Client.objects.get(id=client_id)
                 gbv_queryset = client.clientgenderbasedviolencedata_set
                 gbv = gbv_queryset.get() if gbv_queryset.exists() else None
-                self.object = gbv
+                return gbv
             else:
-                self.object = None
-            return self.object
-        except AttributeError:
+                return None
+        except Exception as e:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1794,11 +1769,10 @@ class DrugUseCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin,
                 client = Client.objects.get(id=client_id)
                 druguse_queryset = client.clientdrugusedata_set
                 druguse = druguse_queryset.get() if druguse_queryset.exists() else None
-                self.object = druguse
+                return druguse
             else:
-                self.object = None
-            return self.object
-        except AttributeError:
+                return None
+        except Exception as e:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1839,11 +1813,10 @@ class ProgramParticipationCreateUpdateView(SingleObjectTemplateResponseMixin, Mo
                 client = Client.objects.get(id=client_id)
                 programparticipation_queryset = client.clientparticipationindreams_set
                 programparticipation = programparticipation_queryset.get() if programparticipation_queryset.exists() else None
-                self.object = programparticipation
+                return programparticipation
             else:
-                self.object = None
-            return self.object
-        except AttributeError:
+                return None
+        except Exception as e:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1898,7 +1871,7 @@ def unexit_client(request):
             client_id = int(str(request.POST.get('client_id', '0')))
             reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
             date_of_exit = request.POST.get('date_of_unexit', datetime.now())
-            client = Client.objects.filter(id=client_id).first()
+            client = Client.objects.get(id=client_id)
             try:
                 if not (client.current_user_belongs_to_same_ip_as_client(
                         request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser):
@@ -2394,9 +2367,9 @@ def save_intervention(request):
 
                         else:
                             # using defer() miraculously solved serialization problem of datetime properties.
-                            intervention = Intervention.objects.defer('date_changed', 'intervention_date',
-                                                                      'date_created'). \
-                                get(id__exact=intervention.id)
+                            # intervention = Intervention.objects.defer('date_changed', 'intervention_date',
+                            #                                           'date_created'). \
+                            #     get(id__exact=intervention.id)
 
                             is_editable_by_ip = {}
                             is_editable_by_ip[intervention.pk] = intervention.is_editable_by_ip(
@@ -2410,8 +2383,6 @@ def save_intervention(request):
                             #                                                     enrolment=client)
                             intervention_action_permission = InterventionActionPermissions(model=Intervention,
                                                                                            user=request.user,
-                                                                                           implementing_partner_user=
-                                                                                           request.user.implementingpartneruser,
                                                                                            intervention=intervention,)
                             interventions_action_permissions = {
                                 'can_perform_edit': intervention_action_permission.can_perform_edit(),
@@ -2631,7 +2602,10 @@ def get_intervention_list(request):
             client_id = request.POST.get('client_id')
             intervention_category_code = request.POST.get('intervention_category_code')
             iv_category = InterventionCategory.objects.get(code__exact=intervention_category_code)
-            list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
+
+            list_of_related_iv_types = iv_category.interventiontype_set.all()
+
+            #list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
             iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
             # check for see_other_ip_data persmission
             intervention_type_category_cache_key = 'client-{}-intervention-type-category-{}'.format(client_id,
@@ -2657,10 +2631,7 @@ def get_intervention_list(request):
             is_visible_by_ip = {}
             intervention_ip_names = {}
             #client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
-            intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user,
-                                                                            implementing_partner_user=
-                                                                            request.user.implementingpartneruser
-                                                                            )
+            intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
             interventions_action_permissions = {}
             for i in list_of_interventions:
                 is_editable_by_ip[i.pk] = i.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner)
@@ -2713,11 +2684,14 @@ def get_list_of_interventions(client_id, iv_type_ids, cache_key):
 
 
 def get_client_found(client_id, client_key):
-    client_found = cache.get(client_key)
-    if not client_found:
-        client_found = Client.objects.get(id=client_id)
-    cache_value(client_key, client_found)
-    return client_found
+    try:
+        client_found = cache.get(client_key)
+        if not client_found:
+            client_found = Client.objects.get(id=client_id)
+        cache_value(client_key, client_found)
+        return client_found
+    except Exception as e:
+        return None
 
 
 def get_intervention(request):
@@ -2858,9 +2832,9 @@ def update_follow_up(request):
                     }
                     return JsonResponse(response_data)
 
-                follow_up_type = ClientFollowUpType.objects.filter(id__exact=request.POST.get('follow_up_type')).first()
-                follow_up_result_type = ClientLTFUResultType.objects.filter(
-                    id__exact=request.POST.get('follow_up_result_type')).first()
+                follow_up_type = ClientFollowUpType.objects.get(id__exact=request.POST.get('follow_up_type'))
+                follow_up_result_type = ClientLTFUResultType.objects.get(
+                    id__exact=request.POST.get('follow_up_result_type'))
                 follow_up_date = request.POST.get('edit_follow_up_date')
                 follow_up_comments = request.POST.get('follow_up_comments')
 
@@ -3118,7 +3092,7 @@ def delete_intervention(request):
                     intervention_key = 'intervention-id-{}'.format(intervention_id)
                     intervention = cache.get(intervention_key)
                     if not intervention:
-                        intervention = Intervention.objects.filter(pk=intervention_id).first()
+                        intervention = Intervention.objects.get(pk=intervention_id)
                     cache_value(intervention_key, intervention)
 
                     if not intervention.is_editable_by_ip(
@@ -3194,7 +3168,7 @@ def get_sub_counties(request):
             sub_county_key = 'county-id-{}-sub_counties'.format(county_id)
             sub_counties = cache.get(sub_county_key)
             if not sub_counties:
-                sub_counties = SubCounty.objects.filter(county__exact=county.id)
+                sub_counties = county.subcounty_set.all()
             cache_value(sub_county_key, sub_counties)
             sub_counties = serializers.serialize('json', sub_counties)
             response_data["sub_counties"] = sub_counties
@@ -3218,7 +3192,7 @@ def get_wards(request):
         ward_key = 'sub-county-id-{}-wards'.format(sub_county_id)
         wards = cache.get(ward_key)
         if not wards:
-            wards = Ward.objects.filter(sub_county__exact=sub_county.id)
+            wards = sub_county.ward_set.all()
         cache_value(ward_key, wards)
         wards = serializers.serialize('json', wards)
         response_data["wards"] = wards
