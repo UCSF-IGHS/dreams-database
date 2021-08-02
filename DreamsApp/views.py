@@ -452,7 +452,8 @@ class ClientDetailView(DetailView):
             # then below: client_demographics.clientindividualandhouseholddata
             demographics_form = DemographicsForm(instance=client_demographics)
             search_client_term = self.request.GET.get('search_client_term', '')
-            ip = self.request.user.implementingpartneruser.implementing_partner
+            ip_user = self.request.user.implementingpartneruser
+            ip = ip_user.implementing_partner
             ip_code = ip.code if ip else None
 
             is_editable_by_ip = client_demographics.is_editable_by_ip(ip)
@@ -466,7 +467,7 @@ class ClientDetailView(DetailView):
             max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
             min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
             current_user_belongs_to_same_ip_as_client = client_demographics.current_user_belongs_to_same_ip_as_client(
-                self.request.user.implementingpartneruser.implementing_partner_id)
+                ip_user.implementing_partner_id)
             client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user,
                                                                 enrolment=client_demographics)
             client_action_permissions.can_perform_edit()
@@ -1011,6 +1012,7 @@ def client_profile(request):
             'client_id', '')
         search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
             'search_client_term', '')
+        ip = None
         if client_id is not None and client_id != 0:
             try:
                 ip = request.user.implementingpartneruser.implementing_partner
@@ -1026,6 +1028,7 @@ def client_profile(request):
             is_editable_by_ip = False
             can_add_intervention = False
             client_status = None
+            ip_user_id = request.user.implementingpartneruser.implementing_partner_id
 
             try:
                 client_found = Client.objects.get(id=client_id)
@@ -1040,8 +1043,9 @@ def client_profile(request):
                     cash_transfer_details_form = ClientCashTransferDetailsForm(instance=cash_transfer_details,
                                                                                current_AGYW=client_found)
                     cash_transfer_details_form.save(commit=False)
+
                 current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(
-                    request.user.implementingpartneruser.implementing_partner_id)
+                    ip_user_id)
                 #intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
                 return render(request, 'client_profile.html', {'page': 'clients',
                                                                'page_title': 'DREAMS Client Service Uptake',
@@ -1064,7 +1068,7 @@ def client_profile(request):
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
                 current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(
-                    request.user.implementingpartneruser.implementing_partner_id)
+                    ip_user_id)
                 client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
                                                                     enrolment=client_found)
                 # intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
@@ -1253,8 +1257,8 @@ class ClientUpdateView(UpdateView):
                         return render(self.request, 'enrollment.html', {'client': client})
                     return redirect('clients')
                 elif self.request.method == 'POST':
-                    if not client.is_editable_by_ip(
-                            self.request.user.implementingpartneruser.implementing_partner) or client.exited:
+                    ip = self.request.user.implementingpartneruser.implementing_partner
+                    if not client.is_editable_by_ip(ip) or client.exited:
                         response_data = {
                             'status': 'failed',
                             'message': 'Operation not allowed. Client is not editable by your Implementing partner or is exited',
@@ -1262,7 +1266,7 @@ class ClientUpdateView(UpdateView):
                         }
                         return JsonResponse(json.dumps(response_data), safe=False)
 
-                    if client.implementing_partner != self.request.user.implementingpartneruser.implementing_partner:
+                    if client.implementing_partner != ip:
                         # user and client IPs dont match. Return error message
                         response_data = {
                             'status': 'failed',
@@ -1372,8 +1376,8 @@ class ClientDeleteView(DeleteView):
                 raise PermissionDenied
 
             client = self.object
-            if not client.is_editable_by_ip(
-                    self.request.user.implementingpartneruser.implementing_partner) or client.exited:
+            ip = self.request.user.implementingpartneruser.implementing_partner
+            if not client.is_editable_by_ip(ip) or client.exited:
                 response_data = {
                     'status': 'failed',
                     'message': 'Operation not allowed. Client is not editable by your Implementing partner or is exited',
@@ -1382,7 +1386,7 @@ class ClientDeleteView(DeleteView):
                 return JsonResponse(json.dumps(response_data), safe=False)
 
             # check if client and user IPs match
-            if client.implementing_partner != self.request.user.implementingpartneruser.implementing_partner:
+            if client.implementing_partner != ip:
                 response_data = {
                     'status': 'failed',
                     'message': 'Operation not allowed. Client is not enrolled by your Implementing partner',
@@ -1430,8 +1434,8 @@ class ClientDemographicsCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = int(self.request.POST['client'])
-            if client_id is not None and client_id != 0:
+            client_id = self.request.POST['client']
+            if client_id is not None and client_id != "0":
                 return Client.objects.get(id=client_id)
             else:
                 return None
@@ -1500,9 +1504,9 @@ class IndividualHouseHoldCreateUpdateView(SingleObjectTemplateResponseMixin, Mod
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = int(self.request.POST['client'])
-            if client_id is not None and client_id != 0:
-                client = Client.objects.get(id=client_id)
+            client_id = self.request.POST['client']
+            if client_id is not None and client_id != "0":
+                client = Client.objects.get(id=int(client_id), voided=False)
                 individialhousehold_queryset = client.clientindividualandhouseholddata_set
                 individialhousehold = individialhousehold_queryset.get() if individialhousehold_queryset.exists() else None
                 return individialhousehold
@@ -1544,9 +1548,9 @@ class EducationAndEmploymentCreateUpdateView(SingleObjectTemplateResponseMixin, 
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = int(self.request.POST['client'])
-            if client_id is not None and client_id != 0:
-                client = Client.objects.get(id=client_id)
+            client_id = self.request.POST['client']
+            if client_id is not None and client_id != "0":
+                client = Client.objects.get(id=int(client_id), voided=False)
                 educationandemployment_queryset = client.clienteducationandemploymentdata_set
                 educationandemployment = educationandemployment_queryset.get() if educationandemployment_queryset.exists() else None
                 return educationandemployment
@@ -1588,16 +1592,16 @@ class HIVTestingCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMix
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = int(self.request.POST['client'])
-            if client_id is not None and client_id != 0:
-                client = Client.objects.get(id=client_id)
+            client_id = self.request.POST['client']
+            if client_id is not None and client_id != "0":
+                client = Client.objects.get(id=int(client_id), voided=False)
                 clienthivtesting_queryset = client.clienthivtestingdata_set
                 clienthivtesting = clienthivtesting_queryset.get() if clienthivtesting_queryset.exists() else None
                 return clienthivtesting
             else:
                 return None
         except Exception as e:
-            return None
+            raise ValueError
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -1632,16 +1636,16 @@ class SexualityCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixi
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = int(self.request.POST['client'])
-            if client_id is not None and client_id != 0:
-                client = Client.objects.get(id=client_id)
+            client_id = self.request.POST['client']
+            if client_id is not None and client_id != "0":
+                client = Client.objects.get(id=int(client_id), voided=False)
                 sexualactivity_queryset = client.clientsexualactivitydata_set
                 sexualactivity = sexualactivity_queryset.get() if sexualactivity_queryset.exists() else None
                 return sexualactivity
             else:
                 return None
         except Exception as e:
-            return None
+            raise ValueError
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -1676,9 +1680,9 @@ class ReproductiveHealthCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = int(self.request.POST['client'])
-            if client_id is not None and client_id != 0:
-                client = Client.objects.get(id=client_id)
+            client_id = self.request.POST['client']
+            if client_id is not None and client_id != "0":
+                client = Client.objects.get(id=int(client_id), voided=False)
                 reproductivehealth_queryset = client.clientreproductivehealthdata_set
                 reproductivehealth = reproductivehealth_queryset.get() if reproductivehealth_queryset.exists() else None
                 return reproductivehealth
@@ -1720,9 +1724,9 @@ class GenderBasedViolenceCreateUpdateView(SingleObjectTemplateResponseMixin, Mod
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = int(self.request.POST['client'])
-            if client_id is not None and client_id != 0:
-                client = Client.objects.get(id=client_id)
+            client_id = self.request.POST['client']
+            if client_id is not None and client_id != "0":
+                client = Client.objects.get(id=int(client_id), voided=False)
                 gbv_queryset = client.clientgenderbasedviolencedata_set
                 gbv = gbv_queryset.get() if gbv_queryset.exists() else None
                 return gbv
@@ -1764,9 +1768,9 @@ class DrugUseCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin,
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = int(self.request.POST['client'])
-            if client_id is not None and client_id != 0:
-                client = Client.objects.get(id=client_id)
+            client_id = self.request.POST['client']
+            if client_id is not None and client_id != "0":
+                client = Client.objects.get(id=int(client_id), voided=False)
                 druguse_queryset = client.clientdrugusedata_set
                 druguse = druguse_queryset.get() if druguse_queryset.exists() else None
                 return druguse
@@ -1808,9 +1812,9 @@ class ProgramParticipationCreateUpdateView(SingleObjectTemplateResponseMixin, Mo
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = int(self.request.POST['client'])
-            if client_id is not None and client_id != 0:
-                client = Client.objects.get(id=client_id)
+            client_id = self.request.POST['client']
+            if client_id is not None and client_id != "0":
+                client = Client.objects.get(id=int(client_id), voided=False)
                 programparticipation_queryset = client.clientparticipationindreams_set
                 programparticipation = programparticipation_queryset.get() if programparticipation_queryset.exists() else None
                 return programparticipation
@@ -2195,7 +2199,8 @@ def save_intervention(request):
                 return JsonResponse(response_data)
 
             # Check if user belongs to an Ip
-            if request.user.implementingpartneruser.implementing_partner is not None:
+            ip = request.user.implementingpartneruser.implementing_partner
+            if ip is not None:
                 intervention_type_code = int(request.POST.get('intervention_type_code'))
                 intervention_type_key = 'intervention-type-{}'.format(intervention_type_code)
 
@@ -2372,12 +2377,10 @@ def save_intervention(request):
                             #     get(id__exact=intervention.id)
 
                             is_editable_by_ip = {}
-                            is_editable_by_ip[intervention.pk] = intervention.is_editable_by_ip(
-                                request.user.implementingpartneruser.implementing_partner)
+                            is_editable_by_ip[intervention.pk] = intervention.is_editable_by_ip(ip)
 
                             is_visible_by_ip = {}
-                            is_visible_by_ip[intervention.pk] = intervention.is_visible_by_ip(
-                                request.user.implementingpartneruser.implementing_partner)
+                            is_visible_by_ip[intervention.pk] = intervention.is_visible_by_ip(ip)
 
                             # client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
                             #                                                     enrolment=client)
@@ -2605,6 +2608,7 @@ def get_intervention_list(request):
 
             list_of_related_iv_types = iv_category.interventiontype_set.all()
 
+            ip = request.user.implementingpartneruser.implementing_partner
             #list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
             iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
             # check for see_other_ip_data persmission
@@ -2614,12 +2618,10 @@ def get_intervention_list(request):
                                                               intervention_type_category_cache_key)
             client_key = 'client-{}'.format(client_id)
             client_found = get_client_found(client_id, client_key)
-            client_is_transferred_out = client_found.transferred_out(
-                request.user.implementingpartneruser.implementing_partner)
+            client_is_transferred_out = client_found.transferred_out(ip)
             if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 if client_is_transferred_out:
-                    list_of_interventions = list_of_interventions.filter(
-                        implementing_partner_id=request.user.implementingpartneruser.implementing_partner.id)
+                    list_of_interventions = list_of_interventions.filter(implementing_partner_id=ip.id)
 
             if not request.user.has_perm('auth.can_view_older_records'):
                 list_of_interventions = list_of_interventions.filter(date_created__range=
@@ -2633,10 +2635,11 @@ def get_intervention_list(request):
             #client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
             intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
             interventions_action_permissions = {}
+
             for i in list_of_interventions:
-                is_editable_by_ip[i.pk] = i.is_editable_by_ip(request.user.implementingpartneruser.implementing_partner)
-                is_visible_by_ip[i.pk] = i.is_visible_by_ip(request.user.implementingpartneruser.implementing_partner)
-                intervention_ip_names[i.pk] = i.implementing_partner.name
+                is_editable_by_ip[i.pk] = i.is_editable_by_ip(ip)
+                is_visible_by_ip[i.pk] = i.is_visible_by_ip(ip)
+                intervention_ip_names[i.pk] = ip.name
                 intervention_action_permissions.intervention = i
                 current_actions_permissions = {
                     'can_perform_edit': intervention_action_permissions.can_perform_edit(),
@@ -2895,19 +2898,19 @@ def update_intervention(request):
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and \
                 request.user.is_active and request.user.has_perm('DreamsApp.change_intervention'):
             # Check if user belongs to an Ip
-            if request.user.implementingpartneruser.implementing_partner is not None:
+            ip = request.user.implementingpartneruser.implementing_partner
+            if ip is not None:
                 intervention_id = int(request.POST.get('intervention_id'))
                 if intervention_id is not None and type(intervention_id) is int:
                     intervention = Intervention.objects.get(id__exact=intervention_id)
 
-                    if not intervention.is_editable_by_ip(
-                            request.user.implementingpartneruser.implementing_partner) or intervention.client.exited:
+                    if not intervention.is_editable_by_ip(ip) or intervention.client.exited:
                         raise Exception(
                             'You do not have the rights to update this intervention or the client has been exited.'
                         )
 
                     # check if intervention belongs to the ip
-                    if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
+                    if intervention.implementing_partner == ip:
                         # intervention.intervention_type = InterventionType.objects.get(
                         #     code__exact=int(request.POST.get('intervention_type_code')))
                         #intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
@@ -3084,7 +3087,8 @@ def delete_intervention(request):
         if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and \
                 request.user.is_active and request.user.has_perm('DreamsApp.delete_intervention'):
             # Check if user belongs to an Ip
-            if request.user.implementingpartneruser.implementing_partner is not None:
+            ip = request.user.implementingpartneruser.implementing_partner
+            if ip is not None:
                 intervention_id = int(request.POST.get('intervention_delete_id'))
                 if intervention_id is not None and type(intervention_id) is int:
                     # get intervention
@@ -3095,15 +3099,14 @@ def delete_intervention(request):
                         intervention = Intervention.objects.get(pk=intervention_id)
                     cache_value(intervention_key, intervention)
 
-                    if not intervention.is_editable_by_ip(
-                            request.user.implementingpartneruser.implementing_partner) or intervention.client.exited:
+                    if not intervention.is_editable_by_ip(ip) or intervention.client.exited:
                         response_data = {
                             'status': 'fail',
                             'message': 'You do not have the rights to delete this intervention or the client has been exited.'
                         }
                         return JsonResponse(response_data)
 
-                    if intervention.implementing_partner == request.user.implementingpartneruser.implementing_partner:
+                    if intervention.implementing_partner == ip:
                         intervention.voided = True
                         intervention.voided_by = request.user
                         intervention.date_voided = datetime.now()
@@ -3415,11 +3418,12 @@ def save_user(request):
             if not request.user.has_perm('auth.can_change_cross_ip_data'):
                 # User must register new user under their IP. Theck if user has a valid IP
                 # check if registering user belongs to an IP
-                if request.user.implementingpartneruser.implementing_partner is None:  # Registering user does not belong to an IP. Raise exception
+                ip = request.user.implementingpartneruser.implementing_partner
+                if ip is None:  # Registering user does not belong to an IP. Raise exception
                     raise Exception("Error: You do not belong to an Implementing Partner. "
                                     "Please contact your system admin to add you to the relevant Implementing Partner.")
 
-                elif new_user_ip != request.user.implementingpartneruser.implementing_partner:
+                elif new_user_ip != ip:
                     # Registering user and user do not belong to same IP. Raise exception
                     raise Exception(
                         "Error: You do not have permission to register a user under a different Implementing"
@@ -3839,6 +3843,7 @@ def export_page(request):
 
         try:
             ips = None
+            ip_user = request.user.implementingpartneruser
             if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
 
