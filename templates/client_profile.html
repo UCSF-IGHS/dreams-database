@@ -36,8 +36,8 @@
                                value="{{ user.id }}"/>
                         <input class="hidden validate-intervention-form-field" name="intervention_by_referral" id="intervention_by_referral"
                                    value="0"/>
-                        <input class="hidden validate-intervention-form-field" name="delegated_intervention_type_codes" id="delegated_intervention_type_codes"
-                                   value="{{ delegated_intervention_type_codes }}"/>
+                        <!-- <input class="hidden validate-intervention-form-field" name="delegated_intervention_type_codes" id="delegated_intervention_type_codes"
+                                   value="{{ delegated_intervention_type_codes }}"/> -->
 
                         <!-- End of Permanently hidden fields -->
 
@@ -317,7 +317,7 @@
                     {% endif %}
                 </div>
                 {% endif %}
-                <!--/col-->
+
                 <!--<div class="col-xs-12 col-sm-2 hidden">
                 <p><strong> </strong> <br>
                     {% if perms.DreamsApp.change_clientcashtransferdetails %}
@@ -325,7 +325,7 @@
                     {{ client.id }}' style="cursor:pointer;" data-toggle="tooltip" title="Edit cash transfer details"><span class="glyphicon glyphicon-pencil"></span> Cash Transfer Details</p>
                     {% endif %}
                 </p>
-            </div><!--/col-->
+            </div> -->
             </div>
         </div>
 
