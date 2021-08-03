@@ -2639,7 +2639,7 @@ def get_intervention_list(request):
             for i in list_of_interventions:
                 is_editable_by_ip[i.pk] = i.is_editable_by_ip(ip)
                 is_visible_by_ip[i.pk] = i.is_visible_by_ip(ip)
-                intervention_ip_names[i.pk] = ip.name
+                intervention_ip_names[i.pk] = i.implementing_partner.name
                 intervention_action_permissions.intervention = i
                 current_actions_permissions = {
                     'can_perform_edit': intervention_action_permissions.can_perform_edit(),
