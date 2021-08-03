@@ -31,15 +31,15 @@ class InterventionSecurityService:
         checks_passed = []
         vI002 = InterventionSecurityServiceChecks.check_client_belongs_to_ip(user, intervention.client)
         if vI002 is None:
-            vI004 = InterventionSecurityServiceChecks.check_ip_has_active_delegation(
-                intervention.client.implementing_partner, user.implementing_partner)
-            if vI004 is not None:
-                checks_passed.append(vI004)
-            else:
-                vI005 = InterventionSecurityServiceChecks.check_client_has_active_referral_to_ip(
-                    intervention.client, user.implementing_partner, intervention.intervention_type)
-                if vI005 is not None:
-                    checks_passed.append(vI005)
+            # vI004 = InterventionSecurityServiceChecks.check_ip_has_active_delegation(
+            #     intervention.client.implementing_partner, user.implementing_partner)
+            # if vI004 is not None:
+            #     checks_passed.append(vI004)
+            # else:
+            vI005 = InterventionSecurityServiceChecks.check_client_has_active_referral_to_ip(
+                intervention.client, user.implementing_partner, intervention.intervention_type)
+            if vI005 is not None:
+                checks_passed.append(vI005)
         else:
             checks_passed.append(vI002)
         if checks_passed:
