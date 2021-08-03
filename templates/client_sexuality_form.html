@@ -8,7 +8,7 @@
         <label class="control-label enrolment-label">{{ sexuality_form.ever_had_sex.label_tag }}</label>
         {{ sexuality_form.ever_had_sex|add_class:"input-sm girl-ever-had-sex form-control enrolment-input listen-to-change"|set_data:"show_value:1"|set_data:"show_if_true:sex-experience-yes"|set_data:"hide_if_false:sexual-partners sex-experience-yes" }}
     </div>
-    <div class="sex-experience-yes {% if sexuality_form.ever_had_sex.value != 1 %} hidden {% endif %}">
+    <div class="sex-experience-yes {% if sexuality_form.ever_had_sex.value != 1 %}hidden{% endif %}">
         <div id="age_at_first_sexual_encounter" class="form-group form-inline">
             {{ sexuality_form.age_at_first_sexual_encounter.errors }}
             <label class="control-label enrolment-label">{{ sexuality_form.age_at_first_sexual_encounter.label_tag }}</label>
@@ -26,7 +26,6 @@
         </div>
     </div>
     <div class="sexual-partners {% if sexuality_form.sex_partners_in_last_12months.value <= 0 %}hidden{% endif %}">
-
         <label class="control-label enrolment-input-header-question">Is this partner same age, younger or older than you?</label>
         <div id="sex_partners_age" class="form-group form-inline last-partner">
             <br/>
