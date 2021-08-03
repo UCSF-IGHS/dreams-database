@@ -2655,11 +2655,6 @@ $(document).ready(function () {
         }
     });
 
-
-
-
-
-
     $("#accept-transfer-modal, #reject-transfer-modal, #client-transfer-modal, #client-void-modal, #reject-referral-modal").on('hidden.bs.modal', function () {
         $(this).each(function () {
             var form = $(this).find('form');

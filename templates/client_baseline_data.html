@@ -266,8 +266,6 @@
             <br/>
 
             <script>
-                baseonchange();
-                frmdemographicsonsubmit() /* Default */
 
                 $('#dreams-enrollment-tab-control a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                     var target = $(e.target).attr("href") // activated tab
@@ -287,8 +285,7 @@
                             {
                                 $('#individual_and_household').html(result.household_form);
                                 individualhouseholdvalidate();
-                                baseonchange();
-                                frmhouseholdonsubmit();
+
                             },
                             error: function (xhr, errmsg, err) {
                                 alert(errmsg);
@@ -306,8 +303,6 @@
                             success: function (result) {
                                 $('#education_and_employment').html(result.edu_form);
                                 educationemploymentvalidate();
-                                baseonchange();
-                                frmeducationemploymentonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
                                 alert(errmsg);
@@ -325,14 +320,14 @@
                             success: function (result) {
                                 $('#hiv_testing').html(result.hiv_form);
                                 hivtestingvalidate();
-                                baseonchange();
-                                frmhivtestingonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
                                 alert(errmsg);
                             }
                         });
                     } else if (target == "#sexuality") {
+
+                        $('.sex-experience-yes sexual-partners').addClass('hidden');
                         $.ajax({
                             type: "POST",
                             url: '/sexuality_info',
@@ -344,10 +339,6 @@
                             success: function (result) {
                                 $('#sexuality').html(result.sexuality_form);
                                 sexualityvalidate();
-                                baseonchange();
-                                frmsexualityonsubmit();
-
-                                /* $('.listen-to-change-initial').trigger('change'); */
                             },
                             error: function (xhr, errmsg, err) {
                                 alert(errmsg);
@@ -365,8 +356,6 @@
                             success: function (result) {
                                 $('#reproductive_health').html(result.rh_form);
                                 frmreproductivehealthvalidate();
-                                baseonchange();
-                                frmreproductivehealthonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
                                 alert(errmsg);
@@ -384,8 +373,6 @@
                             success: function (result) {
                                 $('#gbv').html(result.gbv_form);
                                 gbvvalidate();
-                                baseonchange();
-                                frmgbvonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
                                 alert(errmsg);
@@ -403,8 +390,6 @@
                             success: function (result) {
                                 $('#drug_use').html(result.drug_use_form);
                                 drugusevalidate();
-                                baseonchange();
-                                frmdruguseonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
                                 alert(errmsg);
@@ -421,8 +406,6 @@
                             dataType: 'json',
                             success: function (result) {
                                 $('#participation_in_program').html(result.programe_participation_form);
-                                baseonchange();
-                                frmparticipationonsubmit();
                             },
                             error: function (xhr, errmsg, err) {
                                 alert(errmsg);
@@ -444,299 +427,287 @@
                     return concatString;
                 }
 
-                function frmdemographicsonsubmit() {
-                    //Handle demographics tab
-                    $('#form_demographics').on('submit', function (event) {
-                        event.preventDefault()
-                        if (!$(event.target).valid()) // Check if form is valid
-                            return false;   // return, form is not valid
-                        // enable disabled fields
-                        var form = $('#form_demographics');
-                        $('#demo_current_client_id').val($('#current_client_id').val());
+                //Handle demographics tab
+                $(document).on('submit','#form_demographics', function(event) {
+                    event.preventDefault()
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;   // return, form is not valid
+                    // enable disabled fields
+                    var form = $('#form_demographics');
+                    $('#demo_current_client_id').val($('#current_client_id').val());
 
-                        $.ajax({
-                            type: "POST",
-                            url: form.attr('action'),
-                            data: $(this).serialize(),
-                            success: function (data) {
-                                if (data.status == 'success') {
-                                    var client_age = data.client_age;
-                                    //$('#demo_replacement').replaceWith(data);
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                        .text('saved successfully')
-                                        .trigger('madeVisible')
-                                    // Updating client details
-                                    // Full name
-                                    var clientFullName = concatWithSpace([$('#id_first_name').val(), $('#id_middle_name').val(), $('#id_last_name').val()])
-                                    $('#shown_client_name').html(clientFullName);
-                                    // Dreams id -- this can never change
-                                    $('#shown_client_dob').html($('#id_date_of_birth').val())
-                                    $('#shown_client_age').html(client_age)
-                                    $('#shown_client_doe').html($('#id_date_of_enrollment').val())
-                                    $('#shown_client_phone').html($('#id_phone_number').val())
-                                    $('#shown_client_marital_status').html($('#id_marital_status option:selected').text())
-                                } else {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                                        .text('Could not save changes')
-                                        .trigger('madeVisible')
-                                }
-
-                            },
-                            error: function (xhr, errmsg, err) {
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                var client_age = data.client_age;
+                                //$('#demo_replacement').replaceWith(data);
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
+                                    .trigger('madeVisible')
+                                // Updating client details
+                                // Full name
+                                var clientFullName = concatWithSpace([$('#id_first_name').val(), $('#id_middle_name').val(), $('#id_last_name').val()])
+                                $('#shown_client_name').html(clientFullName);
+                                // Dreams id -- this can never change
+                                $('#shown_client_dob').html($('#id_date_of_birth').val())
+                                $('#shown_client_age').html(client_age)
+                                $('#shown_client_doe').html($('#id_date_of_enrollment').val())
+                                $('#shown_client_phone').html($('#id_phone_number').val())
+                                $('#shown_client_marital_status').html($('#id_marital_status option:selected').text())
+                            } else {
                                 $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                                     .text('Could not save changes')
                                     .trigger('madeVisible')
                             }
-                        });
+
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+                        }
                     });
-                }
+                });
 
-                function frmhouseholdonsubmit() {
-                    //Handle Individual and household tab
-                    $('#form_ind_household').on('submit', function (event) {
-                        event.preventDefault();
-                        if (!$(event.target).valid()) // Check if form is valid
-                            return false;
+                //Handle Individual and household tab
+                $(document).on('submit','#form_ind_household', function(event) {
+                    event.preventDefault();
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
 
-                        var form = $('#form_ind_household')
-                        $.ajax({
-                            type: "POST",
-                            url: form.attr('action'),
-                            data: $(this).serialize(),
-                            success: function (data) {
-                                //$('#household_replacement').replaceWith(data);
-                                if (data.status == 'success') {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                        .text('saved successfully')
-                                        .trigger('madeVisible')
-                                } else {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                                }
-                            },
-                            error: function (xhr, errmsg, err) {
-                                alert(xhr.toString());
-                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                                    .text('Could not save changes')
+                    var form = $('#form_ind_household')
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            //$('#household_replacement').replaceWith(data);
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
                                     .trigger('madeVisible')
+                            } else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
                             }
-                        });
+                        },
+                        error: function (xhr, errmsg, err) {
+                            alert(xhr.toString());
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+                        }
                     });
-                }
+                });
 
-                function frmeducationemploymentonsubmit() {
-                    //Handle Education and employment tab
-                    $('#form_edu_and_employment').on('submit', function (event) {
-                        event.preventDefault();
+                //Handle Education and employment tab
+                $(document).on('submit','#form_edu_and_employment', function(event) {
+                    event.preventDefault();
 
-                        if (!$(event.target).valid()) // Check if form is valid
-                            return false;
-                        var form = $('#form_edu_and_employment');
-                        $.ajax({
-                            type: "POST",
-                            url: form.attr('action'),
-                            data: $(this).serialize(),
-                            success: function (data) {
-                                if (data.status == 'success') {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                        .text('saved successfully')
-                                        .trigger('madeVisible')
-                                } else {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                                }
-                            },
-                            error: function (xhr, errmsg, err) {
-                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                                    .text('Could not save changes')
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+                    var form = $('#form_edu_and_employment');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
                                     .trigger('madeVisible')
+                            } else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
                             }
-                        });
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+                        }
                     });
-                }
+                });
 
-                function frmhivtestingonsubmit() {
-                    //Handle HIV Testing tab
-                    $('#form_hiv_testing').on('submit', function (event) {
-                        event.preventDefault();
+                //Handle HIV Testing tab
+                $(document).on('submit','#form_hiv_testing', function(event) {
+                    event.preventDefault();
 
-                        if (!$(event.target).valid()) // Check if form is valid
-                            return false;
-                        var form = $('#form_hiv_testing');
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+                    var form = $('#form_hiv_testing');
 
-                        $.ajax({
-                            type: "POST",
-                            url: form.attr('action'),
-                            data: $(this).serialize(),
-                            success: function (data) {
-                                if (data.status == 'success') {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                        .text('saved successfully')
-                                        .trigger('madeVisible')
-                                } else {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                                }
-                            },
-                            error: function (xhr, errmsg, err) {
-                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                                    .text('Could not save changes')
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
                                     .trigger('madeVisible')
+                            } else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
                             }
-                        });
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+                        }
                     });
-                }
+                });
 
-                function frmsexualityonsubmit() {
-                    //Handle Sexuality Tab
-                    $('#form_sexuality').on('submit', function (event) {
-                        event.preventDefault();
 
-                        if (!$(event.target).valid()) // Check if form is valid
-                            return false;
+                //Handle Sexuality Tab
+                $(document).on('submit','#form_sexuality', function(event) {
+                    event.preventDefault();
 
-                        var form = $('#form_sexuality');
-                        $.ajax({
-                            type: "POST",
-                            url: form.attr('action'),
-                            data: $(this).serialize(),
-                            success: function (data) {
-                                if (data.status == 'success') {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                        .text('saved successfully')
-                                        .trigger('madeVisible')
-                                } else {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                                }
-                            },
-                            error: function (xhr, errmsg, err) {
-                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                                    .text('Could not save changes')
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+
+                    var form = $('#form_sexuality');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
                                     .trigger('madeVisible')
+                            } else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
                             }
-                        });
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+                        }
                     });
-                }
+                });
 
-                function frmreproductivehealthonsubmit() {
-                    //Handle Reproductive Health Tab
-                    $('#form_rep_health').on('submit', function (event) {
-                        event.preventDefault();
 
-                        if (!$(event.target).valid()) // Check if form is valid
-                            return false;
-                        var form = $('#form_rep_health');
-                        $.ajax({
-                            type: "POST",
-                            url: form.attr('action'),
-                            data: $(this).serialize(),
-                            success: function (data) {
-                                if (data.status == 'success') {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                        .text('saved successfully')
-                                        .trigger('madeVisible')
-                                } else {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                                }
-                            },
-                            error: function (xhr, errmsg, err) {
-                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                                    .text('Could not save changes')
+                //Handle Reproductive Health Tab
+                $(document).on('submit','#form_rep_health', function(event) {
+                    event.preventDefault();
+
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+                    var form = $('#form_rep_health');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
                                     .trigger('madeVisible')
+                            } else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
                             }
-                        });
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+                        }
                     });
-                }
+                });
 
-                function frmgbvonsubmit() {
-                    //Handle GBV Tab
-                    $('#form_gbv').on('submit', function (event) {
-                        event.preventDefault();
 
-                        if (!$(event.target).valid()) // Check if form is valid
-                            return false;
+                //Handle GBV Tab
+                $(document).on('submit','#form_gbv', function(event) {
+                    event.preventDefault();
 
-                        var form = $('#form_gbv');
-                        $.ajax({
-                            type: "POST",
-                            url: form.attr('action'),
-                            data: $(this).serialize(),
-                            success: function (data) {
-                                if (data.status == 'success') {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                        .text('saved successfully')
-                                        .trigger('madeVisible')
-                                } else {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                                }
-                            },
-                            error: function (xhr, errmsg, err) {
-                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                                    .text('Could not save changes')
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+
+                    var form = $('#form_gbv');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
                                     .trigger('madeVisible')
+                            } else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
                             }
-                        });
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+                        }
                     });
-                }
+                });
 
-                function frmdruguseonsubmit() {
-                    //Handle Drug Use tab
-                    $('#form_drug_use').on('submit', function (event) {
-                        event.preventDefault();
 
-                        if (!$(event.target).valid()) // Check if form is valid
-                            return false;
+                //Handle Drug Use tab
+                $(document).on('submit','#form_drug_use', function(event) {
+                    event.preventDefault();
 
-                        var form = $('#form_drug_use');
-                        $.ajax({
-                            type: "POST",
-                            url: form.attr('action'),
-                            data: $(this).serialize(),
-                            success: function (data) {
-                                if (data.status == 'success') {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                        .text('saved successfully')
-                                        .trigger('madeVisible')
-                                } else {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                                }
-                            },
-                            error: function (xhr, errmsg, err) {
-                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                                    .text('Could not save changes')
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+
+                    var form = $('#form_drug_use');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
                                     .trigger('madeVisible')
+                            } else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
                             }
-                        });
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+                        }
                     });
-                }
+                });
 
-                function frmparticipationonsubmit() {
-                    //Handle Participation in programmes tab
-                    $('#form_programme_participation').on('submit', function (event) {
-                        event.preventDefault();
 
-                        if (!$(event.target).valid()) // Check if form is valid
-                            return false;
+                //Handle Participation in programmes tab
+                $(document).on('submit','#form_programme_participation', function(event) {
+                    event.preventDefault();
 
-                        var form = $('#form_programme_participation');
-                        $.ajax({
-                            type: "POST",
-                            url: form.attr('action'),
-                            data: $(this).serialize(),
-                            success: function (data) {
-                                if (data.status == 'success') {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
-                                        .text('saved successfully')
-                                        .trigger('madeVisible')
-                                } else {
-                                    $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
-                                }
-                            },
-                            error: function (xhr, errmsg, err) {
-                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
-                                    .text('Could not save changes')
+                    if (!$(event.target).valid()) // Check if form is valid
+                        return false;
+
+                    var form = $('#form_programme_participation');
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: $(this).serialize(),
+                        success: function (data) {
+                            if (data.status == 'success') {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-success')
+                                    .text('saved successfully')
                                     .trigger('madeVisible')
+                            } else {
+                                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('Could not save changes').trigger('madeVisible')
                             }
-                        });
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                                .text('Could not save changes')
+                                .trigger('madeVisible')
+                        }
                     });
-                }
+                });
+
 
                 function individualhouseholdvalidate() {
                     $("#form_ind_household").validate({
@@ -1129,139 +1100,135 @@
                 }
 
 
-                function baseonchange() {
-                    $('.multi-select').on('change', function () {
-                        var selected = $(this).val();
-                        var show_value = $(this).data('show_value');
-                        var show_if_true = $(this).data('show_if_true');
+                $(document).on("change",'.multi-select', function() {
+                    var selected = $(this).val();
+                    var show_value = $(this).data('show_value');
+                    var show_if_true = $(this).data('show_if_true');
 
-                        for (var i = 0; i < selected.length; i++) {
-                            if (selected[i] == show_value) {
-                                $('.' + show_if_true).removeClass('hidden');
-                            } else {
-                                $('.' + show_if_true).addClass('hidden');
-                            }
-                        }
-                        console.log(selected);
-                    });
-
-                    $('.if-not-listener').on('change', function () {
-                        var selected = $(this).val();
-                        var if_not_value = $(this).data('if_not_value');
-                        var if_not_show_class = $(this).data('if_not_show_class');
-
-                        if (selected == if_not_value) {
-                            $('.' + if_not_show_class).addClass('hidden');
+                    for (var i = 0; i < selected.length; i++) {
+                        if (selected[i] == show_value) {
+                            $('.' + show_if_true).removeClass('hidden');
                         } else {
-                            $('.' + if_not_show_class).removeClass('hidden');
+                            $('.' + show_if_true).addClass('hidden');
+                        }
+                    }
+                    console.log(selected);
+                });
+
+                $('.if-not-listener').on('change', function () {
+                    var selected = $(this).val();
+                    var if_not_value = $(this).data('if_not_value');
+                    var if_not_show_class = $(this).data('if_not_show_class');
+
+                    if (selected == if_not_value) {
+                        $('.' + if_not_show_class).addClass('hidden');
+                    } else {
+                        $('.' + if_not_show_class).removeClass('hidden');
+                    }
+                });
+
+                $(document).on("change",'.multi-value-listener', function() {
+                    var selected = $(this).val();
+                    var group_value = $(this).data('group_value');
+                    var group_get_value_class = $(this).data('group_get_value_class');
+                    var group_show_class = $(this).data('group_show_class');
+                    var group_hide_class = $(this).data('group_hide_class');
+                    var result = false;
+                    $('.' + group_get_value_class + ' :selected').each(function () {
+                        if ($(this).val() == 1) {
+                            result = true;
+                            return false;
                         }
                     });
 
-                    $('.multi-value-listener').on('change', function () {
-                        var selected = $(this).val();
-                        var group_value = $(this).data('group_value');
-                        var group_get_value_class = $(this).data('group_get_value_class');
-                        var group_show_class = $(this).data('group_show_class');
-                        var group_hide_class = $(this).data('group_hide_class');
-                        var result = false;
-                        $('.' + group_get_value_class + ' :selected').each(function () {
-                            if ($(this).val() == 1) {
-                                result = true;
-                                return false;
+                    if (result) {
+                        $('.' + group_show_class).removeClass('hidden');
+                        $('.' + group_hide_class).addClass('hidden');
+                    } else {
+                        $('.' + group_show_class).addClass('hidden');
+                        $('.' + group_hide_class).removeClass('hidden');
+                    }
+                });
+
+                $(document).on("change keyup",'.sexual-partner-info', function() {
+                    var value = parseInt($(this).val().trim());
+                    $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
+                    switch (true) {
+                        case (value == 1):
+                            $('.last-partner').removeClass('hidden');
+                            $('.sexual-partners').removeClass('hidden');
+                            break;
+                        case (value == 2):
+                            $('.second-last-partner, .last-partner').removeClass('hidden');
+                            $('.sexual-partners').removeClass('hidden');
+                            break;
+                        case (value > 2):
+                            $('.third-last-partner, .second-last-partner, .last-partner').removeClass('hidden');
+                            $('.sexual-partners').removeClass('hidden');
+                            break;
+                        default:
+                            $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
+                            $('.sexual-partners').addClass('hidden');
+                    }
+                });
+
+                $(document).on("change keyup",'.listen-to-change', function() {
+                    var val = $(this).val();
+                    var show_if_true = $(this).data('show_if_true'); // class to show
+                    var hide_if_true = $(this).data('hide_if_true'); // class to show
+                    var hide_if_false = $(this).data('hide_if_false'); // class to hide
+                    var show_value = $(this).data('show_value'); // value to determine show/hide
+
+                    if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
+                        var hide_classes = hide_if_false.split(" ");
+                        hide_if_false = hide_classes;
+                    }
+
+                    if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                        var hide_on_show_classes = hide_if_true.split(" ");
+                        hide_if_true = hide_on_show_classes;
+                    }
+
+                    if (val == show_value || show_value == 'any') {
+                        $('.' + show_if_true).removeClass('hidden');
+
+                        if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
+                            for (var i = 0; i < hide_if_true.length; i++) {
+                                var class_name = hide_if_true[i];
+                                $('.' + class_name).addClass('hidden');
+                                $('.' + class_name).find('input,select').each(function () {
+                                    $(this).val('');
+                                    $(this).attr('checked', false);
+                                });
                             }
+                        }
+                    } else {
+                        $('.' + show_if_true).addClass('hidden');
+
+                        $('.' + show_if_true).find('input,select').each(function () {
+                            $(this).val('');
+                            $(this).attr('checked', false);
                         });
 
-                        if (result) {
-                            $('.' + group_show_class).removeClass('hidden');
-                            $('.' + group_hide_class).addClass('hidden');
-                        } else {
-                            $('.' + group_show_class).addClass('hidden');
-                            $('.' + group_hide_class).removeClass('hidden');
-                        }
-                    });
-
-                    $('.listen-to-change').on('change keyup', function () {
-                        alert("hdhdjd");
-                        var val = $(this).val();
-                        var show_if_true = $(this).data('show_if_true'); // class to show
-                        var hide_if_true = $(this).data('hide_if_true'); // class to show
-                        var hide_if_false = $(this).data('hide_if_false'); // class to hide
-                        var show_value = $(this).data('show_value'); // value to determine show/hide
-
                         if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
-                            var hide_classes = hide_if_false.split(" ");
-                            hide_if_false = hide_classes;
+                            for (var i = 0; i < hide_if_false.length; i++) {
+                                var class_name = hide_if_false[i];
+                                $('.' + class_name).addClass('hidden');
+                                $('.' + class_name).find('input,select').each(function () {
+                                    $(this).val('');
+                                    $(this).attr('checked', false);
+                                });
+                            }
                         }
 
                         if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
-                            var hide_on_show_classes = hide_if_true.split(" ");
-                            hide_if_true = hide_on_show_classes;
-                        }
-
-                        if (val == show_value || show_value == 'any') {
-                            $('.' + show_if_true).removeClass('hidden');
-
-                            if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
-                                for (var i = 0; i < hide_if_true.length; i++) {
-                                    var class_name = hide_if_true[i];
-                                    $('.' + class_name).addClass('hidden');
-                                    $('.' + class_name).find('input,select').each(function () {
-                                        $(this).val('');
-                                        $(this).attr('checked', false);
-                                    });
-                                }
-                            }
-                        } else {
-                            $('.' + show_if_true).addClass('hidden');
-
-                            $('.' + show_if_true).find('input,select').each(function () {
-                                $(this).val('');
-                                $(this).attr('checked', false);
-                            });
-
-                            if (!(typeof hide_if_false == undefined) && hide_if_false != null && hide_if_false != '') {
-                                for (var i = 0; i < hide_if_false.length; i++) {
-                                    var class_name = hide_if_false[i];
-                                    $('.' + class_name).addClass('hidden');
-                                    $('.' + class_name).find('input,select').each(function () {
-                                        $(this).val('');
-                                        $(this).attr('checked', false);
-                                    });
-                                }
-                            }
-
-                            if (!(typeof hide_if_true == undefined) && hide_if_true != null && hide_if_true != '') {
-                                for (var i = 0; i < hide_if_true.length; i++) {
-                                    var class_name = hide_if_true[i];
-                                    $('.' + class_name).removeClass('hidden');
-                                }
+                            for (var i = 0; i < hide_if_true.length; i++) {
+                                var class_name = hide_if_true[i];
+                                $('.' + class_name).removeClass('hidden');
                             }
                         }
-                    });
-
-
-                    $('.sexual-partner-info').on('change keyup', function () {
-                        var value = parseInt($(this).val().trim());
-                        $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
-                        switch (true) {
-                            case (value == 1):
-                                $('.last-partner').removeClass('hidden');
-                                $('.sexual-partners').removeClass('hidden');
-                                break;
-                            case (value == 2):
-                                $('.second-last-partner, .last-partner').removeClass('hidden');
-                                $('.sexual-partners').removeClass('hidden');
-                                break;
-                            case (value > 2):
-                                $('.third-last-partner, .second-last-partner, .last-partner').removeClass('hidden');
-                                $('.sexual-partners').removeClass('hidden');
-                                break;
-                            default:
-                                $('.third-last-partner, .second-last-partner, .last-partner').addClass('hidden');
-                                $('.sexual-partners').addClass('hidden');
-                        }
-                    });
-                }
+                    }
+                });
 
 
                 function skip_pattern(target_element, target_value, element_list_to_manipulate, hide_class) {
