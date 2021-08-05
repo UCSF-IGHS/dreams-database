@@ -248,7 +248,8 @@ class ClientListView(ListView):
         context['error'] = ''
 
         try:
-            if self.request.user is not None and self.request.user.is_authenticated() and self.request.user.is_active:
+            user = self.request.user
+            if user is not None and user.is_authenticated() and user.is_active:
                 # get search details -- search_client_term
                 page = self.request.GET.get('page', 1) if self.request.method == 'GET' else self.request.POST.get(
                     'page', 1)
@@ -260,8 +261,19 @@ class ClientListView(ListView):
                     'search_client_term', '')
                 search_client_term = search_client_term.strip()
 
+                ip_user = None
+                try:
+                    ip_user = user.implementingpartneruser
+                    current_ip = ip_user.implementing_partner.code
+
+                except Exception as e:
+                    if not ip_user:
+                        context['error'] = "You do not belong to any implementing partners"
+                        return context
+                    current_ip = 0
+
                 if search_client_term != "":
-                    client_query_service = ClientQueryService(self.request.user.implementingpartneruser)
+                    client_query_service = ClientQueryService(ip_user)
                     search_criteria = get_search_criteria(search_client_term, is_advanced_search, self.request)
                     try:
                         result = client_query_service.search_clients(search_criteria)
@@ -276,15 +288,11 @@ class ClientListView(ListView):
                     a = 'True' if search_result_length >= 100 else 'False'
                     search_result_tuple = [search_result, a, '', '', '', '', '']
 
-                    log_custom_actions(self.request.user.id, "DreamsApp_client", None, "SEARCH", search_client_term)
-                    try:
-                        current_ip = self.request.user.implementingpartneruser.implementing_partner.code
-                    except Exception as e:
-                        current_ip = 0
+                    log_custom_actions(user.id, "DreamsApp_client", None, "SEARCH", search_client_term)
 
-                    client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user)
+                    client_action_permissions = ClientActionPermissions(model=Client, user=user)
                     intervention_action_permissions = InterventionActionPermissions(model=Intervention,
-                                                                                    user=self.request.user)
+                                                                                    user=user)
                     display_first_100_clients = (search_result_length == 100)
 
                     # if request.is_ajax():
@@ -315,7 +323,7 @@ class ClientListView(ListView):
                     # Non ajax request.. Do a paginator
                     # do pagination
                     enrolment_results = [
-                        [ClientActionPermissions(model=Client, user=self.request.user, enrolment=client), client] for client in search_result]
+                        [ClientActionPermissions(model=Client, user=user, enrolment=client), client] for client in search_result]
 
                     try:
                         paginator = Paginator(enrolment_results, 20)
@@ -333,7 +341,7 @@ class ClientListView(ListView):
                     # ward_filter = search_result_tuple[4] if search_result_tuple[4] != '' else '0'
                     # wards = Ward.objects.filter(sub_county_id=int(sub_county_filter))
 
-                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(user)
                     minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                         client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
                     max_dob = dt.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
@@ -361,11 +369,10 @@ class ClientListView(ListView):
                 else:
                     search_result = Client.objects.none()
                     search_result_tuple = [search_result, 'False', '', '', '', '', '']
-                    current_ip = self.request.user.implementingpartneruser.implementing_partner.code
 
-                    client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user)
+                    client_action_permissions = ClientActionPermissions(model=Client, user=user)
                     # intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
-                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(user)
                     minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                         client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
                     max_dob = datetime.now().date() - relativedelta(years=int(minimum_maximum_age[0]))
@@ -432,7 +439,8 @@ class ClientDetailView(DetailView):
         context['error'] = ''
 
         """ Returns client profile """
-        if self.request.user is None or not self.request.user.is_authenticated() or not self.request.user.is_active:
+        user = self.request.user
+        if user is None or not user.is_authenticated() or not user.is_active:
             context['to_login'] = True
             return context
 
@@ -452,7 +460,15 @@ class ClientDetailView(DetailView):
             # then below: client_demographics.clientindividualandhouseholddata
             demographics_form = DemographicsForm(instance=client_demographics)
             search_client_term = self.request.GET.get('search_client_term', '')
-            ip_user = self.request.user.implementingpartneruser
+
+            ip_user = None
+            try:
+                ip_user = user.implementingpartneruser
+            except Exception as e:
+                if not ip_user:
+                    context['error'] = "You do not belong to any implementing partners"
+                    return context
+
             ip = ip_user.implementing_partner
             ip_code = ip.code if ip else None
 
@@ -461,14 +477,14 @@ class ClientDetailView(DetailView):
             date_of_enrollment_str = demographics_form['date_of_enrollment'].value()
             date_of_enrollment = datetime.strptime(str(date_of_enrollment_str),
                                                    '%Y-%m-%d').date() if date_of_enrollment_str is not None else dt.now().date()
-            client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
+            client_enrolment_service_layer = ClientEnrolmentServiceLayer(user)
             minimum_maximum_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
                 client_enrolment_service_layer.ENROLMENT_CUTOFF_DATE)
             max_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[0]))
             min_dob = date_of_enrollment - relativedelta(years=int(minimum_maximum_age[1]) + 1) + timedelta(days=1)
             current_user_belongs_to_same_ip_as_client = client_demographics.current_user_belongs_to_same_ip_as_client(
                 ip_user.implementing_partner_id)
-            client_action_permissions = ClientActionPermissions(model=Client, user=self.request.user,
+            client_action_permissions = ClientActionPermissions(model=Client, user=user,
                                                                 enrolment=client_demographics)
             client_action_permissions.can_perform_edit()
 
@@ -483,7 +499,7 @@ class ClientDetailView(DetailView):
             context['max_dob'] = max_dob
             context['min_dob'] = min_dob
             context[
-                'current_user_belongs_to_same_ip_as_client'] = current_user_belongs_to_same_ip_as_client or self.request.user.is_superuser
+                'current_user_belongs_to_same_ip_as_client'] = current_user_belongs_to_same_ip_as_client or user.is_superuser
             context['client_action_permissions'] = client_action_permissions
 
         except Client.DoesNotExist:
@@ -507,7 +523,8 @@ class ClientDetailView(DetailView):
 def householdview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
-            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+            user = request.user
+            if user is None or not user.is_authenticated() or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -522,6 +539,16 @@ def householdview(request):
                 }
                 return JsonResponse(json.dumps(response_data), safe=False)
 
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    response_data = {
+                        'status': 'fail'
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
             client = Client.objects.get(id=int(client_id), voided=False)
             client_household_queryset = client.clientindividualandhouseholddata_set
             client_household = client_household_queryset.get() if client_household_queryset.exists() else None
@@ -530,10 +557,9 @@ def householdview(request):
             household_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientIndividualAndHouseholdData,
-                                                                user=request.user, enrolment=client)
+                                                                user=user, enrolment=client)
             client_action_permissions.can_perform_edit()
 
-            ip = request.user.implementingpartneruser.implementing_partner
             is_editable_by_ip = client.is_editable_by_ip(ip)
 
             response_data = {
@@ -557,7 +583,8 @@ def householdview(request):
 def educationemploymentview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
-            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+            user = request.user
+            if user is None or not user.is_authenticated() or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -572,6 +599,16 @@ def educationemploymentview(request):
                 }
                 return JsonResponse(json.dumps(response_data), safe=False)
 
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    response_data = {
+                        'status': 'fail'
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
             client = Client.objects.get(id=int(client_id), voided=False)
             client_edu_queryset = client.clienteducationandemploymentdata_set
             client_edu = client_edu_queryset.get() if client_edu_queryset.exists() else None
@@ -580,10 +617,9 @@ def educationemploymentview(request):
             edu_form.fields["client"].initial = client
 
             client_action_permissions = ClientActionPermissions(model=ClientEducationAndEmploymentData,
-                                                                user=request.user, enrolment=client)
+                                                                user=user, enrolment=client)
             client_action_permissions.can_perform_edit()
 
-            ip = request.user.implementingpartneruser.implementing_partner
             is_editable_by_ip = client.is_editable_by_ip(ip)
 
             response_data = {
@@ -607,7 +643,8 @@ def educationemploymentview(request):
 def hivtestingview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
-            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+            user = request.user
+            if user is None or not user.is_authenticated() or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -622,6 +659,16 @@ def hivtestingview(request):
                 }
                 return JsonResponse(json.dumps(response_data), safe=False)
 
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    response_data = {
+                        'status': 'fail'
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
             client = Client.objects.get(id=int(client_id), voided=False)
             client_hiv_data_queryset = client.clienthivtestingdata_set
             client_hiv_data = client_hiv_data_queryset.get() if client_hiv_data_queryset.exists() else None
@@ -629,11 +676,10 @@ def hivtestingview(request):
             hiv_form = HivTestForm(instance=client_hiv_data)
             hiv_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=ClientHIVTestingData, user=request.user,
+            client_action_permissions = ClientActionPermissions(model=ClientHIVTestingData, user=user,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
-            ip = request.user.implementingpartneruser.implementing_partner
             is_editable_by_ip = client.is_editable_by_ip(ip)
 
             response_data = {
@@ -657,7 +703,8 @@ def hivtestingview(request):
 def sexualityview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
-            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+            user = request.user
+            if user is None or not user.is_authenticated() or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -672,6 +719,16 @@ def sexualityview(request):
                 }
                 return JsonResponse(json.dumps(response_data), safe=False)
 
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    response_data = {
+                        'status': 'fail'
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
             client = Client.objects.get(id=int(client_id), voided=False)
             client_sexual_data_queryset = client.clientsexualactivitydata_set
             client_sexual_data = client_sexual_data_queryset.get() if client_sexual_data_queryset.exists() else None
@@ -679,11 +736,10 @@ def sexualityview(request):
             sexuality_form = SexualityForm(instance=client_sexual_data)
             sexuality_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=ClientSexualActivityData, user=request.user,
+            client_action_permissions = ClientActionPermissions(model=ClientSexualActivityData, user=user,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
-            ip = request.user.implementingpartneruser.implementing_partner
             is_editable_by_ip = client.is_editable_by_ip(ip)
 
             response_data = {
@@ -707,7 +763,8 @@ def sexualityview(request):
 def reproductivehealthview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
-            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+            user = request.user
+            if user is None or not user.is_authenticated() or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -722,6 +779,16 @@ def reproductivehealthview(request):
                 }
                 return JsonResponse(json.dumps(response_data), safe=False)
 
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    response_data = {
+                        'status': 'fail'
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
             client = Client.objects.get(id=int(client_id), voided=False)
             client_rh_data_queryset = client.clientreproductivehealthdata_set
             client_rh_data = client_rh_data_queryset.get() if client_rh_data_queryset.exists() else None
@@ -729,11 +796,10 @@ def reproductivehealthview(request):
             rh_form = ReproductiveHealthForm(instance=client_rh_data)
             rh_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=ClientReproductiveHealthData, user=request.user,
+            client_action_permissions = ClientActionPermissions(model=ClientReproductiveHealthData, user=user,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
-            ip = request.user.implementingpartneruser.implementing_partner
             is_editable_by_ip = client.is_editable_by_ip(ip)
 
             response_data = {
@@ -757,7 +823,8 @@ def reproductivehealthview(request):
 def gbvview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
-            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+            user = request.user
+            if user is None or not user.is_authenticated() or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -772,6 +839,16 @@ def gbvview(request):
                 }
                 return JsonResponse(json.dumps(response_data), safe=False)
 
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    response_data = {
+                        'status': 'fail'
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
             client = Client.objects.get(id=int(client_id), voided=False)
             client_gbv_data_queryset = client.clientgenderbasedviolencedata_set
             client_gbv_data = client_gbv_data_queryset.get() if client_gbv_data_queryset.exists() else None
@@ -779,11 +856,10 @@ def gbvview(request):
             gbv_form = GBVForm(instance=client_gbv_data)
             gbv_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=ClientGenderBasedViolenceData, user=request.user,
+            client_action_permissions = ClientActionPermissions(model=ClientGenderBasedViolenceData, user=user,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
-            ip = request.user.implementingpartneruser.implementing_partner
             is_editable_by_ip = client.is_editable_by_ip(ip)
 
             response_data = {
@@ -807,7 +883,8 @@ def gbvview(request):
 def druguseview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
-            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+            user = request.user
+            if user is None or not user.is_authenticated() or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -822,6 +899,16 @@ def druguseview(request):
                 }
                 return JsonResponse(json.dumps(response_data), safe=False)
 
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    response_data = {
+                        'status': 'fail'
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
             client = Client.objects.get(id=int(client_id), voided=False)
             client_drug_data_queryset = client.clientdrugusedata_set
             client_drug_data = client_drug_data_queryset.get() if client_drug_data_queryset.exists() else None
@@ -829,11 +916,10 @@ def druguseview(request):
             drug_use_form = DrugUseForm(instance=client_drug_data)
             drug_use_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=ClientDrugUseData, user=request.user,
+            client_action_permissions = ClientActionPermissions(model=ClientDrugUseData, user=user,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
-            ip = request.user.implementingpartneruser.implementing_partner
             is_editable_by_ip = client.is_editable_by_ip(ip)
 
             response_data = {
@@ -857,7 +943,8 @@ def druguseview(request):
 def participationinprogramview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
-            if request.user is None or not request.user.is_authenticated() or not request.user.is_active:
+            user = request.user
+            if user is None or not user.is_authenticated() or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -872,6 +959,16 @@ def participationinprogramview(request):
                 }
                 return JsonResponse(json.dumps(response_data), safe=False)
 
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    response_data = {
+                        'status': 'fail'
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
             client = Client.objects.get(id=int(client_id), voided=False)
             client_prog_part_data_queryset = client.clientparticipationindreams_set
             client_prog_part_data = client_prog_part_data_queryset.get() if client_prog_part_data_queryset.exists() else None
@@ -879,11 +976,10 @@ def participationinprogramview(request):
             programe_participation_form = DreamsProgramParticipationForm(instance=client_prog_part_data)
             programe_participation_form.fields["client"].initial = client
 
-            client_action_permissions = ClientActionPermissions(model=ClientParticipationInDreams, user=request.user,
+            client_action_permissions = ClientActionPermissions(model=ClientParticipationInDreams, user=user,
                                                                 enrolment=client)
             client_action_permissions.can_perform_edit()
 
-            ip = request.user.implementingpartneruser.implementing_partner
             is_editable_by_ip = client.is_editable_by_ip(ip)
 
             response_data = {
@@ -1028,7 +1124,11 @@ def client_profile(request):
             is_editable_by_ip = False
             can_add_intervention = False
             client_status = None
-            ip_user_id = request.user.implementingpartneruser.implementing_partner_id
+
+            if not ip:
+                raise Exception("You do not belong to an implementing partner")
+
+            ip_user_id = ip.id
 
             try:
                 client_found = Client.objects.get(id=client_id)
@@ -1117,21 +1217,22 @@ class ClientCreateView(CreateView):
 
     def form_valid(self, form):
         try:
-            if self.request.user is not None and self.request.user.is_authenticated() and self.request.user.is_active:
+            user = self.request.user
+            if user is not None and user.is_authenticated() and user.is_active:
                 if self.request.method == 'GET':
                     return render(self.request, 'enrollment.html', {'client': None})
                 elif self.request.method == 'POST' and self.request.is_ajax():
                     # process saving user
                     try:
-                        ip_code = self.request.user.implementingpartneruser.implementing_partner.code
+                        ip_code = user.implementingpartneruser.implementing_partner.code
                     except Exception as e:
                         response_data = {
                             'status': 'fail',
                             'message': 'Enrollment Failed. You do not belong to an implementing partner',
                             'client_id': None,
-                            'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
-                            'can_change_client': self.request.user.has_perm('auth.can_change_client'),
-                            'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
+                            'can_manage_client': user.has_perm('auth.can_manage_client'),
+                            'can_change_client': user.has_perm('auth.can_change_client'),
+                            'can_delete_client': user.has_perm('auth.can_delete_client')
                         }
                         return JsonResponse(json.dumps(response_data), safe=False)
 
@@ -1148,9 +1249,9 @@ class ClientCreateView(CreateView):
                                        "age of the client must be between " + str(
                                 min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
                             'client_id': None,
-                            'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
-                            'can_change_client': self.request.user.has_perm('auth.can_change_client'),
-                            'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
+                            'can_manage_client': user.has_perm('auth.can_manage_client'),
+                            'can_change_client': user.has_perm('auth.can_change_client'),
+                            'can_delete_client': user.has_perm('auth.can_delete_client')
                         }
                         return JsonResponse(json.dumps(response_data), safe=False)
 
@@ -1187,9 +1288,9 @@ class ClientCreateView(CreateView):
                             'message': 'Enrollment to DREAMS successful. Redirecting you to the full enrolment data '
                                        'view',
                             'client_id': client.id,
-                            'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
-                            'can_change_client': self.request.user.has_perm('auth.can_change_client'),
-                            'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
+                            'can_manage_client': user.has_perm('auth.can_manage_client'),
+                            'can_change_client': user.has_perm('auth.can_change_client'),
+                            'can_delete_client': user.has_perm('auth.can_delete_client')
                         }
                         return JsonResponse(json.dumps(response_data), safe=False)
                     else:
@@ -1203,20 +1304,21 @@ class ClientCreateView(CreateView):
                 'status': 'fail',
                 'message': str(e),
                 'client_id': None,
-                'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
-                'can_change_client': self.request.user.has_perm('auth.can_change_client'),
-                'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
+                'can_manage_client': user.has_perm('auth.can_manage_client'),
+                'can_change_client': user.has_perm('auth.can_change_client'),
+                'can_delete_client': user.has_perm('auth.can_delete_client')
             }
             return JsonResponse(json.dumps(response_data), safe=False)
 
     def form_invalid(self, form):
+        user = self.request.user
         response_data = {
             'status': 'fail',
             'message': form.errors,
             'client_id': None,
-            'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
-            'can_change_client': self.request.user.has_perm('auth.can_change_client'),
-            'can_delete_client': self.request.user.has_perm('auth.can_delete_client')
+            'can_manage_client': user.has_perm('auth.can_manage_client'),
+            'can_change_client': user.has_perm('auth.can_change_client'),
+            'can_delete_client': user.has_perm('auth.can_delete_client')
         }
         return JsonResponse(json.dumps(response_data), safe=False)
 
@@ -1243,7 +1345,8 @@ class ClientUpdateView(UpdateView):
 
     def form_valid(self, form):
         try:
-            if self.request.user is not None and self.request.user.is_authenticated() and self.request.user.is_active:  # and request.user.is_superuser:
+            user = self.request.user
+            if user is not None and user.is_authenticated() and user.is_active:  # and request.user.is_superuser:
                 client = self.object
 
                 if self.request.method == 'GET':
@@ -1256,8 +1359,20 @@ class ClientUpdateView(UpdateView):
                         # redirect to page
                         return render(self.request, 'enrollment.html', {'client': client})
                     return redirect('clients')
+
                 elif self.request.method == 'POST':
-                    ip = self.request.user.implementingpartneruser.implementing_partner
+                    ip = None
+                    try:
+                        ip = user.implementingpartneruser.implementing_partner
+                    except Exception as e:
+                        if not ip:
+                            response_data = {
+                                'status': 'failed',
+                                'message': 'You do not belong to any implementing partner',
+                                'client_id': client.id
+                            }
+                            return JsonResponse(json.dumps(response_data), safe=False)
+
                     if not client.is_editable_by_ip(ip) or client.exited:
                         response_data = {
                             'status': 'failed',
@@ -1275,7 +1390,7 @@ class ClientUpdateView(UpdateView):
                         }
                         return JsonResponse(json.dumps(response_data), safe=False)
 
-                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
+                    client_enrolment_service_layer = ClientEnrolmentServiceLayer(user)
                     date_of_birth = datetime.strptime(self.request.POST.get('date_of_birth'), '%Y-%m-%d').date()
                     date_of_enrollment = datetime.strptime(self.request.POST.get('date_of_enrollment'),
                                                            '%Y-%m-%d').date()
@@ -1369,14 +1484,26 @@ class ClientDeleteView(DeleteView):
 
     def form_valid(self, form):
         try:
-            if self.request.user is None or not self.request.user.is_authenticated() or not self.request.user.is_active:
+            user = self.request.user
+            if user is None or not user.is_authenticated() or not user.is_active:
                 raise PermissionDenied
 
             if self.request.method == 'POST' or not self.request.is_ajax():
                 raise PermissionDenied
 
             client = self.object
-            ip = self.request.user.implementingpartneruser.implementing_partner
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    response_data = {
+                        'status': 'failed',
+                        'message': 'You do not belong to any implementing partner',
+                        'client_id': client.id
+                    }
+                    return JsonResponse(json.dumps(response_data), safe=False)
+
             if not client.is_editable_by_ip(ip) or client.exited:
                 response_data = {
                     'status': 'failed',
@@ -2161,7 +2288,8 @@ def get_intervention_type(request):
 # Gets intervention_type_id,  from request
 def save_intervention(request):
     try:
-        if is_valid_post_request(request) and request.user.has_perm('DreamsApp.add_intervention'):
+        user = request.user
+        if is_valid_post_request(request) and user.has_perm('DreamsApp.add_intervention'):
             try:
                 client_id = request.POST.get('client')
                 client_key = 'client-{}'.format(client_id)
@@ -2199,7 +2327,17 @@ def save_intervention(request):
                 return JsonResponse(response_data)
 
             # Check if user belongs to an Ip
-            ip = request.user.implementingpartneruser.implementing_partner
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    response_data = {
+                        'status': 'fail',
+                        'message': "You do not belong to any implementing partner"
+                    }
+                    return JsonResponse(response_data)
+
             if ip is not None:
                 intervention_type_code = int(request.POST.get('intervention_type_code'))
                 intervention_type_key = 'intervention-type-{}'.format(intervention_type_code)
@@ -2596,7 +2734,8 @@ def has_get_arg(arg_name, request):
 
 def get_intervention_list(request):
     try:
-        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
             if 'client_id' not in request.POST or request.POST.get('client_id') == 0:
                 return ValueError('No Client id found in your request! Ensure it is provided')
             if 'intervention_category_code' not in request.POST or request.POST.get('intervention_category_code') == 0:
@@ -2608,7 +2747,13 @@ def get_intervention_list(request):
 
             list_of_related_iv_types = iv_category.interventiontype_set.all()
 
-            ip = request.user.implementingpartneruser.implementing_partner
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    return HttpResponseServerError(e)
+
             #list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
             iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
             # check for see_other_ip_data persmission
@@ -2633,7 +2778,7 @@ def get_intervention_list(request):
             is_visible_by_ip = {}
             intervention_ip_names = {}
             #client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
-            intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
+            intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=user)
             interventions_action_permissions = {}
 
             for i in list_of_interventions:
@@ -2895,10 +3040,22 @@ def update_follow_up(request):
 
 def update_intervention(request):
     try:
-        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and \
+        user = request.user
+        if request.method == 'POST' and user is not None and user.is_authenticated() and \
                 request.user.is_active and request.user.has_perm('DreamsApp.change_intervention'):
+
             # Check if user belongs to an Ip
-            ip = request.user.implementingpartneruser.implementing_partner
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    response_data = {
+                        'status': 'fail',
+                        'message': "You do not belong to any implementing partner"
+                    }
+                    return JsonResponse(response_data)
+
             if ip is not None:
                 intervention_id = int(request.POST.get('intervention_id'))
                 if intervention_id is not None and type(intervention_id) is int:
@@ -2974,7 +3131,7 @@ def update_intervention(request):
                             else:
                                 intervention.external_organisation_other = None
 
-                        intervention.save(user_id=request.user.id, action="UPDATE")  # Logging
+                        intervention.save(user_id=user.id, action="UPDATE")  # Logging
 
                         intervention_type_category_cache_key = (
                             'client-{}-intervention-type-category-{}'.format(intervention.client.id,
@@ -3084,10 +3241,22 @@ def delete_follow_up(request):
 
 def delete_intervention(request):
     try:
-        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and \
-                request.user.is_active and request.user.has_perm('DreamsApp.delete_intervention'):
+        user = request.user
+        if request.method == 'POST' and user is not None and user.is_authenticated() and \
+                user.is_active and user.has_perm('DreamsApp.delete_intervention'):
+
             # Check if user belongs to an Ip
-            ip = request.user.implementingpartneruser.implementing_partner
+            ip = None
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+            except Exception as e:
+                if not ip:
+                    response_data = {
+                        'status': 'fail',
+                        'message': "You do not belong to any implementing partner"
+                    }
+                    return JsonResponse(response_data)
+
             if ip is not None:
                 intervention_id = int(request.POST.get('intervention_delete_id'))
                 if intervention_id is not None and type(intervention_id) is int:
@@ -3271,12 +3440,13 @@ def user_help_download(request):
 
 
 def logs(request):
-    if request.user.is_authenticated() and request.user.is_active:
-        if not request.user.is_superuser and not request.user.has_perm('DreamsApp.can_manage_audit'):
+    user = request.user
+    if user.is_authenticated() and user.is_active:
+        if not user.is_superuser and not user.has_perm('DreamsApp.can_manage_audit'):
             raise PermissionDenied('Operation not allowed. [Missing Permission]')
 
         try:
-            ip = request.user.implementingpartneruser.implementing_partner.id
+            ip = user.implementingpartneruser.implementing_partner.id
         except ImplementingPartnerUser.DoesNotExist:
             return HttpResponseServerError("You do not belong to an implementing partner.")
 
