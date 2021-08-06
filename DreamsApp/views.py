@@ -1200,7 +1200,7 @@ def client_profile(request):
     else:
         raise PermissionDenied
 
-
+"""
 def get_delegated_intervention_type_codes(delegating_ip, delegated_ip):
     if delegated_ip == delegating_ip:
         return []
@@ -1210,7 +1210,7 @@ def get_delegated_intervention_type_codes(delegating_ip, delegated_ip):
                                                    end_date__gt=datetime.now().date())
     delegations = list(delegations.values_list('intervention_type__code', flat=True))
     return delegations
-
+"""
 
 class ClientCreateView(CreateView):
     form_class = DemographicsForm

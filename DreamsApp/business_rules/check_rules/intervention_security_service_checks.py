@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from DreamsApp.constants import REFERRAL_PENDING_STATUS
-from DreamsApp.models import ServiceDelegation, Referral, ReferralStatus
+from DreamsApp.models import Referral, ReferralStatus # ServiceDelegation
 
 
 class InterventionSecurityServiceChecks:
@@ -11,7 +11,7 @@ class InterventionSecurityServiceChecks:
         if user.implementing_partner == client.implementing_partner:
             return "VI002"
         return None
-
+    """
     @classmethod
     def check_ip_has_active_delegation(cls, main_implementing_partner, delegated_implementing_partner):
         active_delegation_records = ServiceDelegation.objects.filter(
@@ -22,7 +22,7 @@ class InterventionSecurityServiceChecks:
         if active_delegation_records.count() > 0:
             return "VI004"
         return None
-
+    """
     @classmethod
     def check_intervention_belongs_to_ip(cls, user, intervention):
         if user.implementing_partner == intervention.implementing_partner:

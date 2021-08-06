@@ -1,3 +1,4 @@
+"""
 from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_case import \
     InterventionDelegationTestCase
 
@@ -18,3 +19,4 @@ class ImplementingPartnerTestCase(InterventionDelegationTestCase):
                           'Expected the list of delegating IPs to have only ip_x')
         self.assertEquals(len(active_delegating_ips), 1,
                           'Expected the number of delegating IPs to be 1')
+"""

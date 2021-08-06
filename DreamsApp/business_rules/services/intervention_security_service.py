@@ -12,12 +12,12 @@ class InterventionSecurityService:
         if vI002 is None:
             vI003 = InterventionSecurityServiceChecks.check_intervention_belongs_to_ip(
                 user, intervention)
-            if vI003 is None:
-                vI004 = InterventionSecurityServiceChecks.check_ip_has_active_delegation(
-                    intervention.client.implementing_partner, user.implementing_partner)
-                if vI004 is not None:
-                    checks_passed.append(vI004)
-            else:
+            if vI003 is not None:
+            #    vI004 = InterventionSecurityServiceChecks.check_ip_has_active_delegation(
+            #        intervention.client.implementing_partner, user.implementing_partner)
+            #    if vI004 is not None:
+            #        checks_passed.append(vI004)
+            #else:
                 checks_passed.append(vI003)
         else:
             checks_passed.append(vI002)
