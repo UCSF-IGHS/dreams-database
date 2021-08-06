@@ -1,3 +1,4 @@
+"""
 from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
@@ -58,3 +59,4 @@ class TestDelegatedImplementingPartnerTestCase(XFTestCase):
                                                      'intervention_type': InterventionType.objects.first()},
                                  {'start_date'},
                                  'Delegation start date is less than delegation end date')
+"""

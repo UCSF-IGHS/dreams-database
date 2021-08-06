@@ -1,3 +1,4 @@
+"""
 import random
 import uuid
 from datetime import datetime, timedelta
@@ -8,10 +9,11 @@ from django.shortcuts import get_object_or_404
 from django.test import TestCase, RequestFactory
 
 from DreamsApp.constants import REFERRAL_PENDING_STATUS
-from DreamsApp.models import User, Client, Intervention, InterventionType, ServiceDelegation, ImplementingPartner, \
-    ImplementingPartnerUser, County, SubCounty, Ward, Referral, ReferralStatus
+from DreamsApp.models import User, Client, Intervention, InterventionType, ImplementingPartner, \
+    ImplementingPartnerUser, County, SubCounty, Ward, Referral, ReferralStatus, ServiceDelegation
+"""
 
-
+"""
 class InterventionDelegationTestCase(TestCase):
     fixtures = ['test_verification_document', 'test_marital_status', 'test_user', 'test_intervention_category',
                 'test_intervention_type', 'test_county',
@@ -527,12 +529,12 @@ class InterventionDelegationTestCase(TestCase):
 
         request.user = user
 
-        """Annotate a request object with a session"""
+        #Annotate a request object with a session
         middleware = SessionMiddleware()
         middleware.process_request(request)
         request.session.save()
 
-        """Annotate a request object with a messages"""
+        #Annotate a request object with a messages
         middleware = MessageMiddleware()
         middleware.process_request(request)
         request.session.save()
@@ -548,3 +550,4 @@ class InterventionDelegationTestCase(TestCase):
                             referral_expiration_date=referral_expiration_date)
         referral.save()
         return referral
+"""

@@ -1,10 +1,9 @@
 from DreamsApp.business_rules.services.enrolment_security_service import EnrolmentSecurityService
 from DreamsApp.exceptions import EnrolmentNotWithinUserRealmBusinessRuleException
-from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_case import \
-    InterventionDelegationTestCase
+#from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_case import \
+#
 
-
-class RuleCanEditEnrolmentTestCase(InterventionDelegationTestCase):
+class RuleCanEditEnrolmentTestCase(): #(InterventionDelegationTestCase):
 
     def test_default_not_allowed(self):
         with self.assertRaises(EnrolmentNotWithinUserRealmBusinessRuleException):
