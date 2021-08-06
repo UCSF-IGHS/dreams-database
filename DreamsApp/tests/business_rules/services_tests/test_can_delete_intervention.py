@@ -1,10 +1,10 @@
 from DreamsApp.business_rules.services.intervention_security_service import InterventionSecurityService
 from DreamsApp.exceptions import InterventionNotWithinUserRealmBusinessRuleException
-from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_case import \
-    InterventionDelegationTestCase
+#from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_case import \
+#    InterventionDelegationTestCase
 
 
-class RuleCanDeleteInterventionTestCase(InterventionDelegationTestCase):
+class RuleCanDeleteInterventionTestCase(): #(InterventionDelegationTestCase):
 
     def test_default_not_allowed(self):
         with self.assertRaises(InterventionNotWithinUserRealmBusinessRuleException):

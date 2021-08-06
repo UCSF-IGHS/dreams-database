@@ -3,7 +3,7 @@ from datetime import datetime
 from django.db.models import Q
 
 from DreamsApp.exceptions import ClientSearchException
-from DreamsApp.models import Client, ServiceDelegation
+from DreamsApp.models import Client # ServiceDelegation
 
 
 class ClientQueryService:
@@ -55,14 +55,14 @@ class ClientQueryService:
         if clients.exists():
             return clients
         raise Client.DoesNotExist
-
+    """
     def _get_delegating_ips(self):
         delegations = ServiceDelegation.objects.filter(delegated_implementing_partner=self.user.implementing_partner,
                                                        start_date__lte=datetime.now().date(),
-                                                       end_date__gte=datetime.now().date())
+                                                   end_date__gte=datetime.now().date())
         delegating_ips = [delegation.main_implementing_partner for delegation in delegations]
         return delegating_ips
-
+    """
     def _filter_clients_by_search_term(self, clients, search_text):
         search_terms = search_text.split()
 

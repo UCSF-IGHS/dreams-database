@@ -1,5 +1,5 @@
 from datetime import datetime
-from DreamsApp.models import ServiceDelegation
+#from DreamsApp.models import ServiceDelegation
 
 
 class EnrolmentSecurityServiceChecks:
@@ -9,7 +9,7 @@ class EnrolmentSecurityServiceChecks:
         if client.implementing_partner == implmenting_partner:
             return "C001"
         return None
-
+    """
     @classmethod
     def check_ip_has_active_delegation(cls, main_implementing_partner, delegated_implementing_partner):
         active_delegation_records = ServiceDelegation.objects.filter(
@@ -20,3 +20,4 @@ class EnrolmentSecurityServiceChecks:
         if active_delegation_records.count() > 0:
             return "C002"
         return None
+    """

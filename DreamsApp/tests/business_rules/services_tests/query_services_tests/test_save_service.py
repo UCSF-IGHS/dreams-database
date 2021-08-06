@@ -1,9 +1,9 @@
 from DreamsApp.exceptions import DreamsBusinessRuleViolationException
-from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_case import \
-    InterventionDelegationTestCase
+#from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_case import \
+#    InterventionDelegationTestCase
 
 
-class SaveTestCase(InterventionDelegationTestCase):
+class SaveTestCase(): #(InterventionDelegationTestCase):
 
     def test_intervention_pre_save_throws_exception_when_checks_failed(self):
         test_data = self.create_test_data_for_ip_clients()

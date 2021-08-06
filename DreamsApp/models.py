@@ -138,13 +138,14 @@ class ImplementingPartner(models.Model):
 
     def __str__(self):
         return '{}'.format(self.name)
-
+    """
     @property
     def get_active_delegating_implementing_partners(self):
         delegations = ServiceDelegation.objects.filter(delegated_implementing_partner=self,
                                                        start_date__lte=datetime.now().date(),
                                                        end_date__gte=datetime.now().date())
         return [delegation.main_implementing_partner for delegation in delegations]
+    """
 
     class Meta(object):
         verbose_name = 'Implementing Partner'
@@ -1605,6 +1606,7 @@ class ServiceDelegationManager(models.Manager):
     def get_by_natural_key(self, main_implementing_partner, delegated_implementing_partner, start_date, end_date, intervention_type):
         return self.get(main_implementing_partner = main_implementing_partner, delegated_implementing_partner = delegated_implementing_partner, 
                           start_date=start_date, end_date=end_date, intervention_type=intervention_type)
+
 
 class ServiceDelegation(models.Model):
     main_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False, related_name='main_implementing_partner')
