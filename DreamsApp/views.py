@@ -1104,7 +1104,8 @@ def follow_ups(request):
 
 def client_profile(request):
     """ Returns client profile """
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+    user = request.user
+    if user is not None and user.is_authenticated() and user.is_active:
         client_id = request.GET.get('client_id', '') if request.method == 'GET' else request.POST.get(
             'client_id', '')
         search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
@@ -1112,7 +1113,7 @@ def client_profile(request):
         ip = None
         if client_id is not None and client_id != 0:
             try:
-                ip = request.user.implementingpartneruser.implementing_partner
+                ip = user.implementingpartneruser.implementing_partner
                 ip_code = ip.code if ip else None
                 if ip:
                     ip_code = ip.code
@@ -1164,13 +1165,13 @@ def client_profile(request):
                                                                'client_status': client_status,
                                                                '60_days_from_now': dt.now() + + timedelta(days=60),
                                                                'intervention_categories': InterventionCategory.objects.all(),
-                                                               'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser
+                                                               'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or user.is_superuser
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
                 current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(
                     ip_user_id)
-                client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                client_action_permissions = ClientActionPermissions(model=Client, user=user,
                                                                     enrolment=client_found)
                 # intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
                 # delegated_intervention_type_codes = get_delegated_intervention_type_codes(
@@ -1189,7 +1190,7 @@ def client_profile(request):
                                'client_status': client_status,
                                '60_days_from_now': dt.now() + + timedelta(days=60),
                                'intervention_categories': InterventionCategory.objects.all(),
-                               'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser,
+                               'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or user.is_superuser,
                                'client_action_permissions': client_action_permissions
                                # 'intervention_action_permissions': intervention_action_permissions,
                                # 'delegated_intervention_type_codes': delegated_intervention_type_codes
