@@ -1982,6 +1982,10 @@ $(document).ready(function () {
 
     $.validator.addMethod('under18WithID', function (value) {
         var date_of_birth = $('#id_date_of_birth').val();
+        if(date_of_birth.indexOf('/') > -1){
+            date_of_birth_array = date_of_birth.split('/')
+            date_of_birth = date_of_birth_array[1].concat('/', date_of_birth_array[0], '/', date_of_birth_array[2])
+        }
         var currDOB = new Date(date_of_birth);
 
         var age = getAge(currDOB);
