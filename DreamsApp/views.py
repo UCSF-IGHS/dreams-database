@@ -283,7 +283,7 @@ class ClientListView(ListView):
                     search_result = result.order_by('first_name', 'middle_name', 'last_name')[:100]
                     ## EXCLUDE DELEGATION
                     # search_result_tuple = filter_clients(search_client_term, is_advanced_search, request)
-                   
+
                     search_result_length = len(search_result)
                     a = 'True' if search_result_length >= 100 else 'False'
                     search_result_tuple = [search_result, a, '', '', '', '', '']
@@ -323,7 +323,8 @@ class ClientListView(ListView):
                     # Non ajax request.. Do a paginator
                     # do pagination
                     enrolment_results = [
-                        [ClientActionPermissions(model=Client, user=user, enrolment=client), client] for client in search_result]
+                        [ClientActionPermissions(model=Client, user=user, enrolment=client), client] for client in
+                        search_result]
 
                     try:
                         paginator = Paginator(enrolment_results, 20)
@@ -1103,7 +1104,8 @@ def follow_ups(request):
 
 def client_profile(request):
     """ Returns client profile """
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+    user = request.user
+    if user is not None and user.is_authenticated() and user.is_active:
         client_id = request.GET.get('client_id', '') if request.method == 'GET' else request.POST.get(
             'client_id', '')
         search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
@@ -1111,7 +1113,7 @@ def client_profile(request):
         ip = None
         if client_id is not None and client_id != 0:
             try:
-                ip = request.user.implementingpartneruser.implementing_partner
+                ip = user.implementingpartneruser.implementing_partner
                 ip_code = ip.code if ip else None
                 if ip:
                     ip_code = ip.code
@@ -1146,7 +1148,7 @@ def client_profile(request):
 
                 current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(
                     ip_user_id)
-                #intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
+                # intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
                 return render(request, 'client_profile.html', {'page': 'clients',
                                                                'page_title': 'DREAMS Client Service Uptake',
                                                                'client': client_found,
@@ -1163,13 +1165,13 @@ def client_profile(request):
                                                                'client_status': client_status,
                                                                '60_days_from_now': dt.now() + + timedelta(days=60),
                                                                'intervention_categories': InterventionCategory.objects.all(),
-                                                               'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser
+                                                               'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or user.is_superuser
                                                                })
             except ClientCashTransferDetails.DoesNotExist:
                 cash_transfer_details_form = ClientCashTransferDetailsForm(current_AGYW=client_found)
                 current_user_belongs_to_same_ip_as_client = client_found.current_user_belongs_to_same_ip_as_client(
                     ip_user_id)
-                client_action_permissions = ClientActionPermissions(model=Client, user=request.user,
+                client_action_permissions = ClientActionPermissions(model=Client, user=user,
                                                                     enrolment=client_found)
                 # intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=request.user)
                 # delegated_intervention_type_codes = get_delegated_intervention_type_codes(
@@ -1188,10 +1190,10 @@ def client_profile(request):
                                'client_status': client_status,
                                '60_days_from_now': dt.now() + + timedelta(days=60),
                                'intervention_categories': InterventionCategory.objects.all(),
-                               'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser,
+                               'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or user.is_superuser,
                                'client_action_permissions': client_action_permissions
-                               #'intervention_action_permissions': intervention_action_permissions,
-                               #'delegated_intervention_type_codes': delegated_intervention_type_codes
+                               # 'intervention_action_permissions': intervention_action_permissions,
+                               # 'delegated_intervention_type_codes': delegated_intervention_type_codes
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
@@ -1199,6 +1201,7 @@ def client_profile(request):
                 return render(request, 'login.html')
     else:
         raise PermissionDenied
+
 
 """
 def get_delegated_intervention_type_codes(delegating_ip, delegated_ip):
@@ -1211,6 +1214,7 @@ def get_delegated_intervention_type_codes(delegating_ip, delegated_ip):
     delegations = list(delegations.values_list('intervention_type__code', flat=True))
     return delegations
 """
+
 
 class ClientCreateView(CreateView):
     form_class = DemographicsForm
@@ -2355,7 +2359,8 @@ def save_intervention(request):
 
                     if client_interventions_count is None:
                         client_interventions_count = Intervention.objects.filter(intervention_type=intervention_type,
-                                                                           client=client).exclude(voided=True).count()
+                                                                                 client=client).exclude(
+                            voided=True).count()
 
                     cache_value(intervention_key, client_interventions_count)
 
@@ -2524,7 +2529,7 @@ def save_intervention(request):
                             #                                                     enrolment=client)
                             intervention_action_permission = InterventionActionPermissions(model=Intervention,
                                                                                            user=request.user,
-                                                                                           intervention=intervention,)
+                                                                                           intervention=intervention, )
                             interventions_action_permissions = {
                                 'can_perform_edit': intervention_action_permission.can_perform_edit(),
                                 'can_perform_void': intervention_action_permission.can_perform_void()}
@@ -2754,7 +2759,7 @@ def get_intervention_list(request):
                 if not ip:
                     return HttpResponseServerError(e)
 
-            #list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
+            # list_of_related_iv_types = InterventionType.objects.filter(intervention_category__exact=iv_category)
             iv_type_ids = [i_type.id for i_type in list_of_related_iv_types]
             # check for see_other_ip_data persmission
             intervention_type_category_cache_key = 'client-{}-intervention-type-category-{}'.format(client_id,
@@ -2777,7 +2782,7 @@ def get_intervention_list(request):
             is_editable_by_ip = {}
             is_visible_by_ip = {}
             intervention_ip_names = {}
-            #client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
+            # client_action_permissions = ClientActionPermissions(model=Client, user=request.user, enrolment=client_found)
             intervention_action_permissions = InterventionActionPermissions(model=Intervention, user=user)
             interventions_action_permissions = {}
 
@@ -3070,7 +3075,7 @@ def update_intervention(request):
                     if intervention.implementing_partner == ip:
                         # intervention.intervention_type = InterventionType.objects.get(
                         #     code__exact=int(request.POST.get('intervention_type_code')))
-                        #intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
+                        # intervention.client = Client.objects.get(id__exact=int(request.POST.get('client')))
 
                         intervention_date = dt.strptime(request.POST.get('intervention_date'), '%Y-%m-%d').date()
 
@@ -3101,7 +3106,7 @@ def update_intervention(request):
                         intervention.date_changed = dt.now()
                         intervention.comment = request.POST.get('comment')
 
-                        #i_type = InterventionType.objects.get(id__exact=intervention.intervention_type.id)
+                        # i_type = InterventionType.objects.get(id__exact=intervention.intervention_type.id)
                         i_type = intervention.intervention_type
 
                         htsresult = HTSResult.objects.all()
@@ -4356,15 +4361,16 @@ def client_transfers(request, *args, **kwargs):
     else:
         return redirect('login')
 
-
+"""
 def client_referrals(request, *args, **kwargs):
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+    user = request.user
+    if user is not None and user.is_authenticated() and user.is_active:
         referred_in = bool(int(kwargs.pop('referred_in', 1)))
-        referral_perm = ReferralServiceLayer(request.user)
+        referral_perm = ReferralServiceLayer(user)
         can_accept_or_reject = referral_perm.can_accept_or_reject_referral()
 
         try:
-            ip = request.user.implementingpartneruser.implementing_partner
+            ip = user.implementingpartneruser.implementing_partner
             if referred_in:
                 client_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
                         Q(external_organisation__isnull=False) | Q(
@@ -4376,9 +4382,13 @@ def client_referrals(request, *args, **kwargs):
                     external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
 
             for client_referral in client_referrals:
-                intervention = Intervention.objects.filter(referral_id=client_referral.pk)
+                try:
+                    intervention = Intervention.objects.get(referral_id=client_referral.pk)
+                except Exception:
+                    intervention = None
+
                 if intervention:
-                    client_referral.receiving_ip_comment = intervention.first().comment
+                    client_referral.receiving_ip_comment = intervention.comment
                 else:
                     client_referral.receiving_ip_comment = ""
 
@@ -4406,6 +4416,86 @@ def client_referrals(request, *args, **kwargs):
                       })
     else:
         return redirect('login')
+"""
+
+class ClientReferralsListView(ListView):
+    model = Referral
+    template_name = 'client_referrals.html'
+
+    def post(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(ClientReferralsListView, self).get_context_data(**kwargs)
+        context['to_login'] = False
+        context['error'] = ''
+
+        try:
+            user = self.request.user
+            if user is not None and user.is_authenticated() and user.is_active:
+                referred_in = bool(int(kwargs.pop('referred_in', 1)))
+                referral_perm = ReferralServiceLayer(user)
+                can_accept_or_reject = referral_perm.can_accept_or_reject_referral()
+
+                try:
+                    ip = user.implementingpartneruser.implementing_partner
+                    if referred_in:
+                        client_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
+                                Q(external_organisation__isnull=False) | Q(
+                            external_organisation_other__isnull=False)))).order_by(
+                            'referral_status', '-referral_date')
+                    else:
+                        client_referrals = Referral.objects.filter(Q(referring_ip=ip)).exclude((Q(referring_ip=ip) and (
+                                Q(external_organisation__isnull=False) | Q(
+                            external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
+
+                    for client_referral in client_referrals:
+                        try:
+                            intervention = Intervention.objects.get(referral_id=client_referral.pk)
+                        except Exception:
+                            intervention = None
+
+                        if intervention:
+                            client_referral.receiving_ip_comment = intervention.comment
+                        else:
+                            client_referral.receiving_ip_comment = ""
+
+                except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+                    context['error'] = "User does not belong to any implementing partner"
+
+                page = self.request.GET.get('page', 1)
+                paginator = Paginator(client_referrals, 20)
+
+                try:
+                    referrals = paginator.page(page)
+                except PageNotAnInteger:
+                    referrals = paginator.page(1)
+                except EmptyPage:
+                    referrals = paginator.page(paginator.num_pages)
+
+                context['client_referrals'] = referrals
+                context['can_accept_or_reject'] = can_accept_or_reject
+                context['referred_in'] = referred_in
+                context['page'] = 'referrals'
+                context['now'] = datetime.now().date()
+
+            else:
+                context['to_login'] = True
+
+        except Exception as e:
+            tb = traceback.format_exc(e)
+            context['error'] = tb
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        if context['to_login']:
+            return redirect('login')
+        if context['error'] != '':
+            return HttpResponseServerError(context['error'])
+        return super(ClientReferralsListView, self).render_to_response(context, **response_kwargs)
+
+    def get_queryset(self):
+        return Client.objects.none()
 
 
 def accept_client_transfer(request):
@@ -4516,6 +4606,7 @@ def reject_client_transfer(request):
 def reject_client_referral(request):
     try:
         if is_valid_post_request(request):
+            user = request.user
             client_referral_id = request.POST.get("id", "")
             reject_reason = request.POST.get("reject_reason", "")
 
@@ -4524,14 +4615,14 @@ def reject_client_referral(request):
                     client_referral = Referral.objects.get(id__exact=client_referral_id)
 
                     if client_referral is not None:
-                        referral_perm = ReferralServiceLayer(request.user, client_referral=client_referral)
+                        referral_perm = ReferralServiceLayer(user, client_referral=client_referral)
                         if not referral_perm.can_reject_referral():
                             raise PermissionDenied
 
                         if client_referral.referral_expiration_date >= dt.now().date():
                             client_referral.referral_status = ReferralStatus.objects.get(
                                 code__exact=REFERRAL_REJECTED_STATUS)
-                            client_referral.completed_by = request.user
+                            client_referral.completed_by = user
                             client_referral.end_date = dt.now()
                             client_referral.rejectreason = reject_reason
                             client_referral.save()
@@ -4608,11 +4699,11 @@ def get_pending_client_referrals_total_count(request):
 
 def get_pending_client_referrals_in_out_count(request):
     client_referrals_count_array = [0, 0]
-
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+    user = request.user
+    if user is not None and user.is_authenticated() and user.is_active:
         pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
         try:
-            ip = request.user.implementingpartneruser.implementing_partner
+            ip = user.implementingpartneruser.implementing_partner
             client_referrals_in_count = Referral.objects.filter(
                 referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
                         Q(external_organisation__isnull=False) | Q(
@@ -4724,7 +4815,8 @@ def export_client_transfers(request, *args, **kwargs):
 
 
 def export_client_referrals(request, *args, **kwargs):
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+    user = request.user
+    if user is not None and user.is_authenticated() and user.is_active:
 
         referred_in = bool(int(kwargs.pop('referred_in', 1)))
         columns = ("client__dreams_id", "referring_ip__name",
@@ -4732,7 +4824,7 @@ def export_client_referrals(request, *args, **kwargs):
                    "referral_date", "referral_expiration_date", "referral_status__name",)
 
         try:
-            ip = request.user.implementingpartneruser.implementing_partner
+            ip = user.implementingpartneruser.implementing_partner
             if referred_in:
                 c_referrals = Referral.objects.values(*columns).filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
                         Q(external_organisation__isnull=False) | Q(
