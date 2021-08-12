@@ -4237,10 +4237,11 @@ def download_services_received_export(request):
 
 def transfer_client(request):
     try:
-        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if user is not None and user.is_authenticated() and user.is_active:
             if request.method == 'POST' and request.is_ajax():
                 try:
-                    ip = request.user.implementingpartneruser.implementing_partner
+                    ip = user.implementingpartneruser.implementing_partner
                 except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
                     response_data = {
                         'status': 'fail',
@@ -4258,7 +4259,7 @@ def transfer_client(request):
                         }
                         return JsonResponse(response_data)
                     current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(
-                        request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser
+                        user.implementingpartneruser.implementing_partner_id) or user.is_superuser
                     initiate_transfer_perm = TransferServiceLayer(request.user)
                     if not initiate_transfer_perm.can_initiate_transfer() and current_user_belongs_to_same_ip_as_client:
                         response_data = {
@@ -4272,7 +4273,7 @@ def transfer_client(request):
                                                                                  code__exact=TRANSFER_INITIATED_STATUS)).count()
 
                     if num_of_pending_transfers > 0:
-                        print("{} pending transfers for client".format(num_of_pending_transfers))
+                        #print("{} pending transfers for client".format(num_of_pending_transfers))
                         response_data = {
                             'status': 'fail',
                             'message': "Transfer failed, there's a pending transfer for this client.",
@@ -4282,17 +4283,18 @@ def transfer_client(request):
                         client_transfer.transfer_status = ClientTransferStatus.objects.get(
                             code__exact=TRANSFER_INITIATED_STATUS)
                         client_transfer.source_implementing_partner = ip
-                        client_transfer.initiated_by = request.user
+                        client_transfer.initiated_by = user
                         client_transfer.start_date = dt.now()
                         client_transfer.save()
 
-                        client = transfer_form.instance.client
+                        #client = transfer_form.instance.client
                         client.date_changed = dt.now()
                         client.save()
 
                         response_data = {
                             'status': 'success',
-                            'message': 'Transfer request received, pending approval by the receiving implementing partner.',
+                            'message': 'Transfer request received, pending approval by the receiving implementing '
+                                       'partner.'
                         }
                     return JsonResponse(json.dumps(response_data), safe=False)
                 else:
@@ -4311,112 +4313,89 @@ def transfer_client(request):
         return JsonResponse(json.dumps(response_data), safe=False)
 
 
-def client_transfers(request, *args, **kwargs):
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
-        search_transfers_term = ''
-        transfer_perm = TransferServiceLayer(request.user)
-        can_accept_or_reject = transfer_perm.can_accept_or_reject_transfer()
-        c_transfers = None
-        try:
-            ip = request.user.implementingpartneruser.implementing_partner
-            if transferred_in:
-                search_term = None
-                if request.POST:
-                    search_term = request.POST.get('search-transfers-term')
-                    if search_term != '':
-                        search_transfers_term = search_term
-                        c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).select_related(
-                            'client') \
-                            .filter(Q(client__dreams_id__iexact=search_term)) \
-                            .exclude(client__voided=True).order_by('transfer_status', '-date_created')
-                    else:
-                        search_transfers_term = ''
-                        c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by(
-                            'transfer_status', '-date_created')
-                else:
-                    c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by(
-                        'transfer_status', '-date_created')
-            else:
-                c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by('transfer_status',
-                                                                                                     '-date_created')
+class ClientTransfesListView(ListView):
+    model = ClientTransfer
+    template_name = 'client_transfers.html'
 
-        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            return render(request, 'login.html')
+    def post(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
-        page = request.GET.get('page', 1)
-        paginator = Paginator(c_transfers, 20)
+    def get_context_data(self, **kwargs):
+        context = super(ClientTransfesListView, self).get_context_data(**kwargs)
+        context['to_login'] = False
+        context['error'] = ''
 
         try:
-            transfers = paginator.page(page)
-        except PageNotAnInteger:
-            transfers = paginator.page(1)
-        except EmptyPage:
-            transfers = paginator.page(paginator.num_pages)
-
-        return render(request, "client_transfers.html",
-                      {'client_transfers': transfers, 'can_accept_or_reject': can_accept_or_reject,
-                       'transferred_in': transferred_in, 'page': 'transfers',
-                       'search_transfers_term': search_transfers_term})
-    else:
-        return redirect('login')
-
-"""
-def client_referrals(request, *args, **kwargs):
-    user = request.user
-    if user is not None and user.is_authenticated() and user.is_active:
-        referred_in = bool(int(kwargs.pop('referred_in', 1)))
-        referral_perm = ReferralServiceLayer(user)
-        can_accept_or_reject = referral_perm.can_accept_or_reject_referral()
-
-        try:
-            ip = user.implementingpartneruser.implementing_partner
-            if referred_in:
-                client_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
-                        Q(external_organisation__isnull=False) | Q(
-                    external_organisation_other__isnull=False)))).order_by(
-                    'referral_status', '-referral_date')
-            else:
-                client_referrals = Referral.objects.filter(Q(referring_ip=ip)).exclude((Q(referring_ip=ip) and (
-                        Q(external_organisation__isnull=False) | Q(
-                    external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
-
-            for client_referral in client_referrals:
+            user = self.request.user
+            if user is not None and user.is_authenticated() and user.is_active:
+                transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
+                search_transfers_term = ''
+                transfer_perm = TransferServiceLayer(user)
+                can_accept_or_reject = transfer_perm.can_accept_or_reject_transfer()
+                c_transfers = None
                 try:
-                    intervention = Intervention.objects.get(referral_id=client_referral.pk)
-                except Exception:
-                    intervention = None
+                    ip = user.implementingpartneruser.implementing_partner
+                    if transferred_in:
+                        search_term = None
+                        if self.request.POST:
+                            search_term = self.request.POST.get('search-transfers-term')
+                            if search_term != '':
+                                search_transfers_term = search_term
+                                c_transfers = ClientTransfer.objects.filter(
+                                    destination_implementing_partner=ip).select_related(
+                                    'client') \
+                                    .filter(Q(client__dreams_id__iexact=search_term)) \
+                                    .exclude(client__voided=True).order_by('transfer_status', '-date_created')
+                            else:
+                                search_transfers_term = ''
+                                c_transfers = ClientTransfer.objects.filter(
+                                    destination_implementing_partner=ip).order_by(
+                                    'transfer_status', '-date_created')
+                        else:
+                            c_transfers = ClientTransfer.objects.filter(destination_implementing_partner=ip).order_by(
+                                'transfer_status', '-date_created')
+                    else:
+                        c_transfers = ClientTransfer.objects.filter(source_implementing_partner=ip).order_by(
+                            'transfer_status',
+                            '-date_created')
 
-                if intervention:
-                    client_referral.receiving_ip_comment = intervention.comment
-                else:
-                    client_referral.receiving_ip_comment = ""
+                except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+                    context['error'] = "User does not belong to any implementing partner"
 
-        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            return render(request, 'login.html')
+                page = self.request.GET.get('page', 1)
+                paginator = Paginator(c_transfers, 20)
 
-        page = request.GET.get('page', 1)
-        paginator = Paginator(client_referrals, 20)
+                try:
+                    transfers = paginator.page(page)
+                except PageNotAnInteger:
+                    transfers = paginator.page(1)
+                except EmptyPage:
+                    transfers = paginator.page(paginator.num_pages)
 
-        try:
-            referrals = paginator.page(page)
-        except PageNotAnInteger:
-            referrals = paginator.page(1)
-        except EmptyPage:
-            referrals = paginator.page(paginator.num_pages)
+                context['client_transfers'] = transfers
+                context['can_accept_or_reject'] = can_accept_or_reject
+                context['transferred_in'] = transferred_in
+                context['page'] = 'transfers'
+                context['search_transfers_term'] = search_transfers_term
 
-        return render(request,
-                      "client_referrals.html",
-                      {
-                          'client_referrals': referrals,
-                          'can_accept_or_reject': can_accept_or_reject,
-                          'referred_in': referred_in,
-                          'page': 'referrals',
-                          'now': datetime.now().date()
-                      })
-    else:
-        return redirect('login')
-"""
+            else:
+                context['to_login'] = True
+
+        except Exception as e:
+            tb = traceback.format_exc(e)
+            context['error'] = tb
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        if context['to_login']:
+            return redirect('login')
+        if context['error'] != '':
+            return HttpResponseServerError(context['error'])
+        return super(ClientTransfesListView, self).render_to_response(context, **response_kwargs)
+
+    def get_queryset(self):
+        return ClientTransfer.objects.none()
+
 
 class ClientReferralsListView(ListView):
     model = Referral
@@ -4495,18 +4474,19 @@ class ClientReferralsListView(ListView):
         return super(ClientReferralsListView, self).render_to_response(context, **response_kwargs)
 
     def get_queryset(self):
-        return Client.objects.none()
+        return Referral.objects.none()
 
 
 def accept_client_transfer(request):
     try:
-        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if user is not None and user.is_authenticated() and user.is_active:
             if request.method == 'POST':
 
                 try:
-                    ip = request.user.implementingpartneruser.implementing_partner
+                    ip = user.implementingpartneruser.implementing_partner
                 except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-                    if not request.user.is_superuser:
+                    if not user.is_superuser:
                         messages.error(request, "You do not belong to an implementing partner")
                         return redirect(reverse("client_transfers", kwargs={'transferred_in': 1}))
                     else:
@@ -4518,7 +4498,7 @@ def accept_client_transfer(request):
                     client = client_transfer.client
 
                     if client and not client.exited:
-                        transfer_perm = TransferServiceLayer(request.user, client_transfer=client_transfer)
+                        transfer_perm = TransferServiceLayer(user, client_transfer=client_transfer)
                         can_accept_transfer = transfer_perm.can_accept_transfer()
 
                         if not can_accept_transfer:
@@ -4533,8 +4513,8 @@ def accept_client_transfer(request):
                             client_transfer.end_date = dt.now()
 
                             # Update the client to receive interventions from this new ip.
-                            client = Client.objects.get(id__exact=client_transfer.client.id)
-                            if ip is None and request.user.is_superuser:
+                            #client = Client.objects.get(id__exact=client_transfer.client.id)
+                            if ip is None and user.is_superuser:
                                 ip = client_transfer.destination_implementing_partner
                             client.implementing_partner = ip
 
@@ -4567,7 +4547,8 @@ def accept_client_transfer(request):
 
 def reject_client_transfer(request):
     try:
-        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if user is not None and user.is_authenticated() and user.is_active:
             if request.method == 'POST':
 
                 client_transfer_id = request.POST.get("id", "")
@@ -4577,7 +4558,7 @@ def reject_client_transfer(request):
                     client_transfer = None
 
                 if client_transfer is not None:
-                    transfer_perm = TransferServiceLayer(request.user, client_transfer=client_transfer)
+                    transfer_perm = TransferServiceLayer(user, client_transfer=client_transfer)
                     can_reject_transfer = transfer_perm.can_reject_transfer()
 
                     if not can_reject_transfer:
@@ -4651,10 +4632,11 @@ def reject_client_referral(request):
 
 def get_pending_client_transfers_total_count(request):
     client_transfers_total_count = 0
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+    user = request.user
+    if user is not None and user.is_authenticated() and user.is_active:
         initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
-            ip = request.user.implementingpartneruser.implementing_partner
+            ip = user.implementingpartneruser.implementing_partner
             client_transfers_total_count = ClientTransfer.objects.filter(
                 Q(destination_implementing_partner=ip) | Q(source_implementing_partner=ip),
                 transfer_status=initiated_client_transfer_status).count()
@@ -4666,10 +4648,11 @@ def get_pending_client_transfers_total_count(request):
 
 def get_pending_client_transfers_in_out_count(request):
     client_transfers_count_array = [0, 0]
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+    user = request.user
+    if user is not None and user.is_authenticated() and user.is_active:
         initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
-            ip = request.user.implementingpartneruser.implementing_partner
+            ip = user.implementingpartneruser.implementing_partner
             client_transfers_in_count = ClientTransfer.objects.filter(
                 destination_implementing_partner=ip,
                 transfer_status=initiated_client_transfer_status).count()
@@ -4685,10 +4668,11 @@ def get_pending_client_transfers_in_out_count(request):
 
 def get_pending_client_referrals_total_count(request):
     client_referrals_total_count = 0
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+    user = request.user
+    if user is not None and user.is_authenticated() and user.is_active:
         try:
             pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
-            ip = request.user.implementingpartneruser.implementing_partner
+            ip = user.implementingpartneruser.implementing_partner
             client_referrals_total_count = Referral.objects.filter(
                 referral_status=pending_client_referral_status and (Q(receiving_ip=ip) | (Q(referring_ip=ip)))).filter(
                 client__exited=False).filter(referral_expiration_date__gte=datetime.now().date()).count()
@@ -4778,14 +4762,14 @@ def download_raw_intervention_transferred_in_export(request):
 
 
 def export_client_transfers(request, *args, **kwargs):
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-
+    user = request.user
+    if user is not None and user.is_authenticated() and user.is_active:
         transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
         columns = ("client__dreams_id", "source_implementing_partner__name",
                    "destination_implementing_partner__name", "transfer_reason", "transfer_status__name",)
 
         try:
-            ip = request.user.implementingpartneruser.implementing_partner
+            ip = user.implementingpartneruser.implementing_partner
             if transferred_in:
                 c_transfers = ClientTransfer.objects.values(*columns).filter(destination_implementing_partner=ip)
             else:
