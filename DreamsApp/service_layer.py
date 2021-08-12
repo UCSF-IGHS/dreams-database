@@ -124,6 +124,7 @@ class ReferralServiceLayer:
     def __init__(self, user, client_referral=None):
         self.user: User = user
         self.client_referral = client_referral
+        self.user_ip = self.user.implementingpartneruser.implementing_partner
 
     def can_accept_or_reject_referral(self):
         return self.user is not None and (self.user.is_superuser or self.user.has_perm('DreamsApp.change_referral'))
@@ -142,8 +143,8 @@ class ReferralServiceLayer:
                 if self.user.is_superuser:
                     action_allowed = True
                 else:
-                    user_ip = self.user.implementingpartneruser.implementing_partner
-                    if self.user.has_perm('DreamsApp.change_referral') and (receiving_ip == user_ip or (referring_ip == user_ip and (self.client_referral.external_organisation or (
+                    #user_ip = self.user.implementingpartneruser.implementing_partner
+                    if self.user.has_perm('DreamsApp.change_referral') and (receiving_ip == self.user_ip or (referring_ip == self.user_ip and (self.client_referral.external_organisation or (
                             self.client_referral.external_organisation_other)))):
                         action_allowed = True
 
@@ -160,8 +161,8 @@ class ReferralServiceLayer:
                 if self.user.is_superuser:
                     action_allowed = True
                 else:
-                    user_ip = self.user.implementingpartneruser.implementing_partner
-                    if self.user.has_perm('DreamsApp.change_referral') and (receiving_ip == user_ip or (referring_ip == user_ip and (self.client_referral.external_organisation or (
+                    #user_ip = self.user.implementingpartneruser.implementing_partner
+                    if self.user.has_perm('DreamsApp.change_referral') and (receiving_ip == self.user_ip or (referring_ip == self.user_ip and (self.client_referral.external_organisation or (
                             self.client_referral.external_organisation_other)))):
                         action_allowed = True
 
