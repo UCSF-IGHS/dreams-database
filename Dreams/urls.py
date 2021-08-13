@@ -93,7 +93,7 @@ urlpatterns = [
     url(r'^client/exit$', views.exit_client),
     url(r'^client/unexit$', views.unexit_client),
     url(r'^client/transfer$', views.transfer_client, name='transfer_client'),
-    url(r'^client-transfers/(?P<transferred_in>[0-1])$', views.client_transfers, name='client_transfers'),
+    url(r'^client-transfers/(?P<transferred_in>[0-1])$', views.ClientTransfesListView.as_view(), name='client_transfers'),
     url(r'^client-referrals/(?P<referred_in>[0-1])$', views.ClientReferralsListView.as_view(), name='client_referrals'),
     url(r'^accept-client-transfer$', views.accept_client_transfer, name='accept_client_transfer'),
     url(r'^reject-client-transfer$', views.reject_client_transfer, name='reject_client_transfer'),
