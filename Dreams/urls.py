@@ -27,7 +27,7 @@ urlpatterns = [
     url(r'^clientEdit$', views.ClientUpdateView.as_view(), name='edit_client'),  ## NOT USED IN APPLICATION
     url(r'^clientDelete$', views.ClientDeleteView.as_view(), name='delete_client'),  ## NOT USED IN APPLICATION
     url(r'^client$', views.client_profile),
-    url(r'^follow_ups$', views.follow_ups, name='follow_ups'),
+    url(r'^follow_ups$', views.FollowUpsListView.as_view(), name='follow_ups'),
     url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^ivgetTypes$', views.get_intervention_types),
     url(r'^ivgetType$', views.get_intervention_type),
