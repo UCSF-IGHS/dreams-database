@@ -1092,7 +1092,6 @@ class FollowUpsListView(ListView):
                         except EmptyPage:
                             displayed_follow_ups = paginator.page(paginator.num_pages)
 
-                        # current_user_belongs_to_same_ip_as_client = False
                         if user.is_superuser:
                             current_user_belongs_to_same_ip_as_client = True
                         else:
