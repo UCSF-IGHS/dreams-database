@@ -1064,7 +1064,8 @@ class FollowUpsListView(ListView):
         try:
             user = self.request.user
             if user is not None and user.is_authenticated() and user.is_active:
-                client_id = self.request.GET.get('client_id', '') if self.request.method == 'GET' else self.request.POST.get(
+                client_id = self.request.GET.get('client_id',
+                                                 '') if self.request.method == 'GET' else self.request.POST.get(
                     'client_id', '')
                 if client_id is not None and client_id != 0:
                     try:
@@ -1091,7 +1092,7 @@ class FollowUpsListView(ListView):
                         except EmptyPage:
                             displayed_follow_ups = paginator.page(paginator.num_pages)
 
-                        #current_user_belongs_to_same_ip_as_client = False
+                        # current_user_belongs_to_same_ip_as_client = False
                         if user.is_superuser:
                             current_user_belongs_to_same_ip_as_client = True
                         else:
@@ -1132,6 +1133,7 @@ class FollowUpsListView(ListView):
 
     def get_queryset(self):
         return ClientFollowUp.objects.none()
+
 
 """
 def follow_ups(request):
@@ -2086,21 +2088,32 @@ def is_not_null_or_empty(str):
 
 
 def unexit_client(request):
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
-            'DreamsApp.can_exit_client'):
-        try:
+    try:
+        user = request.user
+        if user is not None and user.is_authenticated() and user.is_active and user.has_perm(
+                'DreamsApp.can_exit_client'):
             client_id = int(str(request.POST.get('client_id', '0')))
             reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
             date_of_exit = request.POST.get('date_of_unexit', datetime.now())
-            client = Client.objects.get(id=client_id)
+
+            try:
+                client = Client.objects.get(id=client_id)
+            except:
+                response_data = {
+                    'status': 'failed',
+                    'message': 'There is no client found.'
+                }
+                return JsonResponse(response_data, status=500)
+
             try:
                 if not (client.current_user_belongs_to_same_ip_as_client(
-                        request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser):
+                        user.implementingpartneruser.implementing_partner_id) or user.is_superuser):
                     raise PermissionDenied
             except:
                 response_data = {
                     'status': 'failed',
-                    'message': 'Permission denied. You must belong to the same IP as the client to be able to update it.'
+                    'message': 'Permission denied. You must belong to the same IP as the client to be able to update '
+                               'it. '
                 }
                 return JsonResponse(response_data, status=500)
 
@@ -2132,33 +2145,35 @@ def unexit_client(request):
                 'client_status': get_client_status(client)
             }
             return JsonResponse(response_data, status=200)
-        except Exception as e:
+        else:
             response_data = {
                 'status': 'failed',
-                'message': 'Invalid client Id: ' + str(e)
+                'message': 'Permission Denied. Please contact System Administrator for help.'
             }
             return JsonResponse(response_data, status=500)
-    else:
+
+    except Exception as e:
         response_data = {
             'status': 'failed',
-            'message': 'Permission Denied. Please contact System Administrator for help.'
+            'message': 'Invalid client Id: ' + str(e)
         }
         return JsonResponse(response_data, status=500)
 
 
 def exit_client(request):
-    OTHER_CODE = 6
+    user = request.user
 
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
-            'DreamsApp.can_exit_client'):
-        try:
+    try:
+        if user is not None and user.is_authenticated() and user.is_active and user.has_perm(
+                'DreamsApp.can_exit_client'):
             client_id = int(str(request.POST.get('client_id')))
             reason_for_exit = ExitReason.objects.get(id__exact=int(request.POST.get('reason_for_exit', '')))
             date_of_exit = request.POST.get('date_of_exit', datetime.now())
             exit_comment = request.POST.get('exit_comment')
 
-            client = Client.objects.get(id=client_id)
-            if not client:
+            try:
+                client = Client.objects.get(id=client_id)
+            except:
                 response_data = {
                     'status': 'failed',
                     'message': 'There is no client found.'
@@ -2167,7 +2182,7 @@ def exit_client(request):
 
             try:
                 if not (client.current_user_belongs_to_same_ip_as_client(
-                        request.user.implementingpartneruser.implementing_partner_id) or request.user.is_superuser):
+                        user.implementingpartneruser.implementing_partner_id) or user.is_superuser):
                     raise PermissionDenied
             except:
                 response_data = {
@@ -2183,7 +2198,8 @@ def exit_client(request):
                                                                                           '%Y-%m-%d').date():
                 response_data = {
                     'status': 'failed',
-                    'message': 'You cannot exit this client since she has received an intervention after the selected exit date.'
+                    'message': 'You cannot exit this client since she has received an intervention after the selected '
+                               'exit date. '
                 }
                 return JsonResponse(response_data, status=500)
 
@@ -2204,12 +2220,11 @@ def exit_client(request):
             if reason_for_exit is not None:
                 if reason_for_exit.code == OTHER_CODE:
                     if is_not_null_or_empty(exit_comment):
-                        exited_client = other_client_exit(client, reason_for_exit, exit_comment, request.user,
-                                                          date_of_exit)
+                        exited_client = other_client_exit(client, reason_for_exit, exit_comment, user, date_of_exit)
                     else:
                         raise Exception('Reason for exit missing')
                 else:
-                    exited_client = client_exit(client, reason_for_exit, request.user, date_of_exit)
+                    exited_client = client_exit(client, reason_for_exit, user, date_of_exit)
 
             response_data = {
                 'status': 'success',
@@ -2218,16 +2233,17 @@ def exit_client(request):
                 'client_status': get_client_status(exited_client)
             }
             return JsonResponse(response_data, status=200)
-        except Exception as e:
+        else:
             response_data = {
                 'status': 'failed',
-                'message': 'Invalid client Id: ' + str(e)
+                'message': 'Permission Denied. Please contact System Administrator for help.'
             }
             return JsonResponse(response_data, status=500)
-    else:
+
+    except Exception as e:
         response_data = {
             'status': 'failed',
-            'message': 'Permission Denied. Please contact System Administrator for help.'
+            'message': 'Invalid client Id: ' + str(e)
         }
         return JsonResponse(response_data, status=500)
 
@@ -2254,11 +2270,7 @@ def client_exit(client, reason_for_exit, exit_user, date_of_exit):
 
 
 def get_last_intervention_offered(client: Client):
-    last_intervention = None
-    get_last_intervention = Intervention.objects.filter(client=client).order_by("-intervention_date")
-    if get_last_intervention:
-        last_intervention = get_last_intervention.first()
-    return last_intervention
+    return Intervention.objects.filter(client=client).order_by("-intervention_date").first()
 
 
 def testajax(request):
@@ -2290,9 +2302,9 @@ def get_unsuccessful_followup_attempts(request):
             client_id = int(request.GET.get('current_client_id'))
             client = Client.objects.get(id=client_id)
             unsuccessful_follow_up_attempts = ClientFollowUp.objects.filter(client=client,
-                                                                            result_of_followup=ClientLTFUResultType.objects.filter(
-                                                                                name='Lost').first()).all()
-            response_data['unsuccessful_follow_up_attempts'] = len(unsuccessful_follow_up_attempts)
+                                                                            result_of_followup=ClientLTFUResultType.objects.get(
+                                                                                name='Lost')).count()  # .all()
+            response_data['unsuccessful_follow_up_attempts'] = unsuccessful_follow_up_attempts
             return JsonResponse(response_data)
         else:
             raise PermissionDenied
@@ -4380,7 +4392,7 @@ def transfer_client(request):
                                                                                  code__exact=TRANSFER_INITIATED_STATUS)).count()
 
                     if num_of_pending_transfers > 0:
-                        #print("{} pending transfers for client".format(num_of_pending_transfers))
+                        # print("{} pending transfers for client".format(num_of_pending_transfers))
                         response_data = {
                             'status': 'fail',
                             'message': "Transfer failed, there's a pending transfer for this client.",
@@ -4394,7 +4406,7 @@ def transfer_client(request):
                         client_transfer.start_date = dt.now()
                         client_transfer.save()
 
-                        #client = transfer_form.instance.client
+                        # client = transfer_form.instance.client
                         client.date_changed = dt.now()
                         client.save()
 
@@ -4620,7 +4632,7 @@ def accept_client_transfer(request):
                             client_transfer.end_date = dt.now()
 
                             # Update the client to receive interventions from this new ip.
-                            #client = Client.objects.get(id__exact=client_transfer.client.id)
+                            # client = Client.objects.get(id__exact=client_transfer.client.id)
                             if ip is None and user.is_superuser:
                                 ip = client_transfer.destination_implementing_partner
                             client.implementing_partner = ip
@@ -4951,18 +4963,30 @@ def export_client_referrals(request, *args, **kwargs):
 
 def void_client(request):
     try:
-        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if user is not None and user.is_authenticated() and user.is_active:
             if request.method == 'POST' and request.is_ajax():
-                if not request.user.is_superuser and not request.user.has_perm(
-                        'DreamsApp.can_void_client') and not Permission.objects.filter(group__user=request.user).filter(
+                if not user.is_superuser and not user.has_perm(
+                        'DreamsApp.can_void_client') and not Permission.objects.filter(group__user=user).filter(
                     codename='DreamsApp.can_void_client').exists():
                     return get_response_data(0, 'Voiding Failed. You do not have permission to void a client')
 
                 client_id = request.POST.get("id", "")
-                client = Client.objects.get(id=client_id)
+                if client_id == "":
+                    return get_response_data(0, 'Invalid client ID. Please specify client.')
+
+                try:
+                    client = Client.objects.get(id=client_id)
+                except:
+                    response_data = {
+                        'status': 'fail',
+                        'errors': "Client not found"
+                    }
+                    return JsonResponse(response_data, status=500)
+
                 current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(
-                    request.user.implementingpartneruser.implementing_partner_id)
-                if not (current_user_belongs_to_same_ip_as_client or request.user.is_superuser):
+                    user.implementingpartneruser.implementing_partner_id)
+                if not (current_user_belongs_to_same_ip_as_client or user.is_superuser):
                     response_data = {
                         'status': 'fail',
                         'errors': "Void failed. You must belong to the same IP as the client inorder to update"
@@ -4973,28 +4997,26 @@ def void_client(request):
                 if void_reason is None or void_reason == "" or void_reason.isspace():
                     return get_response_data(0, {'void_reason': ['Reason for voiding is required.']})
 
-                if client_id != "":
-                    cursor = db_conn_2.cursor()
-                    try:
-                        args = [client_id, request.user.id, void_reason]
-                        cursor.callproc('sp_void_client_by_id', args)
-                        exec_status = cursor.fetchone()[0]
+                cursor = db_conn_2.cursor()
+                try:
+                    args = [client_id, request.user.id, void_reason]
+                    cursor.callproc('sp_void_client_by_id', args)
+                    exec_status = cursor.fetchone()[0]
 
-                        if exec_status == 1:
-                            messages.info(request, "Client has been voided.")
-                            response_data = get_response_data(1, 'Client has been voided.', next_url=reverse('clients'))
-                        else:
-                            response_data = get_response_data(0,
-                                                              'Client not voided, please contact system '
-                                                              'administrator for assistance.')
-                    except Exception as e:
-                        response_data = get_response_data(0, 'Client could not be voided.{}'.format(e))
-                    finally:
-                        cursor.close()
+                    if exec_status == 1:
+                        messages.info(request, "Client has been voided.")
+                        response_data = get_response_data(1, 'Client has been voided.', next_url=reverse('clients'))
+                    else:
+                        response_data = get_response_data(0,
+                                                          'Client not voided, please contact system '
+                                                          'administrator for assistance.')
+                except Exception as e:
+                    response_data = get_response_data(0, 'Client could not be voided.{}'.format(e))
+                finally:
+                    cursor.close()
 
-                    return response_data
-                else:
-                    return get_response_data(0, 'Invalid client ID. Please specify client.')
+                return response_data
+
             else:
                 raise SuspiciousOperation
         else:
