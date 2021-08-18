@@ -149,7 +149,7 @@ def build_filter_client_queryset(turple_1, turple_2, turple_3, turple_4, turple_
             .order_by('middle_name') \
             .order_by('last_name')
     except Exception as e:
-        return Client.objects.all()[0]
+        return Client.objects.none()  # Client.objects.all()[0]
 
 
 def filter_clients(search_client_term, is_advanced_search, request):
@@ -400,7 +400,6 @@ class ClientListView(ListView):
 
             else:
                 context['to_login'] = True
-            # print(len(db_conn_2.queries))
 
         except Exception as e:
             tb = traceback.format_exc(e)
@@ -424,9 +423,9 @@ class ClientDetailView(DetailView):
 
     def get_object(self, queryset=None):
         try:
-            client_id = int(self.request.GET['client_id'])
-            if client_id is not None and client_id != 0:
-                self.object = Client.objects.get(id=client_id, voided=False)
+            client_id = self.request.GET.get('client_id', None)
+            if client_id is not None and client_id != "0":
+                self.object = Client.objects.get(id=int(client_id), voided=False)
         except Exception as e:
             self.object = None
         return self.object
@@ -435,7 +434,6 @@ class ClientDetailView(DetailView):
         context = super(ClientDetailView, self).get_context_data(**kwargs)
         context['page'] = 'clients'
         context['page_title'] = 'DREAMS Enrollment Data'
-        context['user'] = self.request.user
         context['to_login'] = False
         context['error'] = ''
 
@@ -444,6 +442,7 @@ class ClientDetailView(DetailView):
         if user is None or not user.is_authenticated() or not user.is_active:
             context['to_login'] = True
             return context
+        context['user'] = user
 
         if self.request.method != 'GET':
             context['error'] = 'POST not allowed'
@@ -455,10 +454,6 @@ class ClientDetailView(DetailView):
                 context['error'] = "Client does not exist"
                 return context
 
-            # Relation is a one-to-one to Client
-            # Consider client = models.OneToOneField(Client, db_index=True)
-            # instead of client = models.ForeignKey(Client, db_index=True)
-            # then below: client_demographics.clientindividualandhouseholddata
             demographics_form = DemographicsForm(instance=client_demographics)
             search_client_term = self.request.GET.get('search_client_term', '')
 
@@ -513,8 +508,8 @@ class ClientDetailView(DetailView):
         if context['to_login']:
             return redirect('login')
         if context['error'] != '':
-            # return HttpResponseServerError(context['error'])
-            return redirect('clients')
+            return HttpResponseServerError(context['error'])
+            # return redirect('clients')
         return super(ClientDetailView, self).render_to_response(context, **response_kwargs)
 
     def get_queryset(self):
@@ -1065,11 +1060,11 @@ class FollowUpsListView(ListView):
             user = self.request.user
             if user is not None and user.is_authenticated() and user.is_active:
                 client_id = self.request.GET.get('client_id',
-                                                 '') if self.request.method == 'GET' else self.request.POST.get(
-                    'client_id', '')
-                if client_id is not None and client_id != 0:
+                                                 None) if self.request.method == 'GET' else self.request.POST.get(
+                    'client_id', None)
+                if client_id is not None and client_id != "0":
                     try:
-                        client = Client.objects.get(id=client_id)
+                        client = Client.objects.get(id=int(client_id), voided=False)
                         client_follow_ups = ClientFollowUp.objects.filter(client=client)
 
                         follow_up_service_layer = FollowUpsServiceLayer(user, client)
@@ -1134,71 +1129,16 @@ class FollowUpsListView(ListView):
         return ClientFollowUp.objects.none()
 
 
-"""
-def follow_ups(request):
-    if request.user is not None and request.user.is_authenticated() and request.user.is_active:
-        client_id = request.GET.get('client_id', '') if request.method == 'GET' else request.POST.get('client_id', '')
-        if client_id is not None and client_id != 0:
-            try:
-                client = Client.objects.get(id=client_id)
-                client_follow_ups = ClientFollowUp.objects.filter(client=client)
-
-                follow_up_service_layer = FollowUpsServiceLayer(request.user, client)
-                follow_up_perms = {
-                    'can_create_follow_up': follow_up_service_layer.can_create_followup(),
-                    'can_delete_follow_up': follow_up_service_layer.can_delete_followup(),
-                    'can_edit_follow_up': follow_up_service_layer.can_edit_followup(),
-                    'can_view_follow_up': follow_up_service_layer.can_view_followup()
-                }
-
-                page = request.GET.get('page', 1)
-                paginator = Paginator(client_follow_ups, 20)
-                follow_up_types = ClientFollowUpType.objects.all()
-                follow_up_result_types = ClientLTFUResultType.objects.all()
-
-                try:
-                    displayed_follow_ups = paginator.page(page)
-                except PageNotAnInteger:
-                    displayed_follow_ups = paginator.page(1)
-                except EmptyPage:
-                    displayed_follow_ups = paginator.page(paginator.num_pages)
-                current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(
-                    request.user.implementingpartneruser.implementing_partner_id)
-                return render(request, 'client_follow_ups.html', {
-                    'page': 'Follow Ups',
-                    'page_title': 'Client Follow Ups Page',
-                    'client': client,
-                    'user': request.user,
-                    'follow_up_perms': follow_up_perms,
-                    'follow_ups': displayed_follow_ups,
-                    'follow_up_types': follow_up_types,
-                    'follow_up_result_types': follow_up_result_types,
-                    'current_user_belongs_to_same_ip_as_client': current_user_belongs_to_same_ip_as_client or request.user.is_superuser
-                })
-            except Client.DoesNotExist:
-                response_data = {
-                    'status': 'failed',
-                    'message': 'Operation not allowed. Client does not exist',
-                    'client_id': client.id
-                }
-                return JsonResponse(json.dumps(response_data), safe=False)
-            except Exception as e:
-                return render(request, 'login.html')
-    else:
-        raise PermissionDenied
-"""
-
-
 def client_profile(request):
     """ Returns client profile """
     user = request.user
     if user is not None and user.is_authenticated() and user.is_active:
-        client_id = request.GET.get('client_id', '') if request.method == 'GET' else request.POST.get(
-            'client_id', '')
+        client_id = request.GET.get('client_id', None) if request.method == 'GET' else request.POST.get(
+            'client_id', None)
         search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
             'search_client_term', '')
         ip = None
-        if client_id is not None and client_id != 0:
+        if client_id is not None and client_id != "0":
             try:
                 ip = user.implementingpartneruser.implementing_partner
                 ip_code = ip.code if ip else None
@@ -1220,7 +1160,7 @@ def client_profile(request):
             ip_user_id = ip.id
 
             try:
-                client_found = Client.objects.get(id=client_id)
+                client_found = Client.objects.get(id=int(client_id), voided=False)
                 is_editable_by_ip = client_found.is_editable_by_ip(ip)
                 can_add_intervention = client_found.can_add_intervention(ip)
                 client_status = client_found.get_client_status(ip)
@@ -1291,6 +1231,7 @@ def client_profile(request):
 
 
 """
+DELEGATION CODE
 def get_delegated_intervention_type_codes(delegating_ip, delegated_ip):
     if delegated_ip == delegating_ip:
         return []
@@ -1414,7 +1355,6 @@ class ClientCreateView(CreateView):
         return JsonResponse(json.dumps(response_data), safe=False)
 
 
-## NOT USED IN APPLICATION
 class ClientUpdateView(UpdateView):
     model = Client
     fields = '__all__'
@@ -1422,22 +1362,28 @@ class ClientUpdateView(UpdateView):
     def get_object(self, queryset=None):
         try:
             if self.request.method == 'GET':
-                client_id = int(self.request.GET['client_id'])
-                client = Client.objects.defer('date_of_enrollment', 'date_of_birth').get(id__exact=client_id)
-
+                client_id = self.request.GET.get('client_id', None)
+                if client_id is not None:
+                    client = Client.objects.defer('date_of_enrollment', 'date_of_birth').get(id__exact=int(client_id),
+                                                                                             voided=False)
+                else:
+                    client = None
             elif self.request.method == 'POST':
-                client_id = int(str(self.request.POST.get('client_id')))
-                client = Client.objects.get(id=client_id, voided=False)
+                client_id = self.request.POST.get('client_id', None)
+                if client_id is not None:
+                    client = Client.objects.get(id=int(client_id), voided=False)
+                else:
+                    client = None
 
             self.object = client
-            return self.object
         except AttributeError:
-            return None
+            self.object = None
+        return self.object
 
     def form_valid(self, form):
         try:
             user = self.request.user
-            if user is not None and user.is_authenticated() and user.is_active:  # and request.user.is_superuser:
+            if user is not None and user.is_authenticated() and user.is_active:
                 client = self.object
 
                 if self.request.method == 'GET':
@@ -1467,7 +1413,8 @@ class ClientUpdateView(UpdateView):
                     if not client.is_editable_by_ip(ip) or client.exited:
                         response_data = {
                             'status': 'failed',
-                            'message': 'Operation not allowed. Client is not editable by your Implementing partner or is exited',
+                            'message': 'Operation not allowed. Client is not editable by your Implementing partner or '
+                                       'is exited',
                             'client_id': client.id
                         }
                         return JsonResponse(json.dumps(response_data), safe=False)
@@ -1533,7 +1480,7 @@ class ClientUpdateView(UpdateView):
                     if self.request.is_ajax():
                         response_data = {
                             'status': 'success',
-                            'message': 'Client Details Updated successfuly.',
+                            'message': 'Client Details Updated successfully.',
                             'client_id': client.id,
                             'can_manage_client': self.request.user.has_perm('auth.can_manage_client'),
                             'can_change_client': self.request.user.has_perm('auth.can_change_client'),
@@ -1558,20 +1505,22 @@ class ClientUpdateView(UpdateView):
         return JsonResponse(json.dumps(response_data), safe=False)
 
 
-## NOT USED IN APPLICATION
 class ClientDeleteView(DeleteView):
     model = Client
 
     def get_object(self, queryset=None):
         try:
             if self.request.method == 'GET' and self.request.is_ajax():
-                client_id = int(self.request.GET['client_id'])
-                self.object = Client.objects.get(id__exact=client_id)
+                client_id = self.request.GET.get('client_id', None)
+                if client_id is not None:
+                    self.object = Client.objects.get(id__exact=int(client_id), voided=False)
+                else:
+                    self.object = None
             else:
                 self.object = None
-            return self.object
         except AttributeError:
-            return None
+            self.object = None
+        return self.object
 
     def form_valid(self, form):
         try:
@@ -1626,7 +1575,7 @@ class ClientDeleteView(DeleteView):
                 log_custom_actions(self.request.user.id, "DreamsApp_client", client.id, "DELETE", 'SUCCESS')
                 response_data = {
                     'status': 'success',
-                    'message': 'Client Details Deleted successfuly.'
+                    'message': 'Client Details Deleted successfully.'
                 }
             return JsonResponse(json.dumps(response_data), safe=False)
 
@@ -1652,9 +1601,9 @@ class ClientDemographicsCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = self.request.POST['client']
+            client_id = self.request.POST.get('client', None)
             if client_id is not None and client_id != "0":
-                return Client.objects.get(id=client_id)
+                return Client.objects.get(id=int(client_id), voided=False)
             else:
                 return None
         except Exception as e:
@@ -1670,7 +1619,8 @@ class ClientDemographicsCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
 
     def form_valid(self, form):
         try:
-            client_enrolment_service_layer = ClientEnrolmentServiceLayer(self.request.user)
+            user = self.request.user
+            client_enrolment_service_layer = ClientEnrolmentServiceLayer(user)
             if not client_enrolment_service_layer.is_within_enrolment_dates(form.instance.date_of_birth,
                                                                             form.instance.date_of_enrollment):
                 min_max_age = client_enrolment_service_layer.get_minimum_maximum_enrolment_age(
@@ -1679,7 +1629,8 @@ class ClientDemographicsCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
                 response_data = {
                     'status': 'fail',
                     'errors': [
-                        "The client is not within the accepted age range. At the date of enrolment the age of the client"
+                        "The client is not within the accepted age range. At the date of enrolment the age of the "
+                        "client "
                         " must be between " + str(
                             min_max_age[0]) + " and " + str(min_max_age[1] + " years.")],
                     'client_age': self.object.get_current_age()
@@ -1722,7 +1673,7 @@ class IndividualHouseHoldCreateUpdateView(SingleObjectTemplateResponseMixin, Mod
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = self.request.POST['client']
+            client_id = self.request.POST.get('client', None)
             if client_id is not None and client_id != "0":
                 client = Client.objects.get(id=int(client_id), voided=False)
                 individialhousehold_queryset = client.clientindividualandhouseholddata_set
@@ -1766,7 +1717,7 @@ class EducationAndEmploymentCreateUpdateView(SingleObjectTemplateResponseMixin, 
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = self.request.POST['client']
+            client_id = self.request.POST.get('client', None)
             if client_id is not None and client_id != "0":
                 client = Client.objects.get(id=int(client_id), voided=False)
                 educationandemployment_queryset = client.clienteducationandemploymentdata_set
@@ -1810,7 +1761,7 @@ class HIVTestingCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMix
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = self.request.POST['client']
+            client_id = self.request.POST.get('client', None)
             if client_id is not None and client_id != "0":
                 client = Client.objects.get(id=int(client_id), voided=False)
                 clienthivtesting_queryset = client.clienthivtestingdata_set
@@ -1854,7 +1805,7 @@ class SexualityCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixi
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = self.request.POST['client']
+            client_id = self.request.POST.get('client', None)
             if client_id is not None and client_id != "0":
                 client = Client.objects.get(id=int(client_id), voided=False)
                 sexualactivity_queryset = client.clientsexualactivitydata_set
@@ -1898,7 +1849,7 @@ class ReproductiveHealthCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = self.request.POST['client']
+            client_id = self.request.POST.get('client', None)
             if client_id is not None and client_id != "0":
                 client = Client.objects.get(id=int(client_id), voided=False)
                 reproductivehealth_queryset = client.clientreproductivehealthdata_set
@@ -1942,7 +1893,7 @@ class GenderBasedViolenceCreateUpdateView(SingleObjectTemplateResponseMixin, Mod
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = self.request.POST['client']
+            client_id = self.request.POST.get('client', None)
             if client_id is not None and client_id != "0":
                 client = Client.objects.get(id=int(client_id), voided=False)
                 gbv_queryset = client.clientgenderbasedviolencedata_set
@@ -1986,7 +1937,7 @@ class DrugUseCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin,
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = self.request.POST['client']
+            client_id = self.request.POST.get('client', None)
             if client_id is not None and client_id != "0":
                 client = Client.objects.get(id=int(client_id), voided=False)
                 druguse_queryset = client.clientdrugusedata_set
@@ -2030,7 +1981,7 @@ class ProgramParticipationCreateUpdateView(SingleObjectTemplateResponseMixin, Mo
             if self.request.method != 'POST':
                 raise PermissionDenied
 
-            client_id = self.request.POST['client']
+            client_id = self.request.POST.get('client', None)
             if client_id is not None and client_id != "0":
                 client = Client.objects.get(id=int(client_id), voided=False)
                 programparticipation_queryset = client.clientparticipationindreams_set
@@ -2091,12 +2042,19 @@ def unexit_client(request):
         user = request.user
         if user is not None and user.is_authenticated() and user.is_active and user.has_perm(
                 'DreamsApp.can_exit_client'):
-            client_id = int(str(request.POST.get('client_id', '0')))
+            client_id = request.POST.get('client_id', None)
+            if client_id is None or client_id == "0":
+                response_data = {
+                    'status': 'failed',
+                    'message': 'Invalid client.'
+                }
+                return JsonResponse(response_data, status=500)
+
             reason_for_exit = str(request.POST.get('reason_for_unexit', ''))
             date_of_exit = request.POST.get('date_of_unexit', datetime.now())
 
             try:
-                client = Client.objects.get(id=client_id)
+                client = Client.objects.get(id=int(client_id), voided=False)
             except:
                 response_data = {
                     'status': 'failed',
@@ -2165,13 +2123,20 @@ def exit_client(request):
     try:
         if user is not None and user.is_authenticated() and user.is_active and user.has_perm(
                 'DreamsApp.can_exit_client'):
-            client_id = int(str(request.POST.get('client_id')))
+            client_id = request.POST.get('client_id', None)
+            if client_id is None or client_id == "0":
+                response_data = {
+                    'status': 'failed',
+                    'message': 'Invalid client.'
+                }
+                return JsonResponse(response_data, status=500)
+
             reason_for_exit = ExitReason.objects.get(id__exact=int(request.POST.get('reason_for_exit', '')))
             date_of_exit = request.POST.get('date_of_exit', datetime.now())
             exit_comment = request.POST.get('exit_comment')
 
             try:
-                client = Client.objects.get(id=client_id)
+                client = Client.objects.get(id=int(client_id), voided=False)
             except:
                 response_data = {
                     'status': 'failed',
@@ -2186,7 +2151,8 @@ def exit_client(request):
             except:
                 response_data = {
                     'status': 'failed',
-                    'message': 'Permission denied. You must belong to the same IP as the client to be able to update it.'
+                    'message': 'Permission denied. You must belong to the same IP as the client to be able to update '
+                               'it. '
                 }
                 return JsonResponse(response_data, status=500)
 
@@ -2282,7 +2248,8 @@ def testajax(request):
 
 def get_external_organisation(request):
     try:
-        if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if request.method == 'GET' and user is not None and user.is_authenticated() and user.is_active:
             response_data = {}
             external_orgs = serializers.serialize('json', ExternalOrganisation.objects.all())
             response_data["external_orgs"] = external_orgs
@@ -2298,8 +2265,10 @@ def get_unsuccessful_followup_attempts(request):
     try:
         if is_valid_get_request(request):
             response_data = {}
-            client_id = int(request.GET.get('current_client_id'))
-            client = Client.objects.get(id=client_id)
+            client_id = request.GET.get('current_client_id', None)
+            if client_id is None or client_id == "0":
+                return HttpResponseServerError("Invalid client")
+            client = Client.objects.get(id=int(client_id), voided=False)
             unsuccessful_follow_up_attempts = ClientFollowUp.objects.filter(client=client,
                                                                             result_of_followup=ClientLTFUResultType.objects.get(
                                                                                 name='Lost')).count()  # .all()
@@ -2327,21 +2296,26 @@ def get_exit_reasons(request):
 
 
 def is_valid_get_request(request):
-    return request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active
+    user = request.user
+    return request.method == 'GET' and user is not None and user.is_authenticated() and user.is_active
 
 
 def is_valid_post_request(request):
-    return request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active
+    user = request.user
+    return request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active
 
 
 def get_intervention_types(request):
     try:
-        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
             response_data = {}
             category_code = request.POST.get('category_code')
-            current_client_id = request.POST.get('current_client_id', 0)
+            current_client_id = request.POST.get('current_client_id', None)
+            if current_client_id is None or current_client_id == "0":
+                raise Exception("Invalid client")
             # get current client
-            current_client = Client.objects.get(id=current_client_id)
+            current_client = Client.objects.get(id=int(current_client_id), voided=False)
             if current_client is None:
                 raise Exception
             # Get category by code and gets all related types
@@ -2369,7 +2343,8 @@ def get_intervention_types(request):
 
 def get_intervention_type(request):
     try:
-        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
             response_data = {}
             type_code = request.POST.get('type_code')
             i_type = serializers.serialize('json',
@@ -2392,21 +2367,25 @@ def save_intervention(request):
         user = request.user
         if is_valid_post_request(request) and user.has_perm('DreamsApp.add_intervention'):
             try:
-                client_id = request.POST.get('client')
+                client_id = request.POST.get('client', None)
+                if client_id is None or client_id == "0":
+                    response_data = {
+                        'status': 'fail',
+                        'message': 'Invalid client ID'
+                    }
+                    return JsonResponse(response_data)
+
                 client_key = 'client-{}'.format(client_id)
                 client = cache.get(client_key)
 
                 if not client:
-                    client = Client.objects.get(id__exact=int(client_id))
-
-                # if client.exited or client.voided:
-                #     client = Client.objects.get(id__exact=int(client_id))
+                    client = Client.objects.get(id__exact=int(client_id), voided=False)
 
                 cache_value(client_key, client)
 
                 status = True
                 if client.voided:
-                    message = 'Error: You cannot Add Sevices to a voided Client. ' \
+                    message = 'Error: You cannot Add Services to a voided Client. ' \
                               'Please contact System Administrator for help.'
                     status = False
                 if client.exited:
@@ -2696,7 +2675,7 @@ def initiate_referral(request):
     try:
         if is_valid_post_request(request):
             OTHER_EXTERNAL_ORGANISATION_ID = ExternalOrganisation.objects.get(name='Other').pk
-            client = Client.objects.filter(id__exact=int(request.POST.get('referral-client-id'))).first()
+            client = Client.objects.filter(id__exact=int(request.POST.get('referral-client-id'))).exclude(voided=True).first()
             source_implementing_partner = ImplementingPartner.objects.filter(
                 id__exact=client.implementing_partner.id).first()
             intervention_type = InterventionType.objects.filter(
@@ -2816,8 +2795,10 @@ def get_implementing_partners(request):
     try:
         if is_valid_get_request(request):
             if has_get_arg('referral-client-id', request):
-                client_id = int(request.GET.get('referral-client-id'))
-                client_implementing_partner = Client.objects.get(id=client_id).implementing_partner
+                client_id = request.GET.get('referral-client-id', None)
+                if client_id is None or client_id == "0":
+                    raise Exception("Invalid client ID")
+                client_implementing_partner = Client.objects.get(id=int(client_id), voided=False).implementing_partner
                 implementing_partners = ImplementingPartner.objects.exclude(id=client_implementing_partner.id)
                 response_data = {
                     'implementing_partners': serializers.serialize('json', implementing_partners)
@@ -2937,7 +2918,7 @@ def get_client_found(client_id, client_key):
     try:
         client_found = cache.get(client_key)
         if not client_found:
-            client_found = Client.objects.get(id=client_id)
+            client_found = Client.objects.get(id=client_id, voided=False)
         cache_value(client_key, client_found)
         return client_found
     except Exception as e:
@@ -2946,7 +2927,8 @@ def get_client_found(client_id, client_key):
 
 def get_intervention(request):
     try:
-        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
             intervention_id = request.POST.get('intervention_id')
             if 'intervention_id' not in request.POST:
                 return ValueError('No intervention id found in your request!')
@@ -2968,8 +2950,8 @@ def add_follow_up(request):
     try:
         user = request.user
         if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
-            client_id = int(request.POST['client'], 0)
-            client = Client.objects.get(id=client_id)
+            client_id = request.POST.get('client', 0)
+            client = Client.objects.get(id=int(client_id), voided=False)
 
             if not client or client.exited:
                 response_data = {
@@ -3061,7 +3043,7 @@ def update_follow_up(request):
         user = request.user
         if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
             follow_up_id = int(request.POST['follow_up_id'])
-            follow_up = ClientFollowUp.objects.get(id=follow_up_id)
+            follow_up = ClientFollowUp.objects.filter(id=follow_up_id).first()
 
             if follow_up is not None:
                 client = follow_up.client
@@ -3156,7 +3138,7 @@ def update_intervention(request):
     try:
         user = request.user
         if request.method == 'POST' and user is not None and user.is_authenticated() and \
-                request.user.is_active and request.user.has_perm('DreamsApp.change_intervention'):
+                user.is_active and user.has_perm('DreamsApp.change_intervention'):
 
             # Check if user belongs to an Ip
             ip = None
@@ -3171,9 +3153,9 @@ def update_intervention(request):
                     return JsonResponse(response_data)
 
             if ip is not None:
-                intervention_id = int(request.POST.get('intervention_id'))
+                intervention_id = request.POST.get('intervention_id')
                 if intervention_id is not None and type(intervention_id) is int:
-                    intervention = Intervention.objects.get(id__exact=intervention_id)
+                    intervention = Intervention.objects.get(id__exact=int(intervention_id))
 
                     if not intervention.is_editable_by_ip(ip) or intervention.client.exited:
                         raise Exception(
@@ -3204,7 +3186,8 @@ def update_intervention(request):
                             if intervention.client.date_of_enrollment is not None and intervention_date < intervention.client.date_of_enrollment:
                                 response_data = {
                                     'status': 'fail',
-                                    'message': "Error: The intervention date must be after the client's enrollment date. "
+                                    'message': "Error: The intervention date must be after the client's enrollment "
+                                               "date. "
                                 }
                                 return JsonResponse(response_data)
 
@@ -3306,7 +3289,7 @@ def delete_follow_up(request):
     try:
         user = request.user
         if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
-            follow_up_id = int(request.POST.get('follow_up_id'))
+            follow_up_id = request.POST.get('follow_up_id', None)
 
             if follow_up_id is not None:
                 follow_up = ClientFollowUp.objects.get(pk=int(follow_up_id))
@@ -3381,20 +3364,21 @@ def delete_intervention(request):
                     return JsonResponse(response_data)
 
             if ip is not None:
-                intervention_id = int(request.POST.get('intervention_delete_id'))
+                intervention_id = request.POST.get('intervention_delete_id', None)
                 if intervention_id is not None and type(intervention_id) is int:
                     # get intervention
                     # Check if intervention belongs to IP
                     intervention_key = 'intervention-id-{}'.format(intervention_id)
                     intervention = cache.get(intervention_key)
                     if not intervention:
-                        intervention = Intervention.objects.get(pk=intervention_id)
+                        intervention = Intervention.objects.get(pk=int(intervention_id))
                     cache_value(intervention_key, intervention)
 
                     if not intervention.is_editable_by_ip(ip) or intervention.client.exited:
                         response_data = {
                             'status': 'fail',
-                            'message': 'You do not have the rights to delete this intervention or the client has been exited.'
+                            'message': 'You do not have the rights to delete this intervention or the client has been '
+                                       'exited. '
                         }
                         return JsonResponse(response_data)
 
@@ -3417,7 +3401,8 @@ def delete_intervention(request):
                     else:
                         response_data = {
                             'status': 'fail',
-                            'message': 'You do not have the rights to delete this intervention because it was created by a '
+                            'message': 'You do not have the rights to delete this intervention because it was created '
+                                       'by a '
                                        'different Implementing Partner'
                         }
                         return JsonResponse(response_data)
@@ -3437,7 +3422,8 @@ def delete_intervention(request):
         else:
             response_data = {
                 'status': 'fail',
-                'message': "You don't have permission to delete Intervention. Please contact System Administrator for help."
+                'message': "You don't have permission to delete Intervention. Please contact System Administrator for "
+                           "help. "
             }
             return JsonResponse(response_data)
     except Exception as e:
@@ -3451,7 +3437,8 @@ def delete_intervention(request):
 
 def get_sub_counties(request):
     try:
-        if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if request.method == 'GET' and user is not None and user.is_authenticated() and user.is_active:
             response_data = {}
             county_id = request.GET['county_id']
             county_key = 'county-id-{}'.format(county_id)
@@ -3476,7 +3463,8 @@ def get_sub_counties(request):
 
 
 def get_wards(request):
-    if request.method == 'GET' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+    user = request.user
+    if request.method == 'GET' and user is not None and user.is_authenticated() and user.is_active:
         response_data = {}
         sub_county_id = request.GET['sub_county_id']
         sub_county_key = 'sub-county-id-{0}'.format(sub_county_id)
@@ -3507,11 +3495,12 @@ def log_me_out(request):
 
 def reporting(request):
     try:
-        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if user is not None and user.is_authenticated() and user.is_active:
             if request.method == 'GET':
-                return render(request, 'reporting.html', {'user': request.user, 'page_title': 'DREAMS Reporting', })
+                return render(request, 'reporting.html', {'user': user, 'page_title': 'DREAMS Reporting', })
             elif request.method == 'POST' and request.is_ajax():
-                return render(request, 'reporting.html', {'user': request.user, 'page_title': 'DREAMS Reporting', })
+                return render(request, 'reporting.html', {'user': user, 'page_title': 'DREAMS Reporting', })
         else:
             raise PermissionDenied
     except Exception as e:
@@ -3521,16 +3510,17 @@ def reporting(request):
 
 def user_help(request):
     try:
-        if request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if user is not None and user.is_authenticated() and user.is_active:
             if request.method == 'GET':
                 return render(request, 'help.html', {
-                    'user': request.user,
+                    'user': user,
                     'page': 'help',
                     'page_title': 'DREAMS User help'
                 })
             elif request.method == 'POST' and request.is_ajax():
                 return render(request, 'help.html', {
-                    'user': request.user,
+                    'user': user,
                     'page': 'help',
                     'page_title': 'DREAMS User help'
                 })
@@ -3542,7 +3532,8 @@ def user_help(request):
 
 
 def user_help_download(request):
-    if request.user.is_authenticated() and request.user.is_active:
+    user = request.user
+    if user.is_authenticated() and user.is_active:
         try:
             manual_filename = request.POST.get('manual') if request.method == 'POST' else request.GET.get('manual')
             manual_friendly_name = request.POST.get(
@@ -3641,7 +3632,8 @@ def filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs)
 
 # user management
 def users(request):
-    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm('auth.can_manage_user'):
+    user = request.user
+    if user and user.is_authenticated() and user.is_active and user.has_perm('auth.can_manage_user'):
         try:
             items_per_page = 15
             if request.method == 'GET':
@@ -3668,12 +3660,12 @@ def users(request):
                                                                           ).order_by('-user__date_joined')
             #  current user ip
             try:
-                current_user_ip = request.user.implementingpartneruser.implementing_partner
+                current_user_ip = user.implementingpartneruser.implementing_partner
             except ImplementingPartnerUser.DoesNotExist:
                 current_user_ip = None
             except ImplementingPartner.DoesNotExist:
                 current_user_ip = None
-            if not request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
+            if not user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 if current_user_ip is not None:
                     ip_user_list = ip_user_list.filter(implementing_partner=current_user_ip)
                 else:
@@ -3701,17 +3693,18 @@ def users(request):
 
 
 def save_user(request):
-    if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+    user = request.user
+    if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active and user.has_perm(
             'auth.can_manage_user'):
         try:
             new_user_ip = ImplementingPartner.objects.get(name=
                                                           request.POST.get('implementing_partner',
                                                                            ''))  # Valid IP for new user
             # check if user can change cross IP data
-            if not request.user.has_perm('auth.can_change_cross_ip_data'):
+            if not user.has_perm('auth.can_change_cross_ip_data'):
                 # User must register new user under their IP. Theck if user has a valid IP
                 # check if registering user belongs to an IP
-                ip = request.user.implementingpartneruser.implementing_partner
+                ip = user.implementingpartneruser.implementing_partner
                 if ip is None:  # Registering user does not belong to an IP. Raise exception
                     raise Exception("Error: You do not belong to an Implementing Partner. "
                                     "Please contact your system admin to add you to the relevant Implementing Partner.")
@@ -3720,8 +3713,7 @@ def save_user(request):
                     # Registering user and user do not belong to same IP. Raise exception
                     raise Exception(
                         "Error: You do not have permission to register a user under a different Implementing"
-                        " partner other than " + request.user.implementingpartneruser.
-                        implementing_partner.name)
+                        " partner other than " + user.implementingpartneruser.implementing_partner.name)
 
             # Everything is fine. Proceed to register user
             # Check to see if IP user exists already or not
@@ -3783,7 +3775,8 @@ def save_user(request):
         except Exception as e:
             response_data = {
                 'status': 'fail',
-                'message': "An error occurred while processing request. Contact System Administrator if this error Persists.",
+                'message': "An error occurred while processing request. Contact System Administrator if this error "
+                           "Persists.",
                 'ip_users': ''
             }
             return JsonResponse(response_data)
@@ -3793,8 +3786,9 @@ def save_user(request):
 
 def toggle_status(request):
     try:
-        if request.method == 'GET' and request.user is not None and request.user.is_authenticated() \
-                and request.user.is_active and request.user.has_perm('auth.can_change_user_status'):
+        user = request.user
+        if request.method == 'GET' and user is not None and user.is_authenticated() \
+                and user.is_active and user.has_perm('auth.can_change_user_status'):
             if request.method == 'GET':
                 ip_user_id = request.GET.get('ip_user_id', 0)
                 toggle = str(request.GET.get('toggle', False))
@@ -3829,15 +3823,17 @@ def toggle_status(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
+            'message': "An error occurred while processing request. Contact System Administrator if this error "
+                       "Persists. "
         }
         return JsonResponse(response_data)
 
 
 def change_cred(request):
-    if request.user.is_authenticated() and request.user.is_active:  # user is authenticated
+    user = request.user
+    if user and user.is_authenticated() and user.is_active:
         if request.method == 'GET':
-            context = {'page': 'account', 'page_title': 'DREAMS Password Change', 'user': request.user, }
+            context = {'page': 'account', 'page_title': 'DREAMS Password Change', 'user': user, }
             return render(request, 'change_cred.html', context)
         elif request.method == 'POST':
             ch_username = request.POST.get('ch_username', '')
@@ -3851,10 +3847,10 @@ def change_cred(request):
                 }
                 return JsonResponse(response_data)
             else:
-                if request.user.get_username() == ch_username and request.user.check_password(
+                if user.get_username() == ch_username and user.check_password(
                         ch_current_password) and ch_new_password == ch_confirm_new_password:
-                    request.user.set_password(ch_new_password)
-                    request.user.save()
+                    user.set_password(ch_new_password)
+                    user.save()
                     response_data = {
                         'status': 'success',
                         'message': 'Password changed successfully. Proceed to login with your new credentials'
@@ -3904,7 +3900,8 @@ def server_error(request):
 
 def grievances_list(request):
     try:
-        if not request.user.is_authenticated():
+        user = request.user
+        if not user.is_authenticated():
             raise PermissionDenied
         page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
         filter_date = request.GET.get('filter_date', None) if request.method == 'GET' else request.POST.get(
@@ -3912,11 +3909,11 @@ def grievances_list(request):
         filter_text = request.GET.get('filter-user-text', '') if request.method == 'GET' else request.POST.get(
             'filter-user-text', '')
         try:
-            user_ip = request.user.implementingpartneruser.implementing_partner
+            user_ip = user.implementingpartneruser.implementing_partner
         except:
             user_ip = None
         """ IP level permission check """
-        grievance_list = Grievance.objects.all() if request.user.has_perm('DreamsApp.can_view_cross_ip_data') else \
+        grievance_list = Grievance.objects.all() if user.has_perm('DreamsApp.can_view_cross_ip_data') else \
             Grievance.objects.filter(implementing_partner=user_ip)
         """Date filter """
         if filter_date is not None and filter_date is not u'':
@@ -3953,7 +3950,8 @@ def grievances_list(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
+            'message': "An error occurred while processing request. Contact System Administrator if this error "
+                       "persists. "
         }
         return JsonResponse(response_data)
 
@@ -3961,11 +3959,12 @@ def grievances_list(request):
 @csrf_exempt
 def grievances_create(request):
     try:
-        if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
-            grievance = GrievanceModelForm(request.POST, current_user=request.user)
+        user = request.user
+        if user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+            grievance = GrievanceModelForm(request.POST, current_user=user)
             if grievance.is_valid():
                 saved_grievance = grievance.save(commit=False)
-                saved_grievance.created_by = request.user
+                saved_grievance.created_by = user
                 saved_grievance.save()
                 response_data = {
                     'status': 'success',
@@ -3984,20 +3983,21 @@ def grievances_create(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
+            'message': "An error occurred while processing request. Contact System Administrator if this error "
+                       "persists. "
         }
         return JsonResponse(response_data)
 
 
 @csrf_exempt
 def grievances_edit(request):
-    """ """
     try:
-        if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+        user = request.user
+        if user.is_authenticated() and request.method == 'POST' and request.is_ajax():
             try:
-                id = int(request.POST.get('id', 0))
-                instance = Grievance.objects.get(id=id)
-                form = GrievanceModelForm(request.POST, instance=instance, current_user=request.user)
+                id = request.POST.get('id', 0)
+                instance = Grievance.objects.get(id=int(id))
+                form = GrievanceModelForm(request.POST, instance=instance, current_user=user)
                 if not form.is_valid():
                     response_data = {
                         'status': 'fail',
@@ -4005,7 +4005,7 @@ def grievances_edit(request):
                     }
                 else:
                     saved_grievance = form.save(commit=False)
-                    saved_grievance.changed_by = request.user
+                    saved_grievance.changed_by = user
                     saved_grievance.save()
                     response_data = {
                         'status': 'success',
@@ -4027,19 +4027,20 @@ def grievances_edit(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
+            'message': "An error occurred while processing request. Contact System Administrator if this error "
+                       "persists. "
         }
         return JsonResponse(response_data)
 
 
 @csrf_exempt
 def grievances_delete(request):
-    """ """
     try:
-        if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+        user = request.user
+        if user and user.is_authenticated() and request.method == 'POST' and request.is_ajax():
             try:
-                id = int(request.POST.get('id', 0))
-                instance = Grievance.objects.get(id=id).delete()
+                id = request.POST.get('id', 0)
+                instance = Grievance.objects.get(id=int(id)).delete()
                 response_data = {
                     'status': 'success',
                     'message': 'Grievance deleted successfully',
@@ -4057,13 +4058,13 @@ def grievances_delete(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
+            'message': "An error occurred while processing request. Contact System Administrator if this error "
+                       "persists. "
         }
         return JsonResponse(response_data)
 
 
 def grievances_get(request):
-    """ """
     try:
         if not request.user.is_authenticated():
             raise PermissionDenied
@@ -4085,7 +4086,8 @@ def grievances_get(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
+            'message': "An error occurred while processing request. Contact System Administrator if this error "
+                       "persists. "
         }
         return JsonResponse(response_data)
 
@@ -4093,7 +4095,8 @@ def grievances_get(request):
 @csrf_exempt
 def cash_transfer_details_save(request):
     try:
-        if request.user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+        user = request.user
+        if user.is_authenticated() and request.method == 'POST' and request.is_ajax():
             # check if details has id
             id = request.POST.get('id', 0)
             if id not in [u'', "0", 0, ""]:
@@ -4125,22 +4128,24 @@ def cash_transfer_details_save(request):
     except Exception as e:
         response_data = {
             'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error Persists."
+            'message': "An error occurred while processing request. Contact System Administrator if this error "
+                       "persists. "
         }
         return JsonResponse(response_data)
 
 
 def export_page(request):
-    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+    user = request.user
+    if user and user.is_authenticated() and user.is_active and user.has_perm(
             'DreamsApp.can_export_raw_data'):
 
         try:
             ips = None
-            ip_user = request.user.implementingpartneruser
-            if request.user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
+            ip_user = user.implementingpartneruser
+            if user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
 
-            elif request.user.implementingpartneruser is not None:
+            elif user.implementingpartneruser is not None:
                 ips = ImplementingPartner.objects.filter(
                     id=request.user.implementingpartneruser.implementing_partner.id)
 
@@ -4161,6 +4166,7 @@ def export_page(request):
         raise PermissionDenied
 
 
+## NOT TO BE IMPLEMENTED
 def intervention_export_page(request):
     if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_export_raw_data'):
@@ -4189,6 +4195,7 @@ def intervention_export_page(request):
         raise PermissionDenied
 
 
+## NOT TO BE IMPLEMENTED
 def download_raw_enrollment_export(request):
     try:
         ip_list_str = request.POST.getlist('ips')
@@ -4232,6 +4239,7 @@ def download_raw_enrollment_export(request):
         return
 
 
+## NOT TO BE IMPLEMENTED
 def download_raw_intervention_export(request):
     try:
         ip_list_str = request.POST.getlist('ips')
@@ -4278,6 +4286,7 @@ def download_raw_intervention_export(request):
         return
 
 
+## NOT TO BE IMPLEMENTED
 def individual_service_layering_export_page(request):
     if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_export_raw_data'):
@@ -4307,6 +4316,7 @@ def individual_service_layering_export_page(request):
         raise PermissionDenied
 
 
+## NOT TO BE IMPLEMENTED
 def download_services_received_export(request):
     try:
         ip_list_str = request.POST.getlist('ips')
@@ -4391,7 +4401,6 @@ def transfer_client(request):
                                                                                  code__exact=TRANSFER_INITIATED_STATUS)).count()
 
                     if num_of_pending_transfers > 0:
-                        # print("{} pending transfers for client".format(num_of_pending_transfers))
                         response_data = {
                             'status': 'fail',
                             'message': "Transfer failed, there's a pending transfer for this client.",
@@ -4612,7 +4621,7 @@ def accept_client_transfer(request):
 
                 client_transfer_id = request.POST.get("id", "")
                 if client_transfer_id != "":
-                    client_transfer = ClientTransfer.objects.get(id__exact=client_transfer_id)
+                    client_transfer = ClientTransfer.objects.get(id__exact=int(client_transfer_id))
                     client = client_transfer.client
 
                     if client and not client.exited:
@@ -4671,7 +4680,7 @@ def reject_client_transfer(request):
 
                 client_transfer_id = request.POST.get("id", "")
                 if client_transfer_id != "":
-                    client_transfer = ClientTransfer.objects.get(id__exact=client_transfer_id)
+                    client_transfer = ClientTransfer.objects.get(id__exact=int(client_transfer_id))
                 else:
                     client_transfer = None
 
@@ -4710,8 +4719,8 @@ def reject_client_referral(request):
             reject_reason = request.POST.get("reject_reason", "")
 
             if reject_reason and reject_reason.strip():
-                if client_referral_id:
-                    client_referral = Referral.objects.get(id__exact=client_referral_id)
+                if client_referral_id != "":
+                    client_referral = Referral.objects.get(id__exact=int(client_referral_id))
 
                     if client_referral is not None:
                         referral_perm = ReferralServiceLayer(user, client_referral=client_referral)
@@ -4824,6 +4833,7 @@ def get_pending_client_referrals_in_out_count(request):
     return HttpResponse(json.dumps(client_referrals_count_array))
 
 
+## NOT TO BE IMPLEMENTED
 def intervention_export_transferred_in_page(request):
     if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_export_raw_data'):
@@ -4848,6 +4858,7 @@ def intervention_export_transferred_in_page(request):
         raise PermissionDenied
 
 
+## NOT TO BE IMPLEMENTED
 def download_raw_intervention_transferred_in_export(request):
     try:
         from_intervention_date = request.POST.get('from_intervention_date')
@@ -4880,84 +4891,92 @@ def download_raw_intervention_transferred_in_export(request):
 
 
 def export_client_transfers(request, *args, **kwargs):
-    user = request.user
-    if user is not None and user.is_authenticated() and user.is_active:
-        transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
-        columns = ("client__dreams_id", "source_implementing_partner__name",
-                   "destination_implementing_partner__name", "transfer_reason", "transfer_status__name",)
+    try:
+        user = request.user
+        if user is not None and user.is_authenticated() and user.is_active:
+            transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
+            columns = ("client__dreams_id", "source_implementing_partner__name",
+                       "destination_implementing_partner__name", "transfer_reason", "transfer_status__name",)
 
-        try:
-            ip = user.implementingpartneruser.implementing_partner
-            if transferred_in:
-                c_transfers = ClientTransfer.objects.values(*columns).filter(destination_implementing_partner=ip)
-            else:
-                c_transfers = ClientTransfer.objects.values(*columns).filter(source_implementing_partner=ip)
-        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            c_transfers = ClientTransfer.objects.values(*columns)
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+                if transferred_in:
+                    c_transfers = ClientTransfer.objects.values(*columns).filter(destination_implementing_partner=ip)
+                else:
+                    c_transfers = ClientTransfer.objects.values(*columns).filter(source_implementing_partner=ip)
+            except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+                c_transfers = ClientTransfer.objects.values(*columns)
 
-        header = ['Dreams ID', 'Source Implementing Partner', 'Destination Implementing Partner', 'Transfer Reason',
-                  'Status']
+            header = ['Dreams ID', 'Source Implementing Partner', 'Destination Implementing Partner', 'Transfer Reason',
+                      'Status']
 
-        export_file_name = urllib.parse.quote(
-            "/tmp/client_transfers_export-{}.csv".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            export_file_name = urllib.parse.quote(
+                "/tmp/client_transfers_export-{}.csv".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(export_file_name)
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="{}"'.format(export_file_name)
 
-        writer = unicodecsv.DictWriter(response, fieldnames=columns, extrasaction='raise')
-        header = dict(zip(columns, header))
-        writer.writerow(header)
+            writer = unicodecsv.DictWriter(response, fieldnames=columns, extrasaction='raise')
+            header = dict(zip(columns, header))
+            writer.writerow(header)
 
-        for row in c_transfers:
-            writer.writerow(row)
+            for row in c_transfers:
+                writer.writerow(row)
 
-        return response
-    else:
-        return redirect('login')
+            return response
+        else:
+            return redirect('login')
+    except Exception as e:
+        raise e
 
 
 def export_client_referrals(request, *args, **kwargs):
-    user = request.user
-    if user is not None and user.is_authenticated() and user.is_active:
+    try:
+        user = request.user
+        if user is not None and user.is_authenticated() and user.is_active:
 
-        referred_in = bool(int(kwargs.pop('referred_in', 1)))
-        columns = ("client__dreams_id", "referring_ip__name",
-                   "external_organisation__name", "external_organisation_other", "intervention_type__name",
-                   "referral_date", "referral_expiration_date", "referral_status__name",)
+            referred_in = bool(int(kwargs.pop('referred_in', 1)))
+            columns = ("client__dreams_id", "referring_ip__name",
+                       "external_organisation__name", "external_organisation_other", "intervention_type__name",
+                       "referral_date", "referral_expiration_date", "referral_status__name",)
 
-        try:
-            ip = user.implementingpartneruser.implementing_partner
-            if referred_in:
-                c_referrals = Referral.objects.values(*columns).filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
-                        Q(external_organisation__isnull=False) | Q(
-                    external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
-            else:
-                c_referrals = Referral.objects.values(*columns).filter(referring_ip=ip).order_by('referral_status',
-                                                                                                 '-referral_date')
+            try:
+                ip = user.implementingpartneruser.implementing_partner
+                if referred_in:
+                    c_referrals = Referral.objects.values(*columns).filter(
+                        Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
+                                Q(external_organisation__isnull=False) | Q(
+                            external_organisation_other__isnull=False)))).order_by('referral_status', '-referral_date')
+                else:
+                    c_referrals = Referral.objects.values(*columns).filter(referring_ip=ip).order_by('referral_status',
+                                                                                                     '-referral_date')
 
-        except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
-            c_referrals = Referral.objects.values(*columns)
+            except (ImplementingPartnerUser.DoesNotExist, ImplementingPartner.DoesNotExist):
+                c_referrals = Referral.objects.values(*columns)
 
-        header = ['Dreams ID', 'Referring Implementing Partner', 'External Organisation', 'External Organisation Other',
-                  'Intervention', 'Referral Date', 'Referral Expiration Date',
-                  'Status']
+            header = ['Dreams ID', 'Referring Implementing Partner', 'External Organisation',
+                      'External Organisation Other',
+                      'Intervention', 'Referral Date', 'Referral Expiration Date',
+                      'Status']
 
-        export_file_name = urllib.parse.quote(
-            "/tmp/client_referrals_export-{}.csv".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            export_file_name = urllib.parse.quote(
+                "/tmp/client_referrals_export-{}.csv".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(export_file_name)
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="{}"'.format(export_file_name)
 
-        writer = unicodecsv.DictWriter(response, fieldnames=columns, extrasaction='raise')
-        header = dict(zip(columns, header))
-        writer.writerow(header)
+            writer = unicodecsv.DictWriter(response, fieldnames=columns, extrasaction='raise')
+            header = dict(zip(columns, header))
+            writer.writerow(header)
 
-        for row in c_referrals:
-            writer.writerow(row)
+            for row in c_referrals:
+                writer.writerow(row)
 
-        return response
-    else:
-        return redirect('login')
+            return response
+        else:
+            return redirect('login')
+    except Exception as e:
+        raise e
 
 
 def void_client(request):
@@ -4975,7 +4994,7 @@ def void_client(request):
                     return get_response_data(0, 'Invalid client ID. Please specify client.')
 
                 try:
-                    client = Client.objects.get(id=client_id)
+                    client = Client.objects.get(id=int(client_id), voided=False)
                 except:
                     response_data = {
                         'status': 'fail',
@@ -5038,12 +5057,13 @@ def get_response_data(status, message, **kwargs):
 
 
 def download_audit_logs(request):
-    if not request.user.is_superuser and not request.user.has_perm('DreamsApp.can_manage_audit'):
+    user = request.user
+    if not user.is_superuser and not user.has_perm('DreamsApp.can_manage_audit'):
         raise PermissionDenied('Operation not allowed. [Missing Permission]')
 
     ip = ''
     try:
-        ip = request.user.implementingpartneruser.implementing_partner.id
+        ip = user.implementingpartneruser.implementing_partner.id
     except ImplementingPartnerUser.DoesNotExist:
         pass
 
@@ -5125,7 +5145,8 @@ def get_user_name(user_id):
 
 def get_min_max_date_of_birth(request):
     try:
-        if request.method == 'POST' and request.user is not None and request.user.is_authenticated() and request.user.is_active:
+        user = request.user
+        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
             date_of_enrollment_str = request.POST.get('date_of_enrollment')
             date_of_enrollment = datetime.strptime(str(date_of_enrollment_str),
                                                    '%Y-%m-%d').date() if date_of_enrollment_str is not None else dt.now().date()
