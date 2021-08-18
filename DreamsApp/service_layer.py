@@ -143,7 +143,6 @@ class ReferralServiceLayer:
                 if self.user.is_superuser:
                     action_allowed = True
                 else:
-                    #user_ip = self.user.implementingpartneruser.implementing_partner
                     if self.user.has_perm('DreamsApp.change_referral') and (receiving_ip == self.user_ip or (referring_ip == self.user_ip and (self.client_referral.external_organisation or (
                             self.client_referral.external_organisation_other)))):
                         action_allowed = True
@@ -161,7 +160,6 @@ class ReferralServiceLayer:
                 if self.user.is_superuser:
                     action_allowed = True
                 else:
-                    #user_ip = self.user.implementingpartneruser.implementing_partner
                     if self.user.has_perm('DreamsApp.change_referral') and (receiving_ip == self.user_ip or (referring_ip == self.user_ip and (self.client_referral.external_organisation or (
                             self.client_referral.external_organisation_other)))):
                         action_allowed = True

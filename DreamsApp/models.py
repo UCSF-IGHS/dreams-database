@@ -311,18 +311,18 @@ class Client(models.Model):
             return False
     
     def is_editable_by_ip(self, user_ip):
-        editable = True
+        editable = False
         try:
             if self.transferred_out(user_ip):
                 editable = False
-            #
-            # elif self.transferred_in(user_ip):
-            #     editable = True
-            # # elif self.exited:
-            # #     editable = False
-            #
-            # else:
-            #     editable = True
+
+            elif self.transferred_in(user_ip):
+                editable = True
+            # elif self.exited:
+            #     editable = False
+
+            else:
+                editable = True
             return editable
         except:
             return False
@@ -776,9 +776,8 @@ class ClientCashTransferDetails(models.Model):
         verbose_name = 'Cash Transfer Detail'
         verbose_name_plural = 'Cash Transfer Details'
 
+
 """ Models for Responses to questions on enrollment form"""
-
-
 class CategoricalResponse(models.Model):
     """ Include the Yes, No, Unknown responses to questions"""
     name = models.CharField(max_length=50, blank=False, null=False, verbose_name='Response Name')
@@ -1099,8 +1098,6 @@ class DreamsProgramme(models.Model):
 
 
 """ Models for the different modules in enrollment form """
-
-
 class ClientIndividualAndHouseholdData(models.Model):
     """ Holds individual and household information about Dreams client"""
     client = models.ForeignKey(Client, db_index=True)
@@ -1519,7 +1516,7 @@ class ClientTransfer(models.Model):
 
     @property
     def can_be_accepted_or_rejected(self):
-        return self.transfer_status.code == 1
+        return self.transfer_status.code == TRANSFER_INITIATED_STATUS
 
     def clean(self):
         if self.transfer_reason is None or self.transfer_reason == '':
