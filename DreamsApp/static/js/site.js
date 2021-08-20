@@ -34,7 +34,6 @@ $(document).ready(function () {
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                     " <a href='#' class='close'>&times;</a></div>");
-                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     });
@@ -60,7 +59,6 @@ $(document).ready(function () {
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                     " <a href='#' class='close'>&times;</a></div>");
-                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     });
@@ -160,7 +158,6 @@ $(document).ready(function () {
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                     " <a href='#' class='close'>&times;</a></div>");
-                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     });
@@ -687,9 +684,8 @@ $(document).ready(function () {
             error: function (xhr, errmsg, err) {
                 $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again: ' + errmsg);
                 $('#referral-intervention-entry-form #btn_save_referral_intervention').removeAttr("disabled");
-                console.log(xhr.status + " " + err + ": " + xhr.responseText);
                 $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
-                $('#referral-intervention-entry-form #error-space').html("* " + message);
+                $('#referral-intervention-entry-form #error-space').html("* " + errmsg);
             }
         });
     });
@@ -2871,7 +2867,6 @@ function fetchAndLoadImplementingPartners() {
             setSelectOptions(implementingPartners, '#implementing-partners-select', 'Select Implementing Partner');
         },
         error: function (xhr, errmsg, err) {
-            console.log(xhr.status + ": " + xhr.responseText);
             $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
                 .text(errmsg).trigger('madeVisible');
         }
@@ -2961,7 +2956,6 @@ function fetchExternalOrganisations(select_to_populate, form_id) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
             $('#' + form_id + ' .processing-indicator').addClass('hidden');
         }
     });
@@ -2990,7 +2984,6 @@ function fetchRelatedInterventions(interventionCategoryCode, currentClientId) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
             $('#intervention-entry-form .processing-indicator').addClass('hidden');
         }
     });
@@ -3401,7 +3394,6 @@ function getSubCountiesFilter(setSelected, c_code, sub_county_id, ward_id) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
         }
     });
 }
@@ -3437,7 +3429,6 @@ function getWardsFilter(setSelected, sc_id, ward_id) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
         }
     });
 }
@@ -3474,7 +3465,6 @@ function getSubCounties(setSelected, c_code, sub_county_id, ward_id) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
         }
     });
 }
@@ -3509,7 +3499,6 @@ function getWards(setSelected, sc_id, ward_id) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
         }
     });
 }
@@ -3682,7 +3671,6 @@ function fetchIntervention(interventionTypeCode) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
             $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
         }
     });
