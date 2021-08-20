@@ -24,8 +24,8 @@ urlpatterns = [
     url(r'^$', views.user_login, name='login'),
     url(r'^clients$', views.ClientListView.as_view(), name='clients'),
     url(r'^clientSave$', views.ClientCreateView.as_view(), name='save_client'),
-    url(r'^clientEdit$', views.ClientUpdateView.as_view(), name='edit_client'),  ## NOT USED IN APPLICATION
-    url(r'^clientDelete$', views.ClientDeleteView.as_view(), name='delete_client'),  ## NOT USED IN APPLICATION
+    url(r'^clientEdit$', views.ClientUpdateView.as_view(), name='edit_client'),
+    url(r'^clientDelete$', views.ClientDeleteView.as_view(), name='delete_client'),
     url(r'^client$', views.client_profile),
     url(r'^follow_ups$', views.FollowUpsListView.as_view(), name='follow_ups'),
     url(r'^admin/', admin.site.urls, name='admin'),
