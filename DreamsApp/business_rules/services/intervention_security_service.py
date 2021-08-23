@@ -13,6 +13,7 @@ class InterventionSecurityService:
             vI003 = InterventionSecurityServiceChecks.check_intervention_belongs_to_ip(
                 user, intervention)
             if vI003 is not None:
+            ### DELEGATION CODE
             #    vI004 = InterventionSecurityServiceChecks.check_ip_has_active_delegation(
             #        intervention.client.implementing_partner, user.implementing_partner)
             #    if vI004 is not None:
@@ -31,6 +32,7 @@ class InterventionSecurityService:
         checks_passed = []
         vI002 = InterventionSecurityServiceChecks.check_client_belongs_to_ip(user, intervention.client)
         if vI002 is None:
+            ### DELEGATION CODE
             # vI004 = InterventionSecurityServiceChecks.check_ip_has_active_delegation(
             #     intervention.client.implementing_partner, user.implementing_partner)
             # if vI004 is not None:

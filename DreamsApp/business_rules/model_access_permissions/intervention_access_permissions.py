@@ -20,7 +20,7 @@ class InterventionActionPermissions(XFModelPermissionBase):
             if checks:
                 perform_new = super().can_perform_new()
 
-        except Exception as e:
+        except Exception:
             perform_new = False
 
         return perform_new
@@ -35,7 +35,7 @@ class InterventionActionPermissions(XFModelPermissionBase):
                                                                                 self.intervention)
             if checks:
                 can_view = super().can_perform_details()
-        except InterventionNotWithinUserRealmBusinessRuleException as e:
+        except InterventionNotWithinUserRealmBusinessRuleException:
             can_view = False
         return can_view
 
@@ -47,7 +47,7 @@ class InterventionActionPermissions(XFModelPermissionBase):
             if checks:
                 can_edit = super().can_perform_edit()
 
-        except InterventionNotWithinUserRealmBusinessRuleException as e:
+        except InterventionNotWithinUserRealmBusinessRuleException:
             can_edit = False
 
         return can_edit

@@ -9,6 +9,7 @@ class EnrolmentSecurityService:
         checks_passed = []
         c001 = EnrolmentSecurityServiceChecks.check_client_belongs_to_ip(client_enrolment, user.implementing_partner)
         if c001 is not None:
+            ### DELEGATION CODE
             #c002 = EnrolmentSecurityServiceChecks.check_ip_has_active_delegation(
             #    client_enrolment.implementing_partner, user.implementing_partner)
             #if c002 is not None:
