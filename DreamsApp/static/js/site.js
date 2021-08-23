@@ -23,7 +23,7 @@ $(document).ready(function () {
             dataType: 'json',
             data: {
                 csrfmiddlewaretoken: csrftoken,
-                'date_of_enrollment': $(this).val(),
+                'date_of_enrollment': $(this).val()
             },
             success: function (data) {
                 $("#form_demographics #id_date_of_birth").val('');
@@ -34,7 +34,6 @@ $(document).ready(function () {
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                     " <a href='#' class='close'>&times;</a></div>");
-                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     });
@@ -60,7 +59,6 @@ $(document).ready(function () {
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                     " <a href='#' class='close'>&times;</a></div>");
-                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     });
@@ -160,12 +158,9 @@ $(document).ready(function () {
             error: function (xhr, errmsg, err) {
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                     " <a href='#' class='close'>&times;</a></div>");
-                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     });
-
-
 
 
     $("#form_client_unexit").validate({
@@ -689,9 +684,8 @@ $(document).ready(function () {
             error: function (xhr, errmsg, err) {
                 $('#action_alert_gen').removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again: ' + errmsg);
                 $('#referral-intervention-entry-form #btn_save_referral_intervention').removeAttr("disabled");
-                console.log(xhr.status + " " + err + ": " + xhr.responseText);
                 $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
-                $('#referral-intervention-entry-form #error-space').html("* " + message);
+                $('#referral-intervention-entry-form #error-space').html("* " + errmsg);
             }
         });
     });
@@ -838,7 +832,6 @@ $(document).ready(function () {
                 interventionPermissionsGlobal = null;
                 $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                     " <a href='#' class='close'>&times;</a></div>");
-                console.log(xhr.status + ": " + xhr.responseText);
             }
         });
     });
@@ -1141,9 +1134,8 @@ $(document).ready(function () {
             error: function (xhr, errmsg, err) {
                 $('#action_alert_' + currentInterventionCategoryCode_Global).removeClass('hidden').addClass('alert-danger').text('An error occurred. Please try again: ' + errmsg);
                 $('#btn_save_intervention').removeAttr("disabled");
-                console.log(xhr.status + " " + err + ": " + xhr.responseText);
                 $('#intervention-entry-form .processing-indicator').addClass('hidden');
-                $('#intervention-entry-form #error-space').html("* " + message);
+                $('#intervention-entry-form #error-space').html("* " + errmsg);
             }
         });
     });
@@ -1448,7 +1440,6 @@ $(document).ready(function () {
                 error: function (xhr, errmsg, err) {
                     $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                         " <a href='#' class='close'>&times;</a></div>");
-                    console.log(xhr.status + ": " + xhr.responseText);
                 }
             });
         }
@@ -1878,7 +1869,9 @@ $(document).ready(function () {
             },
 
             error: function (xhr, errmsg, err) {
-                alert("Failed " + errmsg + " " + err);
+                 $('#grievances_alert').removeClass('hidden').addClass('alert-danger')
+                        .text(errmsg)
+                        .trigger('madeVisible');
             }
         });
     });
@@ -2225,7 +2218,9 @@ $(document).ready(function () {
             },
 
             error: function (xhr, errmsg, err) {
-                alert("Failed: " + errmsg + " " + err);
+                $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                        .text(errmsg)
+                        .trigger('madeVisible');
             }
         });
     });
@@ -2713,7 +2708,9 @@ $(document).ready(function () {
             }
 
         }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert(textStatus + ": " + errorThrown);
+            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                        .text(textStatus + ": " + errorThrown)
+                        .trigger('madeVisible');
         }).always(function () {
             $("#btn_submit_void_client_form").attr("disabled", false);
             $("#btn_submit_void_client_form").removeAttr("disabled");
@@ -2845,11 +2842,13 @@ function fetchAndLoadInterventionTypes() {
         dataType: 'json',
         async: false,
         success: function (data) {
+            $('#action_alert_gen').addClass('hidden').addClass('alert-success')
             interventionTypes = $.parseJSON(data.intervention_types);
             $('#referral-category-interventions-select').val($("#referral-category-interventions-select option:first").val()).change();
             },
         error: function (xhr, errmsg, err) {
-            alert(xhr.status + ": " + xhr.responseText);
+            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                .text(errmsg).trigger('madeVisible');
         }
     });
 }
@@ -2863,11 +2862,13 @@ function fetchAndLoadImplementingPartners() {
         async: false,
         data: { 'referral-client-id': client_id  },
         success: function (data) {
+            $('#action_alert_gen').addClass('hidden').addClass('alert-success')
             var implementingPartners = $.parseJSON(data.implementing_partners);
             setSelectOptions(implementingPartners, '#implementing-partners-select', 'Select Implementing Partner');
         },
         error: function (xhr, errmsg, err) {
-            console.log(xhr.status + ": " + xhr.responseText);
+            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                .text(errmsg).trigger('madeVisible');
         }
     });
 }
@@ -2879,11 +2880,13 @@ function fetchAndLoadExternalOrganizations() {
         dataType: 'json',
         async: false,
         success: function (data) {
+            $('#action_alert_gen').addClass('hidden').addClass('alert-success')
             var externalOrganizations = $.parseJSON(data.external_orgs);
             setSelectOptions(externalOrganizations, '#referral-external-organization-select', 'Select External Organization');
         },
         error: function (xhr, errmsg, err) {
-            console.log(xhr.status + ": " + xhr.responseText);
+            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                .text(errmsg).trigger('madeVisible');
         }
     });
 }
@@ -2895,12 +2898,13 @@ function fetchAndLoadExitReasons() {
         dataType: 'json',
         async: false,
         success: function (data) {
+            $('#action_alert_gen').addClass('hidden').addClass('alert-danger')
             exitReasons = $.parseJSON(data.exit_reasons);
             setExitReasonsSelect(exitReasons);
         },
         error: function (xhr, errmsg, err) {
-            alert(errmsg);
-            console.log(xhr.status + ": " + xhr.responseText);
+            $('#action_alert_gen').removeClass('hidden').addClass('alert-danger')
+                .text(errmsg).trigger('madeVisible');
         }
     });
 }
@@ -2950,10 +2954,8 @@ function fetchExternalOrganisations(select_to_populate, form_id) {
             $('#' + form_id + ' .processing-indicator').addClass('hidden');
         },
         error: function (xhr, errmsg, err) {
-            alert(errmsg);
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
             $('#' + form_id + ' .processing-indicator').addClass('hidden');
         }
     });
@@ -2982,7 +2984,6 @@ function fetchRelatedInterventions(interventionCategoryCode, currentClientId) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
             $('#intervention-entry-form .processing-indicator').addClass('hidden');
         }
     });
@@ -3393,7 +3394,6 @@ function getSubCountiesFilter(setSelected, c_code, sub_county_id, ward_id) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
         }
     });
 }
@@ -3429,7 +3429,6 @@ function getWardsFilter(setSelected, sc_id, ward_id) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
         }
     });
 }
@@ -3466,7 +3465,6 @@ function getSubCounties(setSelected, c_code, sub_county_id, ward_id) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
         }
     });
 }
@@ -3501,7 +3499,6 @@ function getWards(setSelected, sc_id, ward_id) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
         }
     });
 }
@@ -3610,7 +3607,9 @@ function viewGrievance(grievanceId, readonly) {
         },
 
         error: function (xhr, errmsg, err) {
-            alert("Failed " + errmsg + " " + err);
+            $('#grievances_alert').removeClass('hidden').addClass('alert-danger')
+                    .text("Failed " + errmsg + " " + err)
+                    .trigger('madeVisible')
         }
     });
 }
@@ -3623,7 +3622,6 @@ function deleteGrievance(grievanceId) {
         data: {'id': grievanceId},
         success: function (data) {
             if (data.status == 'fail') {
-
                 $('#grievances_alert').removeClass('hidden').addClass('alert-danger')
                     .text(data.message)
                     .trigger('madeVisible')
@@ -3638,7 +3636,9 @@ function deleteGrievance(grievanceId) {
         },
 
         error: function (xhr, errmsg, err) {
-            alert("Failed " + errmsg + " " + err);
+            $('#grievances_alert').removeClass('hidden').addClass('alert-danger')
+                    .text("Failed " + errmsg + " " + err)
+                    .trigger('madeVisible')
         }
     });
 }
@@ -3671,7 +3671,6 @@ function fetchIntervention(interventionTypeCode) {
         error: function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
                 " <a href='#' class='close'>&times;</a></div>");
-            console.log(xhr.status + ": " + xhr.responseText);
             $('#referral-intervention-entry-form .processing-indicator').addClass('hidden');
         }
     });
@@ -3689,7 +3688,7 @@ function getClientTransfersCount() {
             $(el).text("").hide();
         }
     }).fail(function (jqXHR, textStatus, errorThrown) {
-        alert(textStatus + ": " + errorThrown);
+        $(el).text(textStatus).show();
     }).always(function () {
         setTimeout(getClientTransfersCount, 180000);
     });
@@ -3703,7 +3702,8 @@ function getClientTransfersInOutCount() {
         $('#client-transfers-count-in-span').text(data[0]).show();
         $('#client-transfers-count-out-span').text(data[1]).show();
     }).fail(function (jqXHR, textStatus, errorThrown) {
-        alert(textStatus + ": " + errorThrown);
+        $('#client-transfers-count-in-span').text(textStatus).show();
+        $('#client-transfers-count-out-span').text(textStatus).show();
     });
 }
 
@@ -3720,7 +3720,7 @@ function getClientReferralsCount() {
             $(el).text("").hide();
         }
     }).fail(function (jqXHR, textStatus, errorThrown) {
-        alert(textStatus + ": " + errorThrown);
+        $(el).text(textStatus).show();
     }).always(function () {
         setTimeout(getClientReferralsCount, 180000);
     });
@@ -3735,19 +3735,9 @@ function getClientReferralsInOutCount() {
         $('#client-referrals-count-out-span').text(data[1]).show();
 
     }).fail(function (jqXHR, textStatus, errorThrown) {
-        alert(textStatus + ": " + errorThrown);
+        $('#client-referrals-count-in-span').text(textStatus).show();
+        $('#client-referrals-count-out-span').text(textStatus).show();
     }).always(function () {
         setTimeout(getClientReferralsCount, 180000);
     });
 }
-
-
-
-
-
-
-
-
-
-
-
