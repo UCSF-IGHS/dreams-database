@@ -38,7 +38,6 @@ from django.views.generic.detail import SingleObjectTemplateResponseMixin
 from django.views.generic.edit import ModelFormMixin, ProcessFormView, CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
 
-
 """
 def get_enrollment_form_config_data(request):
     try:
@@ -3900,62 +3899,82 @@ def server_error(request):
     return render(request, 'error_page.html', context)
 
 
-def grievances_list(request):
-    try:
-        user = request.user
-        if not user.is_authenticated():
-            raise PermissionDenied
-        page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
-        filter_date = request.GET.get('filter_date', None) if request.method == 'GET' else request.POST.get(
-            'filter_date', None)
-        filter_text = request.GET.get('filter-user-text', '') if request.method == 'GET' else request.POST.get(
-            'filter-user-text', '')
+class GrievancesListView(ListView):
+    model = Grievance
+    template_name = 'grievances.html'
+
+    def post(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(GrievancesListView, self).get_context_data(**kwargs)
+        context['page'] = 'cash_transfer'
+        context['page_title'] = 'DREAMS Grievance List'
+        context['status'] = 'success'
+        context['to_login'] = False
+        context['error'] = ''
+
         try:
-            user_ip = user.implementingpartneruser.implementing_partner
-        except:
-            user_ip = None
-        """ IP level permission check """
-        grievance_list = Grievance.objects.all() if user.has_perm('DreamsApp.can_view_cross_ip_data') else \
-            Grievance.objects.filter(implementing_partner=user_ip)
-        """Date filter """
-        if filter_date is not None and filter_date is not u'':
-            yr, mnth, dt = filter_date.split('-')
-            constructed_date = date(int(yr), int(mnth), int(dt))
-            grievance_list = Grievance.objects.filter(Q(date__year=constructed_date.year,
-                                                        date__month=constructed_date.month,
-                                                        date__day=constructed_date.day))
-        """ Text filter """
-        # if filter_text is not u'' and filter_text is not '':
-        # grievance_list = Grievance.objects.filter(Q(reporter_name__contains=filter_text) |
-        #                                         Q(relationship__containts=filter_text) |
-        #                                        Q(reporter_phone__contains=filter_text))
-        # do pagination
-        try:
-            paginator = Paginator(grievance_list, 20)
-            final_grievance_list = paginator.page(page)
-        except PageNotAnInteger:
-            final_grievance_list = paginator.page(1)  # Deliver the first page is page is not an integer
-        except EmptyPage:
-            final_grievance_list = paginator.page(0)  # Deliver the last page if page is out of scope
-        response_data = {
-            'page': 'cash_transfer', 'page_title': 'DREAMS Grievance List',
-            'filter_text': filter_text,
-            'filter_date': filter_date,
-            'items_in_page': 0 if final_grievance_list.end_index() == 0 else
-            (final_grievance_list.end_index() - final_grievance_list.start_index() + 1),
-            'current_user_ip': user_ip,
-            'form': GrievanceModelForm(current_user=request.user),
-            'grievance_list': final_grievance_list,
-            'status': 'success'
-        }
-        return render(request, 'grievances.html', response_data)
-    except Exception:
-        response_data = {
-            'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error "
-                       "persists. "
-        }
-        return JsonResponse(response_data)
+            user = self.request.user
+            if not user.is_authenticated():
+                raise PermissionDenied
+            page = self.request.GET.get('page', 1) if self.request.method == 'GET' else self.request.POST.get('page', 1)
+            filter_date = self.request.GET.get('filter_date',
+                                               None) if self.request.method == 'GET' else self.request.POST.get(
+                'filter_date', None)
+            filter_text = self.request.GET.get('filter-user-text',
+                                               '') if self.request.method == 'GET' else self.request.POST.get(
+                'filter-user-text', '')
+            try:
+                user_ip = user.implementingpartneruser.implementing_partner
+            except:
+                user_ip = None
+            """ IP level permission check """
+            grievance_list = Grievance.objects.all() if user.has_perm('DreamsApp.can_view_cross_ip_data') else \
+                Grievance.objects.filter(implementing_partner=user_ip)
+            """Date filter """
+            if filter_date is not None and filter_date is not u'':
+                yr, mnth, dt = filter_date.split('-')
+                constructed_date = date(int(yr), int(mnth), int(dt))
+                grievance_list = Grievance.objects.filter(Q(date__year=constructed_date.year,
+                                                            date__month=constructed_date.month,
+                                                            date__day=constructed_date.day))
+            """ Text filter """
+            # if filter_text is not u'' and filter_text is not '':
+            # grievance_list = Grievance.objects.filter(Q(reporter_name__contains=filter_text) |
+            #                                         Q(relationship__containts=filter_text) |
+            #                                        Q(reporter_phone__contains=filter_text))
+            # do pagination
+            try:
+                paginator = Paginator(grievance_list, 20)
+                final_grievance_list = paginator.page(page)
+            except PageNotAnInteger:
+                final_grievance_list = paginator.page(1)  # Deliver the first page is page is not an integer
+            except EmptyPage:
+                final_grievance_list = paginator.page(0)  # Deliver the last page if page is out of scope
+
+            context['filter_text'] = filter_text
+            context['filter_date'] = filter_date
+            context['items_in_page'] = 0 if final_grievance_list.end_index() == 0 else \
+                (final_grievance_list.end_index() - final_grievance_list.start_index() + 1)
+            context['current_user_ip'] = user_ip
+            context['form'] = GrievanceModelForm(current_user=user)
+            context['grievance_list'] = final_grievance_list
+
+        except Exception as e:
+            tb = traceback.format_exc(e)
+            context['error'] = tb
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        if context['to_login']:
+            return redirect('login')
+        if context['error'] != '':
+            return HttpResponseServerError(context['error'])
+        return super(GrievancesListView, self).render_to_response(context, **response_kwargs)
+
+    def get_queryset(self):
+        return Grievance.objects.none()
 
 
 @csrf_exempt
@@ -4017,7 +4036,7 @@ def grievances_edit(request):
                         'grievance_nature': serializers.serialize('json', GrievanceNature.objects.all()),
                         'status_list': serializers.serialize('json', GrievanceStatus.objects.all()),
                     }
-                    return JsonResponse(response_data)
+                return JsonResponse(response_data)
             except Grievance.DoesNotExist:
                 response_data = {
                     'status': 'fail',
