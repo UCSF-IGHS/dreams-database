@@ -14,7 +14,6 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
-from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
@@ -39,12 +38,12 @@ from django.views.generic.detail import SingleObjectTemplateResponseMixin
 from django.views.generic.edit import ModelFormMixin, ProcessFormView, CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
 
-
+"""
 def get_enrollment_form_config_data(request):
     try:
         try:
             current_ip = request.user.implementingpartneruser.implementing_partner.code
-        except Exception as e:
+        except Exception:
             current_ip = 0
         config_data = {
             'implementing_partners': ImplementingPartner.objects.all(),
@@ -57,6 +56,7 @@ def get_enrollment_form_config_data(request):
     except Exception as e:
         tb = traceback.format_exc(e)
         return HttpResponseServerError(tb)
+"""
 
 
 def log_custom_actions(user_id, table, row_id, action, search_text):
@@ -148,7 +148,7 @@ def build_filter_client_queryset(turple_1, turple_2, turple_3, turple_4, turple_
             .order_by('first_name') \
             .order_by('middle_name') \
             .order_by('last_name')
-    except Exception as e:
+    except Exception:
         return Client.objects.none()  # Client.objects.all()[0]
 
 
@@ -266,7 +266,7 @@ class ClientListView(ListView):
                     ip_user = user.implementingpartneruser
                     current_ip = ip_user.implementing_partner.code
 
-                except Exception as e:
+                except Exception:
                     if not ip_user:
                         context['error'] = "You do not belong to any implementing partners"
                         return context
@@ -426,7 +426,7 @@ class ClientDetailView(DetailView):
             client_id = self.request.GET.get('client_id', None)
             if client_id is not None and client_id != "0":
                 self.object = Client.objects.get(id=int(client_id), voided=False)
-        except Exception as e:
+        except Exception:
             self.object = None
         return self.object
 
@@ -460,7 +460,7 @@ class ClientDetailView(DetailView):
             ip_user = None
             try:
                 ip_user = user.implementingpartneruser
-            except Exception as e:
+            except Exception:
                 if not ip_user:
                     context['error'] = "You do not belong to any implementing partners"
                     return context
@@ -500,7 +500,7 @@ class ClientDetailView(DetailView):
 
         except Client.DoesNotExist:
             context['error'] = "Client does not exist"
-        except Exception as e:
+        except Exception:
             context['error'] = traceback.format_exc()
         return context
 
@@ -538,7 +538,7 @@ def householdview(request):
             ip = None
             try:
                 ip = user.implementingpartneruser.implementing_partner
-            except Exception as e:
+            except Exception:
                 if not ip:
                     response_data = {
                         'status': 'fail'
@@ -568,7 +568,7 @@ def householdview(request):
             template = render_to_string('client_individual_household_form.html', context=response_data, request=request)
             return JsonResponse({"household_form": template})
 
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail'
         }
@@ -598,7 +598,7 @@ def educationemploymentview(request):
             ip = None
             try:
                 ip = user.implementingpartneruser.implementing_partner
-            except Exception as e:
+            except Exception:
                 if not ip:
                     response_data = {
                         'status': 'fail'
@@ -628,7 +628,7 @@ def educationemploymentview(request):
             template = render_to_string('education_and_employment_form.html', context=response_data, request=request)
             return JsonResponse({"edu_form": template})
 
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail'
         }
@@ -658,7 +658,7 @@ def hivtestingview(request):
             ip = None
             try:
                 ip = user.implementingpartneruser.implementing_partner
-            except Exception as e:
+            except Exception:
                 if not ip:
                     response_data = {
                         'status': 'fail'
@@ -688,7 +688,7 @@ def hivtestingview(request):
             template = render_to_string('client_hiv_testing_form.html', context=response_data, request=request)
             return JsonResponse({"hiv_form": template})
 
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail'
         }
@@ -718,7 +718,7 @@ def sexualityview(request):
             ip = None
             try:
                 ip = user.implementingpartneruser.implementing_partner
-            except Exception as e:
+            except Exception:
                 if not ip:
                     response_data = {
                         'status': 'fail'
@@ -748,7 +748,7 @@ def sexualityview(request):
             template = render_to_string('client_sexuality_form.html', context=response_data, request=request)
             return JsonResponse({"sexuality_form": template})
 
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail'
         }
@@ -778,7 +778,7 @@ def reproductivehealthview(request):
             ip = None
             try:
                 ip = user.implementingpartneruser.implementing_partner
-            except Exception as e:
+            except Exception:
                 if not ip:
                     response_data = {
                         'status': 'fail'
@@ -808,7 +808,7 @@ def reproductivehealthview(request):
             template = render_to_string('client_reproductive_health_form.html', context=response_data, request=request)
             return JsonResponse({"rh_form": template})
 
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail'
         }
@@ -838,7 +838,7 @@ def gbvview(request):
             ip = None
             try:
                 ip = user.implementingpartneruser.implementing_partner
-            except Exception as e:
+            except Exception:
                 if not ip:
                     response_data = {
                         'status': 'fail'
@@ -868,7 +868,7 @@ def gbvview(request):
             template = render_to_string('client_gbv_form.html', context=response_data, request=request)
             return JsonResponse({"gbv_form": template})
 
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail'
         }
@@ -898,7 +898,7 @@ def druguseview(request):
             ip = None
             try:
                 ip = user.implementingpartneruser.implementing_partner
-            except Exception as e:
+            except Exception:
                 if not ip:
                     response_data = {
                         'status': 'fail'
@@ -928,7 +928,7 @@ def druguseview(request):
             template = render_to_string('client_drug_use_form.html', context=response_data, request=request)
             return JsonResponse({"drug_use_form": template})
 
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail'
         }
@@ -958,7 +958,7 @@ def participationinprogramview(request):
             ip = None
             try:
                 ip = user.implementingpartneruser.implementing_partner
-            except Exception as e:
+            except Exception:
                 if not ip:
                     response_data = {
                         'status': 'fail'
@@ -989,7 +989,7 @@ def participationinprogramview(request):
                                         request=request)
             return JsonResponse({"programe_participation_form": template})
 
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail'
         }
@@ -1146,7 +1146,7 @@ def client_profile(request):
                     ip_code = ip.code
                 else:
                     ip_code = None
-            except Exception as e:
+            except Exception:
                 ip_code = None
 
             client_found = None
@@ -1224,7 +1224,7 @@ def client_profile(request):
                                })
             except Client.DoesNotExist:
                 return render(request, 'login.html')
-            except Exception as e:
+            except Exception:
                 return render(request, 'login.html')
     else:
         raise PermissionDenied
@@ -1257,7 +1257,7 @@ class ClientCreateView(CreateView):
                     # process saving user
                     try:
                         ip_code = user.implementingpartneruser.implementing_partner.code
-                    except Exception as e:
+                    except Exception:
                         response_data = {
                             'status': 'fail',
                             'message': 'Enrollment Failed. You do not belong to an implementing partner',
@@ -1306,7 +1306,7 @@ class ClientCreateView(CreateView):
                         client.dreams_id = str(ip_code) + '/' + str(client.ward.code if client.ward != None else '') \
                                            + '/' + str(next_serial)
 
-                    except Exception as e:
+                    except Exception:
                         next_serial = 1
                         client.dreams_id = str(ip_code) + '/' + str(1) \
                                            + '/' + str(next_serial)
@@ -1401,7 +1401,7 @@ class ClientUpdateView(UpdateView):
                     ip = None
                     try:
                         ip = user.implementingpartneruser.implementing_partner
-                    except Exception as e:
+                    except Exception:
                         if not ip:
                             response_data = {
                                 'status': 'failed',
@@ -1439,7 +1439,8 @@ class ClientUpdateView(UpdateView):
 
                         response_data = {
                             'status': 'failed',
-                            'message': "The client is not within the accepted age range. At the date of enrolment the age of the client must be between " + str(
+                            'message': "The client is not within the accepted age range. At the date of enrolment the "
+                                       "age of the client must be between " + str(
                                 min_max_age[0]) + " and " + str(min_max_age[1] + " years."),
                             'client_id': client.id
                         }
@@ -1535,7 +1536,7 @@ class ClientDeleteView(DeleteView):
             ip = None
             try:
                 ip = user.implementingpartneruser.implementing_partner
-            except Exception as e:
+            except Exception:
                 if not ip:
                     response_data = {
                         'status': 'failed',
@@ -1606,7 +1607,7 @@ class ClientDemographicsCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
                 return Client.objects.get(id=int(client_id), voided=False)
             else:
                 return None
-        except Exception as e:
+        except Exception:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1681,7 +1682,7 @@ class IndividualHouseHoldCreateUpdateView(SingleObjectTemplateResponseMixin, Mod
                 return individialhousehold
             else:
                 return None
-        except Exception as e:
+        except Exception:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1725,7 +1726,7 @@ class EducationAndEmploymentCreateUpdateView(SingleObjectTemplateResponseMixin, 
                 return educationandemployment
             else:
                 return None
-        except Exception as e:
+        except Exception:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1769,7 +1770,7 @@ class HIVTestingCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMix
                 return clienthivtesting
             else:
                 return None
-        except Exception as e:
+        except Exception:
             raise ValueError
 
     def get(self, request, *args, **kwargs):
@@ -1813,7 +1814,7 @@ class SexualityCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixi
                 return sexualactivity
             else:
                 return None
-        except Exception as e:
+        except Exception:
             raise ValueError
 
     def get(self, request, *args, **kwargs):
@@ -1857,7 +1858,7 @@ class ReproductiveHealthCreateUpdateView(SingleObjectTemplateResponseMixin, Mode
                 return reproductivehealth
             else:
                 return None
-        except Exception as e:
+        except Exception:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1901,7 +1902,7 @@ class GenderBasedViolenceCreateUpdateView(SingleObjectTemplateResponseMixin, Mod
                 return gbv
             else:
                 return None
-        except Exception as e:
+        except Exception:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1945,7 +1946,7 @@ class DrugUseCreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin,
                 return druguse
             else:
                 return None
-        except Exception as e:
+        except Exception:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -1989,7 +1990,7 @@ class ProgramParticipationCreateUpdateView(SingleObjectTemplateResponseMixin, Mo
                 return programparticipation
             else:
                 return None
-        except Exception as e:
+        except Exception:
             return None
 
     def get(self, request, *args, **kwargs):
@@ -2029,7 +2030,7 @@ def get_client_status(client):
             last_index = len(status)
             status = status[:last_index] + ' ) ' + status[last_index:]
         return status
-    except Exception as e:
+    except Exception:
         return 'Invalid Status'
 
 
@@ -2389,7 +2390,7 @@ def save_intervention(request):
                               'Please contact System Administrator for help.'
                     status = False
                 if client.exited:
-                    message = 'Error: You cannot Add Sevices to a Client Exited from DREAMS. ' \
+                    message = 'Error: You cannot Add Services to a Client Exited from DREAMS. ' \
                               'Please contact System Administrator for help.'
                     status = False
                 if not status:
@@ -2410,7 +2411,7 @@ def save_intervention(request):
             ip = None
             try:
                 ip = user.implementingpartneruser.implementing_partner
-            except Exception as e:
+            except Exception:
                 if not ip:
                     response_data = {
                         'status': 'fail',
@@ -2674,7 +2675,8 @@ def initiate_referral(request):
     try:
         if is_valid_post_request(request):
             OTHER_EXTERNAL_ORGANISATION_ID = ExternalOrganisation.objects.get(name='Other').pk
-            client = Client.objects.filter(id__exact=int(request.POST.get('referral-client-id'))).exclude(voided=True).first()
+            client = Client.objects.filter(id__exact=int(request.POST.get('referral-client-id'))).exclude(
+                voided=True).first()
             source_implementing_partner = ImplementingPartner.objects.filter(
                 id__exact=client.implementing_partner.id).first()
             intervention_type = InterventionType.objects.filter(
@@ -2920,7 +2922,7 @@ def get_client_found(client_id, client_key):
             client_found = Client.objects.get(id=client_id, voided=False)
         cache_value(client_key, client_found)
         return client_found
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -3143,7 +3145,7 @@ def update_intervention(request):
             ip = None
             try:
                 ip = user.implementingpartneruser.implementing_partner
-            except Exception as e:
+            except Exception:
                 if not ip:
                     response_data = {
                         'status': 'fail',
@@ -3335,7 +3337,7 @@ def delete_follow_up(request):
                 'message': 'Permission Denied'
             }
 
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail',
             'message': "An error occurred while processing request. "
@@ -3354,7 +3356,7 @@ def delete_intervention(request):
             ip = None
             try:
                 ip = user.implementingpartneruser.implementing_partner
-            except Exception as e:
+            except Exception:
                 if not ip:
                     response_data = {
                         'status': 'fail',
@@ -3425,7 +3427,7 @@ def delete_intervention(request):
                            "help. "
             }
             return JsonResponse(response_data)
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail',
             'message': "An error occurred while processing request. "
@@ -3502,7 +3504,7 @@ def reporting(request):
                 return render(request, 'reporting.html', {'user': user, 'page_title': 'DREAMS Reporting', })
         else:
             raise PermissionDenied
-    except Exception as e:
+    except Exception:
         tb = traceback.format_exc()
         return HttpResponseServerError(tb)  # for debugging purposes. Will only report exception
 
@@ -3701,7 +3703,7 @@ def save_user(request):
                                                                            ''))  # Valid IP for new user
             # check if user can change cross IP data
             if not user.has_perm('auth.can_change_cross_ip_data'):
-                # User must register new user under their IP. Theck if user has a valid IP
+                # User must register new user under their IP. Check if user has a valid IP
                 # check if registering user belongs to an IP
                 ip = user.implementingpartneruser.implementing_partner
                 if ip is None:  # Registering user does not belong to an IP. Raise exception
@@ -3757,7 +3759,7 @@ def save_user(request):
                             'ip_users': serializers.serialize('json', [ip_user, ])
                         }
                         return JsonResponse(response_data)
-                    except Exception as e:
+                    except Exception:
                         response_data = {
                             'status': 'success',
                             'message': 'User registered but could not send login detais to provided email address. '
@@ -3771,7 +3773,7 @@ def save_user(request):
             # User being registered under invalid IP. Raise an error
             raise Exception("Error: User must be registered under an Implementing Partner")
 
-        except Exception as e:
+        except Exception:
             response_data = {
                 'status': 'fail',
                 'message': "An error occurred while processing request. Contact System Administrator if this error "
@@ -3819,7 +3821,7 @@ def toggle_status(request):
         else:
             raise Exception('Error: You do not have permission to perform this operation. Please contact your server '
                             'administrator for assistance')
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail',
             'message': "An error occurred while processing request. Contact System Administrator if this error "
@@ -3897,62 +3899,82 @@ def server_error(request):
     return render(request, 'error_page.html', context)
 
 
-def grievances_list(request):
-    try:
-        user = request.user
-        if not user.is_authenticated():
-            raise PermissionDenied
-        page = request.GET.get('page', 1) if request.method == 'GET' else request.POST.get('page', 1)
-        filter_date = request.GET.get('filter_date', None) if request.method == 'GET' else request.POST.get(
-            'filter_date', None)
-        filter_text = request.GET.get('filter-user-text', '') if request.method == 'GET' else request.POST.get(
-            'filter-user-text', '')
+class GrievancesListView(ListView):
+    model = Grievance
+    template_name = 'grievances.html'
+
+    def post(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(GrievancesListView, self).get_context_data(**kwargs)
+        context['page'] = 'cash_transfer'
+        context['page_title'] = 'DREAMS Grievance List'
+        context['status'] = 'success'
+        context['to_login'] = False
+        context['error'] = ''
+
         try:
-            user_ip = user.implementingpartneruser.implementing_partner
-        except:
-            user_ip = None
-        """ IP level permission check """
-        grievance_list = Grievance.objects.all() if user.has_perm('DreamsApp.can_view_cross_ip_data') else \
-            Grievance.objects.filter(implementing_partner=user_ip)
-        """Date filter """
-        if filter_date is not None and filter_date is not u'':
-            yr, mnth, dt = filter_date.split('-')
-            constructed_date = date(int(yr), int(mnth), int(dt))
-            grievance_list = Grievance.objects.filter(Q(date__year=constructed_date.year,
-                                                        date__month=constructed_date.month,
-                                                        date__day=constructed_date.day))
-        """ Text filter """
-        # if filter_text is not u'' and filter_text is not '':
-        # grievance_list = Grievance.objects.filter(Q(reporter_name__contains=filter_text) |
-        #                                         Q(relationship__containts=filter_text) |
-        #                                        Q(reporter_phone__contains=filter_text))
-        # do pagination
-        try:
-            paginator = Paginator(grievance_list, 20)
-            final_grievance_list = paginator.page(page)
-        except PageNotAnInteger:
-            final_grievance_list = paginator.page(1)  # Deliver the first page is page is not an integer
-        except EmptyPage:
-            final_grievance_list = paginator.page(0)  # Deliver the last page if page is out of scope
-        response_data = {
-            'page': 'cash_transfer', 'page_title': 'DREAMS Grievance List',
-            'filter_text': filter_text,
-            'filter_date': filter_date,
-            'items_in_page': 0 if final_grievance_list.end_index() == 0 else
-            (final_grievance_list.end_index() - final_grievance_list.start_index() + 1),
-            'current_user_ip': user_ip,
-            'form': GrievanceModelForm(current_user=request.user),
-            'grievance_list': final_grievance_list,
-            'status': 'success'
-        }
-        return render(request, 'grievances.html', response_data)
-    except Exception as e:
-        response_data = {
-            'status': 'fail',
-            'message': "An error occurred while processing request. Contact System Administrator if this error "
-                       "persists. "
-        }
-        return JsonResponse(response_data)
+            user = self.request.user
+            if not user.is_authenticated():
+                raise PermissionDenied
+            page = self.request.GET.get('page', 1) if self.request.method == 'GET' else self.request.POST.get('page', 1)
+            filter_date = self.request.GET.get('filter_date',
+                                               None) if self.request.method == 'GET' else self.request.POST.get(
+                'filter_date', None)
+            filter_text = self.request.GET.get('filter-user-text',
+                                               '') if self.request.method == 'GET' else self.request.POST.get(
+                'filter-user-text', '')
+            try:
+                user_ip = user.implementingpartneruser.implementing_partner
+            except:
+                user_ip = None
+            """ IP level permission check """
+            grievance_list = Grievance.objects.all() if user.has_perm('DreamsApp.can_view_cross_ip_data') else \
+                Grievance.objects.filter(implementing_partner=user_ip)
+            """Date filter """
+            if filter_date is not None and filter_date is not u'':
+                yr, mnth, dt = filter_date.split('-')
+                constructed_date = date(int(yr), int(mnth), int(dt))
+                grievance_list = Grievance.objects.filter(Q(date__year=constructed_date.year,
+                                                            date__month=constructed_date.month,
+                                                            date__day=constructed_date.day))
+            """ Text filter """
+            # if filter_text is not u'' and filter_text is not '':
+            # grievance_list = Grievance.objects.filter(Q(reporter_name__contains=filter_text) |
+            #                                         Q(relationship__containts=filter_text) |
+            #                                        Q(reporter_phone__contains=filter_text))
+            # do pagination
+            try:
+                paginator = Paginator(grievance_list, 20)
+                final_grievance_list = paginator.page(page)
+            except PageNotAnInteger:
+                final_grievance_list = paginator.page(1)  # Deliver the first page is page is not an integer
+            except EmptyPage:
+                final_grievance_list = paginator.page(0)  # Deliver the last page if page is out of scope
+
+            context['filter_text'] = filter_text
+            context['filter_date'] = filter_date
+            context['items_in_page'] = 0 if final_grievance_list.end_index() == 0 else \
+                (final_grievance_list.end_index() - final_grievance_list.start_index() + 1)
+            context['current_user_ip'] = user_ip
+            context['form'] = GrievanceModelForm(current_user=user)
+            context['grievance_list'] = final_grievance_list
+
+        except Exception as e:
+            tb = traceback.format_exc(e)
+            context['error'] = tb
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        if context['to_login']:
+            return redirect('login')
+        if context['error'] != '':
+            return HttpResponseServerError(context['error'])
+        return super(GrievancesListView, self).render_to_response(context, **response_kwargs)
+
+    def get_queryset(self):
+        return Grievance.objects.none()
 
 
 @csrf_exempt
@@ -3979,7 +4001,7 @@ def grievances_create(request):
                 raise Exception(grievance.errors)
         else:
             raise PermissionDenied
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail',
             'message': "An error occurred while processing request. Contact System Administrator if this error "
@@ -4014,7 +4036,7 @@ def grievances_edit(request):
                         'grievance_nature': serializers.serialize('json', GrievanceNature.objects.all()),
                         'status_list': serializers.serialize('json', GrievanceStatus.objects.all()),
                     }
-                    return JsonResponse(response_data)
+                return JsonResponse(response_data)
             except Grievance.DoesNotExist:
                 response_data = {
                     'status': 'fail',
@@ -4023,7 +4045,7 @@ def grievances_edit(request):
                 return JsonResponse(response_data)
         else:
             raise PermissionDenied
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail',
             'message': "An error occurred while processing request. Contact System Administrator if this error "
@@ -4054,7 +4076,7 @@ def grievances_delete(request):
                 return JsonResponse(response_data)
         else:
             raise PermissionDenied
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail',
             'message': "An error occurred while processing request. Contact System Administrator if this error "
@@ -4082,7 +4104,7 @@ def grievances_get(request):
                 'message': 'Grievance not found in Database'
             }
         return JsonResponse(response_data)
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail',
             'message': "An error occurred while processing request. Contact System Administrator if this error "
@@ -4124,7 +4146,7 @@ def cash_transfer_details_save(request):
             raise PermissionDenied
     except ClientCashTransferDetails.DoesNotExist:
         raise Exception("Cash transfer details does not exist for editing!")
-    except Exception as e:
+    except Exception:
         response_data = {
             'status': 'fail',
             'message': "An error occurred while processing request. Contact System Administrator if this error "
@@ -4144,9 +4166,9 @@ def export_page(request):
             if user.is_superuser or request.user.has_perm('DreamsApp.can_view_cross_ip_data'):
                 ips = ImplementingPartner.objects.all()
 
-            elif user.implementingpartneruser is not None:
+            elif ip_user is not None:
                 ips = ImplementingPartner.objects.filter(
-                    id=request.user.implementingpartneruser.implementing_partner.id)
+                    id=ip_user.implementing_partner.id)
 
                 if ips.count() > 0:
                     sub_grantees = ImplementingPartner.objects.filter(parent_implementing_partner__in=ips)
@@ -4233,7 +4255,7 @@ def download_raw_enrollment_export(request):
 
         return response
 
-    except Exception as e:
+    except Exception:
         traceback.format_exc()
         return
 
@@ -4278,9 +4300,10 @@ def download_raw_intervention_export(request):
                                                to_date)
 
         return response
-    except ValidationError as e:
-        print(e)
-    except Exception as e:
+    except ValidationError:
+        traceback.format_exc()
+        return
+    except Exception:
         traceback.format_exc()
         return
 
@@ -4357,7 +4380,7 @@ def download_services_received_export(request):
                                              to_date)
         return response
 
-    except Exception as e:
+    except Exception:
         traceback.format_exc()
         return
 
@@ -4386,7 +4409,7 @@ def transfer_client(request):
                         }
                         return JsonResponse(response_data)
                     current_user_belongs_to_same_ip_as_client = client.current_user_belongs_to_same_ip_as_client(
-                        user.implementingpartneruser.implementing_partner_id) or user.is_superuser
+                        ip.id) or user.is_superuser
                     initiate_transfer_perm = TransferServiceLayer(request.user)
                     if not initiate_transfer_perm.can_initiate_transfer() and current_user_belongs_to_same_ip_as_client:
                         response_data = {
@@ -4663,7 +4686,7 @@ def accept_client_transfer(request):
                                    "Transfer not effected. Contact System Administrator if this error Persists.")
         else:
             raise PermissionDenied
-    except Exception as e:
+    except Exception:
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
@@ -4702,7 +4725,7 @@ def reject_client_transfer(request):
                                      "Transfer not rejected. Contact System Administrator if this error Persists.")
         else:
             raise PermissionDenied
-    except Exception as e:
+    except Exception:
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")
@@ -4748,7 +4771,7 @@ def reject_client_referral(request):
                                "Input value for reason to reject referral.")
         else:
             raise PermissionDenied
-    except Exception as e:
+    except Exception:
         messages.error(request,
                        "An error occurred while processing request. "
                        "Contact System Administrator if this error Persists.")

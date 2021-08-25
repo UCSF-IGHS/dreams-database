@@ -29,7 +29,7 @@ class ClientActionPermissions(XFModelPermissionBase):
             if checks:
                 can_view = super().can_perform_details()
 
-        except Exception as e:
+        except Exception:
             can_view = False
 
         return can_view
@@ -42,7 +42,7 @@ class ClientActionPermissions(XFModelPermissionBase):
             if checks:
                 can_edit = super().can_perform_edit()
 
-        except Exception as e:
+        except Exception:
             can_edit = False
 
         return can_edit

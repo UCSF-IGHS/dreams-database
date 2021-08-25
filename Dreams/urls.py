@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 
-from django.conf.urls import url, include
+from django.conf.urls import url
 from django.contrib import admin
 from DreamsApp import views
 from DreamsApp.api import urls
@@ -57,7 +57,7 @@ urlpatterns = [
     url(r'^admin/users/save$', views.save_user, name='new user'),
     url(r'^admin/users/change_cred$', views.change_cred, name='change_cred'),
     url(r'^admin/users/toggle_status$', views.toggle_status, name='toggle_user_status'),
-    url(r'^grievances$', views.grievances_list, name='grievances'),
+    url(r'^grievances$', views.GrievancesListView.as_view(), name='grievances'),
     url(r'^grievances/create$', views.grievances_create, name='grievances_create'),
     url(r'^grievances/edit', views.grievances_edit, name='grievances_edit'),
     url(r'^grievances/delete', views.grievances_delete, name='grievances_delete'),
