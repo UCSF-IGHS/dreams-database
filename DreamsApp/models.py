@@ -138,6 +138,8 @@ class ImplementingPartner(models.Model):
 
     def __str__(self):
         return '{}'.format(self.name)
+
+    ### DELEGATION CODE
     """
     @property
     def get_active_delegating_implementing_partners(self):
@@ -892,7 +894,7 @@ class SchoolType(models.Model):
 
 
 class SchoolLevel(models.Model):
-    """A model for level of educaton i.e Primary, Secondary etc"""
+    """A model for level of education i.e Primary, Secondary etc"""
     name = models.CharField(verbose_name='Education Level Name', max_length=50, blank=False, null=False)
     code = models.IntegerField(verbose_name='Education Level Code')
 
