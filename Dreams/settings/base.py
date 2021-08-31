@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'su!2p!nf_9pw#$%zf$vk1-07$#c8n1m)@^be7*b7d5niuwa6%m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True   # Changed to False for custom error messaging!
+DEBUG = True  # Changed to False for custom error messaging!
 
 ALLOWED_HOSTS = ['127.0.0.1', '*']
 
@@ -53,7 +53,7 @@ PROJECT_APPS = [
 
 INSTALLED_APPS = PREREQ_APPS + PROJECT_APPS
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -65,6 +65,8 @@ MIDDLEWARE_CLASSES = [
     'DreamsApp.middlewares.AutoLogoutMiddleware.SessionExpiredMiddleware',
     'DreamsApp.middlewares.CurrentUserMiddleware.CurrentUserMiddleware',
 ]
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 ROOT_URLCONF = 'Dreams.urls'
 
@@ -87,10 +89,10 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Dreams.wsgi.application'
 
 DATABASES = {
-      'default': {
-          'ENGINE': 'django.db.backends.sqlite3',
-          'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-      }
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
 }
 
 # Password validation
@@ -112,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
-SESSION_EXPIRY_AGE = 20 # This is in Minutes
+SESSION_EXPIRY_AGE = 20  # This is in Minutes
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
@@ -216,6 +218,5 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
-
 
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'

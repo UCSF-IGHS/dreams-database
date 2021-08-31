@@ -5,9 +5,16 @@ from django.contrib.auth import logout
 from django.http import JsonResponse
 from django.conf import  settings
 
+
 class SessionExpiredMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
     def process_request(self, request):
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return
         if 'last_activity' not in request.session:
             request.session['last_activity'] = datetime.now()
