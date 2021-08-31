@@ -46,13 +46,7 @@ PREREQ_APPS = [
 
 PROJECT_APPS = [
     'rest_framework',
-    'xf.xf_crud',
-    'xf.xf_system',
-    'xf.uc_dashboards',
     'crispy_forms',
-    'xf.uc_dashboards.templatetags.getattribute',
-    'xf.uc_dashboards.templatetags.dashgent_filters',
-    'xf.uc_dashboards.templatetags.iif',
     'Dreams',
     'DreamsApp',
 ]
@@ -64,8 +58,8 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    #'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'DreamsApp.middlewares.AutoLogoutMiddleware.SessionExpiredMiddleware',

@@ -1584,11 +1584,12 @@ class ClientTransferStatus(CodeTable):
 
 
 class ClientTransfer(models.Model):
-    client = models.ForeignKey(Client, db_index=True)
+    client = models.ForeignKey(Client, db_index=True, on_delete=models.CASCADE)
     source_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False,
                                                     related_name='source_implementing_partner', on_delete=models.CASCADE)
     destination_implementing_partner = models.ForeignKey(ImplementingPartner, null=False, blank=False,
-                                                         related_name='destination_implementing_partner')
+                                                         related_name='destination_implementing_partner',
+                                                         on_delete=models.CASCADE)
     transfer_status = models.ForeignKey(ClientTransferStatus, blank=False, null=False, on_delete=models.PROTECT)
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)

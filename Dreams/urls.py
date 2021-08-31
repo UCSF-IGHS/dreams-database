@@ -28,7 +28,7 @@ urlpatterns = [
     path('clientDelete', views.ClientDeleteView.as_view(), name='delete_client'),
     path('client', views.client_profile),
     path('follow_ups', views.FollowUpsListView.as_view(), name='follow_ups'),
-    path('admin/', admin.site.paths, name='admin'),
+    path('admin/', admin.site.urls, name='admin'),
     path('ivgetTypes', views.get_intervention_types),
     path('ivgetType', views.get_intervention_type),
     path('getExternalOrganisations', views.get_external_organisation),
