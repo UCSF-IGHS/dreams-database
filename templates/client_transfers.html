@@ -9,7 +9,7 @@
                     {{ user.implementingpartneruser.implementing_partner.name }}{% endif %}</h4>
                     {% if transferred_in %}
                     <div class="rightItem">
-                    <form id="search-transfers" class="" action="/client-transfers/1" method="post">
+                    <form id="search-transfers" class="" action="client-transfers/1" method="post">
                         {% csrf_token %}
                         <div class="form-group form-inline has-feedback">
                                 <input id="search-transfers" type="text" name="search-transfers-term"
