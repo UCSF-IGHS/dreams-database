@@ -63,12 +63,6 @@ urlpatterns = [
     path('grievances/delete', views.grievances_delete, name='grievances_delete'),
     path('grievances/get', views.grievances_get, name='grievances_get'),
     path('cashTransfer/save', views.cash_transfer_details_save, name='cash_transfer_details_save'),
-    path('download-enrollment-report/', views.download_raw_enrollment_export),
-    path('download-intervention-export/', views.download_raw_intervention_export),
-    path('export-page', views.export_page),
-    path('intervention-export-page', views.intervention_export_page),
-    path('service-layering-export-page', views.individual_service_layering_export_page),
-    path('download-service-layering-report/', views.download_services_received_export),
     path('client_baseline_info', views.ClientDetailView.as_view()),
 
     # URLs for ajax to populate related client info individually
@@ -106,10 +100,6 @@ urlpatterns = [
         name='get_pending_client_referrals_total_count'),
     path('get-pending-client-referrals-in-out-count', views.get_pending_client_referrals_in_out_count,
         name='get_pending_client_referrals_in_out_count'),
-    path('intervention-export-transferred-in-page', views.intervention_export_transferred_in_page,
-        name='intervention_export_transferred_in_page'),
-    path('download-intervention-transferred-in-report/', views.download_raw_intervention_transferred_in_export,
-        name='download_intervention_transferred_in_report'),
     path('client/void', views.void_client, name='void_client'),
     path('export-client-transfers/<int:transferred_in>/', views.export_client_transfers,
         name='export_client_transfers'),
