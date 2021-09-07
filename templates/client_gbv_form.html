@@ -1,5 +1,5 @@
 {% load widget_tweaks %}
-<form method="POST" class="post-form" id="form_gbv" action="/update-gbv/">
+<form method="POST" class="post-form" id="form_gbv" action="update-gbv">
     {% csrf_token %}
     <div id="gbv_replacement">
         <fieldset {% if not perms.DreamsApp.change_client %}disabled{% endif %}>

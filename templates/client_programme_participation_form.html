@@ -1,7 +1,7 @@
 {% load widget_tweaks %}
 {% load in_list_filter %}
 
-<form method="POST" class="post-form" id="form_programme_participation" action="/update-programme-participation/">
+<form method="POST" class="post-form" id="form_programme_participation" action="update-programme-participation">
     {% csrf_token %}
     <div id="program_replacement" >
         <fieldset {% if not perms.DreamsApp.change_client %}disabled{% endif %}>

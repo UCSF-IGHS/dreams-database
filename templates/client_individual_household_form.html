@@ -1,5 +1,5 @@
 {% load widget_tweaks %}
-<form method="POST" class="post-form" id="form_ind_household" action="/update-individual-household/">
+<form method="POST" class="post-form" id="form_ind_household" action="update-individual-household">
     {% csrf_token %}
     <div id="household_replacement">
         <fieldset id="household_fieldset" {% if not perms.DreamsApp.change_client %}disabled{% endif %}>

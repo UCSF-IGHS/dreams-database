@@ -4,7 +4,7 @@ from functools import reduce
 
 import unicodecsv
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.core import serializers
@@ -75,7 +75,7 @@ def log_custom_actions(user_id, table, row_id, action, search_text):
 
 def user_login(request):
     try:
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             return redirect('clients')
         if request.method == 'GET':
             return render(request, 'login.html', {'page_title': 'Login', 'page': 'login'})
@@ -108,7 +108,7 @@ def user_login(request):
                         audit.save()
                         response_data = {
                             'status': 'success',
-                            'message': 'Login successfull'
+                            'message': 'Login successful'
                         }
                     else:
                         audit.search_text = "Failed login for username: " + user_name
@@ -249,7 +249,7 @@ class ClientListView(ListView):
 
         try:
             user = self.request.user
-            if user is not None and user.is_authenticated() and user.is_active:
+            if user is not None and user.is_authenticated and user.is_active:
                 # get search details -- search_client_term
                 page = self.request.GET.get('page', 1) if self.request.method == 'GET' else self.request.POST.get(
                     'page', 1)
@@ -439,7 +439,7 @@ class ClientDetailView(DetailView):
 
         """ Returns client profile """
         user = self.request.user
-        if user is None or not user.is_authenticated() or not user.is_active:
+        if user is None or not user.is_authenticated or not user.is_active:
             context['to_login'] = True
             return context
         context['user'] = user
@@ -520,7 +520,7 @@ def householdview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             user = request.user
-            if user is None or not user.is_authenticated() or not user.is_active:
+            if user is None or not user.is_authenticated or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -580,7 +580,7 @@ def educationemploymentview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             user = request.user
-            if user is None or not user.is_authenticated() or not user.is_active:
+            if user is None or not user.is_authenticated or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -640,7 +640,7 @@ def hivtestingview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             user = request.user
-            if user is None or not user.is_authenticated() or not user.is_active:
+            if user is None or not user.is_authenticated or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -700,7 +700,7 @@ def sexualityview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             user = request.user
-            if user is None or not user.is_authenticated() or not user.is_active:
+            if user is None or not user.is_authenticated or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -760,7 +760,7 @@ def reproductivehealthview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             user = request.user
-            if user is None or not user.is_authenticated() or not user.is_active:
+            if user is None or not user.is_authenticated or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -820,7 +820,7 @@ def gbvview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             user = request.user
-            if user is None or not user.is_authenticated() or not user.is_active:
+            if user is None or not user.is_authenticated or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -880,7 +880,7 @@ def druguseview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             user = request.user
-            if user is None or not user.is_authenticated() or not user.is_active:
+            if user is None or not user.is_authenticated or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -940,7 +940,7 @@ def participationinprogramview(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             user = request.user
-            if user is None or not user.is_authenticated() or not user.is_active:
+            if user is None or not user.is_authenticated or not user.is_active:
                 response_data = {
                     'status': 'fail',
                     'to_login': True
@@ -1058,7 +1058,7 @@ class FollowUpsListView(ListView):
 
         try:
             user = self.request.user
-            if user is not None and user.is_authenticated() and user.is_active:
+            if user is not None and user.is_authenticated and user.is_active:
                 client_id = self.request.GET.get('client_id',
                                                  None) if self.request.method == 'GET' else self.request.POST.get(
                     'client_id', None)
@@ -1132,7 +1132,7 @@ class FollowUpsListView(ListView):
 def client_profile(request):
     """ Returns client profile """
     user = request.user
-    if user is not None and user.is_authenticated() and user.is_active:
+    if user is not None and user.is_authenticated and user.is_active:
         client_id = request.GET.get('client_id', None) if request.method == 'GET' else request.POST.get(
             'client_id', None)
         search_client_term = request.GET.get('search_client_term', '') if request.method == 'GET' else request.POST.get(
@@ -1250,7 +1250,7 @@ class ClientCreateView(CreateView):
     def form_valid(self, form):
         try:
             user = self.request.user
-            if user is not None and user.is_authenticated() and user.is_active:
+            if user is not None and user.is_authenticated and user.is_active:
                 if self.request.method == 'GET':
                     return render(self.request, 'enrollment.html', {'client': None})
                 elif self.request.method == 'POST' and self.request.is_ajax():
@@ -1383,7 +1383,7 @@ class ClientUpdateView(UpdateView):
     def form_valid(self, form):
         try:
             user = self.request.user
-            if user is not None and user.is_authenticated() and user.is_active:
+            if user is not None and user.is_authenticated and user.is_active:
                 client = self.object
 
                 if self.request.method == 'GET':
@@ -1526,7 +1526,7 @@ class ClientDeleteView(DeleteView):
     def form_valid(self, form):
         try:
             user = self.request.user
-            if user is None or not user.is_authenticated() or not user.is_active:
+            if user is None or not user.is_authenticated or not user.is_active:
                 raise PermissionDenied
 
             if self.request.method == 'POST' or not self.request.is_ajax():
@@ -2041,7 +2041,7 @@ def is_not_null_or_empty(str):
 def unexit_client(request):
     try:
         user = request.user
-        if user is not None and user.is_authenticated() and user.is_active and user.has_perm(
+        if user is not None and user.is_authenticated and user.is_active and user.has_perm(
                 'DreamsApp.can_exit_client'):
             client_id = request.POST.get('client_id', None)
             if client_id is None or client_id == "0":
@@ -2122,7 +2122,7 @@ def exit_client(request):
     user = request.user
 
     try:
-        if user is not None and user.is_authenticated() and user.is_active and user.has_perm(
+        if user is not None and user.is_authenticated and user.is_active and user.has_perm(
                 'DreamsApp.can_exit_client'):
             client_id = request.POST.get('client_id', None)
             if client_id is None or client_id == "0":
@@ -2250,7 +2250,7 @@ def testajax(request):
 def get_external_organisation(request):
     try:
         user = request.user
-        if request.method == 'GET' and user is not None and user.is_authenticated() and user.is_active:
+        if request.method == 'GET' and user is not None and user.is_authenticated and user.is_active:
             response_data = {}
             external_orgs = serializers.serialize('json', ExternalOrganisation.objects.all())
             response_data["external_orgs"] = external_orgs
@@ -2298,18 +2298,18 @@ def get_exit_reasons(request):
 
 def is_valid_get_request(request):
     user = request.user
-    return request.method == 'GET' and user is not None and user.is_authenticated() and user.is_active
+    return request.method == 'GET' and user is not None and user.is_authenticated and user.is_active
 
 
 def is_valid_post_request(request):
     user = request.user
-    return request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active
+    return request.method == 'POST' and user is not None and user.is_authenticated and user.is_active
 
 
 def get_intervention_types(request):
     try:
         user = request.user
-        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
+        if request.method == 'POST' and user is not None and user.is_authenticated and user.is_active:
             response_data = {}
             category_code = request.POST.get('category_code')
             current_client_id = request.POST.get('current_client_id', None)
@@ -2345,7 +2345,7 @@ def get_intervention_types(request):
 def get_intervention_type(request):
     try:
         user = request.user
-        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
+        if request.method == 'POST' and user is not None and user.is_authenticated and user.is_active:
             response_data = {}
             type_code = request.POST.get('type_code')
             i_type = serializers.serialize('json',
@@ -2819,7 +2819,7 @@ def has_get_arg(arg_name, request):
 def get_intervention_list(request):
     try:
         user = request.user
-        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
+        if request.method == 'POST' and user is not None and user.is_authenticated and user.is_active:
             if 'client_id' not in request.POST or request.POST.get('client_id') == 0:
                 return ValueError('No Client id found in your request! Ensure it is provided')
             if 'intervention_category_code' not in request.POST or request.POST.get('intervention_category_code') == 0:
@@ -2929,7 +2929,7 @@ def get_client_found(client_id, client_key):
 def get_intervention(request):
     try:
         user = request.user
-        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
+        if request.method == 'POST' and user is not None and user.is_authenticated and user.is_active:
             intervention_id = request.POST.get('intervention_id')
             if 'intervention_id' not in request.POST:
                 return ValueError('No intervention id found in your request!')
@@ -2950,7 +2950,7 @@ def get_intervention(request):
 def add_follow_up(request):
     try:
         user = request.user
-        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
+        if request.method == 'POST' and user is not None and user.is_authenticated and user.is_active:
             client_id = request.POST.get('client', 0)
             client = Client.objects.get(id=int(client_id), voided=False)
 
@@ -3042,7 +3042,7 @@ def add_follow_up(request):
 def update_follow_up(request):
     try:
         user = request.user
-        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
+        if request.method == 'POST' and user is not None and user.is_authenticated and user.is_active:
             follow_up_id = int(request.POST['follow_up_id'])
             follow_up = ClientFollowUp.objects.filter(id=follow_up_id).first()
 
@@ -3138,7 +3138,7 @@ def update_follow_up(request):
 def update_intervention(request):
     try:
         user = request.user
-        if request.method == 'POST' and user is not None and user.is_authenticated() and \
+        if request.method == 'POST' and user is not None and user.is_authenticated and \
                 user.is_active and user.has_perm('DreamsApp.change_intervention'):
 
             # Check if user belongs to an Ip
@@ -3289,7 +3289,7 @@ def update_intervention(request):
 def delete_follow_up(request):
     try:
         user = request.user
-        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
+        if request.method == 'POST' and user is not None and user.is_authenticated and user.is_active:
             follow_up_id = request.POST.get('follow_up_id', None)
 
             if follow_up_id is not None:
@@ -3349,7 +3349,7 @@ def delete_follow_up(request):
 def delete_intervention(request):
     try:
         user = request.user
-        if request.method == 'POST' and user is not None and user.is_authenticated() and \
+        if request.method == 'POST' and user is not None and user.is_authenticated and \
                 user.is_active and user.has_perm('DreamsApp.delete_intervention'):
 
             # Check if user belongs to an Ip
@@ -3439,7 +3439,7 @@ def delete_intervention(request):
 def get_sub_counties(request):
     try:
         user = request.user
-        if request.method == 'GET' and user is not None and user.is_authenticated() and user.is_active:
+        if request.method == 'GET' and user is not None and user.is_authenticated and user.is_active:
             response_data = {}
             county_id = request.GET['county_id']
             county_key = 'county-id-{}'.format(county_id)
@@ -3465,7 +3465,7 @@ def get_sub_counties(request):
 
 def get_wards(request):
     user = request.user
-    if request.method == 'GET' and user is not None and user.is_authenticated() and user.is_active:
+    if request.method == 'GET' and user is not None and user.is_authenticated and user.is_active:
         response_data = {}
         sub_county_id = request.GET['sub_county_id']
         sub_county_key = 'sub-county-id-{0}'.format(sub_county_id)
@@ -3487,7 +3487,7 @@ def get_wards(request):
 
 
 def log_me_out(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         logout(request)
         return redirect('login')
     else:
@@ -3497,7 +3497,7 @@ def log_me_out(request):
 def reporting(request):
     try:
         user = request.user
-        if user is not None and user.is_authenticated() and user.is_active:
+        if user is not None and user.is_authenticated and user.is_active:
             if request.method == 'GET':
                 return render(request, 'reporting.html', {'user': user, 'page_title': 'DREAMS Reporting', })
             elif request.method == 'POST' and request.is_ajax():
@@ -3512,7 +3512,7 @@ def reporting(request):
 def user_help(request):
     try:
         user = request.user
-        if user is not None and user.is_authenticated() and user.is_active:
+        if user is not None and user.is_authenticated and user.is_active:
             if request.method == 'GET':
                 return render(request, 'help.html', {
                     'user': user,
@@ -3534,7 +3534,7 @@ def user_help(request):
 
 def user_help_download(request):
     user = request.user
-    if user.is_authenticated() and user.is_active:
+    if user.is_authenticated and user.is_active:
         try:
             manual_filename = request.POST.get('manual') if request.method == 'POST' else request.GET.get('manual')
             manual_friendly_name = request.POST.get(
@@ -3556,7 +3556,7 @@ def user_help_download(request):
 
 def logs(request):
     user = request.user
-    if user.is_authenticated() and user.is_active:
+    if user.is_authenticated and user.is_active:
         if not user.is_superuser and not user.has_perm('DreamsApp.can_manage_audit'):
             raise PermissionDenied('Operation not allowed. [Missing Permission]')
 
@@ -3606,7 +3606,7 @@ def logs(request):
                 tb = traceback.format_exc(e)
                 return HttpResponseServerError(tb)
         else:
-            raise bad_request(request)
+            raise bad_request(request, None)
     else:
         raise PermissionDenied
 
@@ -3634,7 +3634,7 @@ def filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs)
 # user management
 def users(request):
     user = request.user
-    if user and user.is_authenticated() and user.is_active and user.has_perm('auth.can_manage_user'):
+    if user and user.is_authenticated and user.is_active and user.has_perm('auth.can_manage_user'):
         try:
             items_per_page = 15
             if request.method == 'GET':
@@ -3695,7 +3695,7 @@ def users(request):
 
 def save_user(request):
     user = request.user
-    if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active and user.has_perm(
+    if request.method == 'POST' and user is not None and user.is_authenticated and user.is_active and user.has_perm(
             'auth.can_manage_user'):
         try:
             new_user_ip = ImplementingPartner.objects.get(name=
@@ -3788,7 +3788,7 @@ def save_user(request):
 def toggle_status(request):
     try:
         user = request.user
-        if request.method == 'GET' and user is not None and user.is_authenticated() \
+        if request.method == 'GET' and user is not None and user.is_authenticated \
                 and user.is_active and user.has_perm('auth.can_change_user_status'):
             if request.method == 'GET':
                 ip_user_id = request.GET.get('ip_user_id', 0)
@@ -3832,7 +3832,7 @@ def toggle_status(request):
 
 def change_cred(request):
     user = request.user
-    if user and user.is_authenticated() and user.is_active:
+    if user and user.is_authenticated and user.is_active:
         if request.method == 'GET':
             context = {'page': 'account', 'page_title': 'DREAMS Password Change', 'user': user, }
             return render(request, 'change_cred.html', context)
@@ -3870,14 +3870,14 @@ def change_cred(request):
         raise PermissionDenied
 
 
-def bad_request(request):
+def bad_request(request, exception):
     context = {'user': request.user, 'error_code': 400, 'error_title': 'Bad Request (Error 400)',
                'error_message':
                    'Your browser sent a request that this server could not understand. '}
     return render(request, 'error_page.html', context)
 
 
-def permission_denied(request):
+def permission_denied(request, exception):
     context = {'user': request.user, 'error_code': 403, 'error_title': 'Permission Denied (Error 403)',
                'error_message':
                    'You do not have permission to view this page [Missing Permission]. '
@@ -3885,7 +3885,7 @@ def permission_denied(request):
     return render(request, 'error_page.html', context)
 
 
-def page_not_found(request):
+def page_not_found(request, exception):
     context = {'user': request.user, 'error_code': 404, 'error_title': 'Page Not Found (Error 404)',
                'error_message': 'The page you are looking for does not exist. Go back to previous page or Home page'}
     return render(request, 'error_page.html', context)
@@ -3916,7 +3916,7 @@ class GrievancesListView(ListView):
 
         try:
             user = self.request.user
-            if not user.is_authenticated():
+            if not user.is_authenticated:
                 raise PermissionDenied
             page = self.request.GET.get('page', 1) if self.request.method == 'GET' else self.request.POST.get('page', 1)
             filter_date = self.request.GET.get('filter_date',
@@ -3981,7 +3981,7 @@ class GrievancesListView(ListView):
 def grievances_create(request):
     try:
         user = request.user
-        if user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+        if user.is_authenticated and request.method == 'POST' and request.is_ajax():
             grievance = GrievanceModelForm(request.POST, current_user=user)
             if grievance.is_valid():
                 saved_grievance = grievance.save(commit=False)
@@ -4014,7 +4014,7 @@ def grievances_create(request):
 def grievances_edit(request):
     try:
         user = request.user
-        if user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+        if user.is_authenticated and request.method == 'POST' and request.is_ajax():
             try:
                 id = request.POST.get('id', 0)
                 instance = Grievance.objects.get(id=int(id))
@@ -4058,7 +4058,7 @@ def grievances_edit(request):
 def grievances_delete(request):
     try:
         user = request.user
-        if user and user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+        if user and user.is_authenticated and request.method == 'POST' and request.is_ajax():
             try:
                 id = request.POST.get('id', 0)
                 instance = Grievance.objects.get(id=int(id)).delete()
@@ -4087,7 +4087,7 @@ def grievances_delete(request):
 
 def grievances_get(request):
     try:
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             raise PermissionDenied
         grievance_id = request.GET.get('grievance_id', 0) if request.method == 'GET' else request.POST.get(
             'grievance_id', 0)
@@ -4117,7 +4117,7 @@ def grievances_get(request):
 def cash_transfer_details_save(request):
     try:
         user = request.user
-        if user.is_authenticated() and request.method == 'POST' and request.is_ajax():
+        if user.is_authenticated and request.method == 'POST' and request.is_ajax():
             # check if details has id
             id = request.POST.get('id', 0)
             if id not in [u'', "0", 0, ""]:
@@ -4157,7 +4157,7 @@ def cash_transfer_details_save(request):
 
 def export_page(request):
     user = request.user
-    if user and user.is_authenticated() and user.is_active and user.has_perm(
+    if user and user.is_authenticated and user.is_active and user.has_perm(
             'DreamsApp.can_export_raw_data'):
 
         try:
@@ -4189,7 +4189,7 @@ def export_page(request):
 
 ## NOT TO BE IMPLEMENTED
 def intervention_export_page(request):
-    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+    if request.user.is_authenticated and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_export_raw_data'):
 
         try:
@@ -4310,7 +4310,7 @@ def download_raw_intervention_export(request):
 
 ## NOT TO BE IMPLEMENTED
 def individual_service_layering_export_page(request):
-    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+    if request.user.is_authenticated and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_export_raw_data'):
 
         try:
@@ -4388,7 +4388,7 @@ def download_services_received_export(request):
 def transfer_client(request):
     try:
         user = request.user
-        if user is not None and user.is_authenticated() and user.is_active:
+        if user is not None and user.is_authenticated and user.is_active:
             if request.method == 'POST' and request.is_ajax():
                 try:
                     ip = user.implementingpartneruser.implementing_partner
@@ -4476,7 +4476,7 @@ class ClientTransfesListView(ListView):
 
         try:
             user = self.request.user
-            if user is not None and user.is_authenticated() and user.is_active:
+            if user is not None and user.is_authenticated and user.is_active:
                 transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
                 search_transfers_term = ''
                 transfer_perm = TransferServiceLayer(user)
@@ -4560,7 +4560,7 @@ class ClientReferralsListView(ListView):
 
         try:
             user = self.request.user
-            if user is not None and user.is_authenticated() and user.is_active:
+            if user is not None and user.is_authenticated and user.is_active:
                 referred_in = bool(int(kwargs.pop('referred_in', 1)))
                 referral_perm = ReferralServiceLayer(user)
                 can_accept_or_reject = referral_perm.can_accept_or_reject_referral()
@@ -4629,7 +4629,7 @@ class ClientReferralsListView(ListView):
 def accept_client_transfer(request):
     try:
         user = request.user
-        if user is not None and user.is_authenticated() and user.is_active:
+        if user is not None and user.is_authenticated and user.is_active:
             if request.method == 'POST':
 
                 try:
@@ -4697,7 +4697,7 @@ def accept_client_transfer(request):
 def reject_client_transfer(request):
     try:
         user = request.user
-        if user is not None and user.is_authenticated() and user.is_active:
+        if user is not None and user.is_authenticated and user.is_active:
             if request.method == 'POST':
 
                 client_transfer_id = request.POST.get("id", "")
@@ -4782,7 +4782,7 @@ def reject_client_referral(request):
 def get_pending_client_transfers_total_count(request):
     client_transfers_total_count = 0
     user = request.user
-    if user is not None and user.is_authenticated() and user.is_active:
+    if user is not None and user.is_authenticated and user.is_active:
         initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
             ip = user.implementingpartneruser.implementing_partner
@@ -4798,7 +4798,7 @@ def get_pending_client_transfers_total_count(request):
 def get_pending_client_transfers_in_out_count(request):
     client_transfers_count_array = [0, 0]
     user = request.user
-    if user is not None and user.is_authenticated() and user.is_active:
+    if user is not None and user.is_authenticated and user.is_active:
         initiated_client_transfer_status = ClientTransferStatus.objects.get(code__exact=TRANSFER_INITIATED_STATUS)
         try:
             ip = user.implementingpartneruser.implementing_partner
@@ -4818,7 +4818,7 @@ def get_pending_client_transfers_in_out_count(request):
 def get_pending_client_referrals_total_count(request):
     client_referrals_total_count = 0
     user = request.user
-    if user is not None and user.is_authenticated() and user.is_active:
+    if user is not None and user.is_authenticated and user.is_active:
         try:
             pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
             ip = user.implementingpartneruser.implementing_partner
@@ -4833,7 +4833,7 @@ def get_pending_client_referrals_total_count(request):
 def get_pending_client_referrals_in_out_count(request):
     client_referrals_count_array = [0, 0]
     user = request.user
-    if user is not None and user.is_authenticated() and user.is_active:
+    if user is not None and user.is_authenticated and user.is_active:
         pending_client_referral_status = ReferralStatus.objects.get(code__exact=REFERRAL_PENDING_STATUS)
         try:
             ip = user.implementingpartneruser.implementing_partner
@@ -4857,7 +4857,7 @@ def get_pending_client_referrals_in_out_count(request):
 
 ## NOT TO BE IMPLEMENTED
 def intervention_export_transferred_in_page(request):
-    if request.user.is_authenticated() and request.user.is_active and request.user.has_perm(
+    if request.user.is_authenticated and request.user.is_active and request.user.has_perm(
             'DreamsApp.can_export_raw_data'):
 
         try:
@@ -4915,7 +4915,7 @@ def download_raw_intervention_transferred_in_export(request):
 def export_client_transfers(request, *args, **kwargs):
     try:
         user = request.user
-        if user is not None and user.is_authenticated() and user.is_active:
+        if user is not None and user.is_authenticated and user.is_active:
             transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
             columns = ("client__dreams_id", "source_implementing_partner__name",
                        "destination_implementing_partner__name", "transfer_reason", "transfer_status__name",)
@@ -4955,7 +4955,7 @@ def export_client_transfers(request, *args, **kwargs):
 def export_client_referrals(request, *args, **kwargs):
     try:
         user = request.user
-        if user is not None and user.is_authenticated() and user.is_active:
+        if user is not None and user.is_authenticated and user.is_active:
 
             referred_in = bool(int(kwargs.pop('referred_in', 1)))
             columns = ("client__dreams_id", "referring_ip__name",
@@ -5004,7 +5004,7 @@ def export_client_referrals(request, *args, **kwargs):
 def void_client(request):
     try:
         user = request.user
-        if user is not None and user.is_authenticated() and user.is_active:
+        if user is not None and user.is_authenticated and user.is_active:
             if request.method == 'POST' and request.is_ajax():
                 if not user.is_superuser and not user.has_perm(
                         'DreamsApp.can_void_client') and not Permission.objects.filter(group__user=user).filter(
@@ -5168,7 +5168,7 @@ def get_user_name(user_id):
 def get_min_max_date_of_birth(request):
     try:
         user = request.user
-        if request.method == 'POST' and user is not None and user.is_authenticated() and user.is_active:
+        if request.method == 'POST' and user is not None and user.is_authenticated and user.is_active:
             date_of_enrollment_str = request.POST.get('date_of_enrollment')
             date_of_enrollment = datetime.strptime(str(date_of_enrollment_str),
                                                    '%Y-%m-%d').date() if date_of_enrollment_str is not None else dt.now().date()

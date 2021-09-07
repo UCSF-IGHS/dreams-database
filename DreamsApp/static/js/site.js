@@ -1650,14 +1650,14 @@ $(document).ready(function () {
         $("#processing-user-form").removeClass('hidden');
 
         $.ajax({
-            url: '/admin/users/save',
+            url: 'users/save',
             type: "POST",
             dataType: 'json',
             data: $('#user-entry-form').serialize(),
             success: function (data) {
                 if (data.status == "success") {
                     $("#user-modal").modal('hide');
-                    window.location.href = "/admin/users";
+                    window.location.href = "users";
                 }
                 else {
                     $('#user_actions_alert').removeClass('hidden').addClass('alert-danger')
@@ -1679,7 +1679,7 @@ $(document).ready(function () {
     });
 
     $('#user-clear-filters').click(function (e) {
-        window.location.href = "/admin/users";
+        window.location.href = "users";
     });
 
     $("#user_change_password_form").validate({
@@ -1738,7 +1738,7 @@ $(document).ready(function () {
         $('#user_change_password_form .btn-toggle-enabled').addClass('disabled');
 
         $.ajax({
-            url: '/admin/users/change_cred',
+            url: 'users/change_cred',
             type: "POST",
             dataType: 'json',
             data: $('#user_change_password_form').serialize(),
@@ -3505,7 +3505,7 @@ function getWards(setSelected, sc_id, ward_id) {
 
 function toggleUserStatus(ip_user_id, activate, target) {
     $.ajax({
-        url: '/admin/users/toggle_status',
+        url: 'users/toggle_status',
         type: "GET",
         dataType: 'json',
         data: {

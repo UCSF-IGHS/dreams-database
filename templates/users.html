@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load staticfiles %}
+{% load static %}
 
 {% block content %}
     {% include 'includes/user_form.html' %}
@@ -13,12 +13,12 @@
             </div>
             <div class="floatRightLinks">
                 <div class="rightItem">
-                    <form id="user_search_form" class="form-inline" method="post" action="/admin/users">
+                    <form id="user_search_form" class="form-inline" method="post" action="users">
                         {% csrf_token %}
                           <div class="form-group has-feedback" >
                                <input id="search-term-default" type="text" name="filter-user-text" class="form-control filter-enrollment" value="{{ filter_text }}" placeholder="Enter Username" style="width: 400px;">
                                <button type="submit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-search"></span> Search </button>
-                               <button type="button" class="btn btn-danger btn-sm" onclick="window.location.href = '/admin/users';"><span class="glyphicon glyphicon-remove"></span> Clear Search </button>
+                               <button type="button" class="btn btn-danger btn-sm" onclick="window.location.href = 'users';"><span class="glyphicon glyphicon-remove"></span> Clear Search </button>
                           </div>
                     </form>
                     <span class="text-info"><span class="glyphicon glyphicon-info-sign"></span> Search for users by typing username in the input above.</span>

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load staticfiles %}
+{% load static %}
 
 {% block content %}
     {% include 'includes/user_form.html' %}
@@ -23,7 +23,7 @@
         <div class="div_center_wrapper" style="text-align: center">
         <div class="div_center_wrapper_inner" style="display: inline-block;">
 
-            <form id="user_change_password_form" style="width: 360px; text-align: left;" method="post" action="/admin/users/change_cred/">
+            <form id="user_change_password_form" style="width: 360px; text-align: left;" method="post" action="users/change_cred/">
                 {% csrf_token %}
                 <h4 style="text-align: left;">Enter details below.</h4>
               <div class="form-group">
