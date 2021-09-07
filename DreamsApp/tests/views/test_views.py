@@ -4,7 +4,7 @@ from django.test import RequestFactory
 
 #from DreamsApp.tests.business_rules.services_tests.intervention_delegation_test_case import \
 #    InterventionDelegationTestCase
-from DreamsApp.views import get_search_criteria, get_delegated_intervention_type_codes
+from DreamsApp.views import get_search_criteria #, get_delegated_intervention_type_codes
 
 
 class ViewTestCase(): #(InterventionDelegationTestCase):

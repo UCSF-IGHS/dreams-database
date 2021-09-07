@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static %}
 
 <!-- Beginning modal-->
         <!-- Modal -->
@@ -11,7 +11,7 @@
                     <h4 class="modal-title" id="exampleModalLabel">New User</h4>
               </div>
               <div class="modal-body">
-                <form id="user-entry-form" action="/admin/users/save/" method="post">
+                <form id="user-entry-form" action="users/save/" method="post">
                     {% csrf_token %}
                     <!-- Hidden fields -->
                     <input type="number" class="form-control hidden" id="reg_ip_user_id" name="ip_user_id"/>

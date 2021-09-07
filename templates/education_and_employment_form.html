@@ -1,5 +1,5 @@
 {% load widget_tweaks %}
-<form method="POST" class="post-form" id="form_edu_and_employment" action="/update-education-employment/">
+<form method="POST" class="post-form" id="form_edu_and_employment" action="update-education-employment">
     {% csrf_token %}
     <div id="edu_replacement">
         <fieldset id="fieldset_edu_replacement" {% if not perms.DreamsApp.change_client %}disabled{% endif %}>

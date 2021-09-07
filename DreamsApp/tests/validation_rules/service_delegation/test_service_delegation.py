@@ -6,10 +6,10 @@ from datetime import datetime, timedelta
 from django.contrib.auth.models import User
 
 from DreamsApp.models import ServiceDelegation, ImplementingPartner, InterventionType
-from xf.xf_system.tests.test_xf_test_case import XFTestCase
+from django.test import TestCase
 
 
-class TestDelegatedImplementingPartnerTestCase(XFTestCase):
+class TestDelegatedImplementingPartnerTestCase(TestCase):
     fixtures = ['test_verification_document', 'test_marital_status', 'test_user', 'test_intervention_category',
                 'test_intervention_type', 'test_county',
                 'implementing_partner_funder', 'test_implementing_partner', 'external_organisation_type',

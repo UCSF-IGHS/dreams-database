@@ -1,5 +1,5 @@
 {% load widget_tweaks %}
-<form method="POST" class="post-form" id="form_drug_use" action="/update-drug-use/">
+<form method="POST" class="post-form" id="form_drug_use" action="update-drug-use">
     {% csrf_token %}
     <div id="drug_use_replacement">
         <fieldset {% if not perms.DreamsApp.change_client %}disabled{% endif %}>

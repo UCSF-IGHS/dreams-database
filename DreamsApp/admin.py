@@ -5,7 +5,7 @@ from DreamsApp.forms import *
 from DreamsApp.models import *
 # Register your models here.
 from django.forms import CheckboxSelectMultiple
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 class PermissionAdmin(admin.ModelAdmin):

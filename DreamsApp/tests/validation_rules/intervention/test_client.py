@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
 from DreamsApp.models import *
-from xf.xf_system.tests.test_xf_test_case import XFTestCase
+from django.test import TestCase
 
 
-class TestClientTestCase(XFTestCase):
+class TestClientTestCase(TestCase):
     def setUp(self):
         pass
 

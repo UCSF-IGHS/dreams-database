@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 from DreamsApp.models import *
 import datetime
-from xf.xf_system.tests.test_xf_test_case import XFTestCase
+from django.test import TestCase
 
 
-class TestExternalOrganisationOtherTestCase(XFTestCase):
+class TestExternalOrganisationOtherTestCase(TestCase):
     # load fixtures
     fixtures = ['external_organisation_type.json', 'external_organisation.json']
 
