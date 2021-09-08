@@ -100,27 +100,6 @@
                     -->
 
                     {% if user.is_authenticated %}
-                        <li class="dropdown {% if page == 'export' %}active{% endif %}">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                               aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
-                            {% if perms.DreamsApp.can_export_raw_data %}
-                                <ul class="dropdown-menu">
-                                    <li><a href="https://dreams-reports.globalhealthapp.net" target="_blank"
-                                           class="text-danger">DREAMS Jasper Reports</a></li>
-                                    <li role="separator" class="divider"></li>
-                                    <li><a href="/export-page" class="text-danger">Raw Enrollment Export</a></li>
-                                    <li><a href="/intervention-export-page" class="text-danger">Raw Interventions
-                                        Export</a></li>
-                                    <li><a href="/service-layering-export-page" class="text-danger">Services Received
-                                        Export</a></li>
-                                    <li><a href="{% url 'intervention_export_transferred_in_page' %}" class="text-danger">Raw Interventions
-                                        Export (Transferred In)</a></li>
-                                </ul>
-                            {% endif %}
-                        </li>
-                    {% endif %}
-
-                    {% if user.is_authenticated %}
                         <li class="dropdown {% if page == 'account' %}active{% endif %}">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
                                aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
