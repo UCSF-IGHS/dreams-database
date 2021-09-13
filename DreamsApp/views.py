@@ -3554,61 +3554,93 @@ def user_help_download(request):
         raise PermissionDenied
 
 
-def logs(request):
-    user = request.user
-    if user.is_authenticated and user.is_active:
-        if not user.is_superuser and not user.has_perm('DreamsApp.can_manage_audit'):
-            raise PermissionDenied('Operation not allowed. [Missing Permission]')
+class LogsListView(ListView):
+    model = Audit
+    template_name = 'log.html'
+
+    def post(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(LogsListView, self).get_context_data(**kwargs)
+        context['to_login'] = False
+        context['error'] = ''
 
         try:
-            ip = user.implementingpartneruser.implementing_partner.id
-        except ImplementingPartnerUser.DoesNotExist:
-            return HttpResponseServerError("You do not belong to an implementing partner.")
+            user = self.request.user
+            if user.is_authenticated and user.is_active:
+                if not user.is_superuser and not user.has_perm('DreamsApp.can_manage_audit'):
+                    raise PermissionDenied('Operation not allowed. [Missing Permission]')
 
-        # user is allowed to view logs
-        if request.method == 'GET':
-            try:
-                page = request.GET.get('page', 1)
-                filter_text = request.GET.get('filter-log-text', '')
-                filter_date_from = request.GET.get('filter-log-date-from', '')
-                filter_date_to = request.GET.get('filter-log-date', '')
-
-                # getting logs
-                if filter_text:
-                    logs = Audit.objects.filter(
-                        reduce(operator.or_, (Q(table__icontains=item) for item in filter_text.split(" "))) |
-                        reduce(operator.or_, (Q(action__icontains=item) for item in filter_text.split(" "))) |
-                        reduce(operator.or_, (Q(search_text__icontains=item) for item in filter_text.split(" "))) |
-                        reduce(operator.or_, (Q(user__username__icontains=item) for item in filter_text.split(" "))) |
-                        reduce(operator.or_, (Q(user__first_name__icontains=item) for item in filter_text.split(" "))) |
-                        reduce(operator.or_, (Q(user__last_name__icontains=item) for item in filter_text.split(" ")))
-                    ).order_by('-timestamp')
-                else:
-                    logs = Audit.objects.all().order_by('-timestamp')
-
-                logs = filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs)
-                paginator = Paginator(logs, 25)  # Showing 25 contacts per page
                 try:
-                    logs_list = paginator.page(page)
-                except PageNotAnInteger:
-                    logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
-                except EmptyPage:
-                    logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
-                return render(request, 'log.html', {'page': 'logs', 'page_title': 'DREAMS Logs', 'logs': logs_list,
-                                                    'filter_text': filter_text,
-                                                    'filter_date_from': filter_date_from,
-                                                    'filter_date': filter_date_to,
-                                                    'items_in_page': 0 if logs_list.end_index() == 0 else
-                                                    (logs_list.end_index() - logs_list.start_index() + 1)
-                                                    }
-                              )
-            except Exception as e:
-                tb = traceback.format_exc(e)
-                return HttpResponseServerError(tb)
-        else:
-            raise bad_request(request, None)
-    else:
-        raise PermissionDenied
+                    ip = user.implementingpartneruser.implementing_partner.id
+                except ImplementingPartnerUser.DoesNotExist:
+                    return HttpResponseServerError("You do not belong to an implementing partner.")
+
+                # user is allowed to view logs
+                if self.request.method == 'GET':
+                    try:
+                        page = self.request.GET.get('page', 1)
+                        filter_text = self.request.GET.get('filter-log-text', '')
+                        filter_date_from = self.request.GET.get('filter-log-date-from', '')
+                        filter_date_to = self.request.GET.get('filter-log-date', '')
+
+                        # getting logs
+                        if filter_text:
+                            logs = Audit.objects.filter(
+                                reduce(operator.or_, (Q(table__icontains=item) for item in filter_text.split(" "))) |
+                                reduce(operator.or_, (Q(action__icontains=item) for item in filter_text.split(" "))) |
+                                reduce(operator.or_,
+                                       (Q(search_text__icontains=item) for item in filter_text.split(" "))) |
+                                reduce(operator.or_,
+                                       (Q(user__username__icontains=item) for item in filter_text.split(" "))) |
+                                reduce(operator.or_,
+                                       (Q(user__first_name__icontains=item) for item in filter_text.split(" "))) |
+                                reduce(operator.or_,
+                                       (Q(user__last_name__icontains=item) for item in filter_text.split(" ")))
+                            ).order_by('-timestamp')
+                        else:
+                            logs = Audit.objects.all().order_by('-timestamp')
+
+                        logs = filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs)
+                        paginator = Paginator(logs, 25)  # Showing 25 contacts per page
+                        try:
+                            logs_list = paginator.page(page)
+                        except PageNotAnInteger:
+                            logs_list = paginator.page(1)  # Deliver the first page is page is not an integer
+                        except EmptyPage:
+                            logs_list = paginator.page(0)  # Deliver the last page if page is out of scope
+
+                        context['page'] = 'logs'
+                        context['page_title'] = 'DREAMS Logs'
+                        context['logs'] = logs_list
+                        context['filter_text'] = filter_text
+                        context['filter_date_from'] = filter_date_from
+                        context['filter_date'] = filter_date_to
+                        context['items_in_page'] = 0 if logs_list.end_index() == 0 else (logs_list.end_index() - logs_list.start_index() + 1)
+
+                    except Exception as e:
+                        tb = traceback.format_exc(e)
+                        return HttpResponseServerError(tb)
+                else:
+                    raise bad_request(self.request, None)
+            else:
+                context['to_login'] = True
+
+        except Exception as e:
+            tb = traceback.format_exc(e)
+            context['error'] = tb
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        if context['to_login']:
+            return redirect('login')
+        if context['error'] != '':
+            return HttpResponseServerError(context['error'])
+        return super(LogsListView, self).render_to_response(context, **response_kwargs)
+
+    def get_queryset(self):
+        return Audit.objects.none()
 
 
 def filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs):
@@ -3631,66 +3663,95 @@ def filter_audit_logs_by_date_and_ip(filter_date_to, filter_date_from, ip, logs)
     return logs
 
 
-# user management
-def users(request):
-    user = request.user
-    if user and user.is_authenticated and user.is_active and user.has_perm('auth.can_manage_user'):
+class UsersListView(ListView):
+    model = User
+    template_name = 'users.html'
+
+    def post(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(UsersListView, self).get_context_data(**kwargs)
+        context['to_login'] = False
+        context['error'] = ''
+
         try:
-            items_per_page = 15
-            if request.method == 'GET':
-                page = request.GET.get('page', 1)
-                filter_text = request.GET.get('filter-user-text', '')
-                ip_user_list = ImplementingPartnerUser.objects.filter(Q(user__first_name__contains=filter_text) |
-                                                                      Q(user__last_name__contains=filter_text) |
-                                                                      Q(user__username__contains=filter_text)
-                                                                      ).order_by('-user__date_joined')
-            elif request.method == 'POST':
-                page = request.POST.get('page', 1)
-                filter_text = request.POST.get('filter-user-text', '')
-                # get list of users with the filter incorporated
-                if filter_text is not u'' and filter_text is not " ":
-                    ip_user_list = ImplementingPartnerUser.objects.filter(
-                        Q(user__first_name__in=filter_text.split(" ")) |
-                        Q(user__last_name__in=filter_text.split(" ")) |
-                        Q(user__username__in=filter_text.split(" "))
-                    ).order_by('-user__date_joined')
-                else:
-                    ip_user_list = ImplementingPartnerUser.objects.filter(Q(user__first_name__contains=filter_text) |
-                                                                          Q(user__last_name__contains=filter_text) |
-                                                                          Q(user__username__contains=filter_text)
-                                                                          ).order_by('-user__date_joined')
-            #  current user ip
-            try:
-                current_user_ip = user.implementingpartneruser.implementing_partner
-            except ImplementingPartnerUser.DoesNotExist:
-                current_user_ip = None
-            except ImplementingPartner.DoesNotExist:
-                current_user_ip = None
-            if not user.has_perm('DreamsApp.can_view_cross_ip_data'):
-                if current_user_ip is not None:
-                    ip_user_list = ip_user_list.filter(implementing_partner=current_user_ip)
-                else:
-                    ip_user_list = ImplementingPartnerUser.objects.none()
-            # do pagination
-            paginator = Paginator(ip_user_list, items_per_page)
-            final_ip_user_list = paginator.page(page)
-        except ImplementingPartnerUser.DoesNotExist:
-            current_user_ip = None
-        except PageNotAnInteger:
-            final_ip_user_list = paginator.page(1)  # Deliver the first page is page is not an integer
-        except EmptyPage:
-            final_ip_user_list = paginator.page(0)  # Deliver the last page if page is out of scope
-        return render(request, 'users.html',
-                      {'page': 'users', 'page_title': 'DREAMS User List', 'ip_users': final_ip_user_list,
-                       'filter_text': filter_text,
-                       'items_in_page': 0 if final_ip_user_list.end_index() == 0 else
-                       (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1),
-                       'implementing_partners': ImplementingPartner.objects.all(),
-                       'current_user_ip': current_user_ip,
-                       'roles': Group.objects.all()
-                       })
-    else:
-        raise PermissionDenied  # this should be a redirection to the permissions denied page
+            user = self.request.user
+            if user and user.is_authenticated and user.is_active and user.has_perm('auth.can_manage_user'):
+                try:
+                    items_per_page = 15
+                    if self.request.method == 'GET':
+                        page = self.request.GET.get('page', 1)
+                        filter_text = self.request.GET.get('filter-user-text', '')
+                        ip_user_list = ImplementingPartnerUser.objects.filter(
+                            Q(user__first_name__contains=filter_text) |
+                            Q(user__last_name__contains=filter_text) |
+                            Q(user__username__contains=filter_text)
+                            ).order_by('-user__date_joined')
+                    elif self.request.method == 'POST':
+                        page = self.request.POST.get('page', 1)
+                        filter_text = self.request.POST.get('filter-user-text', '')
+                        # get list of users with the filter incorporated
+                        if filter_text is not u'' and filter_text is not " ":
+                            ip_user_list = ImplementingPartnerUser.objects.filter(
+                                Q(user__first_name__in=filter_text.split(" ")) |
+                                Q(user__last_name__in=filter_text.split(" ")) |
+                                Q(user__username__in=filter_text.split(" "))
+                            ).order_by('-user__date_joined')
+                        else:
+                            ip_user_list = ImplementingPartnerUser.objects.filter(
+                                Q(user__first_name__contains=filter_text) |
+                                Q(user__last_name__contains=filter_text) |
+                                Q(user__username__contains=filter_text)
+                                ).order_by('-user__date_joined')
+                    #  current user ip
+                    try:
+                        current_user_ip = user.implementingpartneruser.implementing_partner
+                    except ImplementingPartnerUser.DoesNotExist:
+                        current_user_ip = None
+                    except ImplementingPartner.DoesNotExist:
+                        current_user_ip = None
+                    if not user.has_perm('DreamsApp.can_view_cross_ip_data'):
+                        if current_user_ip is not None:
+                            ip_user_list = ip_user_list.filter(implementing_partner=current_user_ip)
+                        else:
+                            ip_user_list = ImplementingPartnerUser.objects.none()
+                    # do pagination
+                    paginator = Paginator(ip_user_list, items_per_page)
+                    final_ip_user_list = paginator.page(page)
+                except ImplementingPartnerUser.DoesNotExist:
+                    current_user_ip = None
+                except PageNotAnInteger:
+                    final_ip_user_list = paginator.page(1)  # Deliver the first page is page is not an integer
+                except EmptyPage:
+                    final_ip_user_list = paginator.page(0)  # Deliver the last page if page is out of scope
+
+                context['page'] = 'users'
+                context['page_title'] = 'DREAMS User List'
+                context['ip_users'] = final_ip_user_list
+                context['filter_text'] = filter_text
+                context['items_in_page'] = 0 if final_ip_user_list.end_index() == 0 else (final_ip_user_list.end_index() - final_ip_user_list.start_index() + 1)
+                context['implementing_partners'] = ImplementingPartner.objects.all()
+                context['current_user_ip'] = current_user_ip
+                context['roles'] = Group.objects.all()
+
+            else:
+                context['to_login'] = True
+
+        except Exception as e:
+            tb = traceback.format_exc(e)
+            context['error'] = tb
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        if context['to_login']:
+            return redirect('login')
+        if context['error'] != '':
+            return HttpResponseServerError(context['error'])
+        return super(UsersListView, self).render_to_response(context, **response_kwargs)
+
+    def get_queryset(self):
+        return User.objects.none()
 
 
 def save_user(request):
@@ -4247,14 +4308,14 @@ class ClientTransfesListView(ListView):
         try:
             user = self.request.user
             if user is not None and user.is_authenticated and user.is_active:
-                transferred_in = bool(int(kwargs.pop('transferred_in', 1)))
+                transferred_in = self.kwargs['transferred_in']
                 search_transfers_term = ''
                 transfer_perm = TransferServiceLayer(user)
                 can_accept_or_reject = transfer_perm.can_accept_or_reject_transfer()
                 c_transfers = None
                 try:
                     ip = user.implementingpartneruser.implementing_partner
-                    if transferred_in:
+                    if transferred_in == 1:
                         search_term = None
                         if self.request.POST:
                             search_term = self.request.POST.get('search-transfers-term')
@@ -4331,13 +4392,13 @@ class ClientReferralsListView(ListView):
         try:
             user = self.request.user
             if user is not None and user.is_authenticated and user.is_active:
-                referred_in = bool(int(kwargs.pop('referred_in', 1)))
+                referred_in = self.kwargs["referred_in"]
                 referral_perm = ReferralServiceLayer(user)
                 can_accept_or_reject = referral_perm.can_accept_or_reject_referral()
 
                 try:
                     ip = user.implementingpartneruser.implementing_partner
-                    if referred_in:
+                    if referred_in == 1:
                         client_referrals = Referral.objects.filter(Q(receiving_ip=ip) | (Q(referring_ip=ip) and (
                                 Q(external_organisation__isnull=False) | Q(
                             external_organisation_other__isnull=False)))).order_by(
