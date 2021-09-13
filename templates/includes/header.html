@@ -87,10 +87,10 @@
                         {% endif %}
 
                         {% if perms.DreamsApp.can_manage_audit %}
-                            <li class="{% if page == 'logs' %}active{% endif %}"><a href="logs">Logs </a></li>
+                            <li class="{% if page == 'logs' %}active{% endif %}"><a href="{% url 'logs' %}">Logs </a></li>
                         {% endif %}
                         {% if perms.auth.can_manage_user %}
-                            <li class="{% if page == 'users' %}active{% endif %}"><a href="users">Users </a></li>
+                            <li class="{% if page == 'users' %}active{% endif %}"><a href="{% url 'users' %}">Users </a></li>
                         {% endif %}
                     {% endif %}
                     <!--
