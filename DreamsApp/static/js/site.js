@@ -1526,13 +1526,12 @@ $(document).ready(function () {
         getWardsFilter(false, null, null);
     });
 
-
     $('#id_county_of_residence').change(function (event) {
         getSubCounties(false, null, null, null);
     });
 
 	 $('#id_sub_county').change(function (event) {
-        getWards(false, null, null);
+         getWards(false, null, null);
     });
 
 
@@ -2667,10 +2666,75 @@ $(document).ready(function () {
         });
     });
 
+    function getClientTransfersCount() {
+        var el = $('#client-transfers-count-total-span');
+        $.ajax({
+            url: $(el).data('count-url')
+        }).done(function (data, textStatus, jqXHR) {
+            if (data != 0) {
+                $(el).text(data).show();
+                getClientTransfersInOutCount();
+            } else {
+                $(el).text("").hide();
+            }
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            $(el).text(textStatus).show();
+        }).always(function () {
+            setTimeout(getClientTransfersCount, 180000);
+        });
+    }
+
+    function getClientTransfersInOutCount() {
+        $.ajax({
+            url: '/get-pending-client-transfers-in-out-count',
+            dataType: 'json'
+        }).done(function (data, textStatus, jqXHR) {
+            $('#client-transfers-count-in-span').text(data[0]).show();
+            $('#client-transfers-count-out-span').text(data[1]).show();
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            $('#client-transfers-count-in-span').text(textStatus).show();
+            $('#client-transfers-count-out-span').text(textStatus).show();
+        });
+    }
+
+    function getClientReferralsCount() {
+        var el = $('#client-referrals-count-total-span');
+
+        $.ajax({
+            url: $(el).data('count-url')
+        }).done(function (data, textStatus, jqXHR) {
+             if (data != 0) {
+                $(el).text(data).show();
+                getClientReferralsInOutCount();
+            } else {
+                $(el).text("").hide();
+            }
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            $(el).text(textStatus).show();
+        }).always(function () {
+            setTimeout(getClientReferralsCount, 180000);
+        });
+    }
+
+    function getClientReferralsInOutCount() {
+        $.ajax({
+            url: '/get-pending-client-referrals-in-out-count',
+            dataType: 'json',
+        }).done(function (data, textStatus, jqXHR) {
+            $('#client-referrals-count-in-span').text(data[0]).show();
+            $('#client-referrals-count-out-span').text(data[1]).show();
+
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            $('#client-referrals-count-in-span').text(textStatus).show();
+            $('#client-referrals-count-out-span').text(textStatus).show();
+        }).always(function () {
+            setTimeout(getClientReferralsCount, 180000);
+        });
+    }
+
     setTimeout(getClientTransfersCount(), 180000);
 
     setTimeout(getClientReferralsCount(), 180000);
-
 
     $("#btn_submit_void_client_form").click(function (e) {
         e.preventDefault();
@@ -3434,6 +3498,11 @@ function getWardsFilter(setSelected, sc_id, ward_id) {
 }
 
 function getSubCounties(setSelected, c_code, sub_county_id, ward_id) {
+    $("#id_sub_county option").remove();
+    $("#id_sub_county").append("<option value=''>Select Sub-County</option>");
+    $("#id_ward option").remove();
+    $("#id_ward").append("<option value=''>Select Ward</option>");
+
     var county_id = setSelected == true ? c_code : $('#id_county_of_residence').val();
     var csrftoken = getCookie('csrftoken');
 
@@ -3446,8 +3515,6 @@ function getSubCounties(setSelected, c_code, sub_county_id, ward_id) {
         },
         success: function (data) {
             var sub_counties = $.parseJSON(data.sub_counties);
-            $("#id_sub_county option").remove();
-            $("#id_sub_county").append("<option value=''>Select Sub-County</option>");
             $.each(sub_counties, function (index, field) {
                 $("#id_sub_county").append("<option data-sub_county_id='" + field.pk + "' value='" + field.pk + "'>" + field.fields.name + "</option>");
             });
@@ -3676,68 +3743,3 @@ function fetchIntervention(interventionTypeCode) {
     });
 }
 
-function getClientTransfersCount() {
-    var el = $('#client-transfers-count-total-span');
-    $.ajax({
-        url: $(el).data('count-url')
-    }).done(function (data, textStatus, jqXHR) {
-        if (data != 0) {
-            $(el).text(data).show();
-            getClientTransfersInOutCount();
-        } else {
-            $(el).text("").hide();
-        }
-    }).fail(function (jqXHR, textStatus, errorThrown) {
-        $(el).text(textStatus).show();
-    }).always(function () {
-        setTimeout(getClientTransfersCount, 180000);
-    });
-}
-
-function getClientTransfersInOutCount() {
-    $.ajax({
-        url: '/get-pending-client-transfers-in-out-count',
-        dataType: 'json'
-    }).done(function (data, textStatus, jqXHR) {
-        $('#client-transfers-count-in-span').text(data[0]).show();
-        $('#client-transfers-count-out-span').text(data[1]).show();
-    }).fail(function (jqXHR, textStatus, errorThrown) {
-        $('#client-transfers-count-in-span').text(textStatus).show();
-        $('#client-transfers-count-out-span').text(textStatus).show();
-    });
-}
-
-function getClientReferralsCount() {
-    var el = $('#client-referrals-count-total-span');
-
-    $.ajax({
-        url: $(el).data('count-url')
-    }).done(function (data, textStatus, jqXHR) {
-         if (data != 0) {
-            $(el).text(data).show();
-            getClientReferralsInOutCount();
-        } else {
-            $(el).text("").hide();
-        }
-    }).fail(function (jqXHR, textStatus, errorThrown) {
-        $(el).text(textStatus).show();
-    }).always(function () {
-        setTimeout(getClientReferralsCount, 180000);
-    });
-}
-
-function getClientReferralsInOutCount() {
-    $.ajax({
-        url: '/get-pending-client-referrals-in-out-count',
-        dataType: 'json',
-    }).done(function (data, textStatus, jqXHR) {
-        $('#client-referrals-count-in-span').text(data[0]).show();
-        $('#client-referrals-count-out-span').text(data[1]).show();
-
-    }).fail(function (jqXHR, textStatus, errorThrown) {
-        $('#client-referrals-count-in-span').text(textStatus).show();
-        $('#client-referrals-count-out-span').text(textStatus).show();
-    }).always(function () {
-        setTimeout(getClientReferralsCount, 180000);
-    });
-}
