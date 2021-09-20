@@ -484,6 +484,13 @@ class ClientDetailView(DetailView):
                                                                 enrolment=client_demographics)
             client_action_permissions.can_perform_edit()
 
+            counties = County.objects.all()
+            sub_counties = client_demographics.county_of_residence.subcounty_set.all()
+            wards = client_demographics.sub_county.ward_set.all()
+            demographics_form.fields['county_of_residence'].queryset = counties
+            demographics_form.fields['sub_county'].queryset = sub_counties
+            demographics_form.fields['ward'].queryset = wards
+
             context['client'] = client_demographics
             context['demo_form'] = demographics_form
             context['search_client_term'] = search_client_term
