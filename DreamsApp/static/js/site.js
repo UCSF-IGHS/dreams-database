@@ -481,6 +481,7 @@ $(document).ready(function () {
                     $(alert_id).addClass('alert-success');
                     $(alert_id).removeClass('hidden').text(message).trigger('madeVisible');
                     $('#client-make-referral-modal').modal('hide');
+                    getClientReferralsCount();
 
                 } else if (status == 'fail') {
                     $(alert_id).addClass('alert-danger');
@@ -538,6 +539,7 @@ $(document).ready(function () {
             if (status == 'success') {
                 $(alert_id).addClass('alert-success');
                 show_notification(alert_id, message);
+                getClientTransfersCount();
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
         }).always(function () {
