@@ -21,7 +21,7 @@ django-mysql==2.1.0
 django-navigation==0.8.1
 django-tinymce==2.6.0
 django-widget-tweaks==1.4.1
-djangorestframework==3.6.2
+djangorestframework==3.18.2
 djangorestframework-simplejwt==4.4.0
 et-xmlfile==1.0.1
 factory-boy==3.1.0
